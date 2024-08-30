@@ -24,7 +24,10 @@ export default {
         sendAgain: 'Отправить код еще раз',
         loading: 'Проверка...',
       },
-      navbar: {},
+      navbar: {
+        logo: 'AM-CHOKERS',
+        menu: 'Меню',
+      },
     },
     validation: {
       required: 'Обязательное поле',

@@ -6,6 +6,7 @@ import { useAppSelector } from '@/utilities/hooks';
 import useErrorHandler from '@/utilities/useErrorHandler';
 import useAuthHandler from '@/utilities/useAuthHandler';
 import { SubmitContext } from '@/components/Context';
+import { NavBar } from '@/components/NavBar';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
@@ -29,7 +30,8 @@ export const App = ({ children }: { children: JSX.Element }) => {
   return isLoaded ? (
     <>
       <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" />
-      <div className="container position-relative">
+      <NavBar />
+      <div className="container">
         {children}
       </div>
     </>

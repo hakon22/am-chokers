@@ -8,7 +8,6 @@ const Index = () => {
   return (
     <div className="d-flex justify-content-center anim-show">
       <Helmet title={t('title')} description={t('description')} />
-      <NavBar />
       <div className="my-4 col-12 d-flex flex-column align-items-center gap-3">
         <h1>{t('title')}</h1>
       </div>

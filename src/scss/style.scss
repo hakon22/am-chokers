@@ -1,20 +1,20 @@
 /* Roboto */
 @font-face {
   font-weight: 400;
-  font-family: Roboto;
-  src: url('../fonts/Roboto-Regular.ttf');
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Regular.ttf');
 }
 
 @font-face {
   font-weight: 500;
-  font-family: Roboto;
-  src: url('../fonts/Roboto-Medium.ttf');
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Medium.ttf');
 }
 
 @font-face {
   font-weight: 700;
-  font-family: Roboto;
-  src: url('../fonts/Roboto-Bold.ttf');
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Bold.ttf');
 }
 
 /* RussoOne */
@@ -26,8 +26,9 @@
 
 body {
   font-family: Roboto, sans-serif;
-  background-color: $background;
+  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
   color: $font;
+  height: 100vh;
 }
 
 h1 {
@@ -52,6 +53,11 @@ h1 {
 }
 
 .cursor-pointer {
+  cursor: pointer;
+}
+
+.icon {
+  font-size: 1.8rem;
   cursor: pointer;
 }
 
@@ -245,7 +251,6 @@ h1 {
   height: 100vh;
 
   &-content {
-    background-color: $background !important;
     align-items: center;
 
     .ant-drawer-header {
