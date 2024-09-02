@@ -25,10 +25,12 @@
 }
 
 body {
-  font-family: Roboto, sans-serif;
+  font-family: Oswald, sans-serif;
   background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
+  background-attachment: fixed;
+  background-size: cover;
   color: $font;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 h1 {
@@ -59,6 +61,13 @@ h1 {
 .icon {
   font-size: 1.8rem;
   cursor: pointer;
+
+  &-button {
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background-color: transparent;
+  }
 }
 
 .button {
@@ -401,7 +410,5 @@ h1 {
 }
 
 @media (min-width: 768px) {
-  .container {
-    width: 500px;
-  }
+
 }

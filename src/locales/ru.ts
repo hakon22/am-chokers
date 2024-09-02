@@ -26,7 +26,17 @@ export default {
       },
       navbar: {
         logo: 'AM-CHOKERS',
-        menu: 'Меню',
+        search: 'Поиск',
+        favorites: 'Избранное',
+        cart: 'Корзина',
+        profile: 'Профиль',
+        menu: {
+          catalog: 'Каталог',
+          aboutBrand: 'О бренде',
+          delivery: 'Доставка',
+          jewelryCaring: 'Уход за украшениями',
+          contacts: 'Контакты',
+        },
       },
     },
     validation: {

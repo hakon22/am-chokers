@@ -1,8 +1,9 @@
 .nav {
-  position: relative;
+  position: fixed;
   width: 100%;
   background-color: $bg-navbar;
   padding: 1rem 3rem;
+  z-index: 1;
 
   .ant-menu {
     font-family: Oswald, sans-serif;
