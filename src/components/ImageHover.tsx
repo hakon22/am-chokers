@@ -3,14 +3,17 @@ import Image, { type StaticImageData } from 'next/image';
 
 type ImageHoverType = {
   images: StaticImageData[];
-  width: number;
-  height: number;
+  height: number | string;
+  width?: number | string;
+  title?: string;
+  description?: string;
+  marker?: boolean;
   style?: CSSProperties;
   className?: string;
 };
 
 export const ImageHover = ({
-  images, width, height, className = '', style = {},
+  images, height, width = undefined, title = '', description = '', marker = false, className = '', style = {},
 }: ImageHoverType) => {
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -39,7 +42,7 @@ export const ImageHover = ({
 
   return (
     <div
-      className={`image-hover ${className}`}
+      className={`image-hover d-flex justify-content-center align-items-end ${className}`}
       style={{ width, height, ...style }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -53,6 +56,9 @@ export const ImageHover = ({
           className={i === index ? 'active' : ''}
         />
       ))}
+      {marker ? images.map((image, i) => <span key={image.src} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+      {title ? <div className="title">{title}</div> : null}
+      {description ? <div className="description">{description}</div> : null}
     </div>
   );
 };

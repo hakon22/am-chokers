@@ -1,0 +1,30 @@
+name: Deploy to VPS [chokers.am-projects.ru]
+
+on:
+  push:
+    branches:
+      - production
+  workflow_dispatch: # Позволяет запускать работу вручную
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
+
+    - name: Deploy to VPS [chokers.am-projects.ru]
+      run: |
+        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
+          cd /var/www/chokers.am-projects.ru
+          git pull origin production
+          make install
+          make build
+          make start
+        EOF
