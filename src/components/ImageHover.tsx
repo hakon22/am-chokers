@@ -34,7 +34,7 @@ export const ImageHover = ({
   useEffect(() => {
     if (isHovered) {
       changeImage();
-      const interval = setInterval(changeImage, 1000);
+      const interval = setInterval(changeImage, 3000);
       return () => clearInterval(interval);
     }
     return undefined;

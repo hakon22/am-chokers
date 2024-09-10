@@ -13,7 +13,7 @@ const Index = () => {
     <div className="d-flex justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
-        <Image src={choker} alt={t('title')} className="pe-none" priority style={{ zIndex: 1 }} />
+        <Image src={choker} alt={t('title')} className="pe-none" priority style={{ zIndex: 2 }} />
         <div className="index-block">
           <div className="d-flex col-11">
             <h3 className="d-flex align-items-end col-2">Новинки</h3>
