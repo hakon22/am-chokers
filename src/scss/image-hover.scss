@@ -1,18 +1,31 @@
 .image-hover {
   position: relative;
+  margin-bottom: 1rem;
 
-  .title {
-    position: absolute;
-    bottom: -2.5rem;
-    left: 0;
-    font-size: 1.2rem;
-  }
+  &-sub {
 
-  .description {
-    position: absolute;
-    bottom: -4.5rem;
-    left: 0;
-    font-size: 1.2rem;
+    .title {
+      bottom: -2.5rem;
+      left: 0;
+      font-size: 1.2rem;
+    }
+  
+    .description {
+      bottom: -4.5rem;
+      left: 0;
+      font-size: 1.2rem;
+    }
+  
+    .see-all {
+      display: flex;
+      align-items: center;
+      column-gap: 0.5rem;
+      bottom: -8.5rem;
+      left: 0;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      color: $dark-blue;
+    }
   }
 
   img {

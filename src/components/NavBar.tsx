@@ -3,19 +3,27 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/utilities/hooks';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { SearchOutlined, HeartOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import {
+  SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
+} from '@ant-design/icons';
 import routes from '@/routes';
 import logo from '@/images/logo.svg';
 import person from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
 import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
-import { Navbar as NavBarBootstrap, NavDropdown } from 'react-bootstrap';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
 };
 
 type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
+
+const LabelWithIcon = ({ label }: { label: string }) => (
+  <div className="d-flex align-items-center gap-2">
+    <span>{label}</span>
+    <DownOutlined />
+  </div>
+);
 
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
@@ -39,20 +47,22 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     {
-      label: t('menu.catalog'),
+      label: <LabelWithIcon label={t('menu.catalog.title')} />,
       key: 'catalog',
       onTitleClick: () => router.push(routes.homePage),
       onTitleMouseEnter,
       onTitleMouseLeave,
-      children: [{ label: 'Привет', key: 'hi' }, { label: 'Второй элемент более длинный', key: 'hi2' }],
+      children: [
+        { label: t('menu.catalog.necklace'), key: 'necklace' },
+        { label: t('menu.catalog.bracelets'), key: 'bracelets' },
+        { label: t('menu.catalog.earrings'), key: 'earrings' },
+        { label: t('menu.catalog.accessories'), key: 'accessories' },
+      ],
     },
     {
       label: t('menu.aboutBrand'),
       key: 'aboutBrand',
       onTitleClick: () => router.push(routes.homePage),
-      onTitleMouseEnter,
-      onTitleMouseLeave,
-      children: [{ label: 'Привет', key: 'h3i' }, { label: 'Второй элемент более длинный', key: 'hi32' }, { label: 'Третий элемент', key: '4hi32' }],
     },
     {
       label: t('menu.delivery'),
@@ -63,9 +73,6 @@ export const NavBar = () => {
       label: t('menu.jewelryCaring'),
       key: 'jewelryCaring',
       onTitleClick: () => router.push(routes.homePage),
-      onTitleMouseEnter,
-      onTitleMouseLeave,
-      children: [{ label: 'Привет', key: 'h4i' }, { label: 'Второй элемент более длинный', key: 'hi24' }],
     },
     {
       label: t('menu.contacts'),
@@ -77,10 +84,8 @@ export const NavBar = () => {
   useEffect(() => {
     if (!submenu) {
       setNavHeight('7vw');
-    } else if (submenu === 'catalog' || submenu === 'jewelryCaring') {
-      setNavHeight('13vw');
-    } else if (submenu === 'aboutBrand') {
-      setNavHeight('16vw');
+    } else if (submenu === 'catalog') {
+      setNavHeight('19vw');
     }
   }, [submenu]);
 

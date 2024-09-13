@@ -31,7 +31,13 @@ export default {
         cart: 'Корзина',
         profile: 'Профиль',
         menu: {
-          catalog: 'Каталог',
+          catalog: {
+            title: 'Каталог',
+            necklace: 'Колье',
+            bracelets: 'Браслеты',
+            earrings: 'Серьги',
+            accessories: 'Аксессуары',
+          },
           aboutBrand: 'О бренде',
           delivery: 'Доставка',
           jewelryCaring: 'Уход за украшениями',
