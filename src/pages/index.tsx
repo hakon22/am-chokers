@@ -6,16 +6,17 @@ import choker from '@/images/choker.png';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
 import { ImageHover } from '@/components/ImageHover';
-import {
-  useEffect, useRef, useState, WheelEvent,
-} from 'react';
+import { useContext, useRef, WheelEvent } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
+import { ScrollContext } from '@/components/Context';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const router = useRouter();
+
+  const scrollBar = useContext(ScrollContext);
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -116,7 +117,7 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <button className="see-all color-dark-blue icon-button" type="button">
+            <button className="see-all color-dark-blue icon-button" style={{ marginLeft: scrollBar ? `calc(${scrollBar} + 3px)` : 0 }} type="button">
               <span>Смотреть все</span>
               <ArrowRight />
             </button>

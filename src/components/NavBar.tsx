@@ -4,13 +4,16 @@ import { useAppSelector } from '@/utilities/hooks';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
+  MouseEvent as ReactMouseEvent, useEffect, useState, useContext,
+} from 'react';
+import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
 import routes from '@/routes';
 import logo from '@/images/logo.svg';
 import person from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
-import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
+import { ScrollContext } from '@/components/Context';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -29,10 +32,12 @@ export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
+  const scrollBar = useContext(ScrollContext);
+
   const router = useRouter();
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [navHeight, setNavHeight] = useState<string>('7vw');
+  const [navHeight, setNavHeight] = useState<string>(`calc(7vw + ${scrollBar})`);
 
   const { id, role } = useAppSelector((state) => state.user);
 
@@ -83,11 +88,15 @@ export const NavBar = () => {
 
   useEffect(() => {
     if (!submenu) {
-      setNavHeight('7vw');
+      setNavHeight(`calc(7vw + ${scrollBar})`);
     } else if (submenu === 'catalog') {
-      setNavHeight('19vw');
+      setNavHeight(`calc(19vw + ${scrollBar})`);
     }
   }, [submenu]);
+
+  useEffect(() => {
+    setNavHeight(`calc(7vw + ${scrollBar})`);
+  }, [scrollBar]);
 
   return (
     <nav className="nav" style={{ height: navHeight }}>
@@ -103,8 +112,8 @@ export const NavBar = () => {
             zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
           }}
           onMouseLeave={() => setSubmenu(undefined)}
-          subMenuCloseDelay={0.01}
-          subMenuOpenDelay={0.2}
+          subMenuCloseDelay={0.0000000001}
+          subMenuOpenDelay={0.3}
         />
       </div>
       <div className="nav-icons">
