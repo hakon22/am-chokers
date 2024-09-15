@@ -91,7 +91,9 @@ export const NavBar = () => {
 
   return (
     <nav className="nav" style={{ height: navHeight }}>
-      <Image src={logo} className="nav-logo" alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} />
+      <div className="nav-logo-container">
+        <Image src={logo} className="nav-logo" alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} />
+      </div>
       <div className="nav-menu">
         <Menu
           items={items}

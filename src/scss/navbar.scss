@@ -13,7 +13,11 @@
   transition: all 0.4s ease-in;
 
   &-logo {
-    width: 20%;
+    height: auto;
+
+    &-container {
+      width: 20%;
+    }
   }
 
   &-menu {

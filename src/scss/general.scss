@@ -1,0 +1,90 @@
+@font-face {
+  font-weight: 200;
+  font-family: Oswald;
+  src: url('../fonts/Oswald-ExtraLight.ttf');
+}
+
+@font-face {
+  font-weight: 300;
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Light.ttf');
+}
+
+@font-face {
+  font-weight: 400;
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Regular.ttf');
+}
+
+@font-face {
+  font-weight: 500;
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Medium.ttf');
+}
+
+@font-face {
+  font-weight: 700;
+  font-family: Oswald;
+  src: url('../fonts/Oswald-Bold.ttf');
+}
+
+@font-face {
+  font-weight: 400;
+  font-family: mr_hamiltoneg;
+  src: url('../fonts/mr_hamiltoneg.ttf');
+}
+
+body {
+  font-family: Oswald, sans-serif;
+  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  color: $font;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h2 {
+  margin: 0;
+  line-height: 1;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.icon {
+  font-size: 1.8rem;
+  cursor: pointer;
+
+  &-button {
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background-color: transparent;
+  }
+}
+
+.spinner {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  -webkit-transform: translate(-50%, -50%) !important;
+  -o-transform: translate(-50%, -50%) !important;
+}
+
+.ant-spin-fullscreen {
+  z-index: 1500;
+}
+
+.font-mr_hamiltoneg {
+  font-family: mr_hamiltoneg;
+  letter-spacing: 3px;
+}
+
+.color-dark-blue {
+  color: $dark-blue;
+}
+
+@media (min-width: 768px) {
+
+}

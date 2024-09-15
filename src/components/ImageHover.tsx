@@ -1,6 +1,5 @@
 import { useState, useEffect, CSSProperties } from 'react';
 import Image, { type StaticImageData } from 'next/image';
-import { ArrowRight } from 'react-bootstrap-icons';
 
 type ImageHoverType = {
   images: StaticImageData[];
@@ -11,7 +10,6 @@ type ImageHoverType = {
   marker?: boolean;
   style?: CSSProperties;
   className?: string;
-  seeAll?: string;
 };
 
 export const ImageHover = ({
@@ -20,7 +18,6 @@ export const ImageHover = ({
   width = undefined,
   title = '',
   description = '',
-  seeAll = '',
   marker = false,
   className = '',
   style = {},
@@ -53,7 +50,7 @@ export const ImageHover = ({
   return (
     <div className={`d-flex flex-column ${className}`}>
       <div
-        className="image-hover d-flex justify-content-center align-items-end"
+        className="image-hover"
         style={{ width, height, ...style }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -68,17 +65,13 @@ export const ImageHover = ({
           />
         ))}
       </div>
-      <div className="image-hover-sub">
-        {marker ? images.map((image, i) => <span key={image.src} className={i === index ? 'sphere active' : 'sphere'} />) : null}
-        {title ? <div className="title">{title}</div> : null}
-        {description ? <div className="description">{description}</div> : null}
-        {seeAll ? (
-          <button className="see-all icon-button" type="button">
-            <span>{seeAll}</span>
-            <ArrowRight />
-          </button>
-        ) : null}
-      </div>
+      {marker || title || description ? (
+        <div className="image-hover-sub mt-3" style={{ width, ...style }}>
+          {marker ? images.map((image, i) => <span key={image.src} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+          {title ? <div className="title">{title}</div> : null}
+          {description ? <div className="description">{description}</div> : null}
+        </div>
+      ) : null}
     </div>
   );
 };
