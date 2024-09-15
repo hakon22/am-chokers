@@ -19,10 +19,13 @@ export const App = ({ children }: { children: JSX.Element }) => {
   return (
     <>
       {loadingStatus === 'finish' ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : null}
-      <NavBar />
-      <div className="container">
+      <header>
+        <NavBar />
+      </header>
+      <main className="container">
         {children}
-      </div>
+      </main>
+      <footer>footer</footer>
     </>
   );
 };

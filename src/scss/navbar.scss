@@ -1,32 +1,79 @@
 .nav {
   position: fixed;
+  display: flex;
   width: 100%;
   background-color: $bg-navbar;
   padding: 1rem 3rem;
-  z-index: 1;
+  font-family: Oswald, sans-serif;
+  font-weight: 400;
+  font-size: 1rem;
+  text-transform: uppercase;
+  box-shadow: 0px 6px 24px 0px #0000000f;
+  z-index: 2;
+  transition: all 0.4s ease-in;
 
-  .ant-menu {
-    font-family: Oswald, sans-serif;
-    font-weight: 400;
-    font-size: 1rem;
-    text-transform: uppercase;
+  &-logo {
+    height: auto;
+
+    &-container {
+      width: 20%;
+    }
   }
 
   &-menu {
-    background-color: transparent;
-    width: 100%;
-    border-bottom: unset;
     display: flex;
     justify-content: center;
-    align-items: center;
-    position: absolute;
-    left: 0;
+    width: 60%;
+    background-color: transparent;
+    position: relative;
+    top: 0.85rem;
   }
 
   &-icons {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
+    max-height: 74px;
+    width: 20%;
   }
+}
+
+.ant-menu {
+  border-bottom: unset;
+  background: transparent;
+  background-color: transparent;
+  box-shadow: none;
+  width: 100%;
+
+  &-light {
+    background-color: transparent;
+  }
+
+  &-submenu.bg-transparent {
+    width: max-content;
+  }
+}
+
+.ant-menu-light.ant-menu-submenu > .ant-menu {
+  background-color: transparent;
+}
+
+.ant-menu-light.ant-menu-submenu-popup > .ant-menu {
+  background-color: transparent;
+}
+
+.ant-menu-submenu-popup, .ant-menu-submenu {
+  background-color: transparent;
+}
+
+.ant-menu-submenu-popup .ant-menu-vertical {
+  box-shadow: none;
+}
+
+.ant-menu-sub > .ant-menu-item-only-child {
+  padding: 0 5px !important;
+  width: max-content !important;
+  font-family: Oswald, sans-serif !important;
+  font-weight: 300;
+  font-size: 0.9rem !important;
+  letter-spacing: 2px !important;
 }

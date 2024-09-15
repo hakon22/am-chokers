@@ -28,3 +28,5 @@ export const NavbarContext = createContext<{
       setIsActive: () => undefined,
       closeNavbar: () => undefined,
     });
+
+export const ScrollContext = createContext<string>('');

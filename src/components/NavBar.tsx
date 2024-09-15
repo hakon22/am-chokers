@@ -1,28 +1,68 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/utilities/hooks';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { SearchOutlined, HeartOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import {
+  MouseEvent as ReactMouseEvent, useEffect, useState, useContext,
+} from 'react';
+import {
+  SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
+} from '@ant-design/icons';
 import routes from '@/routes';
 import logo from '@/images/logo.svg';
 import person from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
+import { ScrollContext } from '@/components/Context';
 
-type MenuItem = Required<MenuProps>['items'][number];
+type NavigationKeys = {
+  key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
+};
+
+type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
+
+const LabelWithIcon = ({ label }: { label: string }) => (
+  <div className="d-flex align-items-center gap-2">
+    <span>{label}</span>
+    <DownOutlined />
+  </div>
+);
 
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
+  const scrollBar = useContext(ScrollContext);
+
   const router = useRouter();
+
+  const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
+  const [navHeight, setNavHeight] = useState<string>(`calc(7vw + ${scrollBar})`);
 
   const { id, role } = useAppSelector((state) => state.user);
 
+  const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
+
+  const onTitleMouseLeave = ({ domEvent }: { domEvent: ReactMouseEvent<HTMLElement, MouseEvent> }) => {
+    const target = domEvent.relatedTarget as Element;
+    if (target?.classList?.contains('ant-menu-submenu-horizontal')) {
+      setSubmenu(undefined);
+    }
+  };
+
   const items: MenuItem[] = [
     {
-      label: t('menu.catalog'),
+      label: <LabelWithIcon label={t('menu.catalog.title')} />,
       key: 'catalog',
       onTitleClick: () => router.push(routes.homePage),
+      onTitleMouseEnter,
+      onTitleMouseLeave,
+      children: [
+        { label: t('menu.catalog.necklace'), key: 'necklace' },
+        { label: t('menu.catalog.bracelets'), key: 'bracelets' },
+        { label: t('menu.catalog.earrings'), key: 'earrings' },
+        { label: t('menu.catalog.accessories'), key: 'accessories' },
+      ],
     },
     {
       label: t('menu.aboutBrand'),
@@ -46,11 +86,37 @@ export const NavBar = () => {
     },
   ];
 
+  useEffect(() => {
+    if (!submenu) {
+      setNavHeight(`calc(7vw + ${scrollBar})`);
+    } else if (submenu === 'catalog') {
+      setNavHeight(`calc(19vw + ${scrollBar})`);
+    }
+  }, [submenu]);
+
+  useEffect(() => {
+    setNavHeight(`calc(7vw + ${scrollBar})`);
+  }, [scrollBar]);
+
   return (
-    <nav className="nav d-flex justify-content-between align-items-center">
-      <Image src={logo} alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} style={{ zIndex: 2 }} />
-      <Menu items={items} mode="horizontal" className="nav-menu" style={{ zIndex: 2 }} />
-      <div className="nav-icons" style={{ zIndex: 2 }}>
+    <nav className="nav" style={{ height: navHeight }}>
+      <div className="nav-logo-container">
+        <Image src={logo} className="nav-logo" alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} />
+      </div>
+      <div className="nav-menu">
+        <Menu
+          items={items}
+          rootClassName="bg-transparent"
+          mode="horizontal"
+          style={{
+            zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
+          }}
+          onMouseLeave={() => setSubmenu(undefined)}
+          subMenuCloseDelay={0.0000000001}
+          subMenuOpenDelay={0.3}
+        />
+      </div>
+      <div className="nav-icons">
         <button className="icon-button" type="button" title={t('search')}>
           <SearchOutlined className="icon" />
           <span className="visually-hidden">{t('search')}</span>

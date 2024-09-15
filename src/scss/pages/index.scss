@@ -1,7 +1,38 @@
-.index-block {
+.index-block-container {
   display: flex;
   flex-direction: column;
   row-gap: 15rem;
   width: 100%;
   margin-bottom: 10rem;
+
+  &-carousel {
+    position: relative;
+    right: -10%;
+    top: 4.8vw;
+  }
+
+  .see-all {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    column-gap: 0.5rem;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    color: $dark-blue;
+    width: 97.2%;
+    margin-top: 8%;
+  }
+
+  .guide {
+    position: relative;
+    background-color: #888DA3;
+    height: 600px;
+
+    &-text {
+      position: absolute;
+      text-transform: uppercase;
+      bottom: 10%;
+      left: 10%;
+    }
+  }
 }
