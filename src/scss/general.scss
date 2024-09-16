@@ -51,6 +51,16 @@ h2 {
   text-transform: uppercase;
 }
 
+.anim-show {
+	opacity: 0;
+	transition: 1s;
+  -webkit-transition: 1s;
+  -moz-transition: 1s;
+  -o-transition: 1s;
+	animation: show 1s 1;
+  animation-fill-mode: forwards;
+}
+
 .icon {
   font-size: 1.8rem;
   cursor: pointer;
@@ -64,12 +74,17 @@ h2 {
 }
 
 .spinner {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  -webkit-transform: translate(-50%, -50%) !important;
-  -o-transform: translate(-50%, -50%) !important;
+  position: absolute;
+  background-color: #bfebfe;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1500;
+
+  div {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+  }
 }
 
 .ant-spin-fullscreen {
@@ -83,6 +98,11 @@ h2 {
 
 .color-dark-blue {
   color: $dark-blue;
+}
+
+@keyframes show {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 @media (min-width: 768px) {
