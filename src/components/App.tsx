@@ -6,7 +6,6 @@ import useErrorHandler from '@/utilities/useErrorHandler';
 import useAuthHandler from '@/utilities/useAuthHandler';
 import { SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
-import { Spinner } from 'react-bootstrap';
 
 export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });

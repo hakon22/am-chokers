@@ -37,7 +37,7 @@ export const NavBar = () => {
   const router = useRouter();
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [navHeight, setNavHeight] = useState<string>(`calc(7vw + ${scrollBar})`);
+  const [navHeight, setNavHeight] = useState<string>('calc(var(--vw) * 100 - 93vw)');
 
   const { id, role } = useAppSelector((state) => state.user);
 
@@ -88,14 +88,14 @@ export const NavBar = () => {
 
   useEffect(() => {
     if (!submenu) {
-      setNavHeight(`calc(7vw + ${scrollBar})`);
+      setNavHeight('calc(var(--vw) * 100 - 93vw)');
     } else if (submenu === 'catalog') {
-      setNavHeight(`calc(19vw + ${scrollBar})`);
+      setNavHeight('calc(var(--vw) * 100 - 79vw)');
     }
   }, [submenu]);
 
   useEffect(() => {
-    setNavHeight(`calc(7vw + ${scrollBar})`);
+    setNavHeight('calc(var(--vw) * 100 - 93vw)');
   }, [scrollBar]);
 
   return (

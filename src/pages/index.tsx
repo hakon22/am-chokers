@@ -117,7 +117,7 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <button className="see-all color-dark-blue icon-button" style={{ marginLeft: scrollBar ? `calc(${scrollBar} + 3px)` : 0 }} type="button">
+            <button className="see-all color-dark-blue icon-button" style={{ marginLeft: 'calc(var(--vw) * 100 - 100vw)' }} type="button">
               <span>Смотреть все</span>
               <ArrowRight />
             </button>
