@@ -9,6 +9,7 @@ export const useScrollbarWidth = () => {
     const handleResize = () => {
       setScrollBarWidth(calculateScrollbarWidth());
       const width = window.innerWidth; // Фактическая ширина окна
+      console.log(width);
       document.documentElement.style.setProperty('--vw', `${width * 0.01}px`);
     };
 

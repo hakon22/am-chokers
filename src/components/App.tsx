@@ -6,6 +6,7 @@ import useErrorHandler from '@/utilities/useErrorHandler';
 import useAuthHandler from '@/utilities/useAuthHandler';
 import { SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
+import { Footer } from '@/components/Footer';
 
 export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
@@ -31,7 +32,9 @@ export const App = ({ children }: { children: JSX.Element }) => {
       <main className="container">
         {children}
       </main>
-      <footer>footer</footer>
+      <footer className="footer" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+        <Footer />
+      </footer>
     </>
   );
 };

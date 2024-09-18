@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/utilities/hooks';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
 import routes from '@/routes';
-import logo from '@/images/logo.svg';
-import person from '@/images/icons/person.svg';
+import logoImage from '@/images/logo.svg';
+import personIcon from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
 
 type NavigationKeys = {
@@ -18,18 +18,16 @@ type NavigationKeys = {
 
 type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
 
-const LabelWithIcon = ({ label }: { label: string }) => (
-  <div className="d-flex align-items-center gap-2">
+const LabelWithIcon = ({ label, href }: { label: string, href: string }) => (
+  <Link href={href} className="d-flex align-items-center gap-2">
     <span>{label}</span>
     <DownOutlined />
-  </div>
+  </Link>
 );
 
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
-
-  const router = useRouter();
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>('7vw');
@@ -47,9 +45,8 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     {
-      label: <LabelWithIcon label={t('menu.catalog.title')} />,
+      label: <LabelWithIcon label={t('menu.catalog.title')} href={routes.homePage} />,
       key: 'catalog',
-      onTitleClick: () => router.push(routes.homePage),
       onTitleMouseEnter,
       onTitleMouseLeave,
       children: [
@@ -60,24 +57,20 @@ export const NavBar = () => {
       ],
     },
     {
-      label: t('menu.aboutBrand'),
+      label: <Link href="/">{t('menu.aboutBrand')}</Link>,
       key: 'aboutBrand',
-      onTitleClick: () => router.push(routes.homePage),
     },
     {
-      label: t('menu.delivery'),
+      label: <Link href="/">{t('menu.delivery')}</Link>,
       key: 'delivery',
-      onTitleClick: () => router.push(routes.homePage),
     },
     {
-      label: t('menu.jewelryCaring'),
+      label: <Link href="/">{t('menu.jewelryCaring')}</Link>,
       key: 'jewelryCaring',
-      onTitleClick: () => router.push(routes.homePage),
     },
     {
-      label: t('menu.contacts'),
+      label: <Link href="/">{t('menu.contacts')}</Link>,
       key: 'contacts',
-      onTitleClick: () => router.push(routes.homePage),
     },
   ];
 
@@ -92,7 +85,9 @@ export const NavBar = () => {
   return (
     <nav className="nav" style={{ height: navHeight }}>
       <div className="nav-logo-container" data-aos="fade-down">
-        <Image src={logo} className="nav-logo" alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} />
+        <Link href="/">
+          <Image src={logoImage} className="nav-logo" alt={t('logo')} priority />
+        </Link>
       </div>
       <div className="nav-menu" data-aos="fade-down">
         <Menu
@@ -108,22 +103,22 @@ export const NavBar = () => {
         />
       </div>
       <div className="nav-icons" data-aos="fade-down">
-        <button className="icon-button" type="button" title={t('search')}>
+        <Link href="/" title={t('search')}>
           <SearchOutlined className="icon" />
           <span className="visually-hidden">{t('search')}</span>
-        </button>
-        <button className="icon-button" type="button" title={t('favorites')}>
+        </Link>
+        <Link href="/" title={t('favorites')}>
           <HeartOutlined className="icon" />
           <span className="visually-hidden">{t('favorites')}</span>
-        </button>
-        <button className="icon-button" type="button" title={t('cart')}>
+        </Link>
+        <Link href="/" title={t('cart')}>
           <ShoppingCartOutlined className="icon" />
           <span className="visually-hidden">{t('cart')}</span>
-        </button>
-        <button className="icon-button" type="button" title={t('profile')}>
-          <Image src={person} alt={t('logo')} priority />
+        </Link>
+        <Link href="/" title={t('profile')}>
+          <Image src={personIcon} alt={t('logo')} priority />
           <span className="visually-hidden">{t('profile')}</span>
-        </button>
+        </Link>
       </div>
     </nav>
   );

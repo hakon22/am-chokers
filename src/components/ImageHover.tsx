@@ -1,4 +1,7 @@
-import { useState, useEffect, CSSProperties } from 'react';
+/* eslint-disable react/jsx-props-no-spreading */
+import {
+  useState, useEffect, CSSProperties, HTMLAttributes,
+} from 'react';
 import Image, { type StaticImageData } from 'next/image';
 
 type ImageHoverType = {
@@ -10,6 +13,7 @@ type ImageHoverType = {
   marker?: boolean;
   style?: CSSProperties;
   className?: string;
+  props?: HTMLAttributes<HTMLDivElement>[];
 };
 
 export const ImageHover = ({
@@ -21,6 +25,7 @@ export const ImageHover = ({
   marker = false,
   className = '',
   style = {},
+  ...props
 }: ImageHoverType) => {
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -48,7 +53,7 @@ export const ImageHover = ({
   }, [isHovered]);
 
   return (
-    <div className={`d-flex flex-column ${className}`}>
+    <div className={`d-flex flex-column ${className}`} {...props}>
       <div
         className="image-hover"
         style={{ width, height, ...style }}
