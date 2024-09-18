@@ -6,17 +6,14 @@ import choker from '@/images/choker.png';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
 import { ImageHover } from '@/components/ImageHover';
-import { useContext, useRef, WheelEvent } from 'react';
+import { useRef, WheelEvent } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
-import { ScrollContext } from '@/components/Context';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const router = useRouter();
-
-  const scrollBar = useContext(ScrollContext);
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -76,8 +73,8 @@ const Index = () => {
       <Helmet title={t('title')} description={t('description')} />
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <Image src={choker} alt={t('title')} className="pe-none animate__animated animate__fadeInDownBig" priority style={{ zIndex: 2 }} />
-        <div className="index-block-container animate__animated animate__fadeInRight">
-          <section className="d-flex flex-column">
+        <div className="index-block-container">
+          <section className="d-flex flex-column" data-aos="fade-right" data-aos-duration="1500">
             <div className="d-flex justify-content-between col-11">
               <h2 className="d-flex align-items-end col-2">Новинки</h2>
               <Carousel
@@ -117,12 +114,12 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <button className="see-all color-dark-blue icon-button" style={{ marginLeft: 'calc(var(--vw) * 100 - 100vw)' }} type="button">
+            <button className="see-all color-dark-blue icon-button" type="button">
               <span>Смотреть все</span>
               <ArrowRight />
             </button>
           </section>
-          <section className="d-flex flex-column col-11" style={{ gap: '4rem' }}>
+          <section className="d-flex flex-column col-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <h2>Бестселлеры</h2>
             <div className="d-flex" style={{ gap: '10%' }}>
               <div className="d-flex flex-column col-4 gap-5 justify-content-between">
@@ -155,7 +152,7 @@ const Index = () => {
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12" style={{ gap: '10rem' }}>
+          <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '10rem' }}>
             <h2 className="lh-base">
               СОЗДАЙ СВОЁ
               <br />
@@ -169,7 +166,7 @@ const Index = () => {
               </span>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center">
+          <section className="d-flex flex-column align-items-center" data-aos="fade-right" data-aos-duration="1500">
             <h2 className="col-10 text-start" style={{ marginBottom: '7%' }}>Коллекции</h2>
             <div className="d-flex flex-column col-10" style={{ gap: '5rem' }}>
               <div className="d-flex justify-content-between align-items-end">
@@ -198,7 +195,7 @@ const Index = () => {
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column col-12 gap-5">
+          <section className="d-flex flex-column col-12 gap-5" data-aos="fade-left" data-aos-duration="1500">
             <div className="d-flex align-items-center">
               <ImageHover
                 className="col-4"
@@ -252,7 +249,7 @@ const Index = () => {
               />
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12">
+          <section className="d-flex flex-column align-items-center col-12" data-aos="fade-right" data-aos-duration="1500">
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">Подчёркиваю Вашу индивидуальность</div>
             <p className="fw-light fs-5 mb-2">
               <span>Подпишитесь на канал в Telegram</span>

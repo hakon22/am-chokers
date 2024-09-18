@@ -3,11 +3,14 @@
 import 'dayjs/locale/ru';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import { useCallback, useMemo, useState } from 'react';
+import {
+  useCallback, useEffect, useMemo, useState,
+} from 'react';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
+import AOS from 'aos';
 import {
   AuthContext, SubmitContext, NavbarContext, ScrollContext,
 } from '@/components/Context';
@@ -53,6 +56,10 @@ const Init = (props: AppProps) => {
   const authServices = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);
   const submitServices = useMemo(() => ({ isSubmit, setIsSubmit }), [isSubmit]);
   const navbarServices = useMemo(() => ({ isActive, setIsActive, closeNavbar }), [isActive]);
+
+  useEffect(() => {
+    AOS.init();
+  }, []);
 
   return (
     <I18nextProvider i18n={i18n}>

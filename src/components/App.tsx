@@ -25,7 +25,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
   return (
     <>
       {isLoading ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : null}
-      <header className="animate__animated animate__rollIn">
+      <header>
         <NavBar />
       </header>
       <main className="container">

@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/utilities/hooks';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import {
-  MouseEvent as ReactMouseEvent, useEffect, useState, useContext,
-} from 'react';
+import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
@@ -13,7 +11,6 @@ import routes from '@/routes';
 import logo from '@/images/logo.svg';
 import person from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
-import { ScrollContext } from '@/components/Context';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -32,12 +29,10 @@ export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
-  const scrollBar = useContext(ScrollContext);
-
   const router = useRouter();
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [navHeight, setNavHeight] = useState<string>('calc(var(--vw) * 100 - 93vw)');
+  const [navHeight, setNavHeight] = useState<string>('7vw');
 
   const { id, role } = useAppSelector((state) => state.user);
 
@@ -88,22 +83,18 @@ export const NavBar = () => {
 
   useEffect(() => {
     if (!submenu) {
-      setNavHeight('calc(var(--vw) * 100 - 93vw)');
+      setNavHeight('7vw');
     } else if (submenu === 'catalog') {
-      setNavHeight('calc(var(--vw) * 100 - 79vw)');
+      setNavHeight('19vw');
     }
   }, [submenu]);
 
-  useEffect(() => {
-    setNavHeight('calc(var(--vw) * 100 - 93vw)');
-  }, [scrollBar]);
-
   return (
     <nav className="nav" style={{ height: navHeight }}>
-      <div className="nav-logo-container">
+      <div className="nav-logo-container" data-aos="fade-down">
         <Image src={logo} className="nav-logo" alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} />
       </div>
-      <div className="nav-menu">
+      <div className="nav-menu" data-aos="fade-down">
         <Menu
           items={items}
           rootClassName="bg-transparent"
@@ -116,7 +107,7 @@ export const NavBar = () => {
           subMenuOpenDelay={0.3}
         />
       </div>
-      <div className="nav-icons">
+      <div className="nav-icons" data-aos="fade-down">
         <button className="icon-button" type="button" title={t('search')}>
           <SearchOutlined className="icon" />
           <span className="visually-hidden">{t('search')}</span>
