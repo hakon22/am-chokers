@@ -9,8 +9,9 @@ export const useScrollbarWidth = () => {
     const handleResize = () => {
       setScrollBarWidth(calculateScrollbarWidth());
       const width = window.innerWidth; // Фактическая ширина окна
-      console.log(width);
-      document.documentElement.style.setProperty('--vw', `${width * 0.01}px`);
+      const ratio = window.devicePixelRatio; // Соотношение, считаем как масштаб
+      console.log(width, ratio, width * ratio);
+      document.documentElement.style.setProperty('--width', '1920px');
     };
 
     // Запускаем функцию при первом рендере и изменениях окна

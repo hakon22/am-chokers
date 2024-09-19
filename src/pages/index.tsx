@@ -111,10 +111,10 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <button className="see-all color-dark-blue icon-button" type="button">
+            <Link href="/" className="see-all color-dark-blue icon-button">
               <span>{t('seeAll')}</span>
               <ArrowRight />
-            </button>
+            </Link>
           </section>
           <section className="d-flex flex-column col-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <h2>{t('bestsellers')}</h2>

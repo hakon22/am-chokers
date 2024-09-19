@@ -66,8 +66,21 @@
   background-color: transparent;
 }
 
+.ant-menu-submenu-popup .ant-menu-vertical.ant-menu-sub {
+  margin-top: -0.1rem !important;
+}
+
 .ant-menu-submenu-popup .ant-menu-vertical {
   box-shadow: none;
+
+  .ant-menu-item {
+    margin-inline: unset;
+    padding-inline: unset;
+  }
+}
+
+.ant-menu-submenu-placement-bottomLeft {
+  padding-top: unset;
 }
 
 .ant-menu-sub > .ant-menu-item-only-child {
