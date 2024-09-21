@@ -4,10 +4,9 @@
   row-gap: 15rem;
   width: 100%;
   margin-bottom: 10rem;
+  margin-top: 60%;
 
   &-carousel {
-    position: relative;
-    right: -10%;
     top: 4.8vw;
   }
 
@@ -20,8 +19,8 @@
     text-transform: uppercase;
     color: $dark-blue;
     position: absolute;
-    right: 4%;
-    bottom: -28%;
+    right: calc(var(--ratio) * 4.9%);
+    bottom: -10vw;
   }
 
   .guide {

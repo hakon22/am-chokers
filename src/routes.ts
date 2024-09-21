@@ -8,6 +8,7 @@ interface ApiUrl {
 export default {
   // pages
   homePage: '/',
+  catalog: '/catalog',
   notFoundPage: '*',
   // auth
   login: [apiPath, 'auth', 'login'].join('/'),

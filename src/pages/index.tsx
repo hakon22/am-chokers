@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Helmet } from '@/components/Helmet';
+import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
@@ -68,11 +69,12 @@ const Index = () => {
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
+      <Image src={choker} width={750} alt={t('title')} className="pe-none position-absolute top-0 animate__animated animate__fadeInDownBig" priority style={{ zIndex: 3 }} />
+      <Image src={pendant} width={900} alt={t('title')} className="pe-none position-absolute top-0 animate__animated animate__fadeInDownBig" priority style={{ zIndex: 2 }} />
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
-        <Image src={choker} alt={t('title')} className="pe-none animate__animated animate__fadeInDownBig" priority style={{ zIndex: 2 }} />
         <div className="index-block-container">
           <section className="d-flex flex-column position-relative" data-aos="fade-right" data-aos-duration="1500">
-            <div className="d-flex justify-content-between col-11">
+            <div className="d-flex justify-content-between col-12">
               <h2 className="d-flex align-items-end col-2">{t('newItems')}</h2>
               <Carousel
                 autoPlaySpeed={3000}

@@ -45,15 +45,15 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     {
-      label: <LabelWithIcon label={t('menu.catalog.title')} href={routes.homePage} />,
+      label: <LabelWithIcon label={t('menu.catalog.title')} href={routes.catalog} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
       children: [
-        { label: t('menu.catalog.necklace'), key: 'necklace' },
-        { label: t('menu.catalog.bracelets'), key: 'bracelets' },
-        { label: t('menu.catalog.earrings'), key: 'earrings' },
-        { label: t('menu.catalog.accessories'), key: 'accessories' },
+        { label: <Link href="/">{t('menu.catalog.necklace')}</Link>, key: 'necklace' },
+        { label: <Link href="/">{t('menu.catalog.bracelets')}</Link>, key: 'bracelets' },
+        { label: <Link href="/">{t('menu.catalog.earrings')}</Link>, key: 'earrings' },
+        { label: <Link href="/">{t('menu.catalog.accessories')}</Link>, key: 'accessories' },
       ],
     },
     {

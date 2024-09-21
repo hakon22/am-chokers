@@ -6,6 +6,7 @@ import useErrorHandler from '@/utilities/useErrorHandler';
 import useAuthHandler from '@/utilities/useAuthHandler';
 import { SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
 
 export const App = ({ children }: { children: JSX.Element }) => {
@@ -30,6 +31,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
       </header>
       <main className="container">
+        <Breadcrumb />
         {children}
       </main>
       <footer className="footer" data-aos="fade-up" data-aos-anchor-placement="top-bottom">

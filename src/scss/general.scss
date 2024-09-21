@@ -40,7 +40,6 @@ body {
   background-attachment: fixed;
   background-size: cover;
   color: $font;
-  min-height: 100vh;
   overflow-x: hidden;
 }
 
@@ -49,6 +48,10 @@ h2 {
   line-height: 1;
   font-weight: 400;
   text-transform: uppercase;
+}
+
+.ant-breadcrumb a {
+  height: auto;
 }
 
 .mb-3-5 {
