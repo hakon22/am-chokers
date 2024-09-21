@@ -42,16 +42,16 @@ const Index = () => {
 
   const items = [
     {
-      id: 1, images: [choker2, choker3], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'mx-3',
+      id: 1, images: [choker2, choker3], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'me-3',
     },
     {
-      id: 2, images: [choker2, choker3], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'mx-3',
+      id: 2, images: [choker2, choker3], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'me-3',
     },
     {
-      id: 3, images: [choker2, choker3], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'mx-3',
+      id: 3, images: [choker2, choker3], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'me-3',
     },
     {
-      id: 4, images: [choker2, choker3], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'mx-3',
+      id: 4, images: [choker2, choker3], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'me-3',
     },
   ];
 
@@ -71,7 +71,7 @@ const Index = () => {
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <Image src={choker} alt={t('title')} className="pe-none animate__animated animate__fadeInDownBig" priority style={{ zIndex: 2 }} />
         <div className="index-block-container">
-          <section className="d-flex flex-column" data-aos="fade-right" data-aos-duration="1500">
+          <section className="d-flex flex-column position-relative" data-aos="fade-right" data-aos-duration="1500">
             <div className="d-flex justify-content-between col-11">
               <h2 className="d-flex align-items-end col-2">{t('newItems')}</h2>
               <Carousel

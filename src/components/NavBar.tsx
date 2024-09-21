@@ -30,7 +30,7 @@ export const NavBar = () => {
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [navHeight, setNavHeight] = useState<string>('calc(var(--width) / 17.5)');
+  const [navHeight, setNavHeight] = useState<string>('108px');
 
   const { id, role } = useAppSelector((state) => state.user);
 
@@ -76,9 +76,9 @@ export const NavBar = () => {
 
   useEffect(() => {
     if (!submenu) {
-      setNavHeight('calc(var(--width) / 17.5)');
+      setNavHeight('108px');
     } else if (submenu === 'catalog') {
-      setNavHeight('calc(var(--width) / 7)');
+      setNavHeight('275px');
     }
   }, [submenu]);
 
