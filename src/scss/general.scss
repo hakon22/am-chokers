@@ -1,3 +1,7 @@
+:root {
+  --galleryWidth: calc(80% - 110px);
+}
+
 @font-face {
   font-weight: 200;
   font-family: Oswald;
@@ -101,6 +105,20 @@ a {
 
 .ant-spin-fullscreen {
   z-index: 1500;
+}
+
+.ant-breadcrumb-separator {
+  display: flex;
+}
+
+.image-gallery-left-nav .image-gallery-svg,
+.image-gallery-right-nav .image-gallery-svg {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
+.image-gallery-slide-wrapper.image-gallery-thumbnails-left {
+  width: var(--galleryWidth);
 }
 
 .font-mr_hamiltoneg {

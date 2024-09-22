@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Helmet } from '@/components/Helmet';
 import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
 import choker2 from '@/images/choker2.jpg';
@@ -11,6 +10,8 @@ import { useRef, WheelEvent } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
+import routes from '@/routes';
+import translate from '@/utilities/translate';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
@@ -43,16 +44,16 @@ const Index = () => {
 
   const items = [
     {
-      id: 1, images: [choker2, choker3], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'me-3',
+      id: 1, images: [choker2, choker3], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'me-3', group: 'necklace', hrefName: 'name1',
     },
     {
-      id: 2, images: [choker2, choker3], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'me-3',
+      id: 2, images: [choker2, choker3], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'me-3', group: 'bracelets', hrefName: 'name2',
     },
     {
-      id: 3, images: [choker2, choker3], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'me-3',
+      id: 3, images: [choker2, choker3], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'me-3', group: 'earrings', hrefName: 'name3',
     },
     {
-      id: 4, images: [choker2, choker3], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'me-3',
+      id: 4, images: [choker2, choker3], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'me-3', group: 'accessories', hrefName: 'name4',
     },
   ];
 
@@ -68,7 +69,6 @@ const Index = () => {
 
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
-      <Helmet title={t('title')} description={t('description')} />
       <Image src={choker} width={750} alt={t('title')} className="pe-none position-absolute top-0 animate__animated animate__fadeInDownBig" priority style={{ zIndex: 3 }} />
       <Image src={pendant} width={900} alt={t('title')} className="pe-none position-absolute top-0 animate__animated animate__fadeInDownBig" priority style={{ zIndex: 2 }} />
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
@@ -102,14 +102,15 @@ const Index = () => {
                 ssr
               >
                 {items.map((item) => (
-                  <ImageHover
-                    key={item.id}
-                    className={item.className}
-                    height={item.height}
-                    images={item.images}
-                    title={item.title}
-                    description={item.description}
-                  />
+                  <Link href={`${routes.catalog}/${item.group}/${translate(item.title)}`} key={item.id}>
+                    <ImageHover
+                      className={item.className}
+                      height={item.height}
+                      images={item.images}
+                      title={item.title}
+                      description={item.description}
+                    />
+                  </Link>
                 ))}
               </Carousel>
             </div>

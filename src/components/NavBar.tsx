@@ -50,10 +50,10 @@ export const NavBar = () => {
       onTitleMouseEnter,
       onTitleMouseLeave,
       children: [
-        { label: <Link href="/">{t('menu.catalog.necklace')}</Link>, key: 'necklace' },
-        { label: <Link href="/">{t('menu.catalog.bracelets')}</Link>, key: 'bracelets' },
-        { label: <Link href="/">{t('menu.catalog.earrings')}</Link>, key: 'earrings' },
-        { label: <Link href="/">{t('menu.catalog.accessories')}</Link>, key: 'accessories' },
+        { label: <Link href={routes.necklace}>{t('menu.catalog.necklace')}</Link>, key: 'necklace' },
+        { label: <Link href={routes.bracelets}>{t('menu.catalog.bracelets')}</Link>, key: 'bracelets' },
+        { label: <Link href={routes.earrings}>{t('menu.catalog.earrings')}</Link>, key: 'earrings' },
+        { label: <Link href={routes.accessories}>{t('menu.catalog.accessories')}</Link>, key: 'accessories' },
       ],
     },
     {

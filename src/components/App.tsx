@@ -31,7 +31,6 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
       </header>
       <main className="container">
-        <Breadcrumb />
         {children}
       </main>
       <footer className="footer" data-aos="fade-up" data-aos-anchor-placement="top-bottom">

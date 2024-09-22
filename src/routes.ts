@@ -1,6 +1,8 @@
 const serverHost = `${process.env.NEXT_PUBLIC_SERVER_HOST}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
+const catalogPath = '/catalog';
+
 interface ApiUrl {
   [key: string]: string;
 }
@@ -8,7 +10,12 @@ interface ApiUrl {
 export default {
   // pages
   homePage: '/',
-  catalog: '/catalog',
+  catalog: catalogPath,
+  // navbar
+  necklace: [catalogPath, 'necklace'].join('/'),
+  bracelets: [catalogPath, 'bracelets'].join('/'),
+  earrings: [catalogPath, 'earrings'].join('/'),
+  accessories: [catalogPath, 'accessories'].join('/'),
   notFoundPage: '*',
   // auth
   login: [apiPath, 'auth', 'login'].join('/'),

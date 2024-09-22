@@ -19,7 +19,7 @@
     text-transform: uppercase;
     color: $dark-blue;
     position: absolute;
-    right: calc(var(--ratio) * 4.9%);
+    right: calc(var(--ratio) * 5%);
     bottom: -10vw;
   }
 
@@ -35,4 +35,10 @@
       left: 10%;
     }
   }
+}
+
+@media (max-width: 1366px) {
+  .index-block-container .see-all {
+      right: calc(var(--ratio) * 4.6%);
+    }
 }

@@ -62,6 +62,7 @@ export default {
         cart: 'Корзина',
         profile: 'Профиль',
         menu: {
+          home: 'Главная',
           catalog: {
             title: 'Каталог',
             necklace: 'Колье',

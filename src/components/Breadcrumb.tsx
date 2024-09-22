@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
@@ -11,7 +12,7 @@ type BreadcrumbState = {
   helmet: string,
 }
 
-export const Breadcrumb = () => {
+export const Breadcrumb = ({ name }: { name?: string }) => {
   const { t } = useTranslation();
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -20,34 +21,23 @@ export const Breadcrumb = () => {
   const helmet = breadcrumbs[breadcrumbs.length - 1]?.helmet;
 
   useEffect(() => {
-    const pathArray = pathname.slice(1).split('/').slice(1);
+    const pathArray = pathname.replace('/', 'index/').split('/').filter(Boolean);
     const linkArray: string[] = [];
 
     setBreadcrumbs(pathArray.map((folder, index) => {
-      if (pathArray.length === 1) {
-        return {
-          title: '',
-          helmet: t('navBar.title'),
-        };
-      }
       if (index === 0) {
         return {
-          title: <Link href={routes.homePage}>{t('navBar.title')}</Link>,
-          helmet: t('navBar.title'),
+          title: pathArray.length === 1 ? '' : <Link href={routes.homePage}>{t('modules.navbar.menu.home')}</Link>,
+          helmet: t('pages.index.title'),
         };
       }
       linkArray.push(folder);
-      if (pathArray.length - 1 === index) {
-        const page = t(`navBar.menu.${folder}`);
-        return {
-          title: page,
-          helmet: page,
-        };
-      }
-      const link = linkArray.reduce((acc, fold) => `${acc}/${fold}`, '/catalog');
-      const page = t(`navBar.menu.${folder}`);
+      const link = linkArray.reduce((acc, fold) => `${acc}/${fold}`, '');
+      const page = folder === 'catalog'
+        ? t('modules.navbar.menu.catalog.title')
+        : name && pathArray.length - 1 === index ? name : t(`modules.navbar.menu.catalog.${folder}`);
       return {
-        title: <Link href={link}>{page}</Link>,
+        title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
         helmet: page,
       };
     }));
@@ -56,8 +46,8 @@ export const Breadcrumb = () => {
   return (
     <>
       <Helmet
-        title={helmet ?? t('marketplace.title')}
-        description={helmet ?? t('marketplace.description')}
+        title={helmet ?? t('pages.index.title')}
+        description={helmet ?? t('pages.index.description')}
       />
       <BreadcrumbAntd items={breadcrumbs} className="fs-5 mb-5" separator={<RightOutlined className="fs-6" />} style={{ marginTop: '10%', fontFamily: 'Oswald, sans-serif' }} />
     </>
