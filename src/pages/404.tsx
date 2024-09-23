@@ -18,7 +18,7 @@ const Page404 = () => {
         icon={<Image src={image404} alt={t('title')} />}
         title={t('title')}
         subTitle={t('description')}
-        className="pt-0"
+        style={{ marginTop: '10%' }}
         extra={<Button className="button col-2" onClick={back}>{t('prev')}</Button>}
       />
     </>

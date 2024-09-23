@@ -19,7 +19,7 @@
     text-transform: uppercase;
     color: $dark-blue;
     position: absolute;
-    right: calc(var(--ratio) * 5%);
+    right: calc(var(--ratio)* 4.2vw);
     bottom: -10vw;
   }
 
@@ -37,8 +37,8 @@
   }
 }
 
-@media (max-width: 1366px) {
+@media (max-width: 1367px) {
   .index-block-container .see-all {
-      right: calc(var(--ratio) * 4.6%);
+      right: calc(var(--ratio) * 1.85vw);
     }
 }

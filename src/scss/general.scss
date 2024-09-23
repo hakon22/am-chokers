@@ -45,6 +45,9 @@ body {
   background-size: cover;
   color: $font;
   overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: 30%;
 }
 
 h2 {

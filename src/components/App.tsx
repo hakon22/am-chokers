@@ -29,6 +29,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
       {isLoading ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : null}
       <header>
         <NavBar />
+        <Breadcrumb />
       </header>
       <main className="container">
         {children}
