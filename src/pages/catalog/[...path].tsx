@@ -8,6 +8,8 @@ import translate from '@/utilities/translate';
 import { useRef } from 'react';
 import routes from '@/routes';
 import i18n from '@/locales';
+import { Button } from 'antd';
+import { HeartOutlined } from '@ant-design/icons';
 
 export const getServerSideProps = async ({ params }: { params: { path: string[] } }) => {
   const items = [
@@ -80,8 +82,26 @@ const Item = ({ item, items }:
       </div>
       <div className="col-6">
         <div className="d-flex flex-column">
-          <h1 className="mb-5">{item.title}</h1>
-          <p>{item.description}</p>
+          <h1 className="mb-4 fs-3">{item.title}</h1>
+          <p className="fs-5 mb-4">{item.description}</p>
+          <div className="d-flex align-items-center gap-5 mb-4">
+            <Button className="button border-button fs-5">В корзину</Button>
+            <button className="icon-button" type="button">
+              <HeartOutlined className="icon" />
+              <span className="visually-hidden">Избранное</span>
+            </button>
+          </div>
+          <p className="lh-lg" style={{ letterSpacing: '0.5px' }}>Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.</p>
+          <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-2">
+              <span>Состав:</span>
+              <span>Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав</span>
+            </div>
+            <div className="d-flex flex-column gap-2">
+              <span>Длина:</span>
+              <span>40см</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
