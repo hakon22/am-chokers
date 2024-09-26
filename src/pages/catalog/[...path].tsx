@@ -12,16 +12,16 @@ import i18n from '@/locales';
 export const getServerSideProps = async ({ params }: { params: { path: string[] } }) => {
   const items = [
     {
-      id: 1, images: [choker2, choker3], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'me-3', group: 'necklace',
+      id: 1, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'me-3', group: 'necklace',
     },
     {
-      id: 2, images: [choker2, choker3], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'me-3', group: 'bracelets',
+      id: 2, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'me-3', group: 'bracelets',
     },
     {
-      id: 3, images: [choker2, choker3], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'me-3', group: 'earrings',
+      id: 3, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'me-3', group: 'earrings',
     },
     {
-      id: 4, images: [choker2, choker3], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'me-3', group: 'accessories',
+      id: 4, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'me-3', group: 'accessories',
     },
   ];
 
