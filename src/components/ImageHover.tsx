@@ -2,10 +2,10 @@
 import {
   useState, useEffect, CSSProperties, HTMLAttributes,
 } from 'react';
-import Image, { type StaticImageData } from 'next/image';
+import Image from 'next/image';
 
 type ImageHoverType = {
-  images: StaticImageData[];
+  images: string[];
   height: number | string;
   width?: number | string;
   title?: string;
@@ -62,8 +62,10 @@ export const ImageHover = ({
       >
         {images.map((image, i) => (
           <Image
-            key={image.src}
+            key={image}
             src={image}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
             alt={`Image ${index + 1}`}
             className={i === index ? 'active' : ''}
@@ -72,7 +74,7 @@ export const ImageHover = ({
       </div>
       {marker || title || description ? (
         <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-          {marker ? images.map((image, i) => <span key={image.src} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+          {marker ? images.map((image, i) => <span key={image} className={i === index ? 'sphere active' : 'sphere'} />) : null}
           {title ? <div className="title">{title}</div> : null}
           {description ? <div className="description">{description}</div> : null}
         </div>
