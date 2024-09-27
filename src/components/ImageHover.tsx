@@ -8,7 +8,7 @@ type ImageHoverType = {
   images: string[];
   height: number | string;
   width?: number | string;
-  title?: string;
+  name?: string;
   description?: string;
   marker?: boolean;
   style?: CSSProperties;
@@ -20,7 +20,7 @@ export const ImageHover = ({
   images,
   height,
   width = undefined,
-  title = '',
+  name = '',
   description = '',
   marker = false,
   className = '',
@@ -72,10 +72,10 @@ export const ImageHover = ({
           />
         ))}
       </div>
-      {marker || title || description ? (
+      {marker || name || description ? (
         <div className="image-hover-sub mt-3" style={{ width, ...style }}>
           {marker ? images.map((image, i) => <span key={image} className={i === index ? 'sphere active' : 'sphere'} />) : null}
-          {title ? <div className="title">{title}</div> : null}
+          {name ? <div className="title">{name}</div> : null}
           {description ? <div className="description">{description}</div> : null}
         </div>
       ) : null}

@@ -8,6 +8,7 @@ import { SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
+import { useRootStyle } from '@/utilities/useRootStyle';
 
 export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
@@ -19,6 +20,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
 
   useErrorHandler(error);
   useAuthHandler();
+  useRootStyle();
 
   useEffect(() => {
     setIsLoading(true);

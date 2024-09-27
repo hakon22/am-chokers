@@ -29,4 +29,10 @@ export const NavbarContext = createContext<{
       closeNavbar: () => undefined,
     });
 
-export const ScrollContext = createContext<string>('');
+export const ScrollContext = createContext<{
+  scrollBar?: number,
+  setMarginScroll:() => void,
+    }>({
+      scrollBar: 0,
+      setMarginScroll: () => undefined,
+    });

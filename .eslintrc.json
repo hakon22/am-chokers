@@ -30,6 +30,7 @@
       "no-console": 0,
       "react/require-default-props": 0,
       "react/react-in-jsx-scope": 0,
+      "react/jsx-props-no-spreading": 0,
       "functional/no-conditional-statement": 0,
       "functional/no-expression-statement": 0,
       "functional/immutable-data": 0,

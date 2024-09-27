@@ -38,9 +38,7 @@ const translate = (str: string) => {
   return [...str.replaceAll(' ', '_')].map((l) => {
     let latL = ru[l.toLocaleLowerCase()];
 
-    if (l !== l.toLocaleLowerCase()) {
-      latL = latL.charAt(0).toLocaleUpperCase() + latL.slice(1);
-    } else if (latL === undefined) {
+    if (latL === undefined) {
       latL = l;
     }
 

@@ -1,13 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-export const useScrollbarWidth = () => {
-  const [scrollBarWidth, setScrollBarWidth] = useState(0);
-
-  const calculateScrollbarWidth = () => window.innerWidth - document.body.clientWidth;
-
+export const useRootStyle = () => {
   useEffect(() => {
     const handleResize = () => {
-      setScrollBarWidth(calculateScrollbarWidth());
       const width = window.innerWidth; // Фактическая ширина окна
       const ratio = window.devicePixelRatio; // Соотношение, считаем как масштаб
       console.log(width, ratio, width * ratio);
@@ -21,6 +16,4 @@ export const useScrollbarWidth = () => {
     // Убираем обработчик при размонтировании компонента
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  return `${scrollBarWidth}px`;
 };

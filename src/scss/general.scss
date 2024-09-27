@@ -45,6 +45,7 @@ body {
   background-size: cover;
   color: $font;
   overflow-x: hidden;
+  overflow-y: scroll;
   position: relative;
   min-height: 100vh;
   padding-bottom: 30%;
@@ -94,7 +95,7 @@ a {
 
 .spinner {
   position: absolute;
-  background-color: #bfebfe;
+  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
   width: 100vw;
   height: 100vh;
   z-index: 1500;

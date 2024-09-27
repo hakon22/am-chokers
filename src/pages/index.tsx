@@ -12,7 +12,6 @@ import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import routes from '@/routes';
 import translate from '@/utilities/translate';
-import { Button } from 'antd';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
@@ -45,16 +44,16 @@ const Index = () => {
 
   const items = [
     {
-      id: 1, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 1', description: '1000 ₽', className: 'me-3', group: 'necklace', hrefName: 'name1',
+      id: 1, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 1', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 1.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'necklace',
     },
     {
-      id: 2, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 2', description: '2000 ₽', className: 'me-3', group: 'bracelets', hrefName: 'name2',
+      id: 2, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 2', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 2.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'bracelets',
     },
     {
-      id: 3, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 3', description: '3000 ₽', className: 'me-3', group: 'earrings', hrefName: 'name3',
+      id: 3, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 3', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 3.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'earrings',
     },
     {
-      id: 4, images: [choker2.src, choker3.src], height: 400, title: 'Информация о товаре 4', description: '4000 ₽', className: 'me-3', group: 'accessories', hrefName: 'name4',
+      id: 4, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 4', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 4.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'accessories',
     },
   ];
 
@@ -108,12 +107,12 @@ const Index = () => {
                 ssr
               >
                 {items.map((item) => (
-                  <Link href={`${routes.catalog}/${item.group}/${translate(item.title)}`} key={item.id}>
+                  <Link href={`${routes.catalog}/${item.group}/${translate(item.name)}`} key={item.id}>
                     <ImageHover
                       className={item.className}
                       height={item.height}
                       images={item.images}
-                      title={item.title}
+                      name={item.name}
                       description={item.description}
                     />
                   </Link>
@@ -133,7 +132,7 @@ const Index = () => {
                   className="col-6 align-self-start"
                   height={200}
                   images={[choker2.src, choker3.src]}
-                  title="Информация о товаре"
+                  name="Информация о товаре"
                   description="5000 &#8381;"
                   width="95%"
                 />
@@ -142,7 +141,7 @@ const Index = () => {
                   style={{ alignSelf: 'end' }}
                   height={200}
                   images={[choker2.src, choker3.src]}
-                  title="Информация о товаре"
+                  name="Информация о товаре"
                   description="5000 &#8381;"
                   width="95%"
                 />
@@ -152,7 +151,7 @@ const Index = () => {
                   className="w-100"
                   height="100%"
                   images={[choker2.src, choker3.src]}
-                  title="Информация о товаре"
+                  name="Информация о товаре"
                   description="5000 &#8381;"
                 />
               </div>

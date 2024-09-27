@@ -76,6 +76,21 @@ export default {
           contacts: 'Контакты',
         },
       },
+      cardItem: {
+        addToCart: 'В корзину',
+        favorites: 'Избранное',
+        price: '{{ price }} ₽',
+        composition: 'Состав:',
+        length: 'Длина:',
+        rating: 'Рейтинг',
+        noRatings: 'пока нет оценок',
+        warrantyAndCare: {
+          title: 'Гарантия и уход',
+        },
+        deliveryAndPayment: {
+          title: 'Доставка и оплата',
+        },
+      },
     },
     validation: {
       required: 'Обязательное поле',
