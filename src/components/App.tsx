@@ -9,11 +9,12 @@ import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
 import { useRootStyle } from '@/utilities/useRootStyle';
+import { Spinner } from '@/components/Spinner';
 
 export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const { error } = useAppSelector((state) => state.user);
   const { isSubmit } = useContext(SubmitContext);
@@ -23,12 +24,12 @@ export const App = ({ children }: { children: JSX.Element }) => {
   useRootStyle();
 
   useEffect(() => {
-    setIsLoading(true);
+    setTimeout(setIsLoaded, 1000, true);
   }, []);
 
   return (
     <>
-      {isLoading ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : null}
+      {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
       <header>
         <NavBar />
         <Breadcrumb />

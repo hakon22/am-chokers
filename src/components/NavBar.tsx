@@ -86,7 +86,7 @@ export const NavBar = () => {
     <nav className="nav" style={{ height: navHeight }}>
       <div className="nav-logo-container" data-aos="fade-down">
         <Link href="/">
-          <Image src={logoImage} className="nav-logo" alt={t('logo')} priority />
+          <Image src={logoImage} unoptimized className="nav-logo" alt={t('logo')} priority />
         </Link>
       </div>
       <div className="nav-menu" data-aos="fade-down">
@@ -116,7 +116,7 @@ export const NavBar = () => {
           <span className="visually-hidden">{t('cart')}</span>
         </Link>
         <Link href="/" title={t('profile')}>
-          <Image src={personIcon} alt={t('logo')} priority />
+          <Image src={personIcon} unoptimized alt={t('logo')} priority />
           <span className="visually-hidden">{t('profile')}</span>
         </Link>
       </div>

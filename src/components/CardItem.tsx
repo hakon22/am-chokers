@@ -1,10 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { ItemType } from '@/types/item/ItemType';
 import { Button, Rate } from 'antd';
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
 import ImageGallery from 'react-image-gallery';
 import { HeartOutlined } from '@ant-design/icons';
-import { Spinner } from 'react-bootstrap';
 
 export const CardItem = ({
   images, name, description, price, composition, length, rating,
@@ -12,21 +11,8 @@ export const CardItem = ({
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    setIsLoading(true);
-  }, []);
-
   return (
     <div className="d-flex mb-5">
-      {!isLoading ? (
-        <div className="position-absolute start-0 top-0 vw-100 vh-100" style={{ zIndex: 555 }}>
-          <div className="spinner">
-            <Spinner animation="border" variant="primary" role="status" />
-          </div>
-        </div>
-      ) : null}
       <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
         <ImageGallery
           ref={galleryRef}
