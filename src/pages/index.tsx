@@ -6,7 +6,9 @@ import choker from '@/images/choker.png';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
 import { ImageHover } from '@/components/ImageHover';
-import { useRef, WheelEvent } from 'react';
+import {
+  useEffect, useRef, useState, WheelEvent,
+} from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
@@ -16,6 +18,8 @@ import translate from '@/utilities/translate';
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -68,15 +72,23 @@ const Index = () => {
     }
   }, 1000);
 
+  useEffect(() => {
+    setTimeout(setIsLoaded, 1000, true);
+  }, []);
+
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Link href={routes.catalog} title="Смотреть каталог" className="button border-button fs-5 position-absolute" style={{ borderRadius: '6px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
-      <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 3, height: '62vh', width: '55%' }}>
-        <Image src={choker.src} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-      </div>
-      <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 2, height: '105vh', width: '60%' }}>
-        <Image src={pendant.src} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-      </div>
+      {isLoaded && (
+      <>
+        <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 3, height: '62vh', width: '55%' }}>
+          <Image src={choker.src} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
+        </div>
+        <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 2, height: '105vh', width: '60%' }}>
+          <Image src={pendant.src} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
+        </div>
+      </>
+      )}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
           <section className="d-flex flex-column position-relative" data-aos="fade-right" data-aos-duration="1500">

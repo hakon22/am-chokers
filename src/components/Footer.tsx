@@ -24,10 +24,10 @@ export const Footer = () => {
           <h6 className="mb-4">{t('contacts')}</h6>
           <div className="d-flex gap-3 mb-3-5">
             <Link href="https://t.me/AMChokers" target="_blank">
-              <Image src={telegramIcon} width="35" alt={t('telegram')} priority />
+              <Image src={telegramIcon} width="35" alt={t('telegram')} />
             </Link>
             <Link href="https://www.instagram.com/a_m_chokers?igsh=d2hoeXYyNXkzZXpy" target="_blank">
-              <Image src={instagramIcon} width="35" alt={t('instagram')} priority />
+              <Image src={instagramIcon} width="35" alt={t('instagram')} />
             </Link>
           </div>
           <ul>

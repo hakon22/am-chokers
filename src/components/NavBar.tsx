@@ -31,6 +31,7 @@ export const NavBar = () => {
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>('108px');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const { id, role } = useAppSelector((state) => state.user);
 
@@ -82,44 +83,52 @@ export const NavBar = () => {
     }
   }, [submenu]);
 
+  useEffect(() => {
+    setTimeout(setIsLoaded, 1000, true);
+  }, []);
+
   return (
     <nav className="nav" style={{ height: navHeight }}>
-      <div className="nav-logo-container" data-aos="fade-down">
-        <Link href="/">
-          <Image src={logoImage} unoptimized className="nav-logo" alt={t('logo')} priority />
-        </Link>
-      </div>
-      <div className="nav-menu" data-aos="fade-down">
-        <Menu
-          items={items}
-          rootClassName="bg-transparent"
-          mode="horizontal"
-          style={{
-            zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
-          }}
-          onMouseLeave={() => setSubmenu(undefined)}
-          subMenuCloseDelay={0.0000000001}
-          subMenuOpenDelay={0.3}
-        />
-      </div>
-      <div className="nav-icons" data-aos="fade-down">
-        <Link href="/" title={t('search')}>
-          <SearchOutlined className="icon" />
-          <span className="visually-hidden">{t('search')}</span>
-        </Link>
-        <Link href="/" title={t('favorites')}>
-          <HeartOutlined className="icon" />
-          <span className="visually-hidden">{t('favorites')}</span>
-        </Link>
-        <Link href="/" title={t('cart')}>
-          <ShoppingCartOutlined className="icon" />
-          <span className="visually-hidden">{t('cart')}</span>
-        </Link>
-        <Link href="/" title={t('profile')}>
-          <Image src={personIcon} unoptimized alt={t('logo')} priority />
-          <span className="visually-hidden">{t('profile')}</span>
-        </Link>
-      </div>
+      {isLoaded && (
+        <>
+          <div className="nav-logo-container" data-aos="fade-down">
+            <Link href="/">
+              <Image src={logoImage} unoptimized className="nav-logo" alt={t('logo')} />
+            </Link>
+          </div>
+          <div className="nav-menu" data-aos="fade-down">
+            <Menu
+              items={items}
+              rootClassName="bg-transparent"
+              mode="horizontal"
+              style={{
+                zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
+              }}
+              onMouseLeave={() => setSubmenu(undefined)}
+              subMenuCloseDelay={0.0000000001}
+              subMenuOpenDelay={0.3}
+            />
+          </div>
+          <div className="nav-icons" data-aos="fade-down">
+            <Link href="/" title={t('search')}>
+              <SearchOutlined className="icon" />
+              <span className="visually-hidden">{t('search')}</span>
+            </Link>
+            <Link href="/" title={t('favorites')}>
+              <HeartOutlined className="icon" />
+              <span className="visually-hidden">{t('favorites')}</span>
+            </Link>
+            <Link href="/" title={t('cart')}>
+              <ShoppingCartOutlined className="icon" />
+              <span className="visually-hidden">{t('cart')}</span>
+            </Link>
+            <Link href="/" title={t('profile')}>
+              <Image src={personIcon} unoptimized alt={t('logo')} />
+              <span className="visually-hidden">{t('profile')}</span>
+            </Link>
+          </div>
+        </>
+      )}
     </nav>
   );
 };
