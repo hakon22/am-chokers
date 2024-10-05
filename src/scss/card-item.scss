@@ -1,0 +1,23 @@
+$base-delay: 0.2s; // Базовая задержка
+
+@mixin apply-animation($count) {
+  @for $i from 1 through $count {
+    :nth-child(#{$i}) {
+      opacity: 0;
+      transform: translateY(-20px);
+      animation: fadeInUp 0.5s forwards;
+      animation-delay: ($base-delay * ($i - 1));
+    }
+  }
+}
+
+.warranty-fade, .delivery-fade {
+  @include apply-animation(10);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1; /* Делаем строки видимыми */
+    transform: translateY(0); /* Возвращаем строки на место */
+  }
+}

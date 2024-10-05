@@ -182,9 +182,24 @@ a {
   color: $dark-blue;
 }
 
+.image-gallery-icon {
+  z-index: 1;
+}
+
+.disabled {
+  border-color: #ced3dd !important;
+  color: #69788e !important;;
+}
+
 @keyframes show {
   0% { opacity: 0; }
   100% { opacity: 1; }
+}
+
+@media (min-width: 1367px) {
+  .fs-xxl-5 {
+    font-size: 1.2rem !important;
+  }
 }
 
 @media (min-width: 768px) {
