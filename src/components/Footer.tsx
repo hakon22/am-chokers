@@ -5,7 +5,7 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
 
 export const Footer = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'pages.index.footer' });
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
 
   return (
     <div className="container d-flex col-12">

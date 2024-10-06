@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ItemType } from '@/types/item/ItemType';
+import { ItemInterface } from '@/types/item/Item';
 import { Button, Rate } from 'antd';
 import { useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
@@ -9,11 +9,11 @@ import cn from 'classnames';
 
 export const CardItem = ({
   images, name, description, price, composition, length, rating,
-}: ItemType) => {
+}: ItemInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [tab, setTab] = useState<'delivery' | 'warranty'>('warranty');
+  const [tab, setTab] = useState<'delivery' | 'warranty'>();
 
   return (
     <div className="d-flex flex-column">
@@ -32,8 +32,8 @@ export const CardItem = ({
           />
           <div className="d-flex justify-content-end" style={{ width: '80%' }}>
             <div className="d-flex justify-content-between" style={{ width: 'calc(100% - 110px)' }}>
-              <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-2 px-xxl-4', { disabled: tab === 'delivery' })}>{t('warrantyAndCare.title')}</Button>
-              <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-2 px-xxl-4', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment.title')}</Button>
+              <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-4', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
+              <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-4', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
             </div>
           </div>
         </div>
@@ -115,7 +115,7 @@ export const CardItem = ({
                 <br />
               </div>
             </div>
-          ) : (
+          ) : tab === 'delivery' && (
             <div className="delivery-fade">
               <p key={1} className="mb-4 fs-5 fw-bold">ДОСТАВКА</p>
               <p key={2}>При заказе от 8000 руб. отправляем изделия до пункта СДЭК за наш счет.</p>

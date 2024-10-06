@@ -1,32 +1,18 @@
-import { InitialState } from '@/types/InitialState';
-import RolesEnum from '@server/types/user/enum/RolesEnum';
+import type { InitialState } from '@/types/InitialState';
+import type { UserEntity } from '@server/db/entities/user.entity';
 
-export type User = {
-  id?: number;
-  username: string;
-  password: string;
-  phone: string;
+export interface UserInterface extends Omit<UserEntity, 'refreshToken' | 'password'>, InitialState {
+  /** Токен пользователя */
   token: string;
-  role: RolesEnum;
+  /** Refresh токен пользователя */
   refreshToken: string;
-  telegramId: string | null;
-};
+  /** Уникальный ключ пользователя (для кода подтверждения телефона) */
+  key: string;
+  [key: string]: string | number | undefined | null;
+}
 
-export type UserInitialState = InitialState & {
-  id?: number;
-  token?: string;
-  refreshToken?: string;
-  email?: string;
-  username?: string;
-  phone?: string;
-  key?: string;
-  role?: RolesEnum;
-  telegramId?: string | null;
-  [key: string]: number[] | string[] | string | number | null | boolean | undefined;
-};
-
-export type UserProfileType = {
+export interface UserProfileType {
   password?: string;
   confirmPassword?: string;
   oldPassword?: string;
-};
+}

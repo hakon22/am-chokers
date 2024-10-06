@@ -1,4 +1,4 @@
-const translate = (str: string) => {
+export const translate = (str: string) => {
   const ru: Record<string, string> = {
     а: 'a',
     б: 'b',
@@ -45,5 +45,3 @@ const translate = (str: string) => {
     return latL;
   }).join('');
 };
-
-export default translate;

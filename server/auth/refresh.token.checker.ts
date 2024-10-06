@@ -1,13 +1,13 @@
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { PassportStatic } from 'passport';
-import { generateAccessToken, generateRefreshToken } from './tokensGen.js';
+import { generateAccessToken, generateRefreshToken } from '@server/auth/tokens.gen';
 
 const optionsRefresh = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: process.env.KEY_REFRESH_TOKEN ?? '',
 };
 
-const refreshTokenChecker = (passport: PassportStatic) => passport.use(
+export const refreshTokenChecker = (passport: PassportStatic) => passport.use(
   'jwt-refresh',
   new JwtStrategy(optionsRefresh, async ({ id, phone }, done) => {
     try {
@@ -24,5 +24,3 @@ const refreshTokenChecker = (passport: PassportStatic) => passport.use(
     }
   }),
 );
-
-export default refreshTokenChecker;

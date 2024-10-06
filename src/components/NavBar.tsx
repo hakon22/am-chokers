@@ -7,7 +7,7 @@ import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
-import routes from '@/routes';
+import { routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
@@ -122,7 +122,7 @@ export const NavBar = () => {
               <ShoppingCartOutlined className="icon" />
               <span className="visually-hidden">{t('cart')}</span>
             </Link>
-            <Link href="/" title={t('profile')}>
+            <Link href={routes.profilePage} title={t('profile')}>
               <Image src={personIcon} unoptimized alt={t('logo')} />
               <span className="visually-hidden">{t('profile')}</span>
             </Link>

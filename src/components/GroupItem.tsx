@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { ItemType } from '@/types/item/ItemType';
+import { ItemInterface } from '@/types/item/Item';
 import Link from 'next/link';
 import { ImageHover } from '@/components/ImageHover';
-import translate from '@/utilities/translate';
-import routes from '@/routes';
+import { translate } from '@/utilities/translate';
+import { routes } from '@/routes';
 
-export const GroupItem = ({ items }: { items: ItemType[] }) => {
+export const GroupItem = ({ items }: { items: ItemInterface[] }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   return (

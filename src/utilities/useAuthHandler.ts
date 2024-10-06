@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
-const useAuthHandler = () => {
+export const useAuthHandler = () => {
   const dispatch = useAppDispatch();
   const { logIn, loggedIn } = useContext(AuthContext);
   const { token, refreshToken } = useAppSelector((state) => state.user);
@@ -37,5 +37,3 @@ const useAuthHandler = () => {
     return undefined;
   }, [refreshToken]);
 };
-
-export default useAuthHandler;

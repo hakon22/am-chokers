@@ -10,7 +10,7 @@ import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
 import { AuthContext, SubmitContext, NavbarContext } from '@/components/Context';
-import routes from '@/routes';
+import { routes } from '@/routes';
 import { removeToken } from '@/slices/userSlice';
 import favicon16 from '@/images/favicon16x16.png';
 import favicon32 from '@/images/favicon32x32.png';

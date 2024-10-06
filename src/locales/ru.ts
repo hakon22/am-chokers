@@ -29,18 +29,22 @@ export default {
           part1: 'Текст что надо',
           part2: 'сделать',
         },
-        footer: {
-          jewelryCatalog: 'Каталог украшений',
-          bracelets: 'Браслеты',
-          glassesChains: 'Цепочки для очков',
-          otherAccessories: 'Другие аксессуары',
-          allJewelry: 'Все украшения',
-          contacts: 'Контакты',
-          telegram: 'Телеграм',
-          instagram: 'Инстаграм',
-          privacyPolicy: 'Политика конфиденциальности',
-          offerAgreement: 'Договор аферты',
-        },
+      },
+      profile: {
+        title: 'Профиль',
+        description: 'Профиль пользователя',
+      },
+      login: {
+        title: 'Войти',
+        description: 'Войти в профиль пользователя',
+        phone: 'Телефон',
+        password: 'Пароль',
+        forgotPassword: 'Забыли пароль?',
+        submitButton: 'Войти',
+      },
+      signUp: {
+        title: 'Регистрация',
+        description: 'Зарегистрировать профиль пользователя',
       },
     },
     modules: {
@@ -76,6 +80,18 @@ export default {
           contacts: 'Контакты',
         },
       },
+      footer: {
+        jewelryCatalog: 'Каталог украшений',
+        bracelets: 'Браслеты',
+        glassesChains: 'Цепочки для очков',
+        otherAccessories: 'Другие аксессуары',
+        allJewelry: 'Все украшения',
+        contacts: 'Контакты',
+        telegram: 'Телеграм',
+        instagram: 'Инстаграм',
+        privacyPolicy: 'Политика конфиденциальности',
+        offerAgreement: 'Договор аферты',
+      },
       cardItem: {
         addToCart: 'В корзину',
         favorites: 'Избранное',
@@ -84,12 +100,8 @@ export default {
         length: 'Длина:',
         rating: 'Рейтинг',
         noRatings: 'пока нет оценок',
-        warrantyAndCare: {
-          title: 'Гарантия и уход',
-        },
-        deliveryAndPayment: {
-          title: 'Доставка и оплата',
-        },
+        warrantyAndCare: 'Гарантия и уход',
+        deliveryAndPayment: 'Доставка и оплата',
       },
     },
     validation: {

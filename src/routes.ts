@@ -1,15 +1,19 @@
 const serverHost = `${process.env.NEXT_PUBLIC_SERVER_HOST}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
-const catalogPath = '/catalog';
+export const catalogPath = '/catalog';
 
 interface ApiUrl {
   [key: string]: string;
 }
 
-export default {
+export const routes = {
   // pages
   homePage: '/',
+  loginPage: '/login',
+  signupPage: '/signup',
+  profilePage: '/profile',
+  recoveryPage: '/recovery',
   catalog: catalogPath,
   // navbar
   necklace: [catalogPath, 'necklace'].join('/'),

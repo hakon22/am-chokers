@@ -1,14 +1,14 @@
 import type { InferGetServerSidePropsType } from 'next';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
-import translate from '@/utilities/translate';
+import { translate } from '@/utilities/translate';
 import i18n from '@/locales';
 import { CardItem } from '@/components/CardItem';
 import { GroupItem } from '@/components/GroupItem';
-import { ItemType } from '@/types/item/ItemType';
+import { ItemInterface } from '@/types/item/Item';
 
 export const getServerSideProps = async ({ params }: { params: { path: string[] } }) => {
-  const items: ItemType[] = [
+  const items: ItemInterface[] = [
     {
       id: 1, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 1', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 1.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'necklace',
     },
@@ -21,7 +21,7 @@ export const getServerSideProps = async ({ params }: { params: { path: string[] 
     {
       id: 4, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 4', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 4.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'accessories',
     },
-  ];
+  ] as unknown as ItemInterface[];
 
   const { t } = i18n;
 
@@ -53,11 +53,11 @@ export const getServerSideProps = async ({ params }: { params: { path: string[] 
         item: items.find((itm) => translate(itm.name) === item),
       }
       : {
-        items: items.filter((itm) => itm.group === group),
+        items: items.filter((itm) => itm.group === group as unknown as ItemInterface['group']),
       },
   };
 };
 
-const Page = ({ item, items }: InferGetServerSidePropsType<typeof getServerSideProps>) => (item ? <CardItem {...item} /> : <GroupItem items={items as ItemType[]} />);
+const Page = ({ item, items }: InferGetServerSidePropsType<typeof getServerSideProps>) => (item ? <CardItem {...item} /> : <GroupItem items={items as ItemInterface[]} />);
 
 export default Page;

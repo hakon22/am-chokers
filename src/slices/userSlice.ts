@@ -1,10 +1,10 @@
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { User, UserInitialState } from '@/types/user/User';
-import routes from '@/routes';
+import type { UserInterface } from '@/types/user/User';
+import { routes } from '@/routes';
 
-type KeysUserInitialState = keyof UserInitialState;
+type KeysUserInitialState = keyof UserInterface;
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
@@ -50,7 +50,7 @@ export const updateTokens = createAsyncThunk(
   },
 );
 
-export const initialState: { [K in keyof UserInitialState]: UserInitialState[K] } = {
+export const initialState: { [K in keyof Partial<UserInterface>]: UserInterface[K] } = {
   loadingStatus: 'idle',
   error: null,
 };
@@ -75,7 +75,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchLogin.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: User, crew?: { users: string, cars: string }, temporaryToken?: string }>) => {
+        : PayloadAction<{ code: number, user: UserInterface, crew?: { users: string, cars: string }, temporaryToken?: string }>) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -93,7 +93,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchTokenStorage.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: User }>) => {
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
         if (payload.code === 1) {
           if (window.localStorage.getItem(storageKey)) {
             window.localStorage.setItem(storageKey, payload.user.refreshToken);
@@ -114,7 +114,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(updateTokens.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: User }>) => {
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });

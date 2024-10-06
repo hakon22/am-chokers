@@ -2,8 +2,8 @@ import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Spin } from 'antd';
 import { useAppSelector } from '@/utilities/hooks';
-import useErrorHandler from '@/utilities/useErrorHandler';
-import useAuthHandler from '@/utilities/useAuthHandler';
+import { useErrorHandler } from '@/utilities/useErrorHandler';
+import { useAuthHandler } from '@/utilities/useAuthHandler';
 import { SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
@@ -19,7 +19,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
   const { error } = useAppSelector((state) => state.user);
   const { isSubmit } = useContext(SubmitContext);
 
-  useErrorHandler(error);
+  useErrorHandler(error as string);
   useAuthHandler();
   useRootStyle();
 

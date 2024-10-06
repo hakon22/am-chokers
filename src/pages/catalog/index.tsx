@@ -2,7 +2,7 @@ import Link from 'next/link';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
 import { InferGetServerSidePropsType } from 'next';
-import routes from '@/routes';
+import { routes } from '@/routes';
 import { useTranslation } from 'react-i18next';
 
 export const getServerSideProps = async () => {

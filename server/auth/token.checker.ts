@@ -6,7 +6,7 @@ const options = {
   secretOrKey: process.env.KEY_TOKEN ?? '',
 };
 
-const tokenChecker = (passport: PassportStatic) => passport.use(
+export const tokenChecker = (passport: PassportStatic) => passport.use(
   new JwtStrategy(options, async ({ id }, done) => {
     try {
       const user = true;
@@ -20,5 +20,3 @@ const tokenChecker = (passport: PassportStatic) => passport.use(
     }
   }),
 );
-
-export default tokenChecker;

@@ -7,9 +7,9 @@ import { Breadcrumb as BreadcrumbAntd } from 'antd';
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
 import { RightOutlined } from '@ant-design/icons';
-import routes from '@/routes';
+import { routes, catalogPath } from '@/routes';
 import { Helmet } from '@/components/Helmet';
-import translate from '@/utilities/translate';
+import { translate } from '@/utilities/translate';
 
 type BreadcrumbState = {
   title: JSX.Element | string,
@@ -65,12 +65,9 @@ export const Breadcrumb = () => {
     }));
   }, [pathname]);
 
-  return router.pathname !== '/404' ? (
+  return router.pathname.includes(catalogPath) ? (
     <>
-      <Helmet
-        title={helmet ?? t('pages.index.title')}
-        description={helmet ?? t('pages.index.description')}
-      />
+      <Helmet title={helmet} description={helmet} />
       <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '9%', fontFamily: 'Oswald, sans-serif' }} />
     </>
   ) : null;
