@@ -1,5 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+import { Singleton } from 'typescript-ioc';
+
 import { entities } from '@server/db/entities';
 
 const {
@@ -12,6 +14,7 @@ const {
   PASSWORD_DB_HOST = '',
 } = process.env;
 
+@Singleton
 export class DatabaseService {
   private readonly db: DataSource;
 

@@ -39,12 +39,19 @@ export default {
         description: 'Войти в профиль пользователя',
         phone: 'Телефон',
         password: 'Пароль',
+        noAccount: 'Нет аккаунта?',
         forgotPassword: 'Забыли пароль?',
         submitButton: 'Войти',
       },
-      signUp: {
+      signup: {
         title: 'Регистрация',
         description: 'Зарегистрировать профиль пользователя',
+        phone: 'Телефон',
+        name: 'Имя',
+        password: 'Пароль',
+        confirmPassword: 'Подтвердите пароль',
+        next: 'Подтвердить телефон',
+        haveAccount: 'Есть аккаунт?',
       },
     },
     modules: {

@@ -1,13 +1,15 @@
-import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import {
-  Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne,
+  Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn,
+  BaseEntity,
 } from 'typeorm';
+
+import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 /** Товар */
 @Entity({
   name: 'item',
 })
-export class ItemEntity {
+export class ItemEntity extends BaseEntity {
   /** Уникальный id товара */
   @PrimaryGeneratedColumn()
   public id: number;
@@ -19,6 +21,14 @@ export class ItemEntity {
   /** Описание товара */
   @Column('character varying')
   public description: string;
+
+  /** Дата создания товара */
+  @CreateDateColumn()
+  public created: Date;
+
+  /** Дата изменения товара */
+  @UpdateDateColumn()
+  public updated: Date;
 
   /** Цена товара */
   @Column('int')

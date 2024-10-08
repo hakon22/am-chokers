@@ -1,10 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity, Column, PrimaryGeneratedColumn, BaseEntity,
+} from 'typeorm';
 
 /** Группы товаров */
 @Entity({
   name: 'item_group',
 })
-export class ItemGroupEntity {
+export class ItemGroupEntity extends BaseEntity {
   /** Уникальный id группы товара */
   @PrimaryGeneratedColumn()
   public id: number;
