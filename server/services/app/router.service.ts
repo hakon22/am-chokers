@@ -1,25 +1,18 @@
-import express, { type Router as ExpressRouter } from 'express';
+import express from 'express';
 import passport from 'passport';
-import { Singleton } from 'typescript-ioc';
+import { Singleton, Container } from 'typescript-ioc';
 
 import { UserService } from '@server/services/user/user.service';
 
 @Singleton
-export class Router {
-  private readonly userService: UserService;
+export class RouterService {
+  private readonly userService = Container.get(UserService);
 
-  private router: ExpressRouter;
+  private router = express.Router();
 
-  private apiPath: string;
+  private apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
-  private jwtToken: any;
-
-  constructor() {
-    this.router = express.Router();
-    this.apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
-    this.jwtToken = passport.authenticate('jwt', { session: false });
-    this.userService = new UserService();
-  }
+  private jwtToken = passport.authenticate('jwt', { session: false });
 
   public set = () => {
     this.router.post(`${this.apiPath}/auth/login`, this.userService.login);

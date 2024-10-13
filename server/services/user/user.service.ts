@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { Container, Inject, Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
@@ -11,22 +11,22 @@ import { PassportRequestInterface } from '@server/types/user/user.request.interf
 import { DatabaseService } from '@server/db/database.service';
 import { TokenService } from '@server/services/user/token.service';
 import { UserQueryInterface } from '@server/types/user/user.query.interface';
+import { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
-import redis from '@server/db/redis';
+import { RedisService } from '@server/db/redis.service';
 
 @Singleton
 export class UserService {
-  @Inject
-  private readonly databaseService: DatabaseService;
+  private readonly databaseService = Container.get(DatabaseService);
 
-  @Inject
-  private readonly tokenService: TokenService;
+  private readonly tokenService = Container.get(TokenService);
 
-  @Inject
-  private readonly smsService: SmsService;
+  private readonly smsService = Container.get(SmsService);
 
-  public findOne = async (query: UserQueryInterface) => {
-    const manager = Container.get(DatabaseService).getManager();
+  private readonly redisService = Container.get(RedisService);
+
+  public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
+    const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(UserEntity, 'user')
       .select([
@@ -43,6 +43,9 @@ export class UserService {
     if (query?.phone) {
       builder.andWhere('user.phone = :phone', { phone: query.phone });
     }
+    if (options?.withPassword) {
+      builder.addSelect('user.password');
+    }
 
     return builder.getOne();
   };
@@ -52,7 +55,7 @@ export class UserService {
       req.body.phone = phoneTransform(req.body.phone);
       const payload = req.body as { phone: string, password: string };
 
-      const user = await UserEntity.findOne({ where: { phone: payload.phone } });
+      const user = await this.findOne({ phone: payload.phone }, { withPassword: true });
       if (!user) {
         return res.json({ code: 3 });
       }
@@ -130,8 +133,7 @@ export class UserService {
       }
 
       if (key) {
-        const cacheData = await redis.get(key);
-        const data: { phone: string, code: string, result?: 'done' } | null = cacheData ? JSON.parse(cacheData) : null;
+        const data = await this.redisService.get<{ phone: string, code: string, result?: 'done' }>(key);
 
         if (data && data.result === 'done' && data.phone === phone) {
           return res.json({ code: 5 });
@@ -139,20 +141,20 @@ export class UserService {
         if (key && userCode) {
           await confirmCodeValidation.serverValidator({ code: userCode });
           if (data && data.phone === phone && data.code === userCode) {
-            await redis.setEx(key, 300, JSON.stringify({ phone, result: 'done' }));
+            await this.redisService.setEx(key, { phone, result: 'done' }, 300);
             return res.json({ code: 2, key });
           }
           return res.json({ code: 3 }); // код подтверждения не совпадает
         }
       }
-      if (await redis.exists(phone)) {
+      if (await this.redisService.exists(phone)) {
         return res.json({ code: 4 });
       }
 
       // eslint-disable-next-line camelcase
       const { request_id, code } = await this.smsService.sendCode(phone);
-      await redis.setEx(request_id, 3600, JSON.stringify({ phone, code }));
-      await redis.setEx(phone, 59, JSON.stringify({ phone }));
+      await this.redisService.setEx(request_id, { phone, code }, 3600);
+      await this.redisService.setEx(phone, { phone }, 59);
 
       // eslint-disable-next-line camelcase
       res.json({ code: 1, key: request_id, phone });

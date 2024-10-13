@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import { PassportStatic } from 'passport';
@@ -5,24 +6,15 @@ import { Singleton } from 'typescript-ioc';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 
-const options = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.KEY_TOKEN ?? '',
-};
-
-const optionsRefresh = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.KEY_REFRESH_TOKEN ?? '',
-};
-
 @Singleton
 export class TokenService {
   public tokenChecker = (passport: PassportStatic) => passport.use(
-    new JwtStrategy(options, async ({ id }, done) => {
+    new JwtStrategy(this.options, async ({ id }, done) => {
       try {
         const user = await UserEntity.findOne({ where: { id } });
         if (user) {
-          done(null, user);
+          const { password, ...rest } = user;
+          done(null, rest);
         } else {
           done(null, false);
         }
@@ -34,13 +26,14 @@ export class TokenService {
 
   public refreshTokenChecker = (passport: PassportStatic) => passport.use(
     'jwt-refresh',
-    new JwtStrategy(optionsRefresh, async ({ id, phone }, done) => {
+    new JwtStrategy(this.optionsRefresh, async ({ id, phone }, done) => {
       try {
         const user = await UserEntity.findOne({ where: { id, phone } });
         if (user) {
+          const { password, ...rest } = user;
           const token = this.generateAccessToken(id, phone);
           const refreshToken = this.generateRefreshToken(id, phone);
-          done(null, { ...user, token, refreshToken });
+          done(null, { ...rest, token, refreshToken });
         } else {
           done(null, false);
         }
@@ -53,4 +46,14 @@ export class TokenService {
   public generateAccessToken = (id: number, phone: string) => jwt.sign({ id, phone }, process.env.KEY_TOKEN ?? '', { expiresIn: '10m' });
 
   public generateRefreshToken = (id: number, phone: string) => jwt.sign({ id, phone }, process.env.KEY_REFRESH_TOKEN ?? '', { expiresIn: '30d' });
+
+  private options = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.KEY_TOKEN ?? '',
+  };
+
+  private optionsRefresh = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+    secretOrKey: process.env.KEY_REFRESH_TOKEN ?? '',
+  };
 }

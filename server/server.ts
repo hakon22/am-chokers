@@ -1,53 +1,51 @@
 import 'dotenv/config';
-import express, { type Express } from 'express';
+import 'reflect-metadata';
+import express from 'express';
 import next from 'next';
-import type { NextServer } from 'next/dist/server/next';
 import cors from 'cors';
 import passport from 'passport';
-import { Singleton } from 'typescript-ioc';
+import { Container } from 'typescript-ioc';
 
-import { TokenService } from '@server/services/user/token.service';
+import { RouterService } from '@server/services/app/router.service';
 import { DatabaseService } from '@server/db/database.service';
-import { Router } from '@server/router';
+import { TokenService } from '@server/services/user/token.service';
+import { RedisService } from '@server/db/redis.service';
 
 const { NEXT_PUBLIC_PORT: port = 3001, NODE_ENV } = process.env;
 
-@Singleton
 class Server {
-  private dev: boolean;
+  private readonly routerService = Container.get(RouterService);
 
-  private app: NextServer;
+  private readonly tokenService = Container.get(TokenService);
 
-  private handle: any;
+  private readonly databaseService = Container.get(DatabaseService);
 
-  private server: Express;
+  private readonly redisService = Container.get(RedisService);
 
-  constructor() {
-    this.dev = NODE_ENV !== 'production';
-    this.app = next({ dev: this.dev });
-    this.handle = this.app.getRequestHandler();
-    this.server = express();
-  }
+  private dev = NODE_ENV !== 'production';
+
+  private app = next({ dev: this.dev });
+
+  private handle = this.app.getRequestHandler();
+
+  private server = express();
 
   public start = () => {
     this.app.prepare().then(() => {
-      const tokenService = new TokenService();
-      const databaseService = new DatabaseService();
-      const router = new Router();
+      this.routerService.set();
 
-      tokenService.tokenChecker(passport);
-      tokenService.refreshTokenChecker(passport);
-
-      router.set();
+      this.tokenService.tokenChecker(passport);
+      this.tokenService.refreshTokenChecker(passport);
 
       this.server.use(express.json());
       this.server.use(cors());
       this.server.use(passport.initialize());
-      this.server.use(router.get());
+      this.server.use(this.routerService.get());
 
       this.server.all('*', (req, res) => this.handle(req, res));
 
-      databaseService.init();
+      this.databaseService.init();
+      this.redisService.init();
 
       this.server.listen(port, () => console.log(`Server is online on port: ${port}`));
     });

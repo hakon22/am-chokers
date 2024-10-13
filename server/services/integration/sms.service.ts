@@ -2,11 +2,13 @@ import axios from 'axios';
 import qs from 'qs';
 import passGen from 'generate-password';
 import { getDigitalCode } from 'node-verification-code';
+import { Singleton } from 'typescript-ioc';
 
 export const codeGen = () => getDigitalCode(4).toString();
 
+@Singleton
 export class SmsService {
-  async sendCode(phone: string): Promise<{ request_id: string, code: string }> {
+  public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
     try {
       const code = codeGen();
 
@@ -31,9 +33,9 @@ export class SmsService {
       console.error(e);
       throw Error('Произошла ошибка при отправке SMS');
     }
-  }
+  };
 
-  async sendPass(phone: string) {
+  public sendPass = async (phone: string) => {
     try {
       const password = passGen.generate({
         length: 7,
@@ -58,5 +60,5 @@ export class SmsService {
       console.error(e);
       throw Error('Произошла ошибка при отправке SMS');
     }
-  }
+  };
 }
