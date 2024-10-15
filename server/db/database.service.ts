@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { Singleton } from 'typescript-ioc';
 
 import { entities } from '@server/db/entities';
+import { TypeormLogger } from '@server/db/typeorm.logger';
 
 const {
   DB = 'LOCAL',
@@ -25,6 +26,7 @@ export abstract class DatabaseService {
       username: DB === 'LOCAL' ? USER_DB_LOCAL : USER_DB_HOST,
       password: DB === 'LOCAL' ? PASSWORD_DB_LOCAL : PASSWORD_DB_HOST,
       database: DB === 'LOCAL' ? DB_LOCAL : DB_HOST,
+      logger: new TypeormLogger(),
       schema: 'chokers',
       synchronize: true,
       logging: true,
@@ -34,10 +36,11 @@ export abstract class DatabaseService {
     });
   }
 
-  public getManager = () => {
-    const runner = this.db.createQueryRunner();
-    const manager = this.db.createEntityManager(runner);
-    return manager;
+  public getManager = async () => {
+    if (!this.db.isInitialized) {
+      throw new Error('Database connection is not initialized. Please call init() first.');
+    }
+    return this.db.createEntityManager();
   };
 
   public init = async () => {

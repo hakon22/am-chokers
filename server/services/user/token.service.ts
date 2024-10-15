@@ -2,12 +2,15 @@
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import { PassportStatic } from 'passport';
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 
 import { UserEntity } from '@server/db/entities/user.entity';
+import { LoggerService } from '@server/services/app/logger.service';
 
 @Singleton
 export class TokenService {
+  private logger = Container.get(LoggerService);
+
   public tokenChecker = (passport: PassportStatic) => passport.use(
     new JwtStrategy(this.options, async ({ id }, done) => {
       try {
@@ -19,7 +22,7 @@ export class TokenService {
           done(null, false);
         }
       } catch (e) {
-        console.log(e);
+        this.logger.error(e);
       }
     }),
   );
@@ -38,7 +41,7 @@ export class TokenService {
           done(null, false);
         }
       } catch (e) {
-        console.log(e);
+        this.logger.error(e);
       }
     }),
   );
