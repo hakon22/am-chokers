@@ -20,6 +20,7 @@ export class RouterService {
     this.router.post(`${this.apiPath}/auth/recoveryPassword`, this.userService.recoveryPassword);
     this.router.post(`${this.apiPath}/auth/logout`, this.userService.logout);
     this.router.get(`${this.apiPath}/auth/updateTokens`, passport.authenticate('jwt-refresh', { session: false }), this.userService.updateTokens);
+    this.router.post(`${this.apiPath}/auth/confirmPhone`, this.userService.confirmPhone);
   };
 
   public get = () => this.router;

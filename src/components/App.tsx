@@ -37,7 +37,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
       <main className="container">
         {children}
       </main>
-      <footer className="footer" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
+      <footer className="footer">
         <Footer />
       </footer>
     </>

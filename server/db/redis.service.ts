@@ -12,7 +12,7 @@ export class RedisService {
   };
 
   /** Получение значения из кеша
-   * @key ключ
+   * @param [key] ключ
    */
   public get = async <T>(key: string): Promise<T | null> => {
     const value = await this.redis.get(key);
@@ -22,24 +22,24 @@ export class RedisService {
 
   /** Запись значения в кеш
    * @key ключ
-   * @value значение
+   * @param [value] значение
    */
   public set = (key: string, value: any) => this.redis.set(key, JSON.stringify(value));
 
   /** Запись значения в кеш
-   * @key ключ
-   * @value значение
-   * @time время в секундах, через которое запись будет удалена
+   * @param [key] ключ
+   * @param [value] значение
+   * @param [time] время в секундах, через которое запись будет удалена
    */
   public setEx = (key: string, value: any, time: number) => this.redis.setEx(key, time, JSON.stringify(value));
 
   /** Проверка на наличие значения в кеше
-   * @key ключ
+   * @param [key] ключ
    */
   public exists = (key: string) => this.redis.exists(key);
 
   /** Удаление значения из кеша
-   * @key ключ
+   * @param [key] ключ
    */
   public delete = (key: string) => this.redis.del(key);
 }

@@ -14,17 +14,18 @@ export const routes = {
   signupPage: '/signup',
   profilePage: '/profile',
   recoveryPage: '/recovery',
+  notFoundPage: '*',
   catalog: catalogPath,
   // navbar
   necklace: [catalogPath, 'necklace'].join('/'),
   bracelets: [catalogPath, 'bracelets'].join('/'),
   earrings: [catalogPath, 'earrings'].join('/'),
   accessories: [catalogPath, 'accessories'].join('/'),
-  notFoundPage: '*',
   // auth
   login: [apiPath, 'auth', 'login'].join('/'),
   signup: [apiPath, 'auth', 'signup'].join('/'),
   logout: [apiPath, 'auth', 'logout'].join('/'),
   recoveryPassword: [apiPath, 'auth', 'recoveryPassword'].join('/'),
   updateTokens: [apiPath, 'auth', 'updateTokens'].join('/'),
+  confirmPhone: [apiPath, 'auth', 'confirmPhone'].join('/'),
 } as ApiUrl;

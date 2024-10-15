@@ -7,20 +7,15 @@ import passport from 'passport';
 import { Container } from 'typescript-ioc';
 
 import { RouterService } from '@server/services/app/router.service';
-import { DatabaseService } from '@server/db/database.service';
 import { TokenService } from '@server/services/user/token.service';
-import { RedisService } from '@server/db/redis.service';
+import { BaseService } from '@server/services/app/base.service';
 
 const { NEXT_PUBLIC_PORT: port = 3001, NODE_ENV } = process.env;
 
-class Server {
+class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
 
   private readonly tokenService = Container.get(TokenService);
-
-  private readonly databaseService = Container.get(DatabaseService);
-
-  private readonly redisService = Container.get(RedisService);
 
   private dev = NODE_ENV !== 'production';
 
@@ -30,7 +25,14 @@ class Server {
 
   private server = express();
 
-  public start = () => {
+  private init = async () => {
+    await this.databaseService.init();
+    await this.redisService.init();
+  };
+
+  public start = async () => {
+    await this.init();
+
     this.app.prepare().then(() => {
       this.routerService.set();
 
@@ -44,9 +46,6 @@ class Server {
 
       this.server.all('*', (req, res) => this.handle(req, res));
 
-      this.databaseService.init();
-      this.redisService.init();
-
       this.server.listen(port, () => console.log(`Server is online on port: ${port}`));
     });
   };
@@ -54,4 +53,4 @@ class Server {
 
 const server = new Server();
 
-server.start();
+await server.start();

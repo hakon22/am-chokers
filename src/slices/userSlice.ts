@@ -26,6 +26,14 @@ export const fetchTokenStorage = createAsyncThunk(
   },
 );
 
+export const fetchConfirmCode = createAsyncThunk(
+  'user/fetchConfirmCode',
+  async (data: { phone: string, key?: string, code?: string }) => {
+    const response = await axios.post(routes.confirmPhone, data);
+    return response.data;
+  },
+);
+
 export const updateTokens = createAsyncThunk(
   'user/updateTokens',
   async (refresh: string | undefined) => {
@@ -108,6 +116,25 @@ const userSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = action.error.message ?? null;
         window.localStorage.removeItem(storageKey);
+      })
+      .addCase(fetchConfirmCode.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchConfirmCode.fulfilled, (state, { payload }
+        : PayloadAction<{ code: number, key: string, phone: string }>) => {
+        if (payload.code === 1) {
+          state.key = payload.key;
+          if (!state.id) {
+            state.phone = payload.phone;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(fetchConfirmCode.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
       })
       .addCase(updateTokens.pending, (state) => {
         state.loadingStatus = 'loading';

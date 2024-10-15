@@ -55,7 +55,7 @@ const Login = () => {
       <Helmet title={t('title')} description={t('description')} />
       <div className="col-12 d-flex gap-5">
         <div className="col-5" style={{ marginTop: '12%' }}>
-          <Image src={loginImage} className="w-100" style={{ height: '80%', borderRadius: '15px' }} alt={t('title')} />
+          <Image src={loginImage} width={600} height={600} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
         </div>
         <div className="col-6 d-flex flex-column align-items-center" style={{ marginTop: '22%' }}>
           <h1 className="mb-5">{t('title')}</h1>

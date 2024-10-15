@@ -8,22 +8,17 @@ import { UserFormInterface } from '@/types/user/User';
 import { confirmCodeValidation, phoneValidation, signupValidation } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
 import { PassportRequestInterface } from '@server/types/user/user.request.interface';
-import { DatabaseService } from '@server/db/database.service';
 import { TokenService } from '@server/services/user/token.service';
 import { UserQueryInterface } from '@server/types/user/user.query.interface';
 import { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
-import { RedisService } from '@server/db/redis.service';
+import { BaseService } from '@server/services/app/base.service';
 
 @Singleton
-export class UserService {
-  private readonly databaseService = Container.get(DatabaseService);
-
+export class UserService extends BaseService {
   private readonly tokenService = Container.get(TokenService);
 
   private readonly smsService = Container.get(SmsService);
-
-  private readonly redisService = Container.get(RedisService);
 
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
     const manager = this.databaseService.getManager();

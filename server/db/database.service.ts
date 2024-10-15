@@ -14,7 +14,7 @@ const {
 } = process.env;
 
 @Singleton
-export class DatabaseService {
+export abstract class DatabaseService {
   private readonly db: DataSource;
 
   constructor() {
