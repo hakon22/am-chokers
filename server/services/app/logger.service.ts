@@ -44,7 +44,7 @@ export class LoggerService {
           zippedArchive: true,
           maxSize: '20m',
           maxFiles: '14d',
-          level: 'info', // Записываем все логи уровня 'info' и выше
+          level: 'debug', // Записываем все логи уровня 'debug' и выше
         }),
         // Логи в файл для уровня 'error'
         new DailyRotateFile({
@@ -55,7 +55,8 @@ export class LoggerService {
           maxSize: '20m',
           maxFiles: '14d',
           level: 'error', // Записываем только логи уровня 'error'
-        })];
+        }),
+      ];
 
     this.logger = winston.createLogger({
       level: 'debug',
