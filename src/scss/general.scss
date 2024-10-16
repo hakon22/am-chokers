@@ -53,6 +53,7 @@ body {
   padding-bottom: 30%;
   overflow-x: hidden;
   overflow-y: scroll;
+  min-height: 100vh;
 }
 
 #__next {
@@ -190,6 +191,28 @@ a {
 .disabled {
   border-color: #ced3dd !important;
   color: #69788e !important;;
+}
+
+.position-center {
+  position: absolute;
+  top: 50%;
+  right: -35%;
+  transform: translate(50%, -50%);
+  -webkit-transform: translate(50%, -50%);
+  -o-transform: translate(50%, -50%);
+}
+
+.ant-input-affix-wrapper-lg {
+  padding: 11px;
+  font-size: 1.2rem;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.flipped-icon {
+  transform: scale(-1, 1);
 }
 
 @keyframes show {

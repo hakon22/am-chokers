@@ -9,5 +9,5 @@ export abstract class BaseService {
 
   protected redisService = Container.get(RedisService);
 
-  protected logger = Container.get(LoggerService);
+  protected loggerService = Container.get(LoggerService);
 }

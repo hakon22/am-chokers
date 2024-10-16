@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '@/utilities/hooks';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
@@ -27,13 +25,10 @@ const LabelWithIcon = ({ label, href }: { label: string, href: string }) => (
 
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
-  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>('108px');
   const [isLoaded, setIsLoaded] = useState(false);
-
-  const { id, role } = useAppSelector((state) => state.user);
 
   const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
 

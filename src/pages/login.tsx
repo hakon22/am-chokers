@@ -61,10 +61,10 @@ const Login = () => {
           <h1 className="mb-5">{t('title')}</h1>
           <Form name="login" className="col-8" form={form} onFinish={onFinish}>
             <Form.Item<LoginType> name="phone" rules={[loginValidation]}>
-              <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined className="site-form-item-icon" />} placeholder={t('phone')} />
+              <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined className="flipped-icon" />} placeholder={t('phone')} />
             </Form.Item>
             <Form.Item<LoginType> name="password" rules={[loginValidation]}>
-              <Input.Password size="large" prefix={<LockOutlined className="site-form-item-icon" />} type="password" placeholder={t('password')} />
+              <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
             </Form.Item>
             <div className="d-flex justify-content-between mb-3-5">
               <Alert.Link className="text-primary fw-light fs-7" onClick={() => router.push(routes.signupPage)}>

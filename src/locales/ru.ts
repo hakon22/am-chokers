@@ -33,6 +33,10 @@ export default {
       profile: {
         title: 'Профиль',
         description: 'Профиль пользователя',
+        entrace1: 'Для входа в личный кабинет',
+        entrace2: 'или',
+        entrace: 'войдите',
+        signup: 'зарегистрируйтесь',
       },
       login: {
         title: 'Войти',

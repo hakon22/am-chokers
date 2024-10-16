@@ -3,10 +3,6 @@ const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 export const catalogPath = '/catalog';
 
-interface ApiUrl {
-  [key: string]: string;
-}
-
 export const routes = {
   // pages
   homePage: '/',
@@ -28,4 +24,4 @@ export const routes = {
   recoveryPassword: [apiPath, 'auth', 'recoveryPassword'].join('/'),
   updateTokens: [apiPath, 'auth', 'updateTokens'].join('/'),
   confirmPhone: [apiPath, 'auth', 'confirmPhone'].join('/'),
-} as ApiUrl;
+};

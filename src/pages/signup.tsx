@@ -84,13 +84,13 @@ const Signup = () => {
               <h1 className="mb-5">{t('title')}</h1>
               <Form name="signup" className="col-8" form={form} onFinish={onFinish}>
                 <Form.Item<SignupType> name="name" rules={[signupValidation]} required>
-                  <Input size="large" prefix={<UserOutlined className="site-form-item-icon" />} placeholder={t('name')} />
+                  <Input size="large" prefix={<UserOutlined />} placeholder={t('name')} />
                 </Form.Item>
                 <Form.Item<SignupType> name="phone" rules={[signupValidation]}>
-                  <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined className="site-form-item-icon" />} placeholder={t('phone')} />
+                  <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined className="flipped-icon" />} placeholder={t('phone')} />
                 </Form.Item>
                 <Form.Item<SignupType> name="password" rules={[signupValidation]} required>
-                  <Input.Password size="large" prefix={<LockOutlined className="site-form-item-icon" />} type="password" placeholder={t('password')} />
+                  <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
                 </Form.Item>
                 <Form.Item<SignupType>
                   name="confirmPassword"
@@ -107,7 +107,7 @@ const Signup = () => {
                   ]}
                   required
                 >
-                  <Input.Password size="large" prefix={<LockOutlined className="site-form-item-icon" />} type="password" placeholder={t('confirmPassword')} />
+                  <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
                   <Alert.Link className="text-primary fw-light fs-7" onClick={() => router.push(routes.loginPage)}>

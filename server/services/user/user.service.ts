@@ -80,7 +80,7 @@ export class UserService extends BaseService {
         user: { ...rest, token, refreshToken },
       });
     } catch (e) {
-      this.logger.error(e);
+      this.loggerService.error(e);
       res.sendStatus(500);
     }
   };
@@ -112,7 +112,7 @@ export class UserService extends BaseService {
 
       res.json({ code: 1, user: { ...rest, token, refreshToken } });
     } catch (e) {
-      this.logger.error(e);
+      this.loggerService.error(e);
       res.sendStatus(500);
     }
   };
@@ -155,7 +155,7 @@ export class UserService extends BaseService {
       // eslint-disable-next-line camelcase
       res.json({ code: 1, key: request_id, phone });
     } catch (e) {
-      this.logger.error(e);
+      this.loggerService.error(e);
       res.sendStatus(500);
     }
   };
@@ -184,7 +184,7 @@ export class UserService extends BaseService {
         user: { ...rest, token, refreshToken },
       });
     } catch (e) {
-      this.logger.error(e);
+      this.loggerService.error(e);
       res.sendStatus(401);
     }
   };
@@ -198,7 +198,7 @@ export class UserService extends BaseService {
       await UserEntity.update(user.id, { refreshTokens });
       res.status(200).json({ status: 'Tokens has been deleted' });
     } catch (e) {
-      this.logger.error(e);
+      this.loggerService.error(e);
       res.sendStatus(500);
     }
   };
@@ -218,7 +218,7 @@ export class UserService extends BaseService {
       await UserEntity.update(user.id, { password: hashPassword });
       res.status(200).json({ code: 1 });
     } catch (e) {
-      this.logger.error(e);
+      this.loggerService.error(e);
       res.sendStatus(500);
     }
   };

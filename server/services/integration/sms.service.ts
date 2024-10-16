@@ -2,18 +2,22 @@ import axios from 'axios';
 import qs from 'qs';
 import passGen from 'generate-password';
 import { getDigitalCode } from 'node-verification-code';
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
+import { LoggerService } from '@server/services/app/logger.service';
 
 export const codeGen = () => getDigitalCode(4).toString();
 
 @Singleton
 export class SmsService {
+  private loggerService = Container.get(LoggerService);
+
   public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
     try {
       const code = codeGen();
 
       if (process.env.NODE_ENV === 'production') {
         const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
+        this.loggerService.info(`[SMS Service] Отправка SMS по номеру телефона: ${phone}`);
 
         const { data } = await axios.post('https://api3.greensms.ru/sms/send', object, {
           headers: { Authorization: `Bearer ${process.env.SMS_API_KEY}` },
@@ -30,7 +34,7 @@ export class SmsService {
         return { ...data, code };
       }
     } catch (e) {
-      console.error(e);
+      this.loggerService.error(e);
       throw Error('Произошла ошибка при отправке SMS');
     }
   };
@@ -51,13 +55,14 @@ export class SmsService {
       };
 
       if (process.env.NODE_ENV === 'production') {
+        this.loggerService.info(`[SMS Service] Отправка SMS по номеру телефона: ${phone}`);
         await axios.post('https://ssl.bs00.ru', qs.stringify(object));
       } else {
         console.log(password);
       }
       return password;
     } catch (e) {
-      console.error(e);
+      this.loggerService.error(e);
       throw Error('Произошла ошибка при отправке SMS');
     }
   };
