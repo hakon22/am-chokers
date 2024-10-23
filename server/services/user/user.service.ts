@@ -4,10 +4,10 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
-import { UserFormInterface } from '@/types/user/User';
+import type { UserFormInterface, UserProfileType } from '@/types/user/User';
 import { confirmCodeValidation, phoneValidation, signupValidation } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
-import { PassportRequestInterface } from '@server/types/user/user.request.interface';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { TokenService } from '@server/services/user/token.service';
 import { UserQueryInterface } from '@server/types/user/user.query.interface';
 import { UserOptionsInterface } from '@server/types/user/user.options.interface';
@@ -162,7 +162,7 @@ export class UserService extends BaseService {
 
   public updateTokens = async (req: Request, res: Response) => {
     try {
-      const { user, token, refreshToken } = req.user as PassportRequestInterface;
+      const { token, refreshToken, ...user } = req.user as PassportRequestInterface;
       const oldRefreshToken = req.get('Authorization')?.split(' ')[1] || req.headers.authorization;
       if (!oldRefreshToken) {
         throw new Error('Пожалуйста, авторизуйтесь!');
@@ -191,7 +191,7 @@ export class UserService extends BaseService {
 
   public logout = async (req: Request, res: Response) => {
     try {
-      const { user } = req.user as PassportRequestInterface;
+      const { ...user } = req.user as PassportRequestInterface;
       const { refreshToken } = req.body as { refreshToken: string };
 
       const refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
@@ -217,6 +217,49 @@ export class UserService extends BaseService {
       const hashPassword = bcrypt.hashSync(password, 10);
       await UserEntity.update(user.id, { password: hashPassword });
       res.status(200).json({ code: 1 });
+    } catch (e) {
+      this.loggerService.error(e);
+      res.sendStatus(500);
+    }
+  };
+
+  public changeUserProfile = async (req: Request, res: Response) => {
+    try {
+      const { ...user } = req.user as PassportRequestInterface;
+      const {
+        confirmPassword, oldPassword, key, ...values
+      } = req.body as UserProfileType;
+
+      if (values.password) {
+        const fetchUser = await this.findOne({ phone: user.phone }, { withPassword: true });
+        if (oldPassword && fetchUser && confirmPassword === values.password) {
+          const isValidPassword = bcrypt.compareSync(oldPassword, fetchUser.password);
+          if (!isValidPassword) {
+            return res.json({ code: 2 });
+          }
+          const hashPassword = bcrypt.hashSync(values.password, 10);
+          values.password = hashPassword;
+        } else {
+          throw new Error('Пароль не совпадает или не введён старый пароль');
+        }
+      }
+      if (values?.name) {
+        values.name = upperCase(values.name);
+      }
+      if (values.phone) {
+        values.phone = phoneTransform(values.phone);
+        if (key) {
+          const data = await this.redisService.get<{ phone: string, code: string, result?: 'done' }>(key);
+          if (data && data.result === 'done' && data.phone === values.phone) {
+            await this.redisService.delete(data.phone);
+          }
+        } else {
+          throw new Error('Телефон не подтверждён');
+        }
+      }
+      await UserEntity.update(user.id, values);
+
+      res.json({ code: 1 });
     } catch (e) {
       this.loggerService.error(e);
       res.sendStatus(500);

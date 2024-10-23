@@ -9,13 +9,15 @@ export interface UserInterface extends Omit<OmitBase<UserEntity>, 'refreshToken'
   refreshToken: string;
   /** Уникальный ключ пользователя (для кода подтверждения телефона) */
   key: string;
+  /** Адрес для переадресации после входа */
+  url: string;
   [key: string]: any;
 }
 
-export interface UserProfileType {
-  password?: string;
+export interface UserProfileType extends Partial<Pick<UserEntity, 'name' | 'phone' | 'password'>> {
   confirmPassword?: string;
   oldPassword?: string;
+  [key: string]: string | undefined;
 }
 
 export interface UserFormInterface extends Pick<UserEntity, 'name' | 'phone' | 'password'> {}

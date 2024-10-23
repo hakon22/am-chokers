@@ -9,7 +9,7 @@ export const codeGen = () => getDigitalCode(4).toString();
 
 @Singleton
 export class SmsService {
-  private loggerService = Container.get(LoggerService);
+  private readonly loggerService = Container.get(LoggerService);
 
   public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
     try {

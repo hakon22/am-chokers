@@ -16,7 +16,7 @@ export const useErrorHandler = (...errors: Error[]) => {
       if (codeError === 401) {
         toast(t('authError'), 'error');
       } else if (codeError === 500) {
-        toast(t('unknownError'), 'error');
+        toast(t('unknownError', { error: err }), 'error');
       } else {
         toast(t('networkError'), 'error');
       }

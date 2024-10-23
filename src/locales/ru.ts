@@ -37,6 +37,42 @@ export default {
         entrace2: 'или',
         entrace: 'войдите',
         signup: 'зарегистрируйтесь',
+        menu: {
+          personal: 'Личные данные',
+          order: 'История заказов',
+          favorites: 'Избранное',
+          reviews: 'Мои отзывы',
+          settings: 'Настройки',
+          logout: 'Выйти',
+        },
+        personal: {
+          title: 'Личные данные',
+          description: 'Личные данные',
+          phone: 'Телефон',
+          name: 'Имя',
+          password: 'Пароль',
+          confirmPassword: 'Подтвердите пароль',
+          oldPassword: 'Старый пароль',
+          linkTelegram: 'Привязать Telegram аккаунт',
+          unlinkTelegram: 'Отвязать Telegram аккаунт',
+          submitButton: 'Сохранить',
+        },
+        order: {
+          title: 'История заказов',
+          description: 'История заказов',
+        },
+        favorites: {
+          title: 'Избранное',
+          description: 'Избранное',
+        },
+        reviews: {
+          title: 'Мои отзывы',
+          description: 'Мои отзывы',
+        },
+        settings: {
+          title: 'Настройки',
+          description: 'Настройки',
+        },
       },
       login: {
         title: 'Войти',

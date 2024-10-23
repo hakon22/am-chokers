@@ -43,7 +43,7 @@ export class UserEntity extends BaseEntity {
   })
   public refreshTokens: string[];
 
-  /** Номер Telegram пользователя */
+  /** Уникальный id пользователя в Telegram */
   @Column('character varying', {
     name: 'telegram_id',
     nullable: true,

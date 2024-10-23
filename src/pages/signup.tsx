@@ -87,7 +87,7 @@ const Signup = () => {
                   <Input size="large" prefix={<UserOutlined />} placeholder={t('name')} />
                 </Form.Item>
                 <Form.Item<SignupType> name="phone" rules={[signupValidation]}>
-                  <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined className="flipped-icon" />} placeholder={t('phone')} />
+                  <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
                 </Form.Item>
                 <Form.Item<SignupType> name="password" rules={[signupValidation]} required>
                   <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />

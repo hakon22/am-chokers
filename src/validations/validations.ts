@@ -66,11 +66,30 @@ const signupSchema = yup.object().shape({
   ['password', 'password'],
 ]);
 
-const profileSchema = signupSchema.concat(yup.object().shape({
+const profileSchema = yup.object().shape({
+  phone: phoneSchema,
+  name: stringSchema
+    .trim()
+    .min(3)
+    .max(20),
+  password: yup.string().when('password', ([value]) => {
+    if (value) {
+      return yup
+        .string()
+        .required()
+        .min(6, t('validation.passMin'));
+    }
+    return yup
+      .string()
+      .transform((v, originalValue) => (v ? originalValue : null))
+      .nullable()
+      .optional();
+  }),
+  confirmPassword: yup.string().required(),
   oldPassword: yup.string().required().min(6, t('validation.passMin')),
 }, [
   ['password', 'password'],
-]));
+]);
 
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);

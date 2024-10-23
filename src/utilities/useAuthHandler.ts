@@ -1,15 +1,19 @@
 import { useEffect, useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { fetchTokenStorage, updateTokens } from '@/slices/userSlice';
+import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { routes } from '@/routes';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
 export const useAuthHandler = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+
   const { logIn, loggedIn } = useContext(AuthContext);
-  const { token, refreshToken } = useAppSelector((state) => state.user);
+  const { token, refreshToken, url } = useAppSelector((state) => state.user);
 
   useEffect(() => {
     const tokenStorage = window.localStorage.getItem(storageKey);
@@ -21,6 +25,10 @@ export const useAuthHandler = () => {
   useEffect(() => {
     if (token && !loggedIn) {
       logIn();
+      if (url) {
+        router.push(url);
+        dispatch(removeUrl());
+      }
     }
     if (token) {
       axios.defaults.headers.common.Authorization = `Bearer ${token}`;

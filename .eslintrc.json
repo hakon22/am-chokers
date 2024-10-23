@@ -41,6 +41,7 @@
       "class-methods-use-this": "off",
       "consistent-return": "off",
       "no-shadow": "off",
+      "no-return-assign": "off",
       "@typescript-eslint/no-shadow": "error",
       "@typescript-eslint/no-explicit-any": "off",
       "no-underscore-dangle": [2, { "allow": ["__filename", "__dirname" ] }],
@@ -54,7 +55,7 @@
           "controlComponents": ["CustomInput"],
           "depth": 3
           }],
-      "no-param-reassign": [2, { "props": false }],
+      "no-param-reassign": [2, { "props": false, "acc": false }],
       "@typescript-eslint/no-unused-vars": "warn",
       "react-hooks/exhaustive-deps": "off",
       "max-len": "off"

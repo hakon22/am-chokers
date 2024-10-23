@@ -68,12 +68,23 @@ h2 {
   text-transform: uppercase;
 }
 
+.label {
+  margin-bottom: 0.5rem;
+  font-family: Oswald, sans-serif;
+  font-size: 1.2rem;
+}
+
 .ant-breadcrumb a {
   height: auto;
 }
 
 .mb-3-5 {
   margin-bottom: 2.2em !important;
+}
+
+.py-3-5 {
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
 }
 
 .anim-show {
@@ -211,8 +222,10 @@ a {
   cursor: pointer;
 }
 
-.flipped-icon {
-  transform: scale(-1, 1);
+.button-link {
+  background: unset;
+  border: 0;
+  padding: 0;
 }
 
 @keyframes show {

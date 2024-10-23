@@ -16,7 +16,9 @@ export class TokenService {
       try {
         const user = await UserEntity.findOne({ where: { id } });
         if (user) {
-          const { password, ...rest } = user;
+          const {
+            password, updated, created, ...rest
+          } = user;
           done(null, rest);
         } else {
           done(null, false);
@@ -33,7 +35,9 @@ export class TokenService {
       try {
         const user = await UserEntity.findOne({ where: { id, phone } });
         if (user) {
-          const { password, ...rest } = user;
+          const {
+            password, updated, created, ...rest
+          } = user;
           const token = this.generateAccessToken(id, phone);
           const refreshToken = this.generateRefreshToken(id, phone);
           done(null, { ...rest, token, refreshToken });

@@ -5,7 +5,7 @@ import { Container, Singleton } from 'typescript-ioc';
 
 @Singleton
 export class TypeormLogger implements Logger {
-  private loggerService = Container.get(LoggerService);
+  private readonly loggerService = Container.get(LoggerService);
 
   public log(level: 'log' | 'info' | 'warn', message: string, queryRunner?: QueryRunner): void {
     if (level === 'log') {

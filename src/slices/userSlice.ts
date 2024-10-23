@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { UserInterface } from '@/types/user/User';
+import type { UserInterface, UserProfileType } from '@/types/user/User';
 import { routes } from '@/routes';
 
 type KeysUserInitialState = keyof UserInterface;
@@ -74,6 +74,27 @@ const userSlice = createSlice({
           delete state[key];
         }
       });
+    },
+    setUrl: (state, { payload }: PayloadAction<string>) => {
+      state.url = payload;
+    },
+    removeUrl: (state) => {
+      delete state.url;
+    },
+    removeTelegramId: (state) => {
+      delete state.telegramId;
+    },
+    userProfileUpdate: (state, { payload }: PayloadAction<UserProfileType>) => {
+      const { phone, name } = payload;
+      if (phone) {
+        state.phone = phone;
+        if (state?.key) {
+          delete state.key;
+        }
+      }
+      if (name) {
+        state.name = name;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -157,6 +178,8 @@ const userSlice = createSlice({
   },
 });
 
-export const { removeToken } = userSlice.actions;
+export const {
+  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate,
+} = userSlice.actions;
 
 export default userSlice.reducer;

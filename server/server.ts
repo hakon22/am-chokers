@@ -4,18 +4,22 @@ import express from 'express';
 import next from 'next';
 import cors from 'cors';
 import passport from 'passport';
+import { Telegraf } from 'telegraf';
 import { Container } from 'typescript-ioc';
 
 import { RouterService } from '@server/services/app/router.service';
 import { TokenService } from '@server/services/user/token.service';
 import { BaseService } from '@server/services/app/base.service';
+import { routes } from '@/routes';
 
-const { NEXT_PUBLIC_PORT: port = 3001, NODE_ENV } = process.env;
+const { NEXT_PUBLIC_PORT: port = 3001, TELEGRAM_TOKEN, NEXT_PUBLIC_PRODUCTION_HOST, NODE_ENV } = process.env;
 
 class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
 
   private readonly tokenService = Container.get(TokenService);
+
+  private readonly telegramBot = new Telegraf(TELEGRAM_TOKEN ?? '');
 
   private dev = NODE_ENV !== 'production';
 
@@ -28,6 +32,12 @@ class Server extends BaseService {
   private init = async () => {
     await this.databaseService.init();
     await this.redisService.init();
+
+    await this.telegramBot.telegram.setMyCommands([{
+      command: 'start',
+      description: '🔃 Запуск бота',
+    }]);
+    await this.telegramBot.telegram.setWebhook(`${NEXT_PUBLIC_PRODUCTION_HOST}${routes.telegram}`);
   };
 
   public start = async () => {

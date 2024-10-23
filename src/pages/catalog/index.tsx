@@ -21,8 +21,6 @@ export const getServerSideProps = async () => {
     },
   ];
 
-  const accumulator: string[] = [];
-
   return {
     props: {
       groups: items.reduce((acc, item) => {
@@ -30,7 +28,7 @@ export const getServerSideProps = async () => {
           acc.push(item.group);
         }
         return acc;
-      }, accumulator),
+      }, [] as string[]),
     },
   };
 };
