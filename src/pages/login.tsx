@@ -14,11 +14,7 @@ import { useContext } from 'react';
 import { SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-
-type LoginType = {
-  phone: string;
-  password: string;
-};
+import type { UserLoginInterface } from '@/types/user/User';
 
 const Login = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.login' });
@@ -32,7 +28,7 @@ const Login = () => {
 
   const [form] = Form.useForm();
 
-  const onFinish = async (values: LoginType) => {
+  const onFinish = async (values: UserLoginInterface) => {
     try {
       setIsSubmit(true);
       const { payload: { code } } = await dispatch(fetchLogin(values)) as { payload: { code: number } };
@@ -60,10 +56,10 @@ const Login = () => {
         <div className="col-6 d-flex flex-column align-items-center" style={{ marginTop: '22%' }}>
           <h1 className="mb-5">{t('title')}</h1>
           <Form name="login" className="col-8" form={form} onFinish={onFinish}>
-            <Form.Item<LoginType> name="phone" rules={[loginValidation]}>
+            <Form.Item<UserLoginInterface> name="phone" rules={[loginValidation]}>
               <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
             </Form.Item>
-            <Form.Item<LoginType> name="password" rules={[loginValidation]}>
+            <Form.Item<UserLoginInterface> name="password" rules={[loginValidation]}>
               <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
             </Form.Item>
             <div className="d-flex justify-content-between mb-3-5">

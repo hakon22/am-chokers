@@ -125,19 +125,15 @@ export class UserService extends BaseService {
 
       const candidate = await this.findOne({ phone });
       if (candidate) {
-        return res.json({ code: 6 });
+        return res.json({ code: 5 });
       }
 
       if (key) {
-        const data = await this.redisService.get<{ phone: string, code: string, result?: 'done' }>(key);
+        const data = await this.redisService.get<{ phone: string, code: string }>(key);
 
-        if (data && data.result === 'done' && data.phone === phone) {
-          return res.json({ code: 5 });
-        }
         if (key && userCode) {
           await confirmCodeValidation.serverValidator({ code: userCode });
           if (data && data.phone === phone && data.code === userCode) {
-            await this.redisService.setEx(key, { phone, result: 'done' }, 300);
             return res.json({ code: 2, key });
           }
           return res.json({ code: 3 }); // код подтверждения не совпадает

@@ -13,17 +13,10 @@ import { useContext, useEffect, useState } from 'react';
 import { SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import axios from 'axios';
 import { toast } from '@/utilities/toast';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
-import { fetchConfirmCode } from '@/slices/userSlice';
-
-type SignupType = {
-  name: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-};
+import { fetchConfirmCode, fetchSignup } from '@/slices/userSlice';
+import type { UserSignupInterface } from '@/types/user/User';
 
 const Signup = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.signup' });
@@ -37,25 +30,24 @@ const Signup = () => {
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [user, setUser] = useState<UserSignupInterface>();
 
   const { setIsSubmit } = useContext(SubmitContext);
 
   const [form] = Form.useForm();
 
-  const onFinish = async (values: SignupType) => {
+  const onFinish = async (values: UserSignupInterface) => {
     try {
       setIsSubmit(true);
       const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
       if (code === 1) {
+        setUser(values);
         setIsProcessConfirmed(true);
       }
       if (code === 4) {
         toast(tToast('timeNotOverForSms'), 'error');
       }
       if (code === 5) {
-        setIsConfirmed(true);
-      }
-      if (code === 6) {
         form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
       }
       setIsSubmit(false);
@@ -66,10 +58,12 @@ const Signup = () => {
   };
 
   useEffect(() => {
-    if (isConfirmed) {
-      router.push(routes.profilePage);
+    if (isConfirmed && user) {
+      dispatch(fetchSignup(user))
+        .then(() => { router.push(routes.profilePage) })
+        .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit) })
     }
-  }, [isConfirmed]);
+  }, [isConfirmed, user]);
 
   return (
     <>
@@ -83,16 +77,16 @@ const Signup = () => {
             <>
               <h1 className="mb-5">{t('title')}</h1>
               <Form name="signup" className="col-8" form={form} onFinish={onFinish}>
-                <Form.Item<SignupType> name="name" rules={[signupValidation]} required>
+                <Form.Item<UserSignupInterface> name="name" rules={[signupValidation]} required>
                   <Input size="large" prefix={<UserOutlined />} placeholder={t('name')} />
                 </Form.Item>
-                <Form.Item<SignupType> name="phone" rules={[signupValidation]}>
+                <Form.Item<UserSignupInterface> name="phone" rules={[signupValidation]}>
                   <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
                 </Form.Item>
-                <Form.Item<SignupType> name="password" rules={[signupValidation]} required>
+                <Form.Item<UserSignupInterface> name="password" rules={[signupValidation]} required>
                   <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
                 </Form.Item>
-                <Form.Item<SignupType>
+                <Form.Item<UserSignupInterface>
                   name="confirmPassword"
                   rules={[
                     signupValidation,

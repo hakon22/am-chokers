@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { UserInterface, UserProfileType } from '@/types/user/User';
+import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
 import { routes } from '@/routes';
 
 type KeysUserInitialState = keyof UserInterface;
@@ -10,8 +10,16 @@ const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
 export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
-  async (data: { phone: string, password: string }) => {
+  async (data: UserLoginInterface) => {
     const response = await axios.post(routes.login, data);
+    return response.data;
+  },
+);
+
+export const fetchSignup = createAsyncThunk(
+  'user/fetchSignup',
+  async (data: UserSignupInterface) => {
+    const response = await axios.post(routes.signup, data);
     return response.data;
   },
 );
@@ -104,7 +112,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchLogin.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: UserInterface, crew?: { users: string, cars: string }, temporaryToken?: string }>) => {
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -114,6 +122,24 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchLogin.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
+      .addCase(fetchSignup.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchSignup.fulfilled, (state, { payload }
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
+        if (payload.code === 1) {
+          const entries = Object.entries(payload.user);
+          entries.forEach(([key, value]) => { state[key] = value; });
+          window.localStorage.setItem(storageKey, payload.user.refreshToken);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(fetchSignup.rejected, (state, action) => {
         state.loadingStatus = 'failed';
         state.error = action.error.message ?? null;
       })
