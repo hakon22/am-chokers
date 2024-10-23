@@ -112,9 +112,6 @@ export const Personal = ({ t }: { t: TFunction }) => {
           toast(tToast('timeNotOverForSms'), 'error');
         }
         if (code === 5) {
-          setIsConfirmed(true);
-        }
-        if (code === 6) {
           form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
         }
       } else {
