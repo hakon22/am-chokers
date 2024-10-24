@@ -1,42 +1,66 @@
 import 'dotenv/config';
+import 'reflect-metadata';
 import express from 'express';
 import next from 'next';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 import cors from 'cors';
 import passport from 'passport';
-import tokenChecker from '@server/auth/tokenChecker.js';
-import refreshTokenChecker from '@server/auth/refreshTokenChecker.js';
-import router from '@server/api.js';
-import { connectToDb } from '@server/db/connect.js';
+import { Telegraf } from 'telegraf';
+import { Container } from 'typescript-ioc';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { RouterService } from '@server/services/app/router.service';
+import { TokenService } from '@server/services/user/token.service';
+import { BaseService } from '@server/services/app/base.service';
+import { routes } from '@/routes';
 
-const { NEXT_PUBLIC_PORT: port = 3001, NODE_ENV } = process.env;
+const { NEXT_PUBLIC_PORT: port = 3001, TELEGRAM_TOKEN, NEXT_PUBLIC_PRODUCTION_HOST, NODE_ENV } = process.env;
 
-const dev = NODE_ENV !== 'production';
+class Server extends BaseService {
+  private readonly routerService = Container.get(RouterService);
 
-const app = next({ dev });
-const handle = app.getRequestHandler();
+  private readonly tokenService = Container.get(TokenService);
 
-const server = express();
+  private readonly telegramBot = new Telegraf(TELEGRAM_TOKEN ?? '');
 
-app.prepare().then(() => {
-  tokenChecker(passport);
-  refreshTokenChecker(passport);
+  private dev = NODE_ENV !== 'production';
 
-  server.use(express.json());
-  server.use(cors());
-  server.use(passport.initialize());
-  server.use(router);
+  private app = next({ dev: this.dev });
 
-  server.all('*', (req, res) => handle(req, res));
+  private handle = this.app.getRequestHandler();
 
-  server.listen(port, () => console.log(`Server is online on port: ${port}`));
-});
+  private server = express();
 
-export const uploadFilesPath = NODE_ENV === 'development'
-  ? join(__dirname, '..', 'src', 'images')
-  : join(__dirname, '..', '.next', 'static', 'media');
+  private init = async () => {
+    await this.databaseService.init();
+    await this.redisService.init();
 
-await connectToDb();
+    await this.telegramBot.telegram.setMyCommands([{
+      command: 'start',
+      description: '🔃 Запуск бота',
+    }]);
+    await this.telegramBot.telegram.setWebhook(`${NEXT_PUBLIC_PRODUCTION_HOST}${routes.telegram}`);
+  };
+
+  public start = async () => {
+    await this.init();
+
+    this.app.prepare().then(() => {
+      this.routerService.set();
+
+      this.tokenService.tokenChecker(passport);
+      this.tokenService.refreshTokenChecker(passport);
+
+      this.server.use(express.json());
+      this.server.use(cors());
+      this.server.use(passport.initialize());
+      this.server.use(this.routerService.get());
+
+      this.server.all('*', (req, res) => this.handle(req, res));
+
+      this.server.listen(port, () => console.log(`Server is online on port: ${port}`));
+    });
+  };
+}
+
+const server = new Server();
+
+await server.start();

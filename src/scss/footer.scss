@@ -1,0 +1,26 @@
+.footer {
+  background-color: $dark-blue;
+  color: $light-font;
+  padding: 3rem;
+  font-weight: 300;
+  letter-spacing: 1px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+
+  h6 {
+    text-transform: uppercase;
+  }
+
+  ul {
+    list-style: none;
+    padding-left: unset;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .text-muted {
+    color: $grey-dark-font !important;
+  }
+}

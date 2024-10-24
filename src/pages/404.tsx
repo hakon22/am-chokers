@@ -12,15 +12,16 @@ const Page404 = () => {
   const back = () => router.back();
 
   return (
-    <div className="my-5 row d-flex justify-content-center">
+    <>
       <Helmet title={t('title')} description={t('description')} />
       <Result
         icon={<Image src={image404} alt={t('title')} />}
         title={t('title')}
         subTitle={t('description')}
-        extra={<Button className="button col-6" onClick={back}>{t('prev')}</Button>}
+        style={{ marginTop: '10%' }}
+        extra={<Button className="button col-2 mx-auto" onClick={back}>{t('prev')}</Button>}
       />
-    </div>
+    </>
   );
 };
 

@@ -1,0 +1,37 @@
+.verification-character {
+  border-radius: 10px;
+  border-color: $button-background-active-dark;
+  font-size: 1.5rem;
+  line-height: unset;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ant-progress .ant-progress-bg {
+  animation: progress 60s linear;
+  transition: none;
+  background: $button-background-active;
+}
+
+.error-message {
+  color: $font-error;
+  font-size: 1.2rem;
+  position: absolute;
+  left: 50% !important;
+  bottom: -80% !important;
+  transform: translate(-50%, 0) !important;
+  -webkit-transform: translate(-50%, 0) !important;
+  -o-transform: translate(-50%, 0) !important;
+}
+
+.vi__character--selected {
+  color: $font;
+  outline: 2px solid $button-background-active-dark;
+  border: unset;
+}
+
+@keyframes progress {
+	0% { width: 100%;	}
+	100% { width: 0%;	}
+}

@@ -1,32 +1,29 @@
-import { InitialState } from '@/types/InitialState';
-import RolesEnum from '@server/types/user/enum/RolesEnum';
+import type { InitialState } from '@/types/InitialState';
+import type { UserEntity } from '@server/db/entities/user.entity';
+import type { OmitBase } from '@/types/omitBase';
 
-export type User = {
-  id?: number;
-  username: string;
-  password: string;
-  phone: string;
+export interface UserInterface extends Omit<OmitBase<UserEntity>, 'password'>, InitialState {
+  /** Токен пользователя */
   token: string;
-  role: RolesEnum;
+  /** Refresh токен пользователя */
   refreshToken: string;
-  telegramId: string | null;
-};
+  /** Уникальный ключ пользователя (для кода подтверждения телефона) */
+  key: string;
+  /** Адрес для переадресации после входа */
+  url: string;
+  [key: string]: any;
+}
 
-export type UserInitialState = InitialState & {
-  id?: number;
-  token?: string;
-  refreshToken?: string;
-  email?: string;
-  username?: string;
-  phone?: string;
-  key?: string;
-  role?: RolesEnum;
-  telegramId?: string | null;
-  [key: string]: number[] | string[] | string | number | null | boolean | undefined;
-};
-
-export type UserProfileType = {
-  password?: string;
+export interface UserProfileType extends Partial<Pick<UserEntity, 'name' | 'phone' | 'password'>> {
   confirmPassword?: string;
   oldPassword?: string;
+  [key: string]: string | undefined;
+}
+
+export interface UserFormInterface extends Pick<UserEntity, 'name' | 'phone' | 'password'> {}
+
+export interface UserLoginInterface extends Pick<UserEntity, 'phone' | 'password'> {}
+
+export interface UserSignupInterface extends Pick<UserEntity, 'name' | 'phone' | 'password'> {
+  confirmPassword: string;
 };

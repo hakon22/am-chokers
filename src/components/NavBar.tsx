@@ -1,19 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useTranslation } from 'react-i18next';
-import { useAppSelector } from '@/utilities/hooks';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import {
-  MouseEvent as ReactMouseEvent, useEffect, useState, useContext,
-} from 'react';
+import Link from 'next/link';
+import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
-import routes from '@/routes';
-import logo from '@/images/logo.svg';
-import person from '@/images/icons/person.svg';
+import { routes } from '@/routes';
+import logoImage from '@/images/logo.svg';
+import personIcon from '@/images/icons/person.svg';
 import { Menu, type MenuProps } from 'antd';
-import { ScrollContext } from '@/components/Context';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -21,25 +16,19 @@ type NavigationKeys = {
 
 type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
 
-const LabelWithIcon = ({ label }: { label: string }) => (
-  <div className="d-flex align-items-center gap-2">
+const LabelWithIcon = ({ label, href }: { label: string, href: string }) => (
+  <Link href={href} className="d-flex align-items-center gap-2">
     <span>{label}</span>
     <DownOutlined />
-  </div>
+  </Link>
 );
 
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
-  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
-
-  const scrollBar = useContext(ScrollContext);
-
-  const router = useRouter();
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [navHeight, setNavHeight] = useState<string>(`calc(7vw + ${scrollBar})`);
-
-  const { id, role } = useAppSelector((state) => state.user);
+  const [navHeight, setNavHeight] = useState<string>('108px');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
 
@@ -52,88 +41,89 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     {
-      label: <LabelWithIcon label={t('menu.catalog.title')} />,
+      label: <LabelWithIcon label={t('menu.catalog.title')} href={routes.catalog} />,
       key: 'catalog',
-      onTitleClick: () => router.push(routes.homePage),
       onTitleMouseEnter,
       onTitleMouseLeave,
       children: [
-        { label: t('menu.catalog.necklace'), key: 'necklace' },
-        { label: t('menu.catalog.bracelets'), key: 'bracelets' },
-        { label: t('menu.catalog.earrings'), key: 'earrings' },
-        { label: t('menu.catalog.accessories'), key: 'accessories' },
+        { label: <Link href={routes.necklace}>{t('menu.catalog.necklace')}</Link>, key: 'necklace' },
+        { label: <Link href={routes.bracelets}>{t('menu.catalog.bracelets')}</Link>, key: 'bracelets' },
+        { label: <Link href={routes.earrings}>{t('menu.catalog.earrings')}</Link>, key: 'earrings' },
+        { label: <Link href={routes.accessories}>{t('menu.catalog.accessories')}</Link>, key: 'accessories' },
       ],
     },
     {
-      label: t('menu.aboutBrand'),
+      label: <Link href="/">{t('menu.aboutBrand')}</Link>,
       key: 'aboutBrand',
-      onTitleClick: () => router.push(routes.homePage),
     },
     {
-      label: t('menu.delivery'),
+      label: <Link href="/">{t('menu.delivery')}</Link>,
       key: 'delivery',
-      onTitleClick: () => router.push(routes.homePage),
     },
     {
-      label: t('menu.jewelryCaring'),
+      label: <Link href="/">{t('menu.jewelryCaring')}</Link>,
       key: 'jewelryCaring',
-      onTitleClick: () => router.push(routes.homePage),
     },
     {
-      label: t('menu.contacts'),
+      label: <Link href="/">{t('menu.contacts')}</Link>,
       key: 'contacts',
-      onTitleClick: () => router.push(routes.homePage),
     },
   ];
 
   useEffect(() => {
     if (!submenu) {
-      setNavHeight(`calc(7vw + ${scrollBar})`);
+      setNavHeight('108px');
     } else if (submenu === 'catalog') {
-      setNavHeight(`calc(19vw + ${scrollBar})`);
+      setNavHeight('275px');
     }
   }, [submenu]);
 
   useEffect(() => {
-    setNavHeight(`calc(7vw + ${scrollBar})`);
-  }, [scrollBar]);
+    setTimeout(setIsLoaded, 1000, true);
+  }, []);
 
   return (
     <nav className="nav" style={{ height: navHeight }}>
-      <div className="nav-logo-container">
-        <Image src={logo} className="nav-logo" alt={t('logo')} priority role="button" onClick={() => router.push(routes.homePage)} />
-      </div>
-      <div className="nav-menu">
-        <Menu
-          items={items}
-          rootClassName="bg-transparent"
-          mode="horizontal"
-          style={{
-            zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
-          }}
-          onMouseLeave={() => setSubmenu(undefined)}
-          subMenuCloseDelay={0.0000000001}
-          subMenuOpenDelay={0.3}
-        />
-      </div>
-      <div className="nav-icons">
-        <button className="icon-button" type="button" title={t('search')}>
-          <SearchOutlined className="icon" />
-          <span className="visually-hidden">{t('search')}</span>
-        </button>
-        <button className="icon-button" type="button" title={t('favorites')}>
-          <HeartOutlined className="icon" />
-          <span className="visually-hidden">{t('favorites')}</span>
-        </button>
-        <button className="icon-button" type="button" title={t('cart')}>
-          <ShoppingCartOutlined className="icon" />
-          <span className="visually-hidden">{t('cart')}</span>
-        </button>
-        <button className="icon-button" type="button" title={t('profile')}>
-          <Image src={person} alt={t('logo')} priority />
-          <span className="visually-hidden">{t('profile')}</span>
-        </button>
-      </div>
+      {isLoaded && (
+        <>
+          <div className="nav-logo-container" data-aos="fade-down">
+            <Link href="/">
+              <Image src={logoImage} unoptimized className="nav-logo" alt={t('logo')} />
+            </Link>
+          </div>
+          <div className="nav-menu" data-aos="fade-down">
+            <Menu
+              items={items}
+              rootClassName="bg-transparent"
+              mode="horizontal"
+              style={{
+                zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
+              }}
+              onMouseLeave={() => setSubmenu(undefined)}
+              subMenuCloseDelay={0.0000000001}
+              subMenuOpenDelay={0.3}
+            />
+          </div>
+          <div className="nav-icons" data-aos="fade-down">
+            <Link href="/" title={t('search')}>
+              <SearchOutlined className="icon" />
+              <span className="visually-hidden">{t('search')}</span>
+            </Link>
+            <Link href="/" title={t('favorites')}>
+              <HeartOutlined className="icon" />
+              <span className="visually-hidden">{t('favorites')}</span>
+            </Link>
+            <Link href="/" title={t('cart')}>
+              <ShoppingCartOutlined className="icon" />
+              <span className="visually-hidden">{t('cart')}</span>
+            </Link>
+            <Link href={routes.profilePage} title={t('profile')}>
+              <Image src={personIcon} unoptimized alt={t('logo')} />
+              <span className="visually-hidden">{t('profile')}</span>
+            </Link>
+          </div>
+        </>
+      )}
     </nav>
   );
 };

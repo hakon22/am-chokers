@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as yup from 'yup';
 import { setLocale, ObjectSchema, AnyObject } from 'yup';
 import _ from 'lodash';
@@ -29,6 +28,7 @@ const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
 
@@ -51,20 +51,27 @@ const loginSchema = yup.object().shape({
   password: stringSchema,
 });
 
-const profileSchema = yup.object().shape({
+const signupSchema = yup.object().shape({
   phone: phoneSchema,
-  username: stringSchema
+  name: stringSchema
     .trim()
     .min(3)
     .max(20),
-  color: yup
-    .lazy((value) => (typeof value === 'object'
-      ? yup.object()
-        .required()
-      : yup.string()
-        .required()
-        .matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, t('validation.incorrectColor'))
-    )),
+  password: yup
+    .string()
+    .required()
+    .min(6, t('validation.passMin')),
+  confirmPassword: yup.string().required(),
+}, [
+  ['password', 'password'],
+]);
+
+const profileSchema = yup.object().shape({
+  phone: phoneSchema,
+  name: stringSchema
+    .trim()
+    .min(3)
+    .max(20),
   password: yup.string().when('password', ([value]) => {
     if (value) {
       return yup
@@ -87,4 +94,5 @@ const profileSchema = yup.object().shape({
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
+export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);

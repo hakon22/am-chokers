@@ -1,17 +1,25 @@
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { User, UserInitialState } from '@/types/user/User';
-import routes from '@/routes';
+import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
+import { routes } from '@/routes';
 
-type KeysUserInitialState = keyof UserInitialState;
+type KeysUserInitialState = keyof UserInterface;
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
 export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
-  async (data: { phone: string, password: string }) => {
+  async (data: UserLoginInterface) => {
     const response = await axios.post(routes.login, data);
+    return response.data;
+  },
+);
+
+export const fetchSignup = createAsyncThunk(
+  'user/fetchSignup',
+  async (data: UserSignupInterface) => {
+    const response = await axios.post(routes.signup, data);
     return response.data;
   },
 );
@@ -22,6 +30,14 @@ export const fetchTokenStorage = createAsyncThunk(
     const response = await axios.get(routes.updateTokens, {
       headers: { Authorization: `Bearer ${refreshTokenStorage}` },
     });
+    return response.data;
+  },
+);
+
+export const fetchConfirmCode = createAsyncThunk(
+  'user/fetchConfirmCode',
+  async (data: { phone: string, key?: string, code?: string }) => {
+    const response = await axios.post(routes.confirmPhone, data);
     return response.data;
   },
 );
@@ -50,7 +66,7 @@ export const updateTokens = createAsyncThunk(
   },
 );
 
-export const initialState: { [K in keyof UserInitialState]: UserInitialState[K] } = {
+export const initialState: { [K in keyof Partial<UserInterface>]: UserInterface[K] } = {
   loadingStatus: 'idle',
   error: null,
 };
@@ -67,6 +83,27 @@ const userSlice = createSlice({
         }
       });
     },
+    setUrl: (state, { payload }: PayloadAction<string>) => {
+      state.url = payload;
+    },
+    removeUrl: (state) => {
+      delete state.url;
+    },
+    removeTelegramId: (state) => {
+      delete state.telegramId;
+    },
+    userProfileUpdate: (state, { payload }: PayloadAction<UserProfileType>) => {
+      const { phone, name } = payload;
+      if (phone) {
+        state.phone = phone;
+        if (state?.key) {
+          delete state.key;
+        }
+      }
+      if (name) {
+        state.name = name;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -75,7 +112,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchLogin.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: User, crew?: { users: string, cars: string }, temporaryToken?: string }>) => {
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -88,12 +125,30 @@ const userSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = action.error.message ?? null;
       })
+      .addCase(fetchSignup.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchSignup.fulfilled, (state, { payload }
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
+        if (payload.code === 1) {
+          const entries = Object.entries(payload.user);
+          entries.forEach(([key, value]) => { state[key] = value; });
+          window.localStorage.setItem(storageKey, payload.user.refreshToken);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(fetchSignup.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
       .addCase(fetchTokenStorage.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
       .addCase(fetchTokenStorage.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: User }>) => {
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
         if (payload.code === 1) {
           if (window.localStorage.getItem(storageKey)) {
             window.localStorage.setItem(storageKey, payload.user.refreshToken);
@@ -109,12 +164,31 @@ const userSlice = createSlice({
         state.error = action.error.message ?? null;
         window.localStorage.removeItem(storageKey);
       })
+      .addCase(fetchConfirmCode.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchConfirmCode.fulfilled, (state, { payload }
+        : PayloadAction<{ code: number, key: string, phone: string }>) => {
+        if (payload.code === 1) {
+          state.key = payload.key;
+          if (!state.id) {
+            state.phone = payload.phone;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(fetchConfirmCode.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
       .addCase(updateTokens.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
       .addCase(updateTokens.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: User }>) => {
+        : PayloadAction<{ code: number, user: UserInterface }>) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -130,6 +204,8 @@ const userSlice = createSlice({
   },
 });
 
-export const { removeToken } = userSlice.actions;
+export const {
+  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate,
+} = userSlice.actions;
 
 export default userSlice.reducer;

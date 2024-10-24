@@ -2,9 +2,9 @@ import { useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Error } from '@/types/InitialState';
 import { SubmitContext } from '@/components/Context';
-import toast from '@/utilities/toast';
+import { toast } from '@/utilities/toast';
 
-const useErrorHandler = (...errors: Error[]) => {
+export const useErrorHandler = (...errors: Error[]) => {
   const { t } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { setIsSubmit } = useContext(SubmitContext);
@@ -16,7 +16,7 @@ const useErrorHandler = (...errors: Error[]) => {
       if (codeError === 401) {
         toast(t('authError'), 'error');
       } else if (codeError === 500) {
-        toast(t('unknownError'), 'error');
+        toast(t('unknownError', { error: err }), 'error');
       } else {
         toast(t('networkError'), 'error');
       }
@@ -29,5 +29,3 @@ const useErrorHandler = (...errors: Error[]) => {
     }
   }, [...errors]);
 };
-
-export default useErrorHandler;
