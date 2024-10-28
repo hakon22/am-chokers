@@ -11,7 +11,8 @@ import { Menu } from 'antd';
 import { MenuProps } from 'antd/lib';
 import type { TFunction } from 'i18next';
 import { AuthContext } from '@/components/Context';
-import { Personal } from '@/components/forms/profile/Personal';
+import { Personal } from '@/components/profile/Personal';
+import { OrderHistory } from '@/components/profile/OrderHistory';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -55,6 +56,11 @@ const Page = ({ page }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'logout', label: <button type="button" className="button-link" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
+  const pages: Record<string, JSX.Element> = {
+    personal: <Personal t={t} />,
+    order: <OrderHistory t={t} />,
+  };
+
   useEffect(() => {
     if (!id) {
       dispatch(setUrl(router.asPath));
@@ -77,7 +83,7 @@ const Page = ({ page }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                 items={items}
               />
             </div>
-            <div className="col-8 d-flex justify-content-center"><Personal t={t} /></div>
+            <div className="col-8 d-flex justify-content-center">{pages[page]}</div>
           </div>
         </>
       ) : <NoAuthorization t={tMenu} />}

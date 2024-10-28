@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
+import { Singleton } from 'typescript-ioc';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
 
+@Singleton
 export class MiddlewareService {
   private readonly checkIpService: CheckIpService;
 

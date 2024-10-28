@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
-import { Container } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 import { Context } from 'telegraf';
 import { Message } from 'typegram/message';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { LoggerService } from '@server/services/app/logger.service';
 
+@Singleton
 export class TelegramService {
   private readonly loggerService = Container.get(LoggerService);
 
@@ -14,6 +15,7 @@ export class TelegramService {
     try {
       const context = req.body as Context;
       const message = context.message as Message.ContactMessage & Message.TextMessage;
+      this.loggerService.info('[TelegramBotService]', `Message: ${JSON.stringify(message)}`);
 
       if (message?.text === '/start') {
         await this.start(message?.from?.id?.toString() as string);

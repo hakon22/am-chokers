@@ -60,6 +60,7 @@ export default {
         order: {
           title: 'История заказов',
           description: 'История заказов',
+          notFound: 'У вас ещё нет выполненных заказов',
         },
         favorites: {
           title: 'Избранное',
@@ -92,6 +93,16 @@ export default {
         confirmPassword: 'Подтвердите пароль',
         next: 'Подтвердить телефон',
         haveAccount: 'Есть аккаунт?',
+      },
+      recovery: {
+        title: 'Восстановить пароль',
+        description: 'Восстановление пароля',
+        phone: 'Телефон',
+        rememberPassword: 'Вспомнили пароль?',
+        submitButton: 'Восстановить пароль',
+        home: 'На главную',
+        resultTitle: 'Восстановление пароля прошло успешно!',
+        resultSubTitle: 'Новый пароль для входа выслан Вам в SMS-сообщении.',
       },
     },
     modules: {

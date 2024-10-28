@@ -28,6 +28,8 @@ export const useAuthHandler = () => {
       if (url) {
         router.push(url);
         dispatch(removeUrl());
+      } else {
+        router.push(routes.personalData);
       }
     }
     if (token) {

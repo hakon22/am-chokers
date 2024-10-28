@@ -170,7 +170,7 @@ export class UserService extends BaseService {
 
         await UserEntity.update(user.id, { refreshTokens: newRefreshTokens });
       } else {
-        throw new Error('Ошибка доступа');
+        throw new Error(`Ошибка доступа. Токен не найден: ${oldRefreshToken}, UserTokens: ${user.refreshTokens.join(', ')}`);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -258,6 +258,23 @@ export class UserService extends BaseService {
       res.json({ code: 1 });
     } catch (e) {
       this.loggerService.error(e);
+      res.sendStatus(500);
+    }
+  };
+
+  public unlinkTelegram = async (req: Request, res: Response) => {
+    try {
+      const { ...user } = req.user as PassportRequestInterface;
+
+      if (!user.telegramId) {
+        throw new Error('Телеграм-аккаунт не найден');
+      }
+
+      await UserEntity.update(user.id, { telegramId: undefined });
+
+      res.status(200).json({ code: 1 });
+    } catch (e) {
+      console.log(e);
       res.sendStatus(500);
     }
   };

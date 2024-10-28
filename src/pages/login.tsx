@@ -32,9 +32,7 @@ const Login = () => {
     try {
       setIsSubmit(true);
       const { payload: { code } } = await dispatch(fetchLogin(values)) as { payload: { code: number } };
-      if (code === 1) {
-        console.log('ok');
-      } else if (code === 2) {
+      if (code === 2) {
         form.setFields([{ name: 'password', errors: [tValidation('incorrectPassword')] }]);
       } else if (code === 3) {
         form.setFields([{ name: 'phone', errors: [tValidation('userNotExists')] }]);
