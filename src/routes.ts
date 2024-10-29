@@ -35,4 +35,6 @@ export const routes = {
   unlinkTelegram: [apiPath, 'auth', 'unlink-telegram'].join('/'),
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
+  // order
+  order: [apiPath, 'order', 'history'].join('/'),
 };

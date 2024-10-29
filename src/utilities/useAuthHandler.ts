@@ -25,12 +25,8 @@ export const useAuthHandler = () => {
   useEffect(() => {
     if (token && !loggedIn) {
       logIn();
-      if (url) {
-        router.push(url);
-        dispatch(removeUrl());
-      } else {
-        router.push(routes.personalData);
-      }
+      router.push(url ?? routes.personalData);
+      dispatch(removeUrl());
     }
     if (token) {
       axios.defaults.headers.common.Authorization = `Bearer ${token}`;

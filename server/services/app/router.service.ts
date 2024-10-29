@@ -30,7 +30,7 @@ export class RouterService {
     this.router.get(this.routes.updateTokens, passport.authenticate('jwt-refresh', { session: false }), this.userService.updateTokens);
     this.router.post(this.routes.confirmPhone, this.userService.confirmPhone);
     this.router.post(this.routes.changeUserProfile, this.jwtToken, this.userService.changeUserProfile);
-    this.router.post(this.routes.unlinkTelegram, this.jwtToken, this.userService.unlinkTelegram);
+    this.router.get(this.routes.unlinkTelegram, this.jwtToken, this.userService.unlinkTelegram);
     // integration
     this.router.post(this.routes.telegram, this.middlewareService.accessTelegram, this.telegramService.webhooks);
   };
