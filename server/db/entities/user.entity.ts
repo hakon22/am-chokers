@@ -26,7 +26,9 @@ export class UserEntity extends BaseEntity {
   public updated: Date;
 
   /** Пароль пользователя */
-  @Column('character varying')
+  @Column('character varying', {
+    select: false,
+  })
   public password: string;
 
   /** Телефон пользователя */

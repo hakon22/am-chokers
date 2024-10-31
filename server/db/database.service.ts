@@ -36,7 +36,7 @@ export abstract class DatabaseService {
     });
   }
 
-  public getManager = async () => {
+  public getManager = () => {
     if (!this.db.isInitialized) {
       throw new Error('Database connection is not initialized. Please call init() first.');
     }

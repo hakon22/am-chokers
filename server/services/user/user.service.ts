@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type{ Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 
@@ -21,7 +21,7 @@ export class UserService extends BaseService {
   private readonly smsService = Container.get(SmsService);
 
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
-    const manager = await this.databaseService.getManager();
+    const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(UserEntity, 'user')
       .select([
@@ -75,7 +75,7 @@ export class UserService extends BaseService {
 
       await user.save();
 
-      res.status(200).send({
+      res.json({
         code: 1,
         user: { ...rest, token, refreshToken },
       });
@@ -175,7 +175,7 @@ export class UserService extends BaseService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { refreshTokens, ...rest } = user;
-      res.status(200).send({
+      res.json({
         code: 1,
         user: { ...rest, token, refreshToken },
       });
@@ -221,13 +221,13 @@ export class UserService extends BaseService {
 
   public changeUserProfile = async (req: Request, res: Response) => {
     try {
-      const { ...user } = req.user as PassportRequestInterface;
+      const { id, phone } = req.user as PassportRequestInterface;
       const {
         confirmPassword, oldPassword, key, ...values
       } = req.body as UserProfileType;
 
       if (values.password) {
-        const fetchUser = await this.findOne({ phone: user.phone }, { withPassword: true });
+        const fetchUser = await this.findOne({ phone }, { withPassword: true });
         if (oldPassword && fetchUser && confirmPassword === values.password) {
           const isValidPassword = bcrypt.compareSync(oldPassword, fetchUser.password);
           if (!isValidPassword) {
@@ -253,7 +253,7 @@ export class UserService extends BaseService {
           throw new Error('Телефон не подтверждён');
         }
       }
-      await UserEntity.update(user.id, values);
+      await UserEntity.update(id, values);
 
       res.json({ code: 1 });
     } catch (e) {
@@ -264,13 +264,13 @@ export class UserService extends BaseService {
 
   public unlinkTelegram = async (req: Request, res: Response) => {
     try {
-      const { ...user } = req.user as PassportRequestInterface;
+      const { id, telegramId } = req.user as PassportRequestInterface;
 
-      if (!user.telegramId) {
+      if (!telegramId) {
         throw new Error('Телеграм-аккаунт не найден');
       }
 
-      await UserEntity.update(user.id, { telegramId: undefined });
+      await UserEntity.update(id, { telegramId: undefined });
 
       res.status(200).json({ code: 1 });
     } catch (e) {

@@ -3,6 +3,7 @@ import passport from 'passport';
 import { Singleton, Container } from 'typescript-ioc';
 
 import { UserService } from '@server/services/user/user.service';
+import { OrderService } from '@server/services/order/order.service';
 import { MiddlewareService } from '@server/services/app/middleware.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { routes } from '@/routes';
@@ -10,6 +11,8 @@ import { routes } from '@/routes';
 @Singleton
 export class RouterService {
   private readonly userService = Container.get(UserService);
+
+  private readonly orderService = Container.get(OrderService);
 
   private readonly telegramService = Container.get(TelegramService);
 
@@ -33,6 +36,8 @@ export class RouterService {
     this.router.get(this.routes.unlinkTelegram, this.jwtToken, this.userService.unlinkTelegram);
     // integration
     this.router.post(this.routes.telegram, this.middlewareService.accessTelegram, this.telegramService.webhooks);
+    // order
+    this.router.get(this.routes.getOrders, this.jwtToken, this.orderService.findMany);
   };
 
   public get = () => this.router;

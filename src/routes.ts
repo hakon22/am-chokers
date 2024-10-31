@@ -24,17 +24,17 @@ export const routes = {
   favorites: [profilePath, 'favorites'].join('/'),
   myReviews: [profilePath, 'reviews'].join('/'),
   settings: [profilePath, 'settings'].join('/'),
-  // auth
-  login: [apiPath, 'auth', 'login'].join('/'),
-  signup: [apiPath, 'auth', 'signup'].join('/'),
-  logout: [apiPath, 'auth', 'logout'].join('/'),
-  recoveryPassword: [apiPath, 'auth', 'recovery-password'].join('/'),
-  updateTokens: [apiPath, 'auth', 'update-tokens'].join('/'),
-  confirmPhone: [apiPath, 'auth', 'confirm-phone'].join('/'),
-  changeUserProfile: [apiPath, 'auth', 'change-user-profile'].join('/'),
-  unlinkTelegram: [apiPath, 'auth', 'unlink-telegram'].join('/'),
+  // user
+  login: [apiPath, 'user', 'login'].join('/'),
+  signup: [apiPath, 'user', 'signup'].join('/'),
+  logout: [apiPath, 'user', 'logout'].join('/'),
+  recoveryPassword: [apiPath, 'user', 'recovery-password'].join('/'),
+  updateTokens: [apiPath, 'user', 'update-tokens'].join('/'),
+  confirmPhone: [apiPath, 'user', 'confirm-phone'].join('/'),
+  changeUserProfile: [apiPath, 'user', 'change-user-profile'].join('/'),
+  unlinkTelegram: [apiPath, 'user', 'unlink-telegram'].join('/'),
+  getOrders: [apiPath, 'user', 'orders'].join('/'),
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
   // order
-  order: [apiPath, 'order', 'history'].join('/'),
 };

@@ -184,6 +184,7 @@ export default {
       authError: 'Ошибка аутентификации',
       userAlreadyExists: 'Данный номер телефона уже зарегистрирован',
       changeProfileSuccess: 'Данные успешно изменены',
+      unlinkTelegramSuccess: 'Telegram аккаунт успешно отвязан',
     },
     spinner: {
       loading: 'Загрузка...',

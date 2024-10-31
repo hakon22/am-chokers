@@ -1,59 +1,62 @@
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
+import { createSlice, createAsyncThunk, PayloadAction, createEntityAdapter } from '@reduxjs/toolkit';
+
+import type { OrderInterface } from '@/types/order/Order';
+import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
+import { RootState } from '@/slices';
 
-type KeysUserInitialState = keyof UserInterface;
+export const orderAdapter = createEntityAdapter<OrderInterface>();
 
-export const fetchOrder = createAsyncThunk(
-  'user/fetchOrder',
-  async (data: UserLoginInterface) => {
-    const response = await axios.post(routes.login, data);
+export const fetchOrders = createAsyncThunk(
+  'order/fetchOrders',
+  async (userId: number) => {
+    const response = await axios.get(routes.getOrders);
     return response.data;
   },
 );
 
-export const initialState: { [K in keyof Partial<UserInterface>]: UserInterface[K] } = {
+const initialState: InitialState = {
   loadingStatus: 'idle',
   error: null,
 };
 
 const orderSlice = createSlice({
-  name: 'user',
-  initialState,
+  name: 'order',
+  initialState: orderAdapter.getInitialState(initialState),
   reducers: {
-    removeToken: (state) => {
-      const entries = Object.keys(state) as KeysUserInitialState[];
-      entries.forEach((key) => {
-        if (key !== 'loadingStatus' && key !== 'error') {
-          delete state[key];
-        }
-      });
-    },
+    createOne: orderAdapter.addOne,
+    createMany: orderAdapter.addMany,
+    updateOne: orderAdapter.updateOne,
+    removeOne: orderAdapter.removeOne,
+    removeMany: orderAdapter.removeAll,
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchOrder.pending, (state) => {
+      .addCase(fetchOrders.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchOrder.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: UserInterface }>) => {
+      .addCase(fetchOrders.fulfilled, (state, { payload }
+        : PayloadAction<{ code: number, orders: OrderInterface[] }>) => {
         if (payload.code === 1) {
-          const entries = Object.entries(payload.user);
-          entries.forEach(([key, value]) => { state[key] = value; });
+          orderAdapter.addMany(state, payload.orders)
         }
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchOrder.rejected, (state, action) => {
+      .addCase(fetchOrders.rejected, (state, action) => {
         state.loadingStatus = 'failed';
         state.error = action.error.message ?? null;
       });
   },
 });
 
-export const { removeToken } = orderSlice.actions;
+export const {
+  createOne, updateOne, removeOne, removeMany,
+} = orderSlice.actions;
+
+export const selectors = orderAdapter.getSelectors<RootState>((state) => state.order);
 
 export default orderSlice.reducer;

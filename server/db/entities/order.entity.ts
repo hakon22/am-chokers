@@ -41,7 +41,9 @@ export class OrderEntity extends BaseEntity {
   public status: OrderStatusEnum;
 
   /** Покупатель */
-  @ManyToOne(() => UserEntity)
+  @ManyToOne(() => UserEntity, {
+    nullable: false,
+  })
   @JoinColumn({
     name: 'user_id',
     referencedColumnName: 'id',

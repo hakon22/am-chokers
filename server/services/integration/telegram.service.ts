@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import axios from 'axios';
 import { Container, Singleton } from 'typescript-ioc';
 import { Context } from 'telegraf';
@@ -6,6 +6,7 @@ import { Message } from 'typegram/message';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { LoggerService } from '@server/services/app/logger.service';
+import { phoneTransform } from '@server/utilities/phone.transform';
 
 @Singleton
 export class TelegramService {
@@ -15,12 +16,11 @@ export class TelegramService {
     try {
       const context = req.body as Context;
       const message = context.message as Message.ContactMessage & Message.TextMessage;
-      this.loggerService.info('[TelegramBotService]', `Message: ${JSON.stringify(message)}`);
 
       if (message?.text === '/start') {
         await this.start(message?.from?.id?.toString() as string);
       } else if (message?.contact?.phone_number) {
-        const user = await UserEntity.findOne({ where: { phone: message.contact.phone_number } });
+        const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
         if (user) {
           await UserEntity.update(user.id, { telegramId: message?.from?.id?.toString() });
           await this.sendMessage('Вы успешно подписались на обновления.', message?.from?.id?.toString() as string);

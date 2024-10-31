@@ -16,10 +16,11 @@ export const App = ({ children }: { children: JSX.Element }) => {
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const { error } = useAppSelector((state) => state.user);
+  const { error: userError } = useAppSelector((state) => state.user);
+  const { error: orderError } = useAppSelector((state) => state.order);
   const { isSubmit } = useContext(SubmitContext);
 
-  useErrorHandler(error as string);
+  useErrorHandler(userError, orderError);
   useAuthHandler();
   useRootStyle();
 

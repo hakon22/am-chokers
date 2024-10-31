@@ -1,8 +1,7 @@
-import type { InitialState } from '@/types/InitialState';
 import type { UserEntity } from '@server/db/entities/user.entity';
-import type { OmitBase } from '@/types/omitBase';
+import type { OmitBase } from '@/types/OmitBase';
 
-export interface UserInterface extends Omit<OmitBase<UserEntity>, 'password'>, InitialState {
+export interface UserInterface extends OmitBase<UserEntity> {
   /** Токен пользователя */
   token: string;
   /** Refresh токен пользователя */
@@ -14,16 +13,16 @@ export interface UserInterface extends Omit<OmitBase<UserEntity>, 'password'>, I
   [key: string]: any;
 }
 
-export interface UserProfileType extends Partial<Pick<UserEntity, 'name' | 'phone' | 'password'>> {
+export interface UserFormInterface extends Pick<UserEntity, 'name' | 'phone' | 'password'> {}
+
+export interface UserProfileType extends Partial<UserFormInterface> {
   confirmPassword?: string;
   oldPassword?: string;
   [key: string]: string | undefined;
 }
 
-export interface UserFormInterface extends Pick<UserEntity, 'name' | 'phone' | 'password'> {}
+export interface UserLoginInterface extends Omit<UserFormInterface, 'name'> {}
 
-export interface UserLoginInterface extends Pick<UserEntity, 'phone' | 'password'> {}
-
-export interface UserSignupInterface extends Pick<UserEntity, 'name' | 'phone' | 'password'> {
+export interface UserSignupInterface extends UserFormInterface {
   confirmPassword: string;
 };

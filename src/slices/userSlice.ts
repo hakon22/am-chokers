@@ -1,7 +1,9 @@
 /* eslint-disable no-param-reassign */
 import axios from 'axios';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+
 import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
+import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
 
 type KeysUserInitialState = keyof UserInterface;
@@ -66,7 +68,7 @@ export const updateTokens = createAsyncThunk(
   },
 );
 
-export const initialState: { [K in keyof Partial<UserInterface>]: UserInterface[K] } = {
+const initialState: { [K in keyof (Partial<UserInterface> & InitialState)]: UserInterface[K] } = {
   loadingStatus: 'idle',
   error: null,
 };
