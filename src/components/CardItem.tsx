@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { ItemInterface } from '@/types/item/Item';
 import { Button, Rate } from 'antd';
 import { useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
 import { HeartOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
+
+import type { ItemInterface } from '@/types/item/Item';
 
 export const CardItem = ({
   images, name, description, price, composition, length, rating,

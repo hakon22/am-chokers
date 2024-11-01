@@ -18,7 +18,7 @@ export class MiddlewareService {
     }
     return req.socket.remoteAddress;
   };
-  
+
   public accessTelegram = (request: Request, response: Response, next: NextFunction) => {
     const subnets = [
       '91.108.4.0/22',
@@ -36,11 +36,11 @@ export class MiddlewareService {
       '149.154.172.0/22',
       '185.76.151.0/24',
     ];
-  
+
     if (subnets.find((subnet) => this.checkIpService.isCorrectIP(this.getClientIp(request) as string, subnet))) {
       return next();
     }
-  
+
     return response.status(401).json({ message: 'Unauthorized' });
   };
 }
