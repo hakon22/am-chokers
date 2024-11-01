@@ -38,9 +38,10 @@ export class MiddlewareService {
     ];
 
     if (subnets.find((subnet) => this.checkIpService.isCorrectIP(this.getClientIp(request) as string, subnet))) {
-      return next();
+      next();
+      return;
     }
 
-    return response.status(401).json({ message: 'Unauthorized' });
+    response.status(401).json({ message: 'Unauthorized' });
   };
 }

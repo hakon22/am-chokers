@@ -1,4 +1,4 @@
-import type{ Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 
@@ -53,7 +53,8 @@ export class UserService extends BaseService {
 
       const user = await this.findOne({ phone: payload.phone }, { withPassword: true });
       if (!user) {
-        return res.json({ code: 3 });
+        res.json({ code: 3 });
+        return;
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -61,7 +62,8 @@ export class UserService extends BaseService {
 
       const isValidPassword = bcrypt.compareSync(payload.password, password);
       if (!isValidPassword) {
-        return res.json({ code: 2 });
+        res.json({ code: 2 });
+        return;
       }
 
       const token = this.tokenService.generateAccessToken(user.id, user.phone);
@@ -96,7 +98,8 @@ export class UserService extends BaseService {
       const candidate = await this.findOne({ phone: payload.phone });
 
       if (candidate) {
-        return res.json({ code: 2 });
+        res.json({ code: 2 });
+        return;
       }
 
       const user = await UserEntity.save({
@@ -125,7 +128,8 @@ export class UserService extends BaseService {
 
       const candidate = await this.findOne({ phone });
       if (candidate) {
-        return res.json({ code: 5 });
+        res.json({ code: 5 });
+        return;
       }
 
       if (key) {
@@ -134,13 +138,16 @@ export class UserService extends BaseService {
         if (key && userCode) {
           await confirmCodeValidation.serverValidator({ code: userCode });
           if (data && data.phone === phone && data.code === userCode) {
-            return res.json({ code: 2, key });
+            res.json({ code: 2, key });
+            return;
           }
-          return res.json({ code: 3 }); // код подтверждения не совпадает
+          res.json({ code: 3 }); // код подтверждения не совпадает
+          return;
         }
       }
       if (await this.redisService.exists(phone)) {
-        return res.json({ code: 4 });
+        res.json({ code: 4 });
+        return;
       }
 
       // eslint-disable-next-line camelcase
@@ -207,7 +214,8 @@ export class UserService extends BaseService {
 
       const user = await this.findOne({ phone });
       if (!user) {
-        return res.status(200).json({ code: 2 });
+        res.status(200).json({ code: 2 });
+        return;
       }
       const password = await this.smsService.sendPass(phone);
       const hashPassword = bcrypt.hashSync(password, 10);
@@ -231,7 +239,8 @@ export class UserService extends BaseService {
         if (oldPassword && fetchUser && confirmPassword === values.password) {
           const isValidPassword = bcrypt.compareSync(oldPassword, fetchUser.password);
           if (!isValidPassword) {
-            return res.json({ code: 2 });
+            res.json({ code: 2 });
+            return;
           }
           const hashPassword = bcrypt.hashSync(values.password, 10);
           values.password = hashPassword;
