@@ -1,8 +1,9 @@
-/* eslint-disable no-param-reassign */
 import axios from 'axios';
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
+import type {
+  UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface,
+} from '@/types/user/User';
 import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
 

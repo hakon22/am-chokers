@@ -61,6 +61,19 @@ export default {
           title: 'История заказов',
           description: 'История заказов',
           notFound: 'У вас ещё нет выполненных заказов',
+          orderNumber: 'Заказ №{{ id }}',
+          positions: {
+            title: 'Позиции',
+            price: 'Цена: {{ price }} ₽',
+          },
+          statuses: {
+            NEW: 'НОВЫЙ',
+            PAYMENT: 'ОПЛАТА',
+            ASSEMBLY: 'СБОРКА',
+            DELIVERING: 'ДОСТАВЛЯЕТСЯ',
+            DELIVERED: 'ДОСТАВЛЕНО',
+            COMPLETED: 'ИСПОЛНЕН',
+          },
         },
         favorites: {
           title: 'Избранное',

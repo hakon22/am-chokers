@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import {
   Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
@@ -9,7 +10,6 @@ import {
 
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { UserEntity } from '@server/db/entities/user.entity';
-import { ItemEntity } from '@server/db/entities/item.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
 /** Заказ */
@@ -51,6 +51,6 @@ export class OrderEntity extends BaseEntity {
   public user: UserEntity;
 
   /** Позиции */
-  @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
+  @OneToMany(() => OrderPositionEntity, (orderPosition) => orderPosition.order)
   public positions: OrderPositionEntity[];
 }

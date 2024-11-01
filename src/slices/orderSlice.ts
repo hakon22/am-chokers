@@ -1,17 +1,18 @@
-/* eslint-disable no-param-reassign */
 import axios from 'axios';
-import { createSlice, createAsyncThunk, PayloadAction, createEntityAdapter } from '@reduxjs/toolkit';
+import {
+  createSlice, createAsyncThunk, PayloadAction, createEntityAdapter,
+} from '@reduxjs/toolkit';
 
 import type { OrderInterface } from '@/types/order/Order';
 import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
-import { RootState } from '@/slices';
+import type { RootState } from '@/slices';
 
 export const orderAdapter = createEntityAdapter<OrderInterface>();
 
 export const fetchOrders = createAsyncThunk(
   'order/fetchOrders',
-  async (userId: number) => {
+  async () => {
     const response = await axios.get(routes.getOrders);
     return response.data;
   },
@@ -41,7 +42,7 @@ const orderSlice = createSlice({
       .addCase(fetchOrders.fulfilled, (state, { payload }
         : PayloadAction<{ code: number, orders: OrderInterface[] }>) => {
         if (payload.code === 1) {
-          orderAdapter.addMany(state, payload.orders)
+          orderAdapter.addMany(state, payload.orders);
         }
         state.loadingStatus = 'finish';
         state.error = null;

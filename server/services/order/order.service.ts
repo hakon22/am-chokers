@@ -12,7 +12,6 @@ import { BaseService } from '@server/services/app/base.service';
 
 @Singleton
 export class OrderService extends BaseService {
-
   private readonly smsService = Container.get(SmsService);
 
   private createQueryBuilder = (query: OrderQueryInterface, options?: OrderOptionsInterface) => {
@@ -32,12 +31,12 @@ export class OrderService extends BaseService {
           'positions.id',
           'positions.price',
           'positions.discount',
-          'positions.count'
+          'positions.count',
         ])
         .leftJoin('positions.item', 'item')
         .addSelect([
-          'positions.id',
-          'positions.name',
+          'item.id',
+          'item.name',
         ]);
     }
     if (options?.withUser) {
@@ -63,7 +62,6 @@ export class OrderService extends BaseService {
   };
 
   private find = async (query: OrderQueryInterface, options?: OrderOptionsInterface) => {
-    
     const builder = this.createQueryBuilder(query, options);
 
     const order = await builder.getOne();
@@ -92,7 +90,7 @@ export class OrderService extends BaseService {
     try {
       const { id: userId } = req.user as PassportRequestInterface;
 
-      const builder = this.createQueryBuilder({ userId });
+      const builder = this.createQueryBuilder({ userId }, { withPosition: true });
 
       const orders = await builder.getMany();
 

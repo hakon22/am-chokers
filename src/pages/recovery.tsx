@@ -77,8 +77,9 @@ const Recovery = () => {
             </div>
           </div>
         </div>
-      )};
-    </>)
+      )}
+    </>
+  );
 };
 
 export default Recovery;

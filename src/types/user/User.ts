@@ -25,4 +25,4 @@ export interface UserLoginInterface extends Omit<UserFormInterface, 'name'> {}
 
 export interface UserSignupInterface extends UserFormInterface {
   confirmPassword: string;
-};
+}

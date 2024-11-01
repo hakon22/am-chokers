@@ -1,32 +1,77 @@
-import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, SettingOutlined } from '@ant-design/icons';
 import { TFunction } from 'i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Form, Input } from 'antd';
-import { isEmpty } from 'lodash';
+import {
+  Alert, Badge, Card, List, Popover,
+} from 'antd';
+import moment from 'moment';
 
-import { MaskedInput } from '@/components/forms/MaskedInput';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { UserProfileType } from '@/types/user/User';
-import { routes } from '@/routes';
-import { toast } from '@/utilities/toast';
-import { fetchConfirmCode, removeTelegramId, userProfileUpdate } from '@/slices/userSlice';
-import { profileValidation } from '@/validations/validations';
-import { ConfirmPhone } from '@/components/ConfirmPhone';
+import { selectors } from '@/slices/orderSlice';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { OrderOptionsInterface } from '@server/types/order/order.options.interface';
+import { OrderPositionInterface } from '@/types/order/OrderPosition';
 
 export const OrderHistory = ({ t }: { t: TFunction }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const {
-    telegramId, key, name, phone,
-  } = useAppSelector((state) => state.user);
+  const orders = useAppSelector(selectors.selectAll);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
-  return <Alert message={t('notFound')} type="success" />;
+  const positionList = (positions: OrderPositionInterface[]) => (
+    <List
+      itemLayout="horizontal"
+      dataSource={positions}
+      renderItem={(position) => (
+        <List.Item>
+          <List.Item.Meta
+            title={position.item.name}
+            description={t('positions.price', { price: position.price })}
+          />
+        </List.Item>
+      )}
+    />
+  );
+
+  const actions = [
+    <EditOutlined key="edit" className="fs-5" />,
+    <SettingOutlined key="setting" className="fs-5" />,
+    <DeleteOutlined key="delete" className="fs-5" />,
+  ];
+
+  const badgeColors: Record<OrderStatusEnum, string> = {
+    [OrderStatusEnum.NEW]: 'blue',
+    [OrderStatusEnum.ASSEMBLY]: 'gold',
+    [OrderStatusEnum.PAYMENT]: 'magenta',
+    [OrderStatusEnum.DELIVERING]: 'yellow',
+    [OrderStatusEnum.DELIVERED]: 'orange',
+    [OrderStatusEnum.COMPLETED]: 'green',
+  };
+
+  return orders.length
+    ? (
+      <div className="d-flex flex-column gap-4 mb-3" style={{ width: '90%' }}>
+        {orders.map((order) => (
+          <Popover key={order.id} placement="bottom" title={t('positions.title')} trigger="hover" content={positionList(order.positions)}>
+            <div>
+              <Badge.Ribbon text={t(`statuses.${order.status}`)} color={badgeColors[order.status]}>
+                <Card actions={actions} hoverable>
+                  <Card.Meta
+                    title={t('orderNumber', { id: order.id })}
+                    description={moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}
+                  />
+                </Card>
+              </Badge.Ribbon>
+            </div>
+          </Popover>
+        ))}
+      </div>
+    )
+    : <Alert message={t('notFound')} type="success" />;
 };

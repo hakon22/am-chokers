@@ -34,7 +34,7 @@ export const useAuthHandler = () => {
       router.push(url ?? routes.personalData);
       dispatch(removeUrl());
       if (id) {
-        dispatch(fetchOrders(id));
+        dispatch(fetchOrders());
       }
     }
   }, [token]);

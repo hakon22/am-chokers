@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import {
   Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
@@ -6,7 +7,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { UserEntity } from '@server/db/entities/user.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
 

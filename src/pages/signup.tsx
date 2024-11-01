@@ -60,8 +60,8 @@ const Signup = () => {
   useEffect(() => {
     if (isConfirmed && user) {
       dispatch(fetchSignup(user))
-        .then(() => { router.push(routes.profilePage) })
-        .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit) })
+        .then(() => { router.push(routes.profilePage); })
+        .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit); });
     }
   }, [isConfirmed, user]);
 
