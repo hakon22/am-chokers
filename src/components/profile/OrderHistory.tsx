@@ -59,7 +59,7 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
         {orders.map((order) => (
           <Popover key={order.id} placement="bottom" title={t('positions.title')} trigger="hover" content={positionList(order.positions)}>
             <div>
-              <Badge.Ribbon text={t(`statuses.${order.status}`)} color={badgeColors[order.status as OrderStatusEnum]}>
+              <Badge.Ribbon text={t(`statuses.${order.status}`)} color={badgeColors[order.status]}>
                 <Card actions={actions} hoverable>
                   <Card.Meta
                     title={t('orderNumber', { id: order.id })}
