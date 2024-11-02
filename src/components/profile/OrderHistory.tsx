@@ -15,6 +15,8 @@ import { selectors } from '@/slices/orderSlice';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { OrderOptionsInterface } from '@server/types/order/order.options.interface';
 import { OrderPositionInterface } from '@/types/order/OrderPosition';
+import { LiteralUnion } from 'antd/es/_util/type';
+import { PresetColorType } from 'antd/es/_util/colors';
 
 export const OrderHistory = ({ t }: { t: TFunction }) => {
   const dispatch = useAppDispatch();
@@ -45,7 +47,7 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
     <DeleteOutlined key="delete" className="fs-5" />,
   ];
 
-  const badgeColors: Record<OrderStatusEnum, string> = {
+  const badgeColors: Record<OrderStatusEnum, LiteralUnion<PresetColorType>> = {
     [OrderStatusEnum.NEW]: 'blue',
     [OrderStatusEnum.ASSEMBLY]: 'gold',
     [OrderStatusEnum.PAYMENT]: 'magenta',
