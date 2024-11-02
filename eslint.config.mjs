@@ -1,6 +1,7 @@
 import react from "eslint-plugin-react";
 import jsxA11Y from "eslint-plugin-jsx-a11y";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
+import stylisticTs from '@stylistic/eslint-plugin-ts';
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
 import path from "node:path";
@@ -26,6 +27,7 @@ const eslint = [...compat.extends(
     react,
     "jsx-a11y": jsxA11Y,
     "@typescript-eslint": typescriptEslint,
+    '@stylistic/ts': stylisticTs,
   },
   languageOptions: {
     globals: {
@@ -79,6 +81,13 @@ const eslint = [...compat.extends(
     "react-hooks/exhaustive-deps": "off",
     "max-len": "off",
     "indent": ["error", 2],
+    'eol-last': ['error', 'always'],
+    'key-spacing': ['error', { beforeColon: false, afterColon: true, mode: 'minimum' }],
+    'object-curly-spacing': ['error', 'always'],
+    'comma-spacing': ['error', { before: false, after: true }],
+    'array-bracket-spacing': ['error', 'never'],
+    'semi': ["error", "always"],
+    "no-extra-semi": "error",
   },
 }];
 
