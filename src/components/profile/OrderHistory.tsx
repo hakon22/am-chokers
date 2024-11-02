@@ -13,10 +13,8 @@ import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { selectors } from '@/slices/orderSlice';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
-import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
-import type { LiteralUnion } from 'antd/es/_util/type';
-import type { PresetColorType } from 'antd/es/_util/colors';
+import type { OrderInterface } from '@/types/order/Order';
 
 export const OrderHistory = ({ t }: { t: TFunction }) => {
   const dispatch = useAppDispatch();
@@ -47,7 +45,7 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
     <DeleteOutlined key="delete" className="fs-5" />,
   ];
 
-  const badgeColors: Record<OrderStatusEnum, LiteralUnion<PresetColorType>> = {
+  const badgeColors: Record<OrderStatusEnum, string> = {
     [OrderStatusEnum.NEW]: 'blue',
     [OrderStatusEnum.ASSEMBLY]: 'gold',
     [OrderStatusEnum.PAYMENT]: 'magenta',
@@ -59,7 +57,7 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
   return orders.length
     ? (
       <div className="d-flex flex-column gap-4 mb-3" style={{ width: '90%' }}>
-        {orders.map((order) => (
+        {orders.map((order: OrderInterface) => (
           <Popover key={order.id} placement="bottom" title={t('positions.title')} trigger="hover" content={positionList(order.positions)}>
             <div>
               <Badge.Ribbon text={t(`statuses.${order.status}`)} color={badgeColors[order.status]}>
