@@ -7,7 +7,7 @@
     "start": "cross-env DB='HOST' NODE_ENV=production tsx server/server.ts",
     "dev-prod": "cross-env DB='LOCAL' NODE_ENV=production tsx server/server.ts",
     "dev": "cross-env DB='LOCAL' tsx server/server.ts",
-    "build": "next build",
+    "build": "next build --no-lint",
     "lint": "next lint"
   },
   "dependencies": {

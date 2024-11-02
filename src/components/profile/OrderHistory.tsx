@@ -14,7 +14,6 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { selectors } from '@/slices/orderSlice';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
-import type { OrderInterface } from '@/types/order/Order';
 
 export const OrderHistory = ({ t }: { t: TFunction }) => {
   const dispatch = useAppDispatch();
@@ -57,7 +56,7 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
   return orders.length
     ? (
       <div className="d-flex flex-column gap-4 mb-3" style={{ width: '90%' }}>
-        {orders.map((order: OrderInterface) => (
+        {orders.map((order) => (
           <Popover key={order.id} placement="bottom" title={t('positions.title')} trigger="hover" content={positionList(order.positions)}>
             <div>
               <Badge.Ribbon text={t(`statuses.${order.status}`)} color={badgeColors[order.status]}>
