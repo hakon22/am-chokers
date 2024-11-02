@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import {
   Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
@@ -51,6 +50,6 @@ export class OrderEntity extends BaseEntity {
   public user: UserEntity;
 
   /** Позиции */
-  @OneToMany(() => OrderPositionEntity, (orderPosition) => orderPosition.order)
+  @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
   public positions: OrderPositionEntity[];
 }

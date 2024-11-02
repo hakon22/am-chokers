@@ -147,31 +147,31 @@ export const Personal = ({ t }: { t: TFunction }) => {
         <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder="••••••" />
       </Form.Item>
       {password && (
-      <>
-        <label htmlFor="user-profile_confirmPassword" className="label">{t('confirmPassword')}</label>
-        <Form.Item<UserProfileType>
-          name="confirmPassword"
-          rules={[
-            profileValidation,
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue('password') === value) {
-                  return Promise.resolve();
-                }
-                return Promise.reject(new Error(tValidation('mastMatch')));
-              },
-            }),
-          ]}
-          className="mb-3"
-          required
-        >
-          <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
-        </Form.Item>
-        <label htmlFor="user-profile_oldPassword" className="label">{t('oldPassword')}</label>
-        <Form.Item<UserProfileType> name="oldPassword" rules={[profileValidation]} className="mb-3" required>
-          <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('oldPassword')} />
-        </Form.Item>
-      </>
+        <>
+          <label htmlFor="user-profile_confirmPassword" className="label">{t('confirmPassword')}</label>
+          <Form.Item<UserProfileType>
+            name="confirmPassword"
+            rules={[
+              profileValidation,
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error(tValidation('mastMatch')));
+                },
+              }),
+            ]}
+            className="mb-3"
+            required
+          >
+            <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
+          </Form.Item>
+          <label htmlFor="user-profile_oldPassword" className="label">{t('oldPassword')}</label>
+          <Form.Item<UserProfileType> name="oldPassword" rules={[profileValidation]} className="mb-3" required>
+            <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('oldPassword')} />
+          </Form.Item>
+        </>
       )}
       <Button type="link" className="text-danger mt-2 fs-5 px-3 py-3-5" onClick={telegramHandler}>
         {t(telegramId ? 'unlinkTelegram' : 'linkTelegram')}

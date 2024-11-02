@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import {
   Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn,
   BaseEntity,

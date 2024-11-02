@@ -13,10 +13,10 @@ import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { selectors } from '@/slices/orderSlice';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
-import { OrderOptionsInterface } from '@server/types/order/order.options.interface';
-import { OrderPositionInterface } from '@/types/order/OrderPosition';
-import { LiteralUnion } from 'antd/es/_util/type';
-import { PresetColorType } from 'antd/es/_util/colors';
+import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
+import type { OrderPositionInterface } from '@/types/order/OrderPosition';
+import type { LiteralUnion } from 'antd/es/_util/type';
+import type { PresetColorType } from 'antd/es/_util/colors';
 
 export const OrderHistory = ({ t }: { t: TFunction }) => {
   const dispatch = useAppDispatch();
