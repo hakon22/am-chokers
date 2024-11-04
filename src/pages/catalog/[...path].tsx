@@ -1,4 +1,5 @@
 import type { InferGetServerSidePropsType } from 'next';
+
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
 import { translate } from '@/utilities/translate';

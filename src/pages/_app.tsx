@@ -9,6 +9,7 @@ import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
+
 import { AuthContext, SubmitContext, NavbarContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { removeToken } from '@/slices/userSlice';

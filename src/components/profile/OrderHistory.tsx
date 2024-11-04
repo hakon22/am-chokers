@@ -1,53 +1,26 @@
-import axios from 'axios';
-import { DeleteOutlined, EditOutlined, SettingOutlined } from '@ant-design/icons';
-import { TFunction } from 'i18next';
-import { useContext, useEffect, useState } from 'react';
+import type { TFunction } from 'i18next';
 import { useRouter } from 'next/navigation';
-import {
-  Alert, Badge, Card, List, Popover,
-} from 'antd';
+import { Alert, Badge, Card, Tag } from 'antd';
 import moment from 'moment';
+import Image from 'next/image';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import { SubmitContext } from '@/components/Context';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/utilities/hooks';
 import { selectors } from '@/slices/orderSlice';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
-import type { OrderPositionInterface } from '@/types/order/OrderPosition';
+import { routes } from '@/routes';
+
+const maxPhoto = 3;
 
 export const OrderHistory = ({ t }: { t: TFunction }) => {
-  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const orders = useAppSelector(selectors.selectAll);
 
-  const { setIsSubmit } = useContext(SubmitContext);
-
-  const positionList = (positions: OrderPositionInterface[]) => (
-    <List
-      itemLayout="horizontal"
-      dataSource={positions}
-      renderItem={(position) => (
-        <List.Item>
-          <List.Item.Meta
-            title={position.item.name}
-            description={t('positions.price', { price: position.price })}
-          />
-        </List.Item>
-      )}
-    />
-  );
-
-  const actions = [
-    <EditOutlined key="edit" className="fs-5" />,
-    <SettingOutlined key="setting" className="fs-5" />,
-    <DeleteOutlined key="delete" className="fs-5" />,
-  ];
-
   const badgeColors: Record<OrderStatusEnum, string> = {
     [OrderStatusEnum.NEW]: 'blue',
     [OrderStatusEnum.ASSEMBLY]: 'gold',
-    [OrderStatusEnum.PAYMENT]: 'magenta',
+    [OrderStatusEnum.CANCELED]: 'volcano',
     [OrderStatusEnum.DELIVERING]: 'yellow',
     [OrderStatusEnum.DELIVERED]: 'orange',
     [OrderStatusEnum.COMPLETED]: 'green',
@@ -57,18 +30,34 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
     ? (
       <div className="d-flex flex-column gap-4 mb-3" style={{ width: '90%' }}>
         {orders.map((order) => (
-          <Popover key={order.id} placement="bottom" title={t('positions.title')} trigger="hover" content={positionList(order.positions)}>
-            <div>
-              <Badge.Ribbon text={t(`statuses.${order.status}`)} color={badgeColors[order.status]}>
-                <Card actions={actions} hoverable>
-                  <Card.Meta
-                    title={t('orderNumber', { id: order.id })}
-                    description={moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}
-                  />
-                </Card>
-              </Badge.Ribbon>
-            </div>
-          </Popover>
+          <Badge.Ribbon key={order.id} text={t(`statuses.${order.status}`)} color={badgeColors[order.status]}>
+            <Card hoverable onClick={() => router.push(`${routes.orderHistory}/${order.id}`)}>
+              <div className="d-flex justify-content-between" style={{ lineHeight: 0.5 }}>
+                <div className="d-flex flex-column justify-content-between">
+                  <div className="d-flex flex-column">
+                    <span className="fs-6 mb-3">{t('orderNumber', { id: order.id })}</span>
+                    <span className="text-muted">{moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>
+                  </div>
+                  <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e' }}>
+                    <span>{t('payment')}</span>
+                    <span className="fw-bold">{t('price', { price: order.positions.reduce((acc, position) => acc + (position.price - position.discount), 0) })}</span>
+                  </Tag>
+                </div>
+                <div>
+                  {order.positions.map((position) =>
+                    <div key={position.id} className="d-flex gap-4">{position.item.images.map((image, index) =>
+                      index < maxPhoto
+                        ? <Image key={image} src={`/photo/${position.id}/${image}`} width={100} height={100} alt={position.item.name} />
+                        : index === maxPhoto
+                          ? <div key={image} className="d-flex align-items-center fs-6">
+                            <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>
+                          </div>
+                          : null)}
+                    </div>)}
+                </div>
+              </div>
+            </Card>
+          </Badge.Ribbon>
         ))}
       </div>
     )

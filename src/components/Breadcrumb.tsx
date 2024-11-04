@@ -1,12 +1,13 @@
-/* eslint-disable no-nested-ternary */
+ 
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Breadcrumb as BreadcrumbAntd } from 'antd';
+import { RightOutlined } from '@ant-design/icons';
+
 import choker2 from '@/images/choker2.jpg';
 import choker3 from '@/images/choker3.jpg';
-import { RightOutlined } from '@ant-design/icons';
 import { routes, catalogPath } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { translate } from '@/utilities/translate';

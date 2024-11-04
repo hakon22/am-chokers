@@ -2,11 +2,9 @@ import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { OrderEntity } from '@server/db/entities/order.entity';
-import { upperCase } from '@server/utilities/text.transform';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
-import { TokenService } from '@server/services/user/token.service';
-import { OrderQueryInterface } from '@server/types/order/order.query.interface';
-import { OrderOptionsInterface } from '@server/types/order/order.options.interface';
+import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
+import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 
@@ -37,6 +35,7 @@ export class OrderService extends BaseService {
         .addSelect([
           'item.id',
           'item.name',
+          'item.images',
         ]);
     }
     if (options?.withUser) {

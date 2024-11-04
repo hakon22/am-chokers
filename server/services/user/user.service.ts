@@ -9,8 +9,8 @@ import { confirmCodeValidation, phoneValidation, signupValidation } from '@/vali
 import { upperCase } from '@server/utilities/text.transform';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { TokenService } from '@server/services/user/token.service';
-import { UserQueryInterface } from '@server/types/user/user.query.interface';
-import { UserOptionsInterface } from '@server/types/user/user.options.interface';
+import type { UserQueryInterface } from '@server/types/user/user.query.interface';
+import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 
@@ -57,7 +57,6 @@ export class UserService extends BaseService {
         return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, refreshTokens, ...rest } = user;
 
       const isValidPassword = bcrypt.compareSync(payload.password, password);
@@ -150,12 +149,10 @@ export class UserService extends BaseService {
         return;
       }
 
-      // eslint-disable-next-line camelcase
       const { request_id, code } = await this.smsService.sendCode(phone);
       await this.redisService.setEx(request_id, { phone, code }, 3600);
       await this.redisService.setEx(phone, { phone }, 59);
 
-      // eslint-disable-next-line camelcase
       res.json({ code: 1, key: request_id, phone });
     } catch (e) {
       this.loggerService.error(e);

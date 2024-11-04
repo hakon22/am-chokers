@@ -1,11 +1,13 @@
 import { Button, Form, Progress } from 'antd';
 import { useContext, useState, useEffect } from 'react';
-import { fetchConfirmCode } from '@/slices/userSlice';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { useTranslation } from 'react-i18next';
 import VerificationInput from 'react-verification-input';
+
+import { SubmitContext } from '@/components/Context';
+import { fetchConfirmCode } from '@/slices/userSlice';
+import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { toast } from '@/utilities/toast';
-import { SubmitContext } from './Context';
+
 
 export const ConfirmPhone = ({ setState, newPhone }: { setState: (arg: boolean) => void, newPhone?: string }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.confirmPhone' });

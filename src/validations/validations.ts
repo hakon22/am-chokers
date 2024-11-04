@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import { setLocale, ObjectSchema, AnyObject } from 'yup';
 import _ from 'lodash';
+
 import i18n from '@/locales';
 
 const { t } = i18n;

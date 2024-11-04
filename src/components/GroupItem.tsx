@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { ItemInterface } from '@/types/item/Item';
 import Link from 'next/link';
+
+import { ItemInterface } from '@/types/item/Item';
 import { ImageHover } from '@/components/ImageHover';
 import { translate } from '@/utilities/translate';
 import { routes } from '@/routes';

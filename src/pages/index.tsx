@@ -1,17 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import pendant from '@/images/pendant.png';
-import choker from '@/images/choker.png';
-import choker2 from '@/images/choker2.jpg';
-import choker3 from '@/images/choker3.jpg';
-import { ImageHover } from '@/components/ImageHover';
 import {
   useEffect, useRef, useState, WheelEvent,
 } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
+
+import pendant from '@/images/pendant.png';
+import choker from '@/images/choker.png';
+import choker2 from '@/images/choker2.jpg';
+import choker3 from '@/images/choker3.jpg';
+import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { translate } from '@/utilities/translate';
 import { Helmet } from '@/components/Helmet';

@@ -39,11 +39,15 @@ export default {
         signup: 'зарегистрируйтесь',
         menu: {
           personal: 'Личные данные',
-          order: 'История заказов',
+          orders: 'История заказов',
           favorites: 'Избранное',
           reviews: 'Мои отзывы',
           settings: 'Настройки',
           logout: 'Выйти',
+          admin: {
+            title: 'Админка',
+            newItem: 'Добавить позицию',
+          },
         },
         personal: {
           title: 'Личные данные',
@@ -57,15 +61,13 @@ export default {
           unlinkTelegram: 'Отвязать Telegram аккаунт',
           submitButton: 'Сохранить',
         },
-        order: {
+        orders: {
           title: 'История заказов',
           description: 'История заказов',
           notFound: 'У вас ещё нет выполненных заказов',
           orderNumber: 'Заказ №{{ id }}',
-          positions: {
-            title: 'Позиции',
-            price: 'Цена: {{ price }} ₽',
-          },
+          payment: 'Оплачено: ',
+          price: '{{ price }} ₽',
           statuses: {
             NEW: 'НОВЫЙ',
             PAYMENT: 'ОПЛАТА',
@@ -73,6 +75,9 @@ export default {
             DELIVERING: 'ДОСТАВЛЯЕТСЯ',
             DELIVERED: 'ДОСТАВЛЕНО',
             COMPLETED: 'ИСПОЛНЕН',
+          },
+          order: {
+            title: 'Заказ №{{ id }}',
           },
         },
         favorites: {

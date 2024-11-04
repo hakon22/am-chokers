@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
@@ -11,7 +11,7 @@ import { MaskedInput } from '@/components/forms/MaskedInput';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { UserProfileType } from '@/types/user/User';
+import type { UserProfileType } from '@/types/user/User';
 import { routes } from '@/routes';
 import { toast } from '@/utilities/toast';
 import { fetchConfirmCode, removeTelegramId, userProfileUpdate } from '@/slices/userSlice';

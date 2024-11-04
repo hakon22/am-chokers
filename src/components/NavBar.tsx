@@ -5,10 +5,11 @@ import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
+import { Menu, type MenuProps } from 'antd';
+
 import { routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
-import { Menu, type MenuProps } from 'antd';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';

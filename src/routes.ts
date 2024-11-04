@@ -3,6 +3,7 @@ const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 export const catalogPath = '/catalog';
 const profilePath = '/profile';
+const adminPath = '/admin';
 
 export const routes = {
   // pages
@@ -20,10 +21,12 @@ export const routes = {
   accessories: [catalogPath, 'accessories'].join('/'),
   // profile
   personalData: [profilePath, 'personal'].join('/'),
-  orderHistory: [profilePath, 'order'].join('/'),
+  orderHistory: [profilePath, 'orders'].join('/'),
   favorites: [profilePath, 'favorites'].join('/'),
   myReviews: [profilePath, 'reviews'].join('/'),
   settings: [profilePath, 'settings'].join('/'),
+  // admin
+  newItem: [adminPath, 'item', 'new'].join('/'),
   // user
   login: [apiPath, 'user', 'login'].join('/'),
   signup: [apiPath, 'user', 'signup'].join('/'),
@@ -37,4 +40,5 @@ export const routes = {
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
   // order
+  order: [apiPath, 'order', ':id'].join('/'),
 };

@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import {
   useState, useEffect, CSSProperties, HTMLAttributes,
 } from 'react';

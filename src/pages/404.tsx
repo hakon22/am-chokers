@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button, Result } from 'antd';
+
 import { Helmet } from '@/components/Helmet';
 import image404 from '@/images/404.svg';
 

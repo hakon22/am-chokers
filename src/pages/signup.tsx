@@ -3,13 +3,14 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
+import { Alert } from 'react-bootstrap';
+import { useContext, useEffect, useState } from 'react';
+
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { signupValidation } from '@/validations/validations';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { routes } from '@/routes';
-import { Alert } from 'react-bootstrap';
-import { useContext, useEffect, useState } from 'react';
 import { SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';

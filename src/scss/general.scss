@@ -114,20 +114,6 @@ a {
   text-decoration: inherit;
 }
 
-.spinner {
-  position: absolute;
-  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
-  width: 100vw;
-  height: 100vh;
-  z-index: 1500;
-
-  div {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-  }
-}
-
 .button {
   background-color: $dark-blue;
   color: $white;
@@ -218,11 +204,6 @@ a {
   font-size: 1.2rem;
 }
 
-.ant-card .ant-card-meta-detail > div:not(:last-child) {
-  margin-bottom: 0;
-  font-size: 1.2rem;
-}
-
 .cursor-pointer {
   cursor: pointer;
 }
@@ -231,6 +212,10 @@ a {
   background: unset;
   border: 0;
   padding: 0;
+}
+
+.ant-card .ant-card-body {
+  padding: 40px 24px;
 }
 
 @keyframes show {

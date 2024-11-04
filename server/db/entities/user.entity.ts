@@ -1,8 +1,8 @@
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import {
-  Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn,
-  BaseEntity,
+  Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity,
 } from 'typeorm';
+
+import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
 /** Пользователь */
 @Entity({
