@@ -14,19 +14,15 @@ export const routes = {
   recoveryPage: '/recovery',
   notFoundPage: '*',
   catalog: catalogPath,
-  // navbar
-  necklace: [catalogPath, 'necklace'].join('/'),
-  bracelets: [catalogPath, 'bracelets'].join('/'),
-  earrings: [catalogPath, 'earrings'].join('/'),
-  accessories: [catalogPath, 'accessories'].join('/'),
   // profile
   personalData: [profilePath, 'personal'].join('/'),
   orderHistory: [profilePath, 'orders'].join('/'),
   favorites: [profilePath, 'favorites'].join('/'),
   myReviews: [profilePath, 'reviews'].join('/'),
   settings: [profilePath, 'settings'].join('/'),
-  // admin
+  // admin pages
   newItem: [adminPath, 'item', 'new'].join('/'),
+  itemGroupsControl: [adminPath, 'group', 'groups'].join('/'),
   // user
   login: [apiPath, 'user', 'login'].join('/'),
   signup: [apiPath, 'user', 'signup'].join('/'),
@@ -41,4 +37,14 @@ export const routes = {
   telegram: [apiPath, 'telegram'].join('/'),
   // order
   order: [apiPath, 'order', ':id'].join('/'),
-};
+  // itemGroup
+  itemGroups: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
+  crudItemGroup: (id?: number | React.Key ) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
+  createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
+  // storage
+  imageUpload: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [process.env.NEXT_PUBLIC_DEV_HOST, apiPath.slice(1)]), 'image', 'upload'].join('/'),
+  // item
+  items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
+  createItem: [apiPath, 'item', 'new'].join('/'),
+  crudItem: (id?: number ) => [apiPath, 'item', id ?? ':id'].join('/'),
+} as const;

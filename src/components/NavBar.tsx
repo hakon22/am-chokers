@@ -7,9 +7,10 @@ import {
 } from '@ant-design/icons';
 import { Menu, type MenuProps } from 'antd';
 
-import { routes } from '@/routes';
+import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
+import { useAppSelector } from '@/utilities/hooks';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -27,6 +28,8 @@ const LabelWithIcon = ({ label, href }: { label: string, href: string }) => (
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
+  const { itemGroups } = useAppSelector((state) => state.app);
+
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>('108px');
   const [isLoaded, setIsLoaded] = useState(false);
@@ -42,16 +45,11 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     {
-      label: <LabelWithIcon label={t('menu.catalog.title')} href={routes.catalog} />,
+      label: <LabelWithIcon label={t('menu.catalog')} href={routes.catalog} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
-      children: [
-        { label: <Link href={routes.necklace}>{t('menu.catalog.necklace')}</Link>, key: 'necklace' },
-        { label: <Link href={routes.bracelets}>{t('menu.catalog.bracelets')}</Link>, key: 'bracelets' },
-        { label: <Link href={routes.earrings}>{t('menu.catalog.earrings')}</Link>, key: 'earrings' },
-        { label: <Link href={routes.accessories}>{t('menu.catalog.accessories')}</Link>, key: 'accessories' },
-      ],
+      children: itemGroups.map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code })),
     },
     {
       label: <Link href="/">{t('menu.aboutBrand')}</Link>,

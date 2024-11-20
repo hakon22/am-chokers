@@ -3,6 +3,4 @@ export interface OrderOptionsInterface {
   withUser?: boolean;
   /** Вместе с позициями */
   withPosition?: boolean;
-  /** С удалёнными */
-  withDeleted?: boolean;
 }

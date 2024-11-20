@@ -1,5 +1,5 @@
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import react from 'eslint-plugin-react';
 import jsxA11Y from 'eslint-plugin-jsx-a11y';
@@ -12,10 +12,11 @@ import { FlatCompat } from '@eslint/eslintrc';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const compat = new FlatCompat({
   baseDirectory: __dirname,
   recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all
+  allConfig: js.configs.all,
 });
 
 const eslint = [...compat.extends(
@@ -91,9 +92,10 @@ const eslint = [...compat.extends(
     'no-extra-semi': 'error',
     'import/order': ['error', {
       'groups': ['builtin', 'external', 'internal'],
-      'newlines-between': 'always'
+      'newlines-between': 'always',
     }],
     'quotes': ['error', 'single'],
+    'comma-dangle': ['error', 'always-multiline'],
   },
 }];
 

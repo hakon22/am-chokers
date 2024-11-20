@@ -89,4 +89,9 @@
   font-weight: 300;
   font-size: 0.9rem !important;
   letter-spacing: 2px !important;
+
+  &.navbar-padding {
+    padding: 0 5px !important;
+    width: max-content !important;
+  }
 }

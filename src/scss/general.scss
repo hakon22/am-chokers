@@ -218,6 +218,24 @@ a {
   padding: 40px 24px;
 }
 
+.font-oswald {
+  font-family: Oswald, sans-serif !important;
+}
+
+.large-input {
+  .ant-input-number-prefix {
+    font-size: 1.35rem !important;
+    font-family: Oswald, sans-serif !important;
+    padding: 0 1rem 0 0;
+  }
+
+  input, textarea, .ant-select-selector {
+    font-size: 1.35rem !important;
+    padding: 0 !important;
+    font-family: Oswald, sans-serif !important;
+  }
+}
+
 @keyframes show {
   0% { opacity: 0; }
   100% { opacity: 1; }

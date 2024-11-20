@@ -88,40 +88,35 @@ export const Personal = ({ t }: { t: TFunction }) => {
   };
 
   const onFinish = async (values: UserProfileType) => {
-    try {
-      setIsSubmit(true);
+    setIsSubmit(true);
 
-      const changedValues = Object.keys(values).reduce((acc, keyObj) => {
-        if (initialValues[keyObj] === values[keyObj]) {
-          return acc;
-        }
-        return { ...acc, [keyObj]: values[keyObj] };
-      }, {} as UserProfileType);
-
-      if (isEmpty(changedValues)) { // если ничего не изменилось, отменяем изменение
-        setIsSubmit(false);
-        return;
+    const changedValues = Object.keys(values).reduce((acc, keyObj) => {
+      if (initialValues[keyObj] === values[keyObj]) {
+        return acc;
       }
-      setUpdateValues(changedValues);
-      if (changedValues.phone && !phoneConfirm) {
-        const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: changedValues.phone, key })) as { payload: { code: number } };
-        if (code === 1) {
-          setPhoneConfirm(changedValues.phone);
-        }
-        if (code === 4) {
-          toast(tToast('timeNotOverForSms'), 'error');
-        }
-        if (code === 5) {
-          form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
-        }
-      } else {
-        await updateProfile(changedValues);
-      }
+      return { ...acc, [keyObj]: values[keyObj] };
+    }, {} as UserProfileType);
 
+    if (isEmpty(changedValues)) { // если ничего не изменилось, отменяем изменение
       setIsSubmit(false);
-    } catch (e) {
-      axiosErrorHandler(e, tToast, setIsSubmit);
+      return;
     }
+    setUpdateValues(changedValues);
+    if (changedValues.phone && !phoneConfirm) {
+      const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: changedValues.phone, key })) as { payload: { code: number } };
+      if (code === 1) {
+        setPhoneConfirm(changedValues.phone);
+      }
+      if (code === 4) {
+        toast(tToast('timeNotOverForSms'), 'error');
+      }
+      if (code === 5) {
+        form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
+      }
+    } else {
+      await updateProfile(changedValues);
+    }
+    setIsSubmit(false);
   };
 
   useEffect(() => {

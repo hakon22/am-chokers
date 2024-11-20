@@ -3,6 +3,7 @@ import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import { ImageEntity } from '@server/db/entities/image.entity';
 
 export const entities = [
   UserEntity,
@@ -10,4 +11,5 @@ export const entities = [
   ItemGroupEntity,
   OrderEntity,
   OrderPositionEntity,
+  ImageEntity,
 ];

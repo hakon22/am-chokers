@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {
-  createSlice, createAsyncThunk, PayloadAction, createEntityAdapter,
+  createSlice, createAsyncThunk, type PayloadAction, createEntityAdapter,
 } from '@reduxjs/toolkit';
 
 import type { OrderInterface } from '@/types/order/Order';

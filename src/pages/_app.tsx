@@ -1,5 +1,6 @@
 import 'dayjs/locale/ru';
-import type { AppProps } from 'next/app';
+import type { AppProps, AppContext } from 'next/app';
+import AppNext from 'next/app';
 import Head from 'next/head';
 import {
   useCallback, useEffect, useMemo, useState,
@@ -20,13 +21,15 @@ import favicon57 from '@/images/favicon57x57.png';
 import favicon180 from '@/images/favicon180x180.png';
 import store from '@/slices/index';
 import { App } from '@/components/App';
+import { setItemsAndGroups } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
+import type { ItemGroupInterface, ItemInterface, ItemsAndGroupsInterface } from '@/types/item/Item';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
-const Init = (props: AppProps) => {
-  const { pageProps, Component } = props;
+const Init = (props: AppProps & ItemsAndGroupsInterface) => {
+  const { pageProps, Component, items, itemGroups } = props;
   const { dispatch } = store;
 
   const { id, refreshToken } = store.getState().user;
@@ -55,6 +58,7 @@ const Init = (props: AppProps) => {
 
   useEffect(() => {
     AOS.init();
+    dispatch(setItemsAndGroups({ items, itemGroups }));
   }, []);
 
   return (
@@ -79,6 +83,17 @@ const Init = (props: AppProps) => {
       </AuthContext.Provider>
     </I18nextProvider>
   );
+};
+
+Init.getInitialProps = async (context: AppContext) => {
+  const [{ data: { items } }, { data: { itemGroups } }] = await Promise.all([
+    axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: false })),
+    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false })),
+  ]);
+
+  const props = await AppNext.getInitialProps(context);
+
+  return { ...props, items, itemGroups };
 };
 
 export default Init;

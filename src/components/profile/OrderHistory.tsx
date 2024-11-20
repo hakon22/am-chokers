@@ -61,5 +61,5 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
         ))}
       </div>
     )
-    : <Alert message={t('notFound')} type="success" />;
+    : <Alert message={t('notFound')} type="success" style={{ height: '3rem' }} />;
 };

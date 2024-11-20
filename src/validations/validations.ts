@@ -29,7 +29,6 @@ const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T
   },
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
 
@@ -42,6 +41,15 @@ const confirmCodeSchema = yup.object().shape({
     .transform((value) => value.replace(/[^\d]/g, ''))
     .test('code', t('validation.code'), (value) => value.length === 4),
 });
+
+const idSchema = yup
+  .lazy((value) => (typeof value === 'object'
+    ? yup.object()
+      .shape({
+        id: numberSchema,
+      })
+    : numberSchema
+  ));
 
 const confirmPhoneSchema = yup.object().shape({
   phone: phoneSchema,
@@ -92,8 +100,27 @@ const profileSchema = yup.object().shape({
   ['password', 'password'],
 ]);
 
+const newItemSchema = yup.object().shape({
+  name: stringSchema,
+  description: stringSchema,
+  group: idSchema,
+  price: numberSchema,
+  width: numberSchema,
+  height: numberSchema,
+  composition: stringSchema,
+  length: stringSchema,
+});
+
+const newItemGroupSchema = yup.object().shape({
+  name: stringSchema,
+  description: stringSchema,
+  code: stringSchema,
+});
+
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
 export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
+export const newItemValidation = validate(newItemSchema);
+export const newItemGroupValidation = validate(newItemGroupSchema);

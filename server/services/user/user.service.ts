@@ -31,6 +31,7 @@ export class UserService extends BaseService {
         'user.telegramId',
         'user.refreshTokens',
         'user.role',
+        'user.deleted',
       ]);
 
     if (query?.id) {
@@ -38,6 +39,9 @@ export class UserService extends BaseService {
     }
     if (query?.phone) {
       builder.andWhere('user.phone = :phone', { phone: query.phone });
+    }
+    if (query?.withDeleted) {
+      builder.withDeleted();
     }
     if (options?.withPassword) {
       builder.addSelect('user.password');
@@ -94,7 +98,7 @@ export class UserService extends BaseService {
       req.body.name = upperCase(req.body.name);
       const payload = req.body as UserFormInterface;
 
-      const candidate = await this.findOne({ phone: payload.phone });
+      const candidate = await this.findOne({ phone: payload.phone, withDeleted: true });
 
       if (candidate) {
         res.json({ code: 2 });
@@ -125,7 +129,7 @@ export class UserService extends BaseService {
       const { phone, key, code: userCode } = req.body as { phone: string, key?: string, code?: string };
       await phoneValidation.serverValidator({ phone });
 
-      const candidate = await this.findOne({ phone });
+      const candidate = await this.findOne({ phone, withDeleted: true });
       if (candidate) {
         res.json({ code: 5 });
         return;

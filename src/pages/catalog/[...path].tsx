@@ -1,39 +1,28 @@
 import type { InferGetServerSidePropsType } from 'next';
+import axios from 'axios';
 
-import choker2 from '@/images/choker2.jpg';
-import choker3 from '@/images/choker3.jpg';
 import { translate } from '@/utilities/translate';
-import i18n from '@/locales';
 import { CardItem } from '@/components/CardItem';
 import { GroupItem } from '@/components/GroupItem';
-import { ItemInterface } from '@/types/item/Item';
+import type { ItemInterface } from '@/types/item/Item';
+import { routes } from '@/routes';
 
 export const getServerSideProps = async ({ params }: { params: { path: string[] } }) => {
-  const items: ItemInterface[] = [
-    {
-      id: 1, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 1', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 1.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'necklace',
-    },
-    {
-      id: 2, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 2', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 2.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'bracelets',
-    },
-    {
-      id: 3, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 3', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 3.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'earrings',
-    },
-    {
-      id: 4, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 4', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 4.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'accessories',
-    },
-  ] as unknown as ItemInterface[];
+  const { data: { items } } = await axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: false }));
 
-  const { t } = i18n;
+  const itemGroupCodes = items.reduce((acc, { group }) => {
+    if (!acc.includes(group.code)) {
+      acc.push(group.code);
+    }
+    return acc;
+  }, [] as string[]);
 
-  const accumulator: string[] = [];
-
-  const links = [...Object.keys(t('modules.navbar.menu.catalog', { returnObjects: true })), ...items.reduce((acc, item) => {
+  const links = [...itemGroupCodes, ...items.reduce((acc, item) => {
     if (!acc.includes(translate(item.name))) {
       acc.push(translate(item.name));
     }
     return acc;
-  }, accumulator)];
+  }, [] as string[])];
 
   const { path } = params;
 
@@ -41,12 +30,12 @@ export const getServerSideProps = async ({ params }: { params: { path: string[] 
     return {
       redirect: {
         permanent: false,
-        destination: '/',
+        destination: routes.homePage,
       },
     };
   }
 
-  const [group, item] = path;
+  const [groupCode, item] = path;
 
   return {
     props: item
@@ -54,7 +43,7 @@ export const getServerSideProps = async ({ params }: { params: { path: string[] 
         item: items.find((itm) => translate(itm.name) === item),
       }
       : {
-        items: items.filter((itm) => itm.group === group as unknown as ItemInterface['group']),
+        items: items.filter((itm) => itm.group.code === groupCode),
       },
   };
 };

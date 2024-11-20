@@ -1,5 +1,7 @@
 import {
   Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity,
+  Unique,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -8,6 +10,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 @Entity({
   name: 'user',
 })
+@Unique(['phone'])
 export class UserEntity extends BaseEntity {
   /** Уникальный id пользователя */
   @PrimaryGeneratedColumn()
@@ -24,6 +27,10 @@ export class UserEntity extends BaseEntity {
   /** Дата изменения пользователя */
   @UpdateDateColumn()
   public updated: Date;
+
+  /** Удалён */
+  @DeleteDateColumn()
+  public deleted: Date;
 
   /** Пароль пользователя */
   @Column('character varying', {

@@ -20,6 +20,7 @@ export class OrderService extends BaseService {
         'order.id',
         'order.created',
         'order.status',
+        'order.deleted',
       ]);
 
     if (options?.withPosition) {
@@ -35,8 +36,8 @@ export class OrderService extends BaseService {
         .addSelect([
           'item.id',
           'item.name',
-          'item.images',
-        ]);
+        ])
+        .leftJoinAndSelect('item.images', 'images');
     }
     if (options?.withUser) {
       builder
@@ -47,7 +48,7 @@ export class OrderService extends BaseService {
           'user.phone',
         ]);
     }
-    if (options?.withDeleted) {
+    if (query?.withDeleted) {
       builder.withDeleted();
     }
     if (query?.id) {

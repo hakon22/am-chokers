@@ -1,9 +1,12 @@
 import {
   Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
+  OneToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
+import { ImageEntity } from '@server/db/entities/image.entity';
 
 /** Товар */
 @Entity({
@@ -30,15 +33,17 @@ export class ItemEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
+  /** Удалён */
+  @DeleteDateColumn()
+  public deleted: Date;
+
   /** Цена товара */
   @Column('int')
   public price: number;
 
   /** Фотографии товара */
-  @Column('character varying', {
-    array: true,
-  })
-  public images: string[];
+  @OneToMany(() => ImageEntity, image => image.item)
+  public images: ImageEntity[];
 
   /** Высота картинки товара */
   @Column('int')
@@ -57,18 +62,20 @@ export class ItemEntity extends BaseEntity {
   public length: string;
 
   /** Рейтинг товара */
-  @Column('numeric')
+  @Column('numeric', {
+    default: 0,
+  })
   public rating: number;
 
   /** Классы товара (для компонента ImageHover) */
   @Column('character varying', {
     name: 'class_name',
+    default: 'me-3',
   })
   public className: string;
 
   /** Группа товара */
   @ManyToOne(() => ItemGroupEntity, {
-    nullable: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   })

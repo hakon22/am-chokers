@@ -14,13 +14,11 @@ import { routes } from '@/routes';
 import { fetchLogin } from '@/slices/userSlice';
 import { SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
-import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import type { UserLoginInterface } from '@/types/user/User';
 
 const Login = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.login' });
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
-  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -30,19 +28,14 @@ const Login = () => {
   const [form] = Form.useForm();
 
   const onFinish = async (values: UserLoginInterface) => {
-    try {
-      setIsSubmit(true);
-      const { payload: { code } } = await dispatch(fetchLogin(values)) as { payload: { code: number } };
-      if (code === 2) {
-        form.setFields([{ name: 'password', errors: [tValidation('incorrectPassword')] }]);
-      } else if (code === 3) {
-        form.setFields([{ name: 'phone', errors: [tValidation('userNotExists')] }]);
-      }
-      setIsSubmit(false);
-    } catch (e) {
-      setTimeout(setIsSubmit, 1500, false);
-      axiosErrorHandler(e, tToast, setIsSubmit);
+    setIsSubmit(true);
+    const { payload: { code } } = await dispatch(fetchLogin(values)) as { payload: { code: number } };
+    if (code === 2) {
+      form.setFields([{ name: 'password', errors: [tValidation('incorrectPassword')] }]);
+    } else if (code === 3) {
+      form.setFields([{ name: 'phone', errors: [tValidation('userNotExists')] }]);
     }
+    setIsSubmit(false);
   };
 
   return (

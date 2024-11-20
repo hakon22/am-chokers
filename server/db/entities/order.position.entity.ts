@@ -4,6 +4,7 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  AfterLoad,
 } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
@@ -57,4 +58,10 @@ export class OrderPositionEntity extends BaseEntity {
     referencedColumnName: 'id',
   })
   public order: OrderEntity;
+
+  @AfterLoad()
+  transform() {
+    this.price = +this.price;
+    this.discount = +this.discount;
+  }
 }

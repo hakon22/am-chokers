@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useContext, useEffect } from 'react';
 import { Menu } from 'antd';
 import { MenuProps } from 'antd/lib';
-import type { TFunction } from 'i18next';
 
 import { setUrl } from '@/slices/userSlice';
 import { routes } from '@/routes';
@@ -15,6 +14,7 @@ import { AuthContext } from '@/components/Context';
 import { Personal } from '@/components/profile/Personal';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { NoAuthorization } from '@/components/NoAuthorization';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -27,15 +27,6 @@ export const getServerSideProps = async ({ params }: { params: { path: string[] 
     },
   };
 };
-
-const NoAuthorization = ({ t }: { t: TFunction }) => (
-  <div className="d-flex flex-column flex-md-row justify-content-center align-items-center fs-5" style={{ letterSpacing: '0.5px', marginTop: '22%' }}>
-    {t('entrace1')}
-    <Link href={routes.loginPage} className="px-2 text-monospace text-decoration-underline">{t('entrace')}</Link>
-    {t('entrace2')}
-    <Link href={routes.signupPage} className="ps-2 text-monospace text-decoration-underline">{t('signup')}</Link>
-  </div>
-);
 
 const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t: tMenu } = useTranslation('translation', { keyPrefix: 'pages.profile' });
@@ -54,7 +45,12 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: routes.favorites, label: <Link href={routes.favorites}>{tMenu('menu.favorites')}</Link> },
     { key: routes.myReviews, label: <Link href={routes.myReviews}>{tMenu('menu.reviews')}</Link> },
     { key: routes.settings, label: <Link href={routes.settings}>{tMenu('menu.settings')}</Link> },
-    role === UserRoleEnum.ADMIN ? { key: 'admin', label: tMenu('menu.admin.title'), children: [{ key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.newItem')}</Link> }] } : null,
+    role === UserRoleEnum.ADMIN
+      ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
+        { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.newItem')}</Link> },
+        { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.itemGroups')}</Link> },
+      ],
+      } : null,
     { type: 'divider' },
     { key: 'logout', label: <button type="button" className="button-link" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
@@ -92,15 +88,14 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
               <Menu
                 selectedKeys={[router.asPath]}
                 mode="inline"
-                style={{ fontFamily: 'Oswald, sans-serif' }}
-                className="fs-5"
+                className="fs-5 font-oswald"
                 items={items}
               />
             </div>
             <div className="col-8 d-flex justify-content-center">{getPage()}</div>
           </div>
         </>
-      ) : <NoAuthorization t={tMenu} />}
+      ) : <NoAuthorization />}
     </>
   );
 };

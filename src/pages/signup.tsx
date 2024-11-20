@@ -38,24 +38,19 @@ const Signup = () => {
   const [form] = Form.useForm();
 
   const onFinish = async (values: UserSignupInterface) => {
-    try {
-      setIsSubmit(true);
-      const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
-      if (code === 1) {
-        setUser(values);
-        setIsProcessConfirmed(true);
-      }
-      if (code === 4) {
-        toast(tToast('timeNotOverForSms'), 'error');
-      }
-      if (code === 5) {
-        form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
-      }
-      setIsSubmit(false);
-    } catch (e) {
-      setTimeout(setIsSubmit, 1500, false);
-      axiosErrorHandler(e, tToast, setIsSubmit);
+    setIsSubmit(true);
+    const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
+    if (code === 1) {
+      setUser(values);
+      setIsProcessConfirmed(true);
     }
+    if (code === 4) {
+      toast(tToast('timeNotOverForSms'), 'error');
+    }
+    if (code === 5) {
+      form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
+    }
+    setIsSubmit(false);
   };
 
   useEffect(() => {

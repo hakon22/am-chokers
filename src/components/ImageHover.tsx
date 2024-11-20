@@ -3,17 +3,17 @@ import {
 } from 'react';
 import Image from 'next/image';
 
+import type { ItemInterface } from '@/types/item/Item';
+
 type ImageHoverType = {
-  images: string[];
   height: number | string;
   width?: number | string;
   name?: string;
   description?: string;
   marker?: boolean;
   style?: CSSProperties;
-  className?: string;
   props?: HTMLAttributes<HTMLDivElement>[];
-};
+} & Pick<ItemInterface, 'className' | 'images'>;
 
 export const ImageHover = ({
   images,
@@ -61,8 +61,8 @@ export const ImageHover = ({
       >
         {images.map((image, i) => (
           <Image
-            key={image}
-            src={image}
+            key={image.id}
+            src={`${image.path}/${image.name}`}
             unoptimized
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -74,7 +74,7 @@ export const ImageHover = ({
       </div>
       {marker || name || description ? (
         <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-          {marker ? images.map((image, i) => <span key={image} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+          {marker ? images.map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
           {name ? <div className="title">{name}</div> : null}
           {description ? <div className="description">{description}</div> : null}
         </div>
