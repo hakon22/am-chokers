@@ -87,8 +87,8 @@ const Init = (props: AppProps & ItemsAndGroupsInterface) => {
 
 Init.getInitialProps = async (context: AppContext) => {
   const [{ data: { items } }, { data: { itemGroups } }] = await Promise.all([
-    axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: false })),
-    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false })),
+    axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: true })),
+    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: true })),
   ]);
 
   const props = await AppNext.getInitialProps(context);
