@@ -23,7 +23,7 @@ export const CardItem = ({
           <ImageGallery
             ref={galleryRef}
             additionalClass="w-100"
-            items={[...images, ...images, ...images, ...images].sort((a, b) => a.order - b.order).map((image) => ({ original: `${image.path}/${image.name}`, thumbnail: `${image.path}/${image.name}` }))}
+            items={images.sort((a, b) => b.order - a.order).map((image) => ({ original: `${image.path}/${image.name}`, thumbnail: `${image.path}/${image.name}` }))}
             infinite
             showNav
             onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}

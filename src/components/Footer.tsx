@@ -4,9 +4,13 @@ import Link from 'next/link';
 
 import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
+import { catalogPath, routes } from '@/routes';
+import { useAppSelector } from '@/utilities/hooks';
 
 export const Footer = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
+
+  const { itemGroups } = useAppSelector((state) => state.app);
 
   return (
     <div className="container d-flex col-12">
@@ -14,11 +18,8 @@ export const Footer = () => {
         <div className="col-6">
           <h6 className="mb-4">{t('jewelryCatalog')}</h6>
           <ul>
-            <li><Link href="/">{t('jewelryCatalog')}</Link></li>
-            <li><Link href="/">{t('bracelets')}</Link></li>
-            <li><Link href="/">{t('glassesChains')}</Link></li>
-            <li><Link href="/">{t('otherAccessories')}</Link></li>
-            <li><Link href="/">{t('allJewelry')}</Link></li>
+            <li><Link href={routes.catalog}>{t('jewelryCatalog')}</Link></li>
+            {itemGroups.map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.name}</Link></li>)}
           </ul>
         </div>
         <div className="col-6">

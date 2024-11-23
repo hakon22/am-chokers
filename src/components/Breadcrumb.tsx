@@ -50,7 +50,7 @@ export const Breadcrumb = () => {
         helmet: page,
       };
     }));
-  }, [pathname]);
+  }, [pathname, items]);
 
   return router.pathname.includes(catalogPath) ? (
     <>

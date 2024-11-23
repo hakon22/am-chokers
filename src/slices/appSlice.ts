@@ -22,8 +22,8 @@ export const addItem = createAsyncThunk(
 
 export const updateItem = createAsyncThunk(
   'app/updateItem',
-  async (data: ItemInterface) => {
-    const response = await axios.put<{ code: number; item: ItemInterface; }>(routes.crudItem(data.id), data);
+  async ({ id, data }: { id: number, data: Partial<ItemInterface> }) => {
+    const response = await axios.put<{ code: number; item: ItemInterface; }>(routes.crudItem(id), data);
     return response.data;
   },
 );
@@ -31,7 +31,7 @@ export const updateItem = createAsyncThunk(
 export const deleteItem = createAsyncThunk(
   'app/deleteItem',
   async (id: number) => {
-    const response = await axios.delete<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItem(id));
+    const response = await axios.delete<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
     return response.data;
   },
 );
@@ -126,7 +126,7 @@ const appSlice = createSlice({
       })
       .addCase(deleteItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.items = state.items.filter((item) => item.id !== payload.itemGroup.id);
+          state.items = state.items.filter((item) => item.id !== payload.item.id);
         }
         state.loadingStatus = 'finish';
         state.error = null;

@@ -6,6 +6,7 @@ import {
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
+import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 import { ImageEntity } from '@server/db/entities/image.entity';
 
 /** Товар */
@@ -67,6 +68,24 @@ export class ItemEntity extends BaseEntity {
   })
   public rating: number;
 
+  /** Бестселлер */
+  @Column('boolean', {
+    default: false,
+  })
+  public bestseller: boolean;
+
+  /** Новинка */
+  @Column('boolean', {
+    default: false,
+  })
+  public new: boolean;
+
+  /** Позиция на главной странице */
+  @Column('int', {
+    nullable: true,
+  })
+  public order: number;
+
   /** Классы товара (для компонента ImageHover) */
   @Column('character varying', {
     name: 'class_name',
@@ -80,7 +99,17 @@ export class ItemEntity extends BaseEntity {
     onDelete: 'CASCADE',
   })
   @JoinColumn({
-    name: 'item_group_id',
+    name: 'group_id',
   })
   public group: ItemGroupEntity;
+
+  /** Коллекция товара */
+  @ManyToOne(() => ItemCollectionEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'collection_id',
+  })
+  public collection: ItemCollectionEntity;
 }

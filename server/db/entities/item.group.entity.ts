@@ -26,7 +26,7 @@ export class ItemGroupEntity extends BaseEntity {
   @Column('character varying')
   public code: string;
 
-  /** Удалёна */
+  /** Удалена */
   @DeleteDateColumn()
   public deleted: Date;
 }

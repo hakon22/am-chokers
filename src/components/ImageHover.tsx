@@ -3,6 +3,7 @@ import {
 } from 'react';
 import Image from 'next/image';
 
+import image404 from '@/images/404.svg';
 import type { ItemInterface } from '@/types/item/Item';
 
 type ImageHoverType = {
@@ -59,22 +60,23 @@ export const ImageHover = ({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {images.sort((a, b) => a.order - b.order).map((image, i) => (
-          <Image
-            key={image.id}
-            src={`${image.path}/${image.name}`}
-            unoptimized
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
-            alt={`Image ${index + 1}`}
-            className={i === index ? 'active' : ''}
-          />
-        ))}
+        {images.length
+          ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
+            <Image
+              key={image.id}
+              src={`${image.path}/${image.name}`}
+              unoptimized
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              alt={`Image ${index + 1}`}
+              className={i === index ? 'active' : ''}
+            />
+          ))
+          : <Image src={image404} alt="" className="active" />}
       </div>
       {marker || name || description ? (
         <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-          {marker ? images.sort((a, b) => a.order - b.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+          {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
           {name ? <div className="title">{name}</div> : null}
           {description ? <div className="description">{description}</div> : null}
         </div>

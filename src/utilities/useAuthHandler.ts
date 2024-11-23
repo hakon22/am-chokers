@@ -1,5 +1,5 @@
 import { useEffect, useContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
@@ -35,7 +35,7 @@ export const useAuthHandler = () => {
       if (url) {
         router.push(url);
         dispatch(removeUrl());
-      } else {
+      } else if (router.asPath === routes.loginPage) {
         router.push(routes.homePage);
       }
       if (id) {

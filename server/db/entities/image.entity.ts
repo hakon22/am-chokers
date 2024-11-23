@@ -25,7 +25,7 @@ export class ImageEntity extends BaseEntity {
   @Column('character varying')
   public path: string;
 
-  /** Удалёна */
+  /** Удалена */
   @DeleteDateColumn()
   public deleted: Date;
 

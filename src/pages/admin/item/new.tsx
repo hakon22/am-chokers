@@ -6,7 +6,7 @@ import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/cor
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch } from 'antd';
+import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -110,7 +110,7 @@ const CreateItem = () => {
   const onFinish = async (values: ItemInterface) => {
     setIsSubmit(true);
     values.images = images;
-    values.group = itemGroup as ItemInterface['group'];
+    values.group = itemGroup as ItemGroupInterface;
     const { payload: { code, url } } = await dispatch(addItem(values)) as { payload: { code: number; item: ItemInterface; url: string; } };
     if (code === 1) {
       setItem(undefined);
@@ -200,21 +200,44 @@ const CreateItem = () => {
                   <Form.Item<ItemInterface> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
                     <Input variant="borderless" size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
                   </Form.Item>
-                  <Form.Item<ItemInterface> name="group" className="mb-4 large-input" rules={[newItemValidation]}>
-                    <Select
-                      showSearch
-                      style={{ width: 200 }}
-                      size="large"
-                      placeholder={t('placeholders.group')}
-                      variant="borderless"
-                      onSelect={(groupId: number) => {
-                        const group = itemGroups.find(({ id }) => id === groupId);
-                        setItemGroup(group);
-                        setItem((state) => ({ ...state, group }));
-                      }}
-                      options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
-                    />
-                  </Form.Item>
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <Form.Item<ItemInterface> name="group" className="large-input" rules={[newItemValidation]}>
+                      <Select
+                        showSearch
+                        style={{ width: 200 }}
+                        size="large"
+                        placeholder={t('placeholders.group')}
+                        variant="borderless"
+                        onSelect={(groupId: number) => {
+                          const group = itemGroups.find(({ id }) => id === groupId);
+                          setItemGroup(group);
+                          setItem((state) => ({ ...state, group }));
+                        }}
+                        options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
+                      />
+                    </Form.Item>
+                    <Form.Item<ItemInterface> name="collection" className="large-input">
+                      <Select
+                        showSearch
+                        style={{ width: 200 }}
+                        size="large"
+                        placeholder={t('placeholders.collection')}
+                        variant="borderless"
+                        onSelect={(collectionId: number) => {
+                          const group = itemGroups.find(({ id }) => id === collectionId);
+                          setItemGroup(group);
+                          setItem((state) => ({ ...state, group }));
+                        }}
+                        options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
+                      />
+                    </Form.Item>
+                    <Form.Item<ItemInterface> name="new" valuePropName="checked" className="large-input">
+                      <Checkbox>{t('new')}</Checkbox>
+                    </Form.Item>
+                    <Form.Item<ItemInterface> name="bestseller" valuePropName="checked" className="large-input">
+                      <Checkbox>{t('bestseller')}</Checkbox>
+                    </Form.Item>
+                  </div>
                   <div className="d-flex flex-column flex-md-row justify-content-between">
                     <Form.Item<ItemInterface> name="price" className="mb-4 fs-2" rules={[newItemValidation]}>
                       <InputNumber size="large" variant="borderless" placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />

@@ -87,7 +87,7 @@ export const NavBar = () => {
         <>
           <div className="nav-logo-container" data-aos="fade-down">
             <Link href="/">
-              <Image src={logoImage} unoptimized className="nav-logo" alt={t('logo')} />
+              <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
             </Link>
           </div>
           <div className="nav-menu" data-aos="fade-down">

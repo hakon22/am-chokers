@@ -153,9 +153,6 @@ export default {
       },
       footer: {
         jewelryCatalog: 'Каталог украшений',
-        bracelets: 'Браслеты',
-        glassesChains: 'Цепочки для очков',
-        otherAccessories: 'Другие аксессуары',
         allJewelry: 'Все украшения',
         contacts: 'Контакты',
         telegram: 'Телеграм',
@@ -172,6 +169,12 @@ export default {
         warrantyAndCare: 'Гарантия и уход',
         deliveryAndPayment: 'Доставка и оплата',
       },
+      contextMenu: {
+        edit: 'Редактировать',
+        remove: 'Удалить',
+        removeInCell: 'Удалить из ячейки',
+        addInCell: 'Добавить в ячейку',
+      },
       createItem: {
         title: 'Создание товара',
         description: 'Создание товара',
@@ -184,9 +187,13 @@ export default {
         uploadHint: 'Поддержка одиночной и массовой загрузки',
         onSortImage: 'Режим сортировки',
         unSortImage: 'Режим просмотра',
+        new: 'Новинка',
+        collection: 'Коллекция',
+        bestseller: 'Бестселлер',
         placeholders: {
           name: 'Введите название товара',
           group: 'Выберите группу',
+          collection: 'Выберите коллекцию',
           price: 'Введите цену',
           width: 'Введите ширину',
           height: 'Введите длину',
@@ -243,6 +250,7 @@ export default {
       unlinkTelegramSuccess: 'Telegram аккаунт успешно отвязан',
       itemExist: 'Товар с именем {{ name }} уже существует',
       itemGroupExist: 'Группа с кодом {{ code }} уже существует',
+      itemDeletedSuccess: 'Товар {{ name }} успешно удалён',
     },
     spinner: {
       loading: 'Загрузка...',

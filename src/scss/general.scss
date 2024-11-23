@@ -254,10 +254,15 @@ a {
     padding: 0 1rem 0 0;
   }
 
-  input, textarea, .ant-select-selector {
+  input, textarea, .ant-select-selector, .ant-checkbox-wrapper {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
+  }
+
+  .ant-checkbox .ant-checkbox-inner {
+    width: 20px;
+    height: 20px;
   }
 }
 
