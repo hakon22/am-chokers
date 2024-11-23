@@ -47,9 +47,9 @@ export const OrderHistory = ({ t }: { t: TFunction }) => {
                   {order.positions.map((position) =>
                     <div key={position.id} className="d-flex gap-4">{position.item.images.map((image, index) =>
                       index < maxPhoto
-                        ? <Image key={image} src={`/photo/${position.id}/${image}`} width={100} height={100} alt={position.item.name} />
+                        ? <Image key={image.id} src={`${image.path}/${image.name}`} width={100} height={100} alt={position.item.name} />
                         : index === maxPhoto
-                          ? <div key={image} className="d-flex align-items-center fs-6">
+                          ? <div key={image.id} className="d-flex align-items-center fs-6">
                             <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>
                           </div>
                           : null)}
