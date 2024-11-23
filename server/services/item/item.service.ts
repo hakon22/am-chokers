@@ -99,10 +99,11 @@ export class ItemService extends BaseService {
         mkdirSync(uploadFilesItemPath(created.id));
       }
 
-      fetchedImages.forEach((image) => {
+      fetchedImages.forEach((image, i) => {
         renameSync(uploadFilesTempPath(image.name), uploadFilesItemPath(created.id, image.name));
         image.path = itemPath(created.id);
         image.item = created;
+        image.order = i;
       });
       await imageRepo.save(fetchedImages);
 

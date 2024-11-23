@@ -29,6 +29,12 @@ export class ImageEntity extends BaseEntity {
   @DeleteDateColumn()
   public deleted: Date;
 
+  /** Сортировка */
+  @Column('int', {
+    nullable: true,
+  })
+  public order: number;
+
   /** Товар изображения */
   @ManyToOne(() => ItemEntity, {
     nullable: true,

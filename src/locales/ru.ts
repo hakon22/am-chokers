@@ -182,6 +182,8 @@ export default {
         catalog: 'Каталог',
         uploadText: 'Нажмите или перетащите файл в эту область',
         uploadHint: 'Поддержка одиночной и массовой загрузки',
+        onSortImage: 'Режим сортировки',
+        unSortImage: 'Режим просмотра',
         placeholders: {
           name: 'Введите название товара',
           group: 'Выберите группу',

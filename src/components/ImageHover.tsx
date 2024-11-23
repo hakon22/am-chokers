@@ -59,7 +59,7 @@ export const ImageHover = ({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {images.map((image, i) => (
+        {images.sort((a, b) => a.order - b.order).map((image, i) => (
           <Image
             key={image.id}
             src={`${image.path}/${image.name}`}
@@ -74,7 +74,7 @@ export const ImageHover = ({
       </div>
       {marker || name || description ? (
         <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-          {marker ? images.map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+          {marker ? images.sort((a, b) => a.order - b.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
           {name ? <div className="title">{name}</div> : null}
           {description ? <div className="description">{description}</div> : null}
         </div>

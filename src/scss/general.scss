@@ -154,6 +154,31 @@ a {
   border-color: $dark-blue !important;
 }
 
+.switch-large {
+  display: flex;
+  align-items: center;
+  height: 30px;
+
+  .ant-switch-handle {
+    top: unset;
+    width: 20px;
+    height: 20px;
+    inset-inline-start: 2.5px;
+  }
+
+  .ant-switch-inner {
+    align-content: center;
+
+    &-checked, &-unchecked {
+      font-size: 1rem !important;
+    }
+  }
+}
+
+.ant-switch.ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 22px) !important;
+}
+
 .ant-spin-fullscreen {
   z-index: 1500;
 }

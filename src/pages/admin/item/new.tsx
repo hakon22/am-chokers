@@ -1,9 +1,12 @@
 import ImageGallery from 'react-image-gallery';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
-import { HeartOutlined, RightOutlined, InboxOutlined  } from '@ant-design/icons';
+import { RightOutlined, InboxOutlined  } from '@ant-design/icons';
+import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
+import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
+import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile } from 'antd';
+import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch } from 'antd';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -17,6 +20,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItem } from '@/slices/appSlice';
+import SortableItem from '@/components/SortableItem';
 
 type ResponseFile = {
   code: number;
@@ -77,10 +81,31 @@ const CreateItem = () => {
   const [item, setItem] = useState<Partial<ItemInterface>>();
   const [images, setImages] = useState<ItemInterface['images']>([]);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface>();
+  const [isSortImage, setIsSortImage] = useState(false);
 
   const [form] = Form.useForm();
 
   const itemName: string = Form.useWatch('name', form);
+
+  const sortImageHandler = () => setIsSortImage(!isSortImage);
+
+  const [activeId, setActiveId] = useState(0);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over?.id && active.id !== over.id) {
+      setImages((items) => {
+        const oldIndex = items.indexOf(items.find((image) => image.id === active.id) as ImageEntity);
+        const newIndex = items.indexOf(items.find((image) => image.id === over.id) as ImageEntity);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(+active.id);
+  };
 
   const onFinish = async (values: ItemInterface) => {
     setIsSubmit(true);
@@ -138,7 +163,19 @@ const CreateItem = () => {
           <div className="d-flex mb-5 justify-content-between">
             <div className="d-flex flex-column gap-3" style={{ width: '40%' }}>
               {images.length
-                ? (<ImageGallery
+                ? isSortImage ? (
+                  <DndContext
+                    onDragEnd={handleDragEnd}
+                    onDragStart={handleDragStart}
+                    modifiers={[restrictToWindowEdges]}
+                  >
+                    <SortableContext items={images} strategy={rectSortingStrategy}>
+                      <div className="d-flex flex-wrap gap-3">
+                        {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} />)}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                ) : (<ImageGallery
                   ref={galleryRef}
                   items={images.map(({ name, path }) => ({ original: `${path}/${name}`, thumbnail: `${path}/${name}` }))}
                   infinite
@@ -191,10 +228,7 @@ const CreateItem = () => {
                   </div>
                   <div className="d-flex align-items-center gap-5 mb-4">
                     <Button className="button border-button fs-5" htmlType="submit">{t('submitButton')}</Button>
-                    <button className="icon-button" type="button">
-                      <HeartOutlined className="icon" />
-                      <span className="visually-hidden">{tCardItem('favorites')}</span>
-                    </button>
+                    <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
                   </div>
                   <Form.Item<ItemInterface> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
                     <Input.TextArea variant="borderless" size="large" rows={2} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
