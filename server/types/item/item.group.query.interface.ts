@@ -1,6 +1,6 @@
 export interface ItemGroupQueryInterface {
   /** Id группы */
-  id?: number | string;
+  id?: number;
   /** Код группы */
   code?: string;
   /** С удалёнными */

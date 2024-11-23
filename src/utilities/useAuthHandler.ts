@@ -6,6 +6,7 @@ import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
 import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { routes } from '@/routes';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
@@ -34,6 +35,8 @@ export const useAuthHandler = () => {
       if (url) {
         router.push(url);
         dispatch(removeUrl());
+      } else {
+        router.push(routes.homePage);
       }
       if (id) {
         dispatch(fetchOrders());

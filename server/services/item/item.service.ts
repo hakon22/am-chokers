@@ -1,13 +1,12 @@
 import { renameSync, mkdirSync, existsSync } from 'fs';
 import path from 'path';
 
-import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
-import { newItemValidation } from '@/validations/validations';
 import { ImageService } from '@server/services/storage/image.service';
 import { itemPath, uploadFilesItemPath, uploadFilesTempPath } from '@server/utilities/upload.path';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -41,151 +40,103 @@ export class ItemService extends BaseService {
     if (query?.withDeleted) {
       builder.withDeleted();
     }
-    if (query?.id) {
-      builder.andWhere('item.id = :id', { id: query.id });
-    }
     if (query?.name) {
       builder.andWhere('item.name = :name', { name: query.name });
+    }
+    if (query?.itemGroupId) {
+      builder.andWhere('group.id = :itemGroupId', { itemGroupId: query.itemGroupId });
     }
 
     return builder;
   };
 
-  private find = async (query: ItemQueryInterface) => {
-    const builder = this.createQueryBuilder(query);
+  public exist = async (query: ItemQueryInterface) => {
+    const builder = this.createQueryBuilder(query).withDeleted();
+
+    const isExist = await builder.getExists();
+
+    return isExist;
+  };
+
+  public findOne = async (params: ParamsIdInterface, query?: ItemQueryInterface) => {
+    const builder = this.createQueryBuilder(query)
+      .andWhere('item.id = :id', { id: params.id });
 
     const item = await builder.getOne();
 
     if (!item) {
-      throw new Error(`Товара с номером #${query.id} не существует.`);
+      throw new Error(`Товара с номером #${params.id} не существует.`);
     }
 
     return item;
   };
 
-  private exist = async (query: ItemQueryInterface) => {
+  public findMany = async (query?: ItemQueryInterface) => {
     const builder = this.createQueryBuilder(query);
 
-    const isExist = await builder.withDeleted().getExists();
+    const items = await builder.getMany();
 
-    return isExist;
+    return items;
   };
 
-  public findOne = async (req: Request, res: Response) => {
-    try {
-      const query = req.params;
+  public createOne = async (body: ItemEntity, images: ImageEntity[]) => {
 
-      const item = await this.find(query);
+    const isExist = await this.exist({ name: body.name });
 
-      res.json({ code: 1, item });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+    if (isExist) {
+      return { code: 2 };
     }
-  };
 
-  public findMany = async (req: Request, res: Response) => {
-    try {
-      const builder = this.createQueryBuilder();
+    const fetchedImages = await this.imageService.findMany({ ids: images.map(({ id }) => id) });
 
-      const items = await builder.getMany();
+    const createdItem = await this.databaseService.getManager().transaction(async (manager) => {
+      const itemRepo = manager.getRepository(ItemEntity);
+      const imageRepo = manager.getRepository(ImageEntity);
 
-      res.json({ code: 1, items });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
-  };
+      const created = await itemRepo.save(body);
 
-  public createOne = async (req: Request, res: Response) => {
-    try {
-      const { images, ...reqItem } = req.body as ItemEntity;
-      await newItemValidation.serverValidator({ ...reqItem });
-
-      const isExist = await this.exist({ name: reqItem.name });
-
-      if (isExist) {
-        res.json({ code: 2 });
-        return;
+      if (!existsSync(uploadFilesItemPath(created.id))) {
+        mkdirSync(uploadFilesItemPath(created.id));
       }
 
-      const fetchedImages = await this.imageService.findMany({ ids: images.map(({ id }) => id) });
-
-      const createdItem = await this.databaseService.getManager().transaction(async (manager) => {
-        const itemRepo = manager.getRepository(ItemEntity);
-        const imageRepo = manager.getRepository(ImageEntity);
-
-        const created = await itemRepo.save(reqItem as ItemEntity);
-
-        if (!existsSync(uploadFilesItemPath(created.id))) {
-          mkdirSync(uploadFilesItemPath(created.id));
-        }
-
-        fetchedImages.forEach((image) => {
-          renameSync(uploadFilesTempPath(image.name), uploadFilesItemPath(created.id, image.name));
-          image.path = itemPath(created.id);
-          image.item = created;
-        });
-        await imageRepo.save(fetchedImages);
-
-        return created;
+      fetchedImages.forEach((image) => {
+        renameSync(uploadFilesTempPath(image.name), uploadFilesItemPath(created.id, image.name));
+        image.path = itemPath(created.id);
+        image.item = created;
       });
+      await imageRepo.save(fetchedImages);
 
-      const url = path.join(routes.homePage, catalogPath.slice(1), createdItem.group.code, translate(createdItem.name));
+      return created;
+    });
 
-      const item = await this.find({ id: createdItem.id });
+    const url = path.join(routes.homePage, catalogPath.slice(1), createdItem.group.code, translate(createdItem.name));
 
-      res.json({ code: 1, item, url });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    const item = await this.findOne({ id: createdItem.id });
+
+    return { code: 1, item, url };
   };
 
-  public updateOne = async (req: Request, res: Response) => {
-    try {
-      const body = req.body as ItemEntity;
+  public updateOne = async (params: ParamsIdInterface, body: ItemEntity) => {
+    const item = await this.findOne(params);
 
-      const item = await this.find({ id: body.id });
-
-      const updatedItem = { ...item, ...body };
+    const newItem = { ...item, ...body } as ItemEntity;
       
-      await ItemEntity.update(item.id, updatedItem);
+    await ItemEntity.update(body.id, newItem);
 
-      res.json({ code: 1, item: updatedItem });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    return newItem;
   };
 
-  public deleteOne = async (req: Request, res: Response) => {
-    try {
-      const query = req.params;
+  public deleteOne = async (params: ParamsIdInterface) => {
+    const item = await this.findOne(params);
 
-      const item = await this.find(query);
-
-      await item.softRemove();
-
-      res.json({ code: 1, id: item.id });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    return item.softRemove();
   };
 
-  public restoreOne = async (req: Request, res: Response) => {
-    try {
-      const query = req.params;
+  public restoreOne = async (params: ParamsIdInterface) => {
+    const deletedItem = await this.findOne(params, { withDeleted: true });
 
-      const deletedItem = await this.find(query);
+    const item = await deletedItem.recover();
 
-      const item = await deletedItem.recover();
-
-      res.json({ code: 1, item });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    return item;
   };
 }

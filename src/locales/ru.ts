@@ -207,11 +207,13 @@ export default {
         deleteConfirm2: 'Позиции с данной группой будут удалены',
         save: 'Сохранить',
         delete: 'Удалить',
+        restore: 'Восстановить',
         cancel: 'Отменить',
         edit: 'Редактировать',
         okText: 'Да',
         addItemGroup: 'Добавить группу',
         withDeleted: 'Показать удалённые',
+        deleted: 'Удалена',
       },
     },
     validation: {

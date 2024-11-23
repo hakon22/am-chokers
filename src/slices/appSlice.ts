@@ -31,7 +31,7 @@ export const updateItem = createAsyncThunk(
 export const deleteItem = createAsyncThunk(
   'app/deleteItem',
   async (id: number) => {
-    const response = await axios.delete<{ code: number; id: number; }>(routes.crudItem(id));
+    const response = await axios.delete<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItem(id));
     return response.data;
   },
 );
@@ -39,7 +39,7 @@ export const deleteItem = createAsyncThunk(
 export const restoreItem = createAsyncThunk(
   'app/restoreItem',
   async (id: number) => {
-    const response = await axios.patch<{ code: number, item: ItemInterface }>(routes.crudItem(id));
+    const response = await axios.patch<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
     return response.data;
   },
 );
@@ -47,7 +47,7 @@ export const restoreItem = createAsyncThunk(
 export const addItemGroup = createAsyncThunk(
   'app/addItemGroup',
   async (data: ItemGroupInterface) => {
-    const response = await axios.post<{ code: number, itemGroup: ItemGroupInterface }>(routes.createItemGroup, data);
+    const response = await axios.post<{ code: number; itemGroup: ItemGroupInterface; }>(routes.createItemGroup, data);
     return response.data;
   },
 );
@@ -55,7 +55,7 @@ export const addItemGroup = createAsyncThunk(
 export const updateItemGroup = createAsyncThunk(
   'app/updateItemGroup',
   async (data: ItemGroupInterface) => {
-    const response = await axios.put<{ code: number, itemGroup: ItemGroupInterface }>(routes.crudItemGroup(data.id), data);
+    const response = await axios.put<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(data.id), data);
     return response.data;
   },
 );
@@ -63,25 +63,15 @@ export const updateItemGroup = createAsyncThunk(
 export const deleteItemGroup = createAsyncThunk(
   'app/deleteItemGroup',
   async (id: number | React.Key) => {
-    const response = await axios.delete<{ code: number, id: number }>(routes.crudItemGroup(id));
+    const response = await axios.delete<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
     return response.data;
   },
 );
 
 export const restoreItemGroup = createAsyncThunk(
   'app/restoreItemGroup',
-  async (id: number) => {
-    const response = await axios.patch<{ code: number, itemGroup: ItemGroupInterface }>(routes.crudItemGroup(id));
-    return response.data;
-  },
-);
-
-export const withDeletedItemGroups = createAsyncThunk(
-  'app/withDeletedItemGroups',
-  async (withDeleted: boolean) => {
-    const response = await axios.get<{ code: number, itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false }), {
-      params: { withDeleted },
-    });
+  async (id: number | React.Key) => {
+    const response = await axios.patch<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
     return response.data;
   },
 );
@@ -136,7 +126,7 @@ const appSlice = createSlice({
       })
       .addCase(deleteItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.items = state.items.filter((item) => item.id !== payload.id);
+          state.items = state.items.filter((item) => item.id !== payload.itemGroup.id);
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -199,8 +189,8 @@ const appSlice = createSlice({
       })
       .addCase(deleteItemGroup.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.items = state.items.filter((item) => item.group.id !== payload.id);
-          state.itemGroups = state.itemGroups.filter((itemGroup) => itemGroup.id !== payload.id);
+          state.items = state.items.filter((item) => item.group.id !== payload.itemGroup.id);
+          state.itemGroups = state.itemGroups.filter((itemGroup) => itemGroup.id !== payload.itemGroup.id);
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -221,21 +211,6 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(restoreItemGroup.rejected, (state, action) => {
-        state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
-      })
-      .addCase(withDeletedItemGroups.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(withDeletedItemGroups.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          state.itemGroups = payload.itemGroups;
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(withDeletedItemGroups.rejected, (state, action) => {
         state.loadingStatus = 'failed';
         state.error = action.error.message ?? null;
       });

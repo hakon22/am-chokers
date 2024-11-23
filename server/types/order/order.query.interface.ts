@@ -1,8 +1,10 @@
 export interface OrderQueryInterface {
   /** Id заказа */
-  id?: number | string;
+  id?: number;
   /** Id покупателя */
-  userId?: number | string;
+  userId?: number;
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Вместе с пользователем */
+  withUser?: boolean;
 }

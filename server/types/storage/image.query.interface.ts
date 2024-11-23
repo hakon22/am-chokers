@@ -1,8 +1,8 @@
 export interface ImageQueryInterface {
   /** Id изображения */
-  id?: number | string;
+  id?: number;
   /** Id изображений */
-  ids?: (number | string)[];
+  ids?: number[];
   /** С удалёнными */
   withDeleted?: boolean;
 }

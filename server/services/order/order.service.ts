@@ -1,10 +1,8 @@
-import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { OrderEntity } from '@server/db/entities/order.entity';
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
-import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 
@@ -12,7 +10,7 @@ import { BaseService } from '@server/services/app/base.service';
 export class OrderService extends BaseService {
   private readonly smsService = Container.get(SmsService);
 
-  private createQueryBuilder = (query: OrderQueryInterface, options?: OrderOptionsInterface) => {
+  private createQueryBuilder = (query?: OrderQueryInterface) => {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(OrderEntity, 'order')
@@ -21,25 +19,22 @@ export class OrderService extends BaseService {
         'order.created',
         'order.status',
         'order.deleted',
-      ]);
+      ])
+      .leftJoin('order.positions', 'positions')
+      .addSelect([
+        'positions.id',
+        'positions.price',
+        'positions.discount',
+        'positions.count',
+      ])
+      .leftJoin('positions.item', 'item')
+      .addSelect([
+        'item.id',
+        'item.name',
+      ])
+      .leftJoinAndSelect('item.images', 'images');
 
-    if (options?.withPosition) {
-      builder
-        .leftJoin('order.positions', 'positions')
-        .addSelect([
-          'positions.id',
-          'positions.price',
-          'positions.discount',
-          'positions.count',
-        ])
-        .leftJoin('positions.item', 'item')
-        .addSelect([
-          'item.id',
-          'item.name',
-        ])
-        .leftJoinAndSelect('item.images', 'images');
-    }
-    if (options?.withUser) {
+    if (query?.withUser) {
       builder
         .leftJoin('order.user', 'user')
         .addSelect([
@@ -51,9 +46,6 @@ export class OrderService extends BaseService {
     if (query?.withDeleted) {
       builder.withDeleted();
     }
-    if (query?.id) {
-      builder.andWhere('order.id = :id', { id: query.id });
-    }
     if (query?.userId) {
       builder.andWhere('user_id = :userId', { userId: query.userId });
     }
@@ -61,73 +53,38 @@ export class OrderService extends BaseService {
     return builder;
   };
 
-  private find = async (query: OrderQueryInterface, options?: OrderOptionsInterface) => {
-    const builder = this.createQueryBuilder(query, options);
+  public findOne = async (params: ParamsIdInterface, query?: OrderQueryInterface) => {
+    const builder = this.createQueryBuilder(query)
+      .andWhere('order.id = :id', { id: params.id });
 
     const order = await builder.getOne();
 
     if (!order) {
-      throw new Error(`Заказа с номером #${query.id} не существует.`);
+      throw new Error(`Заказа с номером #${params.id} не существует.`);
     }
 
     return order;
   };
 
-  public findOne = async (req: Request, res: Response) => {
-    try {
-      const query = req.params;
+  public findMany = async (query?: OrderQueryInterface) => {
+    const builder = this.createQueryBuilder(query);
 
-      const order = await this.find(query);
+    const orders = await builder.getMany();
 
-      res.json({ code: 1, order });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    return orders;
   };
 
-  public findMany = async (req: Request, res: Response) => {
-    try {
-      const { id: userId } = req.user as PassportRequestInterface;
+  public deleteOne = async (params: ParamsIdInterface) => {
+    const order = await this.findOne(params);
 
-      const builder = this.createQueryBuilder({ userId }, { withPosition: true });
-
-      const orders = await builder.getMany();
-
-      res.json({ code: 1, orders });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    return order.softRemove();
   };
 
-  public deleteOne = async (req: Request, res: Response) => {
-    try {
-      const query = req.params;
+  public restoreOne = async (params: ParamsIdInterface) => {
+    const deletedOrder = await this.findOne(params, { withDeleted: true });
 
-      const order = await this.find(query);
+    const order = await deletedOrder.recover();
 
-      await order.softRemove();
-
-      res.json({ code: 1 });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
-  };
-
-  public restoreOne = async (req: Request, res: Response) => {
-    try {
-      const query = req.params;
-
-      const deletedOrder = await this.find(query);
-
-      const order = await deletedOrder.recover();
-
-      res.json({ code: 1, order });
-    } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
-    }
+    return order;
   };
 }
