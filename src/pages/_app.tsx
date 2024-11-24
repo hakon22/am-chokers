@@ -86,9 +86,10 @@ const Init = (props: AppProps & ItemsAndGroupsInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
+  const host = `${context.ctx.req?.headers['x-forwarded-proto']}://${context.ctx.req?.headers.host}`;
   const [{ data: { items } }, { data: { itemGroups } }] = await Promise.all([
-    axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: true })),
-    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: true })),
+    axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: false, host })),
+    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false, host })),
   ]);
 
   const props = await AppNext.getInitialProps(context);

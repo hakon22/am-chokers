@@ -71,7 +71,7 @@ export const ContextMenu = ({ children, item, disabled, ...rest }: CardContextMe
 
   return (
     <Dropdown menu={{ items }} trigger={['contextMenu']} disabled={disabled} {...rest}>
-      {children}
+      <div>{children}</div>
     </Dropdown>
   );
 };
