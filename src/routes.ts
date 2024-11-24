@@ -44,7 +44,7 @@ export const routes = {
   order: [apiPath, 'order', ':id'].join('/'),
 
   // itemGroup
-  itemGroups: ({ isServer, host }: { isServer: boolean; host?: string; }) => [...(isServer ? [apiPath] : [host || serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
+  itemGroups: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
   crudItemGroup: (id?: number | React.Key ) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
   createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
 
@@ -52,7 +52,7 @@ export const routes = {
   imageUpload: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
 
   // item
-  items: ({ isServer, host }: { isServer: boolean; host?: string; }) => [...(isServer ? [apiPath] : [host || serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
+  items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number ) => [apiPath, 'item', id ?? ':id'].join('/'),
 } as const;
