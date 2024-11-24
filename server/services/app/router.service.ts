@@ -7,6 +7,7 @@ import { OrderController } from '@server/controllers/order/order.controller';
 import { MiddlewareService } from '@server/services/app/middleware.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { ItemGroupController } from '@server/controllers/item/item.group.controller';
+import { ItemCollectionController } from '@server/controllers/item/item.collection.controller';
 import { ItemController } from '@server/controllers/item/item.controller';
 import { ImageService } from '@server/services/storage/image.service';
 import { routes } from '@/routes';
@@ -22,6 +23,8 @@ export class RouterService {
   private readonly imageService = Container.get(ImageService);
 
   private readonly itemGroupController = Container.get(ItemGroupController);
+
+  private readonly itemCollectionController = Container.get(ItemCollectionController);
 
   private readonly telegramService = Container.get(TelegramService);
 
@@ -56,6 +59,13 @@ export class RouterService {
     this.router.put(this.routes.crudItemGroup(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.updateOne);
     this.router.delete(this.routes.crudItemGroup(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.deleteOne);
     this.router.patch(this.routes.crudItemGroup(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.restoreOne);
+
+    // itemCollection
+    this.router.get(this.routes.itemCollections({ isServer: true }), this.itemCollectionController.findMany);
+    this.router.post(this.routes.createItemCollection, this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.createOne);
+    this.router.put(this.routes.crudItemCollection(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.updateOne);
+    this.router.delete(this.routes.crudItemCollection(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.deleteOne);
+    this.router.patch(this.routes.crudItemCollection(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.restoreOne);
 
     // storage
     this.router.post(this.routes.imageUpload({ isServer: true }), this.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.upload(), this.imageService.uploadHandler);

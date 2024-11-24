@@ -49,6 +49,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
         { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.newItem')}</Link> },
         { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.itemGroups')}</Link> },
+        { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.itemCollections')}</Link> },
       ],
       } : null,
     { type: 'divider' },

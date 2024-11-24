@@ -31,11 +31,11 @@ const Index = () => {
 
   const { bestsellers, collections, news } = items.reduce((acc, item) => {
     if (item.new) {
-      news.push(item);
+      acc.news.push(item);
     } else if (item.bestseller) {
-      bestsellers.push(item);
+      acc.bestsellers.push(item);
     } else if (item.collection) {
-      collections.push(item);
+      acc.collections.push(item);
     }
     return acc;
   }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
@@ -124,7 +124,7 @@ const Index = () => {
                 swipeable
                 ssr
               >
-                {items.map((item) => (
+                {news.map((item) => (
                   <Link href={`${routes.catalog}/${item.group.code}/${translate(item.name)}`} key={item.id}>
                     <ImageHover
                       className={item.className}

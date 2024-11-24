@@ -1,4 +1,4 @@
-const serverHost = `${process.env.NEXT_PUBLIC_SERVER_HOST}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 export const catalogPath = '/catalog';
@@ -17,7 +17,8 @@ export const routes = {
 
   // admin pages
   newItem: [adminPath, 'item', 'new'].join('/'),
-  itemGroupsControl: [adminPath, 'group', 'groups'].join('/'),
+  itemGroupsControl: [adminPath, 'groups'].join('/'),
+  itemCollectionsControl: [adminPath, 'collections'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -44,15 +45,20 @@ export const routes = {
   order: [apiPath, 'order', ':id'].join('/'),
 
   // itemGroup
-  itemGroups: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
+  itemGroups: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
   crudItemGroup: (id?: number | React.Key ) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
   createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
+
+  // itemCollections
+  itemCollections: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'collections'].join('/'),
+  crudItemCollection: (id?: number | React.Key ) => [apiPath, 'item', 'collection', id ?? ':id'].join('/'),
+  createItemCollection: [apiPath, 'item', 'collections', 'new'].join('/'),
 
   // storage
   imageUpload: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
 
   // item
-  items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
+  items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number ) => [apiPath, 'item', id ?? ':id'].join('/'),
 } as const;

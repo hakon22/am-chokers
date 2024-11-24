@@ -7,11 +7,13 @@ import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortab
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
+import type { InferGetServerSidePropsType } from 'next';
+import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
-import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
+import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import { routes } from '@/routes';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import { NoAuthorization } from '@/components/NoAuthorization';
@@ -22,14 +24,24 @@ import { toast } from '@/utilities/toast';
 import { addItem } from '@/slices/appSlice';
 import SortableItem from '@/components/SortableItem';
 
+export const getServerSideProps = async () => {
+  const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[] }>(routes.itemCollections({ isServer: false }));
+
+  return {
+    props: {
+      itemCollections,
+    },
+  };
+};
+
 type ResponseFile = {
   code: number;
   message: string;
   image: ImageEntity;
 };
 
-const CreateItem = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'modules.createItem' });
+const CreateItem = ({ itemCollections }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.createItem' });
   const { t: tCardItem } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -81,6 +93,7 @@ const CreateItem = () => {
   const [item, setItem] = useState<Partial<ItemInterface>>();
   const [images, setImages] = useState<ItemInterface['images']>([]);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface>();
+  const [itemCollection, setItemCollection] = useState<ItemCollectionInterface>();
   const [isSortImage, setIsSortImage] = useState(false);
 
   const [form] = Form.useForm();
@@ -111,10 +124,12 @@ const CreateItem = () => {
     setIsSubmit(true);
     values.images = images;
     values.group = itemGroup as ItemGroupInterface;
+    values.collection = itemCollection as ItemCollectionInterface;
     const { payload: { code, url } } = await dispatch(addItem(values)) as { payload: { code: number; item: ItemInterface; url: string; } };
     if (code === 1) {
       setItem(undefined);
       setItemGroup(undefined);
+      setItemCollection(undefined);
       setFileList([]);
       setImages([]);
       form.resetFields();
@@ -224,11 +239,11 @@ const CreateItem = () => {
                         placeholder={t('placeholders.collection')}
                         variant="borderless"
                         onSelect={(collectionId: number) => {
-                          const group = itemGroups.find(({ id }) => id === collectionId);
-                          setItemGroup(group);
-                          setItem((state) => ({ ...state, group }));
+                          const collection = itemCollections.find(({ id }) => id === collectionId);
+                          setItemCollection(collection);
+                          setItem((state) => ({ ...state, collection }));
                         }}
-                        options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
+                        options={itemCollections.map(({ id, name }) => ({ value: id, label: name }))}
                       />
                     </Form.Item>
                     <Form.Item<ItemInterface> name="new" valuePropName="checked" className="large-input">

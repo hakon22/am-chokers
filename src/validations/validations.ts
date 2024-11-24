@@ -111,11 +111,14 @@ const newItemSchema = yup.object().shape({
   length: stringSchema,
 });
 
-const newItemGroupSchema = yup.object().shape({
+const newItemCatalogSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
-  code: stringSchema,
 });
+
+const newItemGroupSchema = yup.object().shape({
+  code: stringSchema,
+}).concat(newItemCatalogSchema);
 
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
@@ -124,3 +127,4 @@ export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
 export const newItemValidation = validate(newItemSchema);
 export const newItemGroupValidation = validate(newItemGroupSchema);
+export const newItemCatalogValidation = validate(newItemCatalogSchema);

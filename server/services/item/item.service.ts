@@ -33,9 +33,13 @@ export class ItemService extends BaseService {
         'item.length',
         'item.rating',
         'item.className',
+        'item.new',
+        'item.bestseller',
+        'item.order',
       ])
       .leftJoinAndSelect('item.images', 'images')
-      .leftJoinAndSelect('item.group', 'group');
+      .leftJoinAndSelect('item.group', 'group')
+      .leftJoinAndSelect('item.collection', 'collection');
 
     if (query?.withDeleted) {
       builder.withDeleted();

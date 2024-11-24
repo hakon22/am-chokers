@@ -5,4 +5,6 @@ export interface ItemQueryInterface {
   withDeleted?: boolean;
   /** Id группы товара */
   itemGroupId?: number;
+  /** Id коллекции товара */
+  itemCollectionId?: number;
 }

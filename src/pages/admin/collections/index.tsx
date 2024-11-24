@@ -4,14 +4,15 @@ import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
 import axios from 'axios';
+import type { InferGetServerSidePropsType } from 'next';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
-import type { ItemGroupInterface } from '@/types/item/Item';
-import { newItemGroupValidation } from '@/validations/validations';
+import type { ItemCollectionInterface } from '@/types/item/Item';
+import { newItemCatalogValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItemGroup, deleteItemGroup, restoreItemGroup, updateItemGroup } from '@/slices/appSlice';
+import { addItemCollection, deleteItemCollection, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { NoAuthorization } from '@/components/NoAuthorization';
@@ -19,11 +20,20 @@ import { setUrl } from '@/slices/userSlice';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
 
-interface ItemGroupTableInterface {
+export const getServerSideProps = async () => {
+  const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[] }>(routes.itemCollections({ isServer: false }));
+
+  return {
+    props: {
+      itemCollections,
+    },
+  };
+};
+
+interface ItemCollectionTableInterface {
   key: string;
   name: string;
   description: string;
-  code: string;
   deleted?: Date;
 }
 
@@ -31,7 +41,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   editing: boolean;
   dataIndex: string;
   title: string;
-  record: ItemGroupTableInterface;
+  record: ItemCollectionTableInterface;
   index: number;
 }
 
@@ -46,7 +56,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
       <Form.Item
         name={dataIndex}
         style={{ margin: 0 }}
-        rules={[newItemGroupValidation]}
+        rules={[newItemCatalogValidation]}
       >
         <Input placeholder={title} />
       </Form.Item>
@@ -56,8 +66,8 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   </td>
 );
 
-const CreateItemGroup = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'modules.createItemGroup' });
+const CreateItemCollection = ({ itemCollections }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.createItemCollection' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const dispatch = useAppDispatch();
@@ -66,25 +76,24 @@ const CreateItemGroup = () => {
   const urlParams = useSearchParams();
   const withDeletedParams = urlParams.get('withDeleted');
 
-  const { itemGroups } = useAppSelector((state) => state.app);
   const { role } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
   const [form] = Form.useForm();
 
-  const [data, setData] = useState<ItemGroupTableInterface[]>([]);
+  const [data, setData] = useState<ItemCollectionTableInterface[]>([]);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
 
-  const updateData = (itemGroup: ItemGroupInterface, row?: ItemGroupTableInterface) => {
-    const index = data.findIndex((group) => group.key.toString() === itemGroup.id.toString());
+  const updateData = (itemCollection: ItemCollectionInterface, row?: ItemCollectionTableInterface) => {
+    const index = data.findIndex((collection) => collection.key.toString() === itemCollection.id.toString());
     if (index !== -1) {
       const newData = [...data];
       const item = newData[index];
       newData.splice(index, 1, {
         ...item,
-        ...(row || itemGroup),
+        ...(row || itemCollection),
       });
       setData(newData);
       if (row) {
@@ -95,46 +104,45 @@ const CreateItemGroup = () => {
 
   const withDeletedHandler = () => setWithDeleted(!withDeleted);
 
-  const isEditing = (record: ItemGroupTableInterface) => record.key === editingKey;
+  const isEditing = (record: ItemCollectionTableInterface) => record.key === editingKey;
 
-  const edit = (record: Partial<ItemGroupTableInterface> & { key: React.Key }) => {
-    form.setFieldsValue({ name: '', description: '', code: '', ...record });
+  const edit = (record: Partial<ItemCollectionTableInterface> & { key: React.Key }) => {
+    form.setFieldsValue({ name: '', description: '', ...record });
     setEditingKey(record.key);
   };
 
   const restore = async (key: React.Key) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemGroup } } = await dispatch(restoreItemGroup(key)) as { payload: { code: number; itemGroup: ItemGroupInterface } };
+    const { payload: { code: payloadCode, itemCollection } } = await dispatch(restoreItemCollection(key)) as { payload: { code: number; itemCollection: ItemCollectionInterface } };
     if (payloadCode === 1) {
-      updateData(itemGroup);
+      updateData(itemCollection);
     }
     setIsSubmit(false);
   };
 
-  const cancel = (record: ItemGroupTableInterface) => {
-    if (!itemGroups.find(({ code }) => code === record.code)) {
-      handleDelete(record);
+  const cancel = (record: ItemCollectionTableInterface) => {
+    if (!itemCollections.find(({ name }) => name === record.name)) {
+      setData(data.filter(({ key }) => key !== record.key));
     }
     setEditingKey('');
   };
 
   const handleAdd = () => {
-    const newData: ItemGroupTableInterface = {
+    const newData: ItemCollectionTableInterface = {
       name: '',
       description: '',
-      code: '',
       key: (data.length + 1).toString(),
     };
     setData([...data, newData]);
     edit(newData);
   };
 
-  const handleDelete = async (record: ItemGroupTableInterface) => {
+  const handleDelete = async (record: ItemCollectionTableInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemGroup } } = await dispatch(deleteItemGroup(record.key)) as { payload: { code: number; itemGroup: ItemGroupInterface; } };
+    const { payload: { code: payloadCode, itemCollection } } = await dispatch(deleteItemCollection(record.key)) as { payload: { code: number; itemCollection: ItemCollectionInterface; } };
     if (payloadCode === 1) {
       if (withDeleted) {
-        updateData(itemGroup);
+        updateData(itemCollection);
       } else {
         const newData = data.filter((item) => item.key !== record.key);
         setData(newData);
@@ -145,27 +153,27 @@ const CreateItemGroup = () => {
 
   const save = async (key: React.Key) => {
     setIsSubmit(true);
-    const row = await form.validateFields().catch(() => setIsSubmit(false)) as ItemGroupTableInterface;
+    const row = await form.validateFields().catch(() => setIsSubmit(false)) as ItemCollectionTableInterface;
 
     if (!row) {
       return;
     }
 
-    const { name, description, code } = row;
+    const { name, description } = row;
 
-    const exist = itemGroups.find((itemGroup) => itemGroup.id.toString() === key.toString());
+    const exist = itemCollections.find((itemCollection) => itemCollection.id.toString() === key.toString());
     if (exist) {
-      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({ id: exist.id, name, description, code } as ItemGroupInterface)) as { payload: { code: number; itemGroup: ItemGroupInterface; } };
+      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: { code: number; itemCollection: ItemCollectionInterface; } };
       if (payloadCode === 1) {
-        updateData(itemGroup, row);
+        updateData(itemCollection, row);
       }
     } else {
-      const { payload: { code: payloadCode } } = await dispatch(addItemGroup({ name, description, code } as ItemGroupInterface)) as { payload: { code: number; } };
+      const { payload: { code: payloadCode } } = await dispatch(addItemCollection({ name, description } as ItemCollectionInterface)) as { payload: { code: number; } };
       if (payloadCode === 1) {
         setEditingKey('');
       } else if (payloadCode === 2) {
-        form.setFields([{ name: 'code', errors: [tToast('itemGroupExist', { code })] }]);
-        toast(tToast('itemGroupExist', { code }), 'error');
+        form.setFields([{ name: 'code', errors: [tToast('itemCollectionExist', { name })] }]);
+        toast(tToast('itemCollectionExist', { name }), 'error');
       }
     }
     setIsSubmit(false);
@@ -175,9 +183,9 @@ const CreateItemGroup = () => {
     {
       title: t('columns.name'),
       dataIndex: 'name',
-      width: '25%',
+      width: '40%',
       editable: true,
-      render: (_: any, record: ItemGroupTableInterface) => (
+      render: (_: any, record: ItemCollectionTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.name}</span>
           {record.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
@@ -191,15 +199,9 @@ const CreateItemGroup = () => {
       editable: true,
     },
     {
-      title: t('columns.code'),
-      dataIndex: 'code',
-      width: '15%',
-      editable: true,
-    },
-    {
       title: t('columns.operation'),
       dataIndex: 'operation',
-      render: (_: any, record: ItemGroupTableInterface) => {
+      render: (_: any, record: ItemCollectionTableInterface) => {
         const editable = isEditing(record);
         return editable ? (
           <span>
@@ -234,13 +236,13 @@ const CreateItemGroup = () => {
     },
   ];
 
-  const mergedColumns: TableProps<ItemGroupTableInterface>['columns'] = columns.map((col) => {
+  const mergedColumns: TableProps<ItemCollectionTableInterface>['columns'] = columns.map((col) => {
     if (!col.editable) {
       return col;
     }
     return {
       ...col,
-      onCell: (record: ItemGroupTableInterface) => ({
+      onCell: (record: ItemCollectionTableInterface) => ({
         record,
         dataIndex: col.dataIndex,
         title: col.title,
@@ -254,13 +256,13 @@ const CreateItemGroup = () => {
       router.push(`?withDeleted=${withDeleted}`, undefined, { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false }), {
+      axios.get<{ code: number, itemCollections: ItemCollectionInterface[] }>(routes.itemCollections({ isServer: false }), {
         params: { withDeleted },
       })
         .then(({ data: response }) => {
           if (response.code === 1) {
-            const newItemGroups: ItemGroupTableInterface[] = response.itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() }));
-            setData(newItemGroups);
+            const newItemCollections: ItemCollectionTableInterface[] = response.itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() }));
+            setData(newItemCollections);
           }
           setIsSubmit(false);
         })
@@ -271,8 +273,8 @@ const CreateItemGroup = () => {
   }, [withDeleted]);
 
   useEffect(() => {
-    setData(itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() })));
-  }, [itemGroups.length]);
+    setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));
+  }, [itemCollections.length]);
 
   useEffect(() => {
     if (!role) {
@@ -291,12 +293,12 @@ const CreateItemGroup = () => {
             <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
             <div className="d-flex align-items-center gap-3 mb-3">
               <Button onClick={handleAdd} className="button border-button">
-                {t('addItemGroup')}
+                {t('addItemCollection')}
               </Button>
               <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
             </div>
             <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
-              <Table<ItemGroupTableInterface>
+              <Table<ItemCollectionTableInterface>
                 components={{
                   body: { cell: EditableCell },
                 }}
@@ -314,4 +316,4 @@ const CreateItemGroup = () => {
   );
 };
 
-export default CreateItemGroup;
+export default CreateItemCollection;

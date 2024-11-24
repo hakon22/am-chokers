@@ -1,15 +1,20 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-import type { ItemGroupInterface, ItemInterface, ItemsAndGroupsInterface } from '@/types/item/Item';
+import type { ItemGroupInterface, ItemCollectionInterface, ItemInterface, ItemsAndGroupsInterface } from '@/types/item/Item';
 import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
 
-const initialState: ItemsAndGroupsInterface & InitialState = {
+interface AppStoreInterface extends ItemsAndGroupsInterface, InitialState {
+  itemCollections: ItemCollectionInterface[];
+}
+
+const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
   error: null,
   items: [],
   itemGroups: [],
+  itemCollections: [],
 };
 
 export const addItem = createAsyncThunk(
@@ -72,6 +77,38 @@ export const restoreItemGroup = createAsyncThunk(
   'app/restoreItemGroup',
   async (id: number | React.Key) => {
     const response = await axios.patch<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
+    return response.data;
+  },
+);
+
+export const addItemCollection = createAsyncThunk(
+  'app/addItemCollection',
+  async (data: ItemCollectionInterface) => {
+    const response = await axios.post<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.createItemCollection, data);
+    return response.data;
+  },
+);
+
+export const updateItemCollection = createAsyncThunk(
+  'app/updateItemCollection',
+  async (data: ItemCollectionInterface) => {
+    const response = await axios.put<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(data.id), data);
+    return response.data;
+  },
+);
+
+export const deleteItemCollection = createAsyncThunk(
+  'app/deleteItemCollection',
+  async (id: number | React.Key) => {
+    const response = await axios.delete<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
+    return response.data;
+  },
+);
+
+export const restoreItemCollection = createAsyncThunk(
+  'app/restoreItemCollection',
+  async (id: number | React.Key) => {
+    const response = await axios.patch<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
     return response.data;
   },
 );
@@ -211,6 +248,77 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(restoreItemGroup.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
+      .addCase(addItemCollection.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(addItemCollection.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.itemCollections = [...state.itemCollections, payload.itemCollection];
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(addItemCollection.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
+      .addCase(updateItemCollection.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(updateItemCollection.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemCollectionIndex = state.itemGroups.findIndex((itemCollection) => itemCollection.id === payload.itemCollection.id);
+          if (itemCollectionIndex !== -1) {
+            state.itemCollections[itemCollectionIndex] = payload.itemCollection;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(updateItemCollection.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
+      .addCase(deleteItemCollection.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteItemCollection.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.items = state.items
+            .filter((item) => item.collection)
+            .map((item) => {
+              if (item.collection.id === payload.itemCollection.id) {
+                return { ...item, collection: null } as unknown as ItemInterface;
+              }
+              return item;
+            });
+          state.itemCollections = state.itemCollections.filter((itemCollection) => itemCollection.id !== payload.itemCollection.id);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(deleteItemCollection.rejected, (state, action) => {
+        state.loadingStatus = 'failed';
+        state.error = action.error.message ?? null;
+      })
+      .addCase(restoreItemCollection.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(restoreItemCollection.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.itemCollections = [...state.itemCollections, payload.itemCollection];
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(restoreItemCollection.rejected, (state, action) => {
         state.loadingStatus = 'failed';
         state.error = action.error.message ?? null;
       });
