@@ -130,6 +130,22 @@ a {
   }
 }
 
+.back-button {
+  background-color: $font-error;
+  color: $white;
+  font-family: Oswald, sans-serif !important;
+  font-size: 1.25rem;
+  font-weight: 400;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+
+  &:active, &:hover {
+    background-color: $font-error-hover !important;
+    color: $white !important;
+  }
+}
+
 .border-button {
 
   .ant-radio-button-wrapper-checked,

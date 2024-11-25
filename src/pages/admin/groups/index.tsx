@@ -293,6 +293,9 @@ const CreateItemGroup = () => {
               <Button onClick={handleAdd} className="button border-button">
                 {t('addItemGroup')}
               </Button>
+              <Button onClick={() => router.back()} className="back-button border-button" style={{ position: 'absolute', top: '15%' }}>
+                {t('back')}
+              </Button>
               <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
             </div>
             <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>

@@ -18,14 +18,12 @@ import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
 import type { ItemInterface } from '@/types/item/Item';
 import { ContextMenu } from '@/components/ContextMenu';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   const { items } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -39,6 +37,10 @@ const Index = () => {
     }
     return acc;
   }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
+
+  const bestseller1 = bestsellers.find(({ order }) => order === 1);
+  const bestseller2 = bestsellers.find(({ order }) => order === 2);
+  const bestseller3 = bestsellers.find(({ order }) => order === 3);
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -146,32 +148,36 @@ const Index = () => {
             <h2>{t('bestsellers')}</h2>
             <div className="d-flex" style={{ gap: '10%' }}>
               <div className="d-flex flex-column col-4 gap-5 justify-content-between">
-                <ImageHover
-                  className="col-6 align-self-start"
-                  height={200}
-                  images={bestsellers.find(({ order }) => order === 1)?.images ?? []}
-                  name={bestsellers.find(({ order }) => order === 1)?.name}
-                  description={tPrice('price', { price: bestsellers.find(({ order }) => order === 1)?.price })}
-                  width="95%"
-                />
-                <ImageHover
-                  className="col-6 d-flex align-self-end"
-                  style={{ alignSelf: 'end' }}
-                  height={200}
-                  images={bestsellers.find(({ order }) => order === 2)?.images ?? []}
-                  name={bestsellers.find(({ order }) => order === 2)?.name}
-                  description={tPrice('price', { price: bestsellers.find(({ order }) => order === 2)?.price })}
-                  width="95%"
-                />
+                <ContextMenu item={bestseller1} order={1} className="col-6 align-self-start" style={{ width: '95%' }}>
+                  <ImageHover
+                    height={200}
+                    images={bestseller1?.images ?? []}
+                    name={bestseller1?.name}
+                    description={tPrice('price', { price: bestseller1?.price })}
+                  />
+                </ContextMenu>
+                <ContextMenu item={bestseller2} order={2} className="col-6 d-flex align-self-end">
+                  <ImageHover
+                    className="w-100"
+                    style={{ alignSelf: 'end', width: '95%' }}
+                    height={200}
+                    images={bestseller2?.images ?? []}
+                    name={bestseller2?.name}
+                    description={tPrice('price', { price: bestseller2?.price })}
+                  />
+                </ContextMenu>
               </div>
               <div className="d-flex col-6">
-                <ImageHover
-                  className="w-100"
-                  height="100%"
-                  images={bestsellers.find(({ order }) => order === 3)?.images ?? []}
-                  name={bestsellers.find(({ order }) => order === 3)?.name}
-                  description={tPrice('price', { price: bestsellers.find(({ order }) => order === 3)?.price })}
-                />
+                <ContextMenu item={bestseller3} order={3} className="w-100">
+                  <ImageHover
+                    className="h-100"
+                    style={{ width: '100%' }}
+                    height="100%"
+                    images={bestseller3?.images ?? []}
+                    name={bestseller3?.name}
+                    description={tPrice('price', { price: bestseller3?.price })}
+                  />
+                </ContextMenu>
               </div>
             </div>
           </section>
@@ -206,7 +212,7 @@ const Index = () => {
           </section>
           <section className="d-flex flex-column col-12 gap-5">
             <div className="d-flex align-items-center">
-              <ContextMenu item={items[0]} disabled={role !== UserRoleEnum.ADMIN} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu item={items[0]} order={1} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className="col-4"
                   height={200}
@@ -214,7 +220,7 @@ const Index = () => {
                 />
               </ContextMenu>
               <h2 className="col-4 text-center">{t('necklacesAndChokers')}</h2>
-              <ContextMenu item={items[0]} disabled={role !== UserRoleEnum.ADMIN} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu item={items[0]} order={2} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className="col-4"
                   height={200}

@@ -73,9 +73,9 @@ export class ItemCollectionService extends BaseService {
   public updateOne = async (params: ParamsIdInterface, body: ItemCollectionEntity) => {
     const itemCollection = await this.findOne(params);
 
-    const newItemCollection = { ...itemCollection, ...body };
+    const newItemCollection = { ...itemCollection, ...body } as ItemCollectionEntity;
       
-    await ItemCollectionEntity.update(body.id, newItemCollection);
+    await ItemCollectionEntity.save(newItemCollection);
 
     return itemCollection;
   };

@@ -223,6 +223,10 @@ const CreateItem = ({ itemCollections }: InferGetServerSidePropsType<typeof getS
                         size="large"
                         placeholder={t('placeholders.group')}
                         variant="borderless"
+                        optionFilterProp="label"
+                        filterSort={(optionA, optionB) =>
+                          (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                        }
                         onSelect={(groupId: number) => {
                           const group = itemGroups.find(({ id }) => id === groupId);
                           setItemGroup(group);
@@ -238,6 +242,10 @@ const CreateItem = ({ itemCollections }: InferGetServerSidePropsType<typeof getS
                         size="large"
                         placeholder={t('placeholders.collection')}
                         variant="borderless"
+                        optionFilterProp="label"
+                        filterSort={(optionA, optionB) =>
+                          (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                        }
                         onSelect={(collectionId: number) => {
                           const collection = itemCollections.find(({ id }) => id === collectionId);
                           setItemCollection(collection);

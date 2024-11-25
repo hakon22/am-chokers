@@ -172,6 +172,7 @@ export default {
         addItemGroup: 'Добавить группу',
         withDeleted: 'Показать удалённые',
         deleted: 'Удалена',
+        back: 'Назад',
       },
       createItemCollection: {
         title: 'Коллекции товаров',
@@ -193,6 +194,7 @@ export default {
         addItemCollection: 'Добавить коллекцию',
         withDeleted: 'Показать удалённые',
         deleted: 'Удалена',
+        back: 'Назад',
       },
     },
     modules: {
@@ -245,6 +247,7 @@ export default {
         remove: 'Удалить',
         removeInCell: 'Удалить из ячейки',
         addInCell: 'Добавить в ячейку',
+        selectItem: 'Выберите товар',
       },
     },
     validation: {

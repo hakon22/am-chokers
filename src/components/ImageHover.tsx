@@ -6,7 +6,7 @@ import Image from 'next/image';
 import image404 from '@/images/404.svg';
 import type { ItemInterface } from '@/types/item/Item';
 
-type ImageHoverType = {
+interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterface, 'images'> {
   height: number | string;
   width?: number | string;
   name?: string;
@@ -14,7 +14,7 @@ type ImageHoverType = {
   marker?: boolean;
   style?: CSSProperties;
   props?: HTMLAttributes<HTMLDivElement>[];
-} & Pick<ItemInterface, 'className' | 'images'>;
+}
 
 export const ImageHover = ({
   images,

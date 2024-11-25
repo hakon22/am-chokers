@@ -77,9 +77,9 @@ export class ItemGroupService extends BaseService {
   public updateOne = async (params: ParamsIdInterface, body: ItemGroupEntity) => {
     const itemGroup = await this.findOne(params);
 
-    const newItemGroup = { ...itemGroup, ...body };
-      
-    await ItemGroupEntity.update(body.id, newItemGroup);
+    const newItemGroup = { ...itemGroup, ...body } as ItemGroupEntity;
+
+    await ItemGroupEntity.save(newItemGroup);
 
     return itemGroup;
   };

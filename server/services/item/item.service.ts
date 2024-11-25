@@ -125,8 +125,8 @@ export class ItemService extends BaseService {
     const item = await this.findOne(params);
 
     const newItem = { ...item, ...body } as ItemEntity;
-      
-    await ItemEntity.update(body.id, newItem);
+
+    await ItemEntity.save(newItem);
 
     return newItem;
   };
