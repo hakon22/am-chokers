@@ -12,7 +12,7 @@ import { SubmitContext } from '@/components/Context';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 import { newItemCatalogValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItemCollection, deleteItemCollection, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
+import { addItemCollection, deleteItemCollection, restoreItemCollection, setItemsCollections, updateItemCollection } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { NoAuthorization } from '@/components/NoAuthorization';
@@ -66,7 +66,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   </td>
 );
 
-const CreateItemCollection = ({ itemCollections }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const CreateItemCollection = ({ itemCollections: fetchedItemCollections }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.createItemCollection' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -77,6 +77,7 @@ const CreateItemCollection = ({ itemCollections }: InferGetServerSidePropsType<t
   const withDeletedParams = urlParams.get('withDeleted');
 
   const { role } = useAppSelector((state) => state.user);
+  const { itemCollections } = useAppSelector((state) => state.app);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
@@ -271,6 +272,10 @@ const CreateItemCollection = ({ itemCollections }: InferGetServerSidePropsType<t
         });
     }
   }, [withDeleted]);
+
+  useEffect(() => {
+    dispatch(setItemsCollections(fetchedItemCollections));
+  }, []);
 
   useEffect(() => {
     setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));

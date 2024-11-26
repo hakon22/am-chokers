@@ -121,6 +121,9 @@ const appSlice = createSlice({
       state.items = payload.items;
       state.itemGroups = payload.itemGroups;
     },
+    setItemsCollections: (state, { payload }: PayloadAction<ItemCollectionInterface[]>) => {
+      state.itemCollections = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -325,6 +328,6 @@ const appSlice = createSlice({
   },
 });
 
-export const { setItemsAndGroups } = appSlice.actions;
+export const { setItemsAndGroups, setItemsCollections } = appSlice.actions;
 
 export default appSlice.reducer;

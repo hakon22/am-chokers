@@ -248,6 +248,10 @@ export default {
         removeInCell: 'Удалить из ячейки',
         addInCell: 'Добавить в ячейку',
         selectItem: 'Выберите товар',
+        deleteConfirm: 'Уверены, что хотите удалить позицию?',
+        delete: 'Удалить',
+        cancel: 'Отменить',
+        okText: 'Да',
       },
     },
     validation: {
@@ -275,6 +279,7 @@ export default {
       unlinkTelegramSuccess: 'Telegram аккаунт успешно отвязан',
       itemExist: 'Товар с именем {{ name }} уже существует',
       itemGroupExist: 'Группа с кодом {{ code }} уже существует',
+      itemCollectionExist: 'Коллекция {{ name }} уже существует',
       itemDeletedSuccess: 'Товар {{ name }} успешно удалён',
     },
     spinner: {

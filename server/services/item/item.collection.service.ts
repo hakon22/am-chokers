@@ -25,6 +25,9 @@ export class ItemCollectionService extends BaseService {
     if (query?.withDeleted) {
       builder.withDeleted();
     }
+    if (query?.name) {
+      builder.andWhere('itemCollection.name = :name', { name: query.name });
+    }
 
     return builder;
   };

@@ -1,4 +1,4 @@
-import { Button, Dropdown, Form, Select } from 'antd';
+import { Button, Dropdown, Form, Popconfirm, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState, type ReactNode } from 'react';
 import type { MenuProps } from 'antd';
@@ -32,9 +32,12 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
   const { items } = useAppSelector((state) => state.app);
 
   const { bestsellers, collections } = items.reduce((acc, value) => {
-    if (value.bestseller && !value.order) {
+    if (value.order) return acc;
+
+    if (value.bestseller) {
       acc.bestsellers.push(value);
-    } else if (value.collection && !value.order) {
+    }
+    if (value.collection) {
       acc.collections.push(value);
     }
     return acc;
@@ -69,9 +72,8 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
       onClick: () => router.push(`${routes.catalog}/${item.group.code}/${translate(item.name)}`),
     },
     {
-      label: t('remove'),
+      label: (<Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(item)}>{t('remove')}</Popconfirm>),
       key: '2',
-      onClick: () => handleDelete(item),
     },
     {
       label: t('removeInCell'),

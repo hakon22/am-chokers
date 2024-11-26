@@ -7,7 +7,6 @@ import {
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
-import cn from 'classnames';
 
 import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
@@ -30,9 +29,11 @@ const Index = () => {
   const { bestsellers, collections, news } = items.reduce((acc, item) => {
     if (item.new) {
       acc.news.push(item);
-    } else if (item.bestseller) {
+    }
+    if (item.bestseller) {
       acc.bestsellers.push(item);
-    } else if (item.collection) {
+    }
+    if (item.collection) {
       acc.collections.push(item);
     }
     return acc;
@@ -41,6 +42,10 @@ const Index = () => {
   const bestseller1 = bestsellers.find(({ order }) => order === 1);
   const bestseller2 = bestsellers.find(({ order }) => order === 2);
   const bestseller3 = bestsellers.find(({ order }) => order === 3);
+
+  const collection1 = collections.find(({ order }) => order === 4);
+  const collection2 = collections.find(({ order }) => order === 5);
+  const collection3 = collections.find(({ order }) => order === 6);
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -198,35 +203,55 @@ const Index = () => {
           <section className="d-flex flex-column align-items-center">
             <h2 className="col-10 text-start" style={{ marginBottom: '7%' }}>{t('collections')}</h2>
             <div className="d-flex flex-column col-10" style={{ gap: '5rem' }}>
-              {collections.map((collection, i) => (
-                <div key={collection.id} className={cn('d-flex justify-content-between align-items-end', { 'flex-row-reverse': i })} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
+                <div className="d-flex justify-content-between align-items-end">
                   <ImageHover
                     className="col-6"
                     height={200}
-                    images={collection.images}
+                    images={collection1?.images ?? []}
                   />
-                  <h2>{collection.name}</h2>
+                  <h2>{collection1?.collection.name}</h2>
                 </div>
-              ))}
+              </ContextMenu>
+              <ContextMenu item={collection2} order={5} data-aos="fade-right" data-aos-duration="1500">
+                <div className="d-flex justify-content-between align-items-end flex-row-reverse">
+                  <ImageHover
+                    className="col-6"
+                    height={200}
+                    images={collection2?.images ?? []}
+                  />
+                  <h2>{collection2?.collection.name}</h2>
+                </div>
+              </ContextMenu>
+              <ContextMenu item={collection3} order={6} data-aos="fade-right" data-aos-duration="1500">
+                <div className="d-flex justify-content-between align-items-end flex-row-reverse">
+                  <ImageHover
+                    className="col-6"
+                    height={200}
+                    images={collection3?.images ?? []}
+                  />
+                  <h2>{collection3?.collection.name}</h2>
+                </div>
+              </ContextMenu>
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
             <div className="d-flex align-items-center">
-              <ContextMenu item={items[0]} order={1} data-aos="fade-right" data-aos-duration="1500">
-                <ImageHover
-                  className="col-4"
-                  height={200}
-                  images={items[0]?.images ?? []}
-                />
-              </ContextMenu>
+              <ImageHover
+                className="col-4"
+                height={200}
+                images={items[0]?.images ?? []}
+                data-aos="fade-right"
+                data-aos-duration="1500"
+              />
               <h2 className="col-4 text-center">{t('necklacesAndChokers')}</h2>
-              <ContextMenu item={items[0]} order={2} data-aos="fade-left" data-aos-duration="1500">
-                <ImageHover
-                  className="col-4"
-                  height={200}
-                  images={items[1]?.images ?? []}
-                />
-              </ContextMenu>
+              <ImageHover
+                className="col-4"
+                height={200}
+                images={items[1]?.images ?? []}
+                data-aos="fade-left"
+                data-aos-duration="1500"
+              />
             </div>
             <div className="d-flex align-items-center">
               <ImageHover
