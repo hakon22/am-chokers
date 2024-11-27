@@ -5,14 +5,13 @@ import type { MenuProps } from 'antd';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-import { routes } from '@/routes';
 import type { ItemInterface } from '@/types/item/Item';
-import { translate } from '@/utilities/translate';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { deleteItem, updateItem } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { getHref } from '@/utilities/getHref';
 
 export type Context = { action: string, id: number } | undefined;
 export type SetContext = React.Dispatch<React.SetStateAction<Context>>;
@@ -69,7 +68,7 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
     ...(item ? [{
       label: t('edit'),
       key: '1',
-      onClick: () => router.push(`${routes.catalog}/${item.group.code}/${translate(item.name)}`),
+      onClick: () => router.push(getHref(item)),
     },
     {
       label: (<Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(item)}>{t('remove')}</Popconfirm>),

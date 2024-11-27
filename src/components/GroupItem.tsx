@@ -3,8 +3,7 @@ import Link from 'next/link';
 
 import type { ItemInterface } from '@/types/item/Item';
 import { ImageHover } from '@/components/ImageHover';
-import { translate } from '@/utilities/translate';
-import { routes } from '@/routes';
+import { getHref } from '@/utilities/getHref';
 
 export const GroupItem = ({ items }: { items: ItemInterface[] }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
@@ -14,7 +13,7 @@ export const GroupItem = ({ items }: { items: ItemInterface[] }) => {
       {items.map(({
         id, name, price, images, height, group, className,
       }) => (
-        <Link href={`${routes.catalog}/${group.code}/${translate(name)}`} style={{ width: '23%' }} key={id}>
+        <Link href={getHref({ name, group } as ItemInterface)} style={{ width: '23%' }} key={id}>
           <ImageHover
             className={className}
             height={height}

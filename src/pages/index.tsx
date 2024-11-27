@@ -12,11 +12,11 @@ import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
-import { translate } from '@/utilities/translate';
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
 import type { ItemInterface } from '@/types/item/Item';
 import { ContextMenu } from '@/components/ContextMenu';
+import { getHref } from '@/utilities/getHref';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
@@ -132,15 +132,15 @@ const Index = () => {
                 ssr
               >
                 {news.map((item) => (
-                  <Link href={`${routes.catalog}/${item.group.code}/${translate(item.name)}`} key={item.id}>
-                    <ImageHover
-                      className={item.className}
-                      height={item.height}
-                      images={item.images}
-                      name={item.name}
-                      description={tPrice('price', { price: item.price })}
-                    />
-                  </Link>
+                  <ImageHover
+                    key={item.id}
+                    className={item.className}
+                    href={getHref(item)}
+                    height={item.height}
+                    images={item.images}
+                    name={item.name}
+                    description={tPrice('price', { price: item.price })}
+                  />
                 ))}
               </Carousel>
             </div>
@@ -156,6 +156,7 @@ const Index = () => {
                 <ContextMenu item={bestseller1} order={1} className="col-6 align-self-start" style={{ width: '95%' }}>
                   <ImageHover
                     height={200}
+                    href={getHref(bestseller1)}
                     images={bestseller1?.images ?? []}
                     name={bestseller1?.name}
                     description={tPrice('price', { price: bestseller1?.price })}
@@ -164,6 +165,7 @@ const Index = () => {
                 <ContextMenu item={bestseller2} order={2} className="col-6 d-flex align-self-end">
                   <ImageHover
                     className="w-100"
+                    href={getHref(bestseller2)}
                     style={{ alignSelf: 'end', width: '95%' }}
                     height={200}
                     images={bestseller2?.images ?? []}
@@ -176,6 +178,7 @@ const Index = () => {
                 <ContextMenu item={bestseller3} order={3} className="w-100">
                   <ImageHover
                     className="h-100"
+                    href={getHref(bestseller3)}
                     style={{ width: '100%' }}
                     height="100%"
                     images={bestseller3?.images ?? []}
@@ -207,6 +210,7 @@ const Index = () => {
                 <div className="d-flex justify-content-between align-items-end">
                   <ImageHover
                     className="col-6"
+                    href={getHref(collection1)}
                     height={200}
                     images={collection1?.images ?? []}
                   />
@@ -217,6 +221,7 @@ const Index = () => {
                 <div className="d-flex justify-content-between align-items-end flex-row-reverse">
                   <ImageHover
                     className="col-6"
+                    href={getHref(collection2)}
                     height={200}
                     images={collection2?.images ?? []}
                   />
@@ -227,6 +232,7 @@ const Index = () => {
                 <div className="d-flex justify-content-between align-items-end flex-row-reverse">
                   <ImageHover
                     className="col-6"
+                    href={getHref(collection3)}
                     height={200}
                     images={collection3?.images ?? []}
                   />
