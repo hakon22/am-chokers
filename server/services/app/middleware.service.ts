@@ -1,7 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
+import { LoggerService } from '@server/services/app/logger.service';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
@@ -9,8 +10,11 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 export class MiddlewareService {
   private readonly checkIpService: CheckIpService;
 
+  private readonly loggerService: LoggerService;
+
   constructor() {
     this.checkIpService = new CheckIpService();
+    this.loggerService = Container.get(LoggerService);
   }
 
   private getClientIp = (req: Request) => {

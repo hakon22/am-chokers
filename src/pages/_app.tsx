@@ -13,7 +13,8 @@ import AOS from 'aos';
 
 import { AuthContext, SubmitContext, NavbarContext } from '@/components/Context';
 import { routes } from '@/routes';
-import { removeToken } from '@/slices/userSlice';
+import { removeToken as removeUserToken } from '@/slices/userSlice';
+import { removeMany as removeManyCart } from '@/slices/cartSlice';
 import { removeMany } from '@/slices/orderSlice';
 import favicon16 from '@/images/favicon16x16.png';
 import favicon32 from '@/images/favicon32x32.png';
@@ -48,8 +49,9 @@ const Init = (props: AppProps & ItemsAndGroupsInterface) => {
     }
     await axios.post(routes.logout, { id, refreshToken });
     setLoggedIn(false);
-    dispatch(removeToken());
+    dispatch(removeUserToken());
     dispatch(removeMany());
+    dispatch(removeManyCart());
   }, [id]);
 
   const authServices = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);

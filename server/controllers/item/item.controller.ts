@@ -20,8 +20,7 @@ export class ItemController extends BaseService {
 
       res.json({ code: 1, item });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -33,8 +32,7 @@ export class ItemController extends BaseService {
 
       res.json({ code: 1, items });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -47,8 +45,7 @@ export class ItemController extends BaseService {
 
       res.json(result);
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -61,8 +58,7 @@ export class ItemController extends BaseService {
 
       res.json({ code: 1, item });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -74,8 +70,7 @@ export class ItemController extends BaseService {
 
       res.json({ code: 1, item });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -87,8 +82,7 @@ export class ItemController extends BaseService {
 
       res.json({ code: 1, item });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 }

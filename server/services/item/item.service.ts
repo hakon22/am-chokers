@@ -27,6 +27,8 @@ export class ItemService extends BaseService {
         'item.description',
         'item.deleted',
         'item.price',
+        'item.discount',
+        'item.discountPrice',
         'item.height',
         'item.width',
         'item.composition',

@@ -5,6 +5,7 @@ import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { ImageEntity } from '@server/db/entities/image.entity';
+import { CartEntity } from '@server/db/entities/cart.entity';
 
 export const entities = [
   UserEntity,
@@ -14,4 +15,5 @@ export const entities = [
   OrderPositionEntity,
   ImageEntity,
   ItemCollectionEntity,
+  CartEntity,
 ];

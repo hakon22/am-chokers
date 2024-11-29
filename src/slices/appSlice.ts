@@ -19,97 +19,145 @@ const initialState: AppStoreInterface = {
 
 export const addItem = createAsyncThunk(
   'app/addItem',
-  async (data: ItemInterface) => {
-    const response = await axios.post<{ code: number; item: ItemInterface; url: string; }>(routes.createItem, data);
-    return response.data;
+  async (data: ItemInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number; item: ItemInterface; url: string; }>(routes.createItem, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const updateItem = createAsyncThunk(
   'app/updateItem',
-  async ({ id, data }: { id: number, data: Partial<ItemInterface> }) => {
-    const response = await axios.put<{ code: number; item: ItemInterface; }>(routes.crudItem(id), data);
-    return response.data;
+  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+    try {
+      const response = await axios.put<{ code: number; item: ItemInterface; }>(routes.crudItem(id), data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const deleteItem = createAsyncThunk(
   'app/deleteItem',
-  async (id: number) => {
-    const response = await axios.delete<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
-    return response.data;
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const restoreItem = createAsyncThunk(
   'app/restoreItem',
-  async (id: number) => {
-    const response = await axios.patch<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
-    return response.data;
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const addItemGroup = createAsyncThunk(
   'app/addItemGroup',
-  async (data: ItemGroupInterface) => {
-    const response = await axios.post<{ code: number; itemGroup: ItemGroupInterface; }>(routes.createItemGroup, data);
-    return response.data;
+  async (data: ItemGroupInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number; itemGroup: ItemGroupInterface; }>(routes.createItemGroup, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const updateItemGroup = createAsyncThunk(
   'app/updateItemGroup',
-  async (data: ItemGroupInterface) => {
-    const response = await axios.put<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(data.id), data);
-    return response.data;
+  async (data: ItemGroupInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.put<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(data.id), data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const deleteItemGroup = createAsyncThunk(
   'app/deleteItemGroup',
-  async (id: number | React.Key) => {
-    const response = await axios.delete<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
-    return response.data;
+  async (id: number | React.Key, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const restoreItemGroup = createAsyncThunk(
   'app/restoreItemGroup',
-  async (id: number | React.Key) => {
-    const response = await axios.patch<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
-    return response.data;
+  async (id: number | React.Key, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const addItemCollection = createAsyncThunk(
   'app/addItemCollection',
-  async (data: ItemCollectionInterface) => {
-    const response = await axios.post<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.createItemCollection, data);
-    return response.data;
+  async (data: ItemCollectionInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.createItemCollection, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const updateItemCollection = createAsyncThunk(
   'app/updateItemCollection',
-  async (data: ItemCollectionInterface) => {
-    const response = await axios.put<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(data.id), data);
-    return response.data;
+  async (data: ItemCollectionInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.put<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(data.id), data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const deleteItemCollection = createAsyncThunk(
   'app/deleteItemCollection',
-  async (id: number | React.Key) => {
-    const response = await axios.delete<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
-    return response.data;
+  async (id: number | React.Key, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const restoreItemCollection = createAsyncThunk(
   'app/restoreItemCollection',
-  async (id: number | React.Key) => {
-    const response = await axios.patch<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
-    return response.data;
+  async (id: number | React.Key, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
@@ -138,9 +186,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(addItem.rejected, (state, action) => {
+      .addCase(addItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(updateItem.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -156,9 +204,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(updateItem.rejected, (state, action) => {
+      .addCase(updateItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(deleteItem.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -171,9 +219,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(deleteItem.rejected, (state, action) => {
+      .addCase(deleteItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(restoreItem.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -186,9 +234,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(restoreItem.rejected, (state, action) => {
+      .addCase(restoreItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(addItemGroup.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -201,9 +249,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(addItemGroup.rejected, (state, action) => {
+      .addCase(addItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(updateItemGroup.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -219,9 +267,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(updateItemGroup.rejected, (state, action) => {
+      .addCase(updateItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(deleteItemGroup.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -235,9 +283,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(deleteItemGroup.rejected, (state, action) => {
+      .addCase(deleteItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(restoreItemGroup.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -250,9 +298,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(restoreItemGroup.rejected, (state, action) => {
+      .addCase(restoreItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(addItemCollection.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -265,9 +313,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(addItemCollection.rejected, (state, action) => {
+      .addCase(addItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(updateItemCollection.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -283,9 +331,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(updateItemCollection.rejected, (state, action) => {
+      .addCase(updateItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(deleteItemCollection.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -306,9 +354,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(deleteItemCollection.rejected, (state, action) => {
+      .addCase(deleteItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(restoreItemCollection.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -321,9 +369,9 @@ const appSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(restoreItemCollection.rejected, (state, action) => {
+      .addCase(restoreItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       });
   },
 });

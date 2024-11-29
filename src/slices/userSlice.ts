@@ -13,59 +13,79 @@ const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
 export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
-  async (data: UserLoginInterface) => {
-    const response = await axios.post(routes.login, data);
-    return response.data;
+  async (data: UserLoginInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number, user: UserInterface }>(routes.login, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const fetchSignup = createAsyncThunk(
   'user/fetchSignup',
-  async (data: UserSignupInterface) => {
-    const response = await axios.post(routes.signup, data);
-    return response.data;
+  async (data: UserSignupInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number, user: UserInterface }>(routes.signup, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const fetchTokenStorage = createAsyncThunk(
   'user/fetchTokenStorage',
-  async (refreshTokenStorage: string) => {
-    const response = await axios.get(routes.updateTokens, {
-      headers: { Authorization: `Bearer ${refreshTokenStorage}` },
-    });
-    return response.data;
+  async (refreshTokenStorage: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<{ code: number, user: UserInterface }>(routes.updateTokens, {
+        headers: { Authorization: `Bearer ${refreshTokenStorage}` },
+      });
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const fetchConfirmCode = createAsyncThunk(
   'user/fetchConfirmCode',
-  async (data: { phone: string, key?: string, code?: string }) => {
-    const response = await axios.post(routes.confirmPhone, data);
-    return response.data;
+  async (data: { phone: string, key?: string, code?: string }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number, key: string, phone: string }>(routes.confirmPhone, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
 export const updateTokens = createAsyncThunk(
   'user/updateTokens',
-  async (refresh: string | undefined) => {
-    const refreshTokenStorage = window.localStorage.getItem(storageKey);
-    if (refreshTokenStorage) {
-      const { data } = await axios.get(routes.updateTokens, {
-        headers: { Authorization: `Bearer ${refreshTokenStorage}` },
-      });
-      if (data.user.refreshToken) {
-        window.localStorage.setItem(storageKey, data.user.refreshToken);
-        return data;
+  async (refresh: string | undefined, { rejectWithValue }) => {
+    try {
+      const refreshTokenStorage = window.localStorage.getItem(storageKey);
+      if (refreshTokenStorage) {
+        const { data } = await axios.get(routes.updateTokens, {
+          headers: { Authorization: `Bearer ${refreshTokenStorage}` },
+        });
+        if (data.user.refreshToken) {
+          window.localStorage.setItem(storageKey, data.user.refreshToken);
+          return data;
+        }
+      } else {
+        const { data } = await axios.get<{ code: number, user: UserInterface }>(routes.updateTokens, {
+          headers: { Authorization: `Bearer ${refresh}` },
+        });
+        if (data.user.refreshToken) {
+          return data;
+        }
       }
-    } else {
-      const { data } = await axios.get(routes.updateTokens, {
-        headers: { Authorization: `Bearer ${refresh}` },
-      });
-      if (data.user.refreshToken) {
-        return data;
-      }
+      return null;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
     }
-    return null;
   },
 );
 
@@ -114,8 +134,7 @@ const userSlice = createSlice({
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchLogin.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: UserInterface }>) => {
+      .addCase(fetchLogin.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -124,16 +143,15 @@ const userSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchLogin.rejected, (state, action) => {
+      .addCase(fetchLogin.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(fetchSignup.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchSignup.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: UserInterface }>) => {
+      .addCase(fetchSignup.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -142,16 +160,15 @@ const userSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchSignup.rejected, (state, action) => {
+      .addCase(fetchSignup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(fetchTokenStorage.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchTokenStorage.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: UserInterface }>) => {
+      .addCase(fetchTokenStorage.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           if (window.localStorage.getItem(storageKey)) {
             window.localStorage.setItem(storageKey, payload.user.refreshToken);
@@ -162,17 +179,16 @@ const userSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchTokenStorage.rejected, (state, action) => {
+      .addCase(fetchTokenStorage.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
         window.localStorage.removeItem(storageKey);
       })
       .addCase(fetchConfirmCode.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchConfirmCode.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, key: string, phone: string }>) => {
+      .addCase(fetchConfirmCode.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.key = payload.key;
           if (!state.id) {
@@ -182,16 +198,15 @@ const userSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchConfirmCode.rejected, (state, action) => {
+      .addCase(fetchConfirmCode.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       })
       .addCase(updateTokens.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(updateTokens.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, user: UserInterface }>) => {
+      .addCase(updateTokens.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
@@ -199,9 +214,9 @@ const userSlice = createSlice({
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(updateTokens.rejected, (state, action) => {
+      .addCase(updateTokens.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
         window.localStorage.removeItem(storageKey);
       });
   },

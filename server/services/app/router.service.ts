@@ -10,6 +10,7 @@ import { ItemGroupController } from '@server/controllers/item/item.group.control
 import { ItemCollectionController } from '@server/controllers/item/item.collection.controller';
 import { ItemController } from '@server/controllers/item/item.controller';
 import { ImageService } from '@server/services/storage/image.service';
+import { CartController } from '@server/controllers/cart/cart.controller';
 import { routes } from '@/routes';
 
 @Singleton
@@ -25,6 +26,8 @@ export class RouterService {
   private readonly itemGroupController = Container.get(ItemGroupController);
 
   private readonly itemCollectionController = Container.get(ItemCollectionController);
+
+  private readonly cartController = Container.get(CartController);
 
   private readonly telegramService = Container.get(TelegramService);
 
@@ -76,6 +79,13 @@ export class RouterService {
     this.router.delete(this.routes.crudItem(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
     this.router.patch(this.routes.crudItem(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     this.router.get(this.routes.items({ isServer: true }), this.itemController.findMany);
+
+    // cart
+    this.router.post(this.routes.createCartItem, this.jwtToken, this.cartController.createOne);
+    this.router.put(this.routes.crudCart(), this.jwtToken, this.cartController.updateOne);
+    this.router.delete(this.routes.crudCart(), this.jwtToken, this.cartController.deleteOne);
+    this.router.delete(this.routes.removeManyCartItems, this.jwtToken, this.cartController.deleteMany);
+    this.router.get(this.routes.getCart, this.jwtToken, this.cartController.findMany);
   };
 
   public get = () => this.router;

@@ -42,6 +42,18 @@ export class ItemEntity extends BaseEntity {
   @Column('int')
   public price: number;
 
+  /** Скидка товара */
+  @Column('int', {
+    default: 0,
+  })
+  public discount: number;
+
+  /** Цена товара со скидкой */
+  @Column('int', {
+    default: 0,
+  })
+  public discountPrice: number;
+
   /** Фотографии товара */
   @OneToMany(() => ImageEntity, image => image.item)
   public images: ImageEntity[];

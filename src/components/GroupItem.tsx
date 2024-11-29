@@ -9,11 +9,11 @@ export const GroupItem = ({ items }: { items: ItemInterface[] }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   return (
-    <div className="d-flex col-12 justify-content-between">
+    <div className="d-grid col-12 gap-5" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
       {items.map(({
         id, name, price, images, height, group, className,
       }) => (
-        <Link href={getHref({ name, group } as ItemInterface)} style={{ width: '23%' }} key={id}>
+        <Link href={getHref({ name, group } as ItemInterface)} key={id}>
           <ImageHover
             className={className}
             height={height}

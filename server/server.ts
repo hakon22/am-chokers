@@ -10,6 +10,7 @@ import { Container } from 'typescript-ioc';
 import { RouterService } from '@server/services/app/router.service';
 import { TokenService } from '@server/services/user/token.service';
 import { BaseService } from '@server/services/app/base.service';
+import { MiddlewareService } from '@server/services/app/middleware.service';
 import { routes } from '@/routes';
 
 const {
@@ -18,6 +19,8 @@ const {
 
 class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
+
+  private readonly middlewareService = Container.get(MiddlewareService);
 
   private readonly tokenService = Container.get(TokenService);
 

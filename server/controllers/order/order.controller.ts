@@ -20,8 +20,7 @@ export class OrderController extends BaseService {
 
       res.json({ code: 1, order });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -34,8 +33,7 @@ export class OrderController extends BaseService {
 
       res.json({ code: 1, orders });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -47,8 +45,7 @@ export class OrderController extends BaseService {
 
       res.json({ code: 1, order });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -60,8 +57,7 @@ export class OrderController extends BaseService {
 
       res.json({ code: 1, order });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 }

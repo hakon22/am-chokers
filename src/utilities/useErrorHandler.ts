@@ -16,10 +16,8 @@ export const useErrorHandler = (...errors: Error[]) => {
       const codeError = parseInt(match, 10);
       if (codeError === 401) {
         toast(t('authError'), 'error');
-      } else if (codeError === 500) {
-        toast(t('unknownError', { error: err }), 'error');
       } else {
-        toast(t('networkError'), 'error');
+        toast(err, 'error');
       }
       setIsSubmit(false);
       console.log(err);

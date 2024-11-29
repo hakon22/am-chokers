@@ -19,9 +19,12 @@ export const App = ({ children }: { children: JSX.Element }) => {
 
   const { error: userError } = useAppSelector((state) => state.user);
   const { error: orderError } = useAppSelector((state) => state.order);
+  const { error: appError } = useAppSelector((state) => state.app);
+  const { error: cartError } = useAppSelector((state) => state.cart);
+
   const { isSubmit } = useContext(SubmitContext);
 
-  useErrorHandler(userError, orderError);
+  useErrorHandler(userError, orderError, appError, cartError);
   useAuthHandler();
   useRootStyle();
 

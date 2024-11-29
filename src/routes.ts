@@ -61,4 +61,10 @@ export const routes = {
   items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number ) => [apiPath, 'item', id ?? ':id'].join('/'),
+
+  // cart
+  getCart: [apiPath, 'cart', 'getAll'].join('/'),
+  createCartItem: [apiPath, 'cart', 'new'].join('/'),
+  removeManyCartItems: [apiPath, 'cart', 'removeAll'].join('/'),
+  crudCart: (id?: number ) => [apiPath, 'cart', id ?? ':id'].join('/'),
 } as const;

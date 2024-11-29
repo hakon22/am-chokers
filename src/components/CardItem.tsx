@@ -1,20 +1,59 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Rate } from 'antd';
-import { useRef, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
-import { HeartOutlined } from '@ant-design/icons';
+import { HeartOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
 
 import type { ItemInterface } from '@/types/item/Item';
+import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { addCartItem, updateCartItem, createOne, updateOne, removeCartItem, removeOne } from '@/slices/cartSlice';
+import type { CartItemFormInterface } from '@/types/cart/Cart';
+import { AuthContext } from '@/components/Context';
 
 export const CardItem = ({
-  images, name, description, price, composition, length, rating,
+  id, images, name, discount, discountPrice, description, price, composition, length, rating,
 }: ItemInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const galleryRef = useRef<ImageGallery>(null);
 
+  const dispatch = useAppDispatch();
+  
+  const { loggedIn } = useContext(AuthContext);
+
+  const { cart } = useAppSelector((state) => state.cart);
+  const inCart = cart.find((cartItem) => 'id' in cartItem ? cartItem.item.id === id : cartItem.item.name === name);
+
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
+
+  const add = () => {
+    const item: CartItemFormInterface = {
+      name,
+      price,
+      count: 1,
+      discount,
+      discountPrice,
+      item: { id, name } as CartItemFormInterface['item'],
+    };
+    dispatch(loggedIn ? addCartItem(item) : createOne(item));
+  };
+
+  const increment = () => {
+    if (!inCart) return;
+    const updated = { ...inCart, count: inCart.count + 1 };
+    dispatch(loggedIn && 'id' in inCart ? updateCartItem({ id: inCart.id, data: updated }) : updateOne(updated));
+  };
+
+  const decrement = () => {
+    if (!inCart) return;
+    const updated = { ...inCart, count: inCart.count - 1 };
+    if (updated.count) {
+      dispatch(loggedIn && 'id' in inCart ? updateCartItem({ id: inCart.id, data: updated }) : updateOne(updated));
+    } else {
+      dispatch(loggedIn && 'id' in inCart ? removeCartItem(inCart.id) : removeOne(updated));
+    }
+  };
 
   return (
     <div className="d-flex flex-column">
@@ -47,7 +86,15 @@ export const CardItem = ({
             </div>
             <p className="fs-5 mb-4">{t('price', { price })}</p>
             <div className="d-flex align-items-center gap-5 mb-4">
-              <Button className="button border-button fs-5">{t('addToCart')}</Button>
+              {inCart ? (
+                <div className="d-flex gap-3 justify-content-center align-items-center">
+                  <Button className="button border-button fs-5" onClick={decrement}><MinusOutlined /></Button>
+                  <span className="fs-5">{inCart.count}</span>
+                  <Button className="button border-button fs-5" onClick={increment}><PlusOutlined /></Button>
+                </div>
+              ) : (
+                <Button className="button border-button fs-5" onClick={add}>{t('addToCart')}</Button>
+              )}
               <button className="icon-button" type="button">
                 <HeartOutlined className="icon" />
                 <span className="visually-hidden">{t('favorites')}</span>

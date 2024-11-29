@@ -6,6 +6,7 @@ import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
 import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { fetchCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
@@ -16,7 +17,7 @@ export const useAuthHandler = () => {
 
   const { logIn, loggedIn } = useContext(AuthContext);
   const {
-    id, token, refreshToken, url,
+    token, refreshToken, url,
   } = useAppSelector((state) => state.user);
 
   useEffect(() => {
@@ -38,9 +39,8 @@ export const useAuthHandler = () => {
       } else if (router.asPath === routes.loginPage) {
         router.push(routes.homePage);
       }
-      if (id) {
-        dispatch(fetchOrders());
-      }
+      dispatch(fetchOrders());
+      dispatch(fetchCart());
     }
   }, [token]);
 

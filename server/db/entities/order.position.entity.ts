@@ -44,8 +44,16 @@ export class OrderPositionEntity extends BaseEntity {
   public price: number;
 
   /** Скидка */
-  @Column('numeric')
+  @Column('int', {
+    default: 0,
+  })
   public discount: number;
+
+  /** Цена со скидкой */
+  @Column('int', {
+    default: 0,
+  })
+  public discountPrice: number;
 
   /** Количество */
   @Column('int')
@@ -62,6 +70,5 @@ export class OrderPositionEntity extends BaseEntity {
   @AfterLoad()
   transform() {
     this.price = +this.price;
-    this.discount = +this.discount;
   }
 }

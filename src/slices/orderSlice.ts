@@ -1,7 +1,5 @@
 import axios from 'axios';
-import {
-  createSlice, createAsyncThunk, type PayloadAction, createEntityAdapter,
-} from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit';
 
 import type { OrderInterface } from '@/types/order/Order';
 import type { InitialState } from '@/types/InitialState';
@@ -12,9 +10,13 @@ export const orderAdapter = createEntityAdapter<OrderInterface>();
 
 export const fetchOrders = createAsyncThunk(
   'order/fetchOrders',
-  async () => {
-    const response = await axios.get(routes.getOrders);
-    return response.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<{ code: number, orders: OrderInterface[] }>(routes.getOrders);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
   },
 );
 
@@ -39,17 +41,16 @@ const orderSlice = createSlice({
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchOrders.fulfilled, (state, { payload }
-        : PayloadAction<{ code: number, orders: OrderInterface[] }>) => {
+      .addCase(fetchOrders.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           orderAdapter.addMany(state, payload.orders);
         }
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchOrders.rejected, (state, action) => {
+      .addCase(fetchOrders.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = action.error.message ?? null;
+        state.error = payload.error;
       });
   },
 });
