@@ -5,7 +5,7 @@ import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
-import { Menu, type MenuProps } from 'antd';
+import { Badge, Menu, type MenuProps } from 'antd';
 
 import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
@@ -29,6 +29,7 @@ export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
+  const { cart } = useAppSelector((state) => state.cart);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>('108px');
@@ -112,9 +113,11 @@ export const NavBar = () => {
               <HeartOutlined className="icon" />
               <span className="visually-hidden">{t('favorites')}</span>
             </Link>
-            <Link href="/" title={t('cart')}>
-              <ShoppingCartOutlined className="icon" />
-              <span className="visually-hidden">{t('cart')}</span>
+            <Link href={routes.cartPage} title={t('cart')}>
+              <Badge count={cart.reduce((acc, { count }) => acc + count, 0)} offset={[3, 23]}>
+                <ShoppingCartOutlined className="icon" />
+                <span className="visually-hidden">{t('cart')}</span>
+              </Badge>
             </Link>
             <Link href={routes.profilePage} title={t('profile')}>
               <Image src={personIcon} unoptimized alt={t('logo')} />

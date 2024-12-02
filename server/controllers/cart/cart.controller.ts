@@ -5,7 +5,8 @@ import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { paramsIdSchema } from '@server/utilities/convertation.params';
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
+import type { CartItemInterface } from '@/types/cart/Cart';
+import type { NullableParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class CartController extends BaseService {
@@ -13,9 +14,10 @@ export class CartController extends BaseService {
 
   public findMany = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const { id } = req.user as NullableParamsIdInterface;
+      const oldCart = req.body as CartItemInterface[];
 
-      const cart = await this.cartService.findMany(id);
+      const cart = await this.cartService.findMany(id, oldCart);
 
       res.json({ code: 1, cart });
     } catch (e) {
@@ -25,7 +27,7 @@ export class CartController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const { id } = req.user as NullableParamsIdInterface;
       const body = req.body as CartEntity;
 
       const result = await this.cartService.createOne(id, body);
@@ -36,15 +38,27 @@ export class CartController extends BaseService {
     }
   };
 
-  public updateOne = async (req: Request, res: Response) => {
+  public incrementOne = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const { id } = req.user as NullableParamsIdInterface;
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as CartEntity;
 
-      const item = await this.cartService.updateOne(id, params, body);
+      const cartItem = await this.cartService.updateOne(id, params, 'increment');
 
-      res.json({ code: 1, item });
+      res.json({ code: 1, cartItem });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public decrementOne = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.user as NullableParamsIdInterface;
+      const params = await paramsIdSchema.validate(req.params);
+
+      const cartItem = await this.cartService.updateOne(id, params, 'decrement');
+
+      res.json({ code: 1, cartItem });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -52,12 +66,12 @@ export class CartController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const { id } = req.user as NullableParamsIdInterface;
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.cartService.deleteOne(id, params);
+      const cartItem = await this.cartService.deleteOne(id, params);
 
-      res.json({ code: 1, item });
+      res.json({ code: 1, cartItem });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -65,7 +79,7 @@ export class CartController extends BaseService {
 
   public deleteMany = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const { id } = req.user as NullableParamsIdInterface;
 
       await this.cartService.deleteMany(id);
 

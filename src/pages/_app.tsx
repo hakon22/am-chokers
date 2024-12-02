@@ -52,6 +52,7 @@ const Init = (props: AppProps & ItemsAndGroupsInterface) => {
     dispatch(removeUserToken());
     dispatch(removeMany());
     dispatch(removeManyCart());
+    axios.defaults.headers.common.Authorization = null;
   }, [id]);
 
   const authServices = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);

@@ -57,7 +57,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
 );
 
 const CreateItemGroup = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'pages.createItemGroup' });
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.itemGroup' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const dispatch = useAppDispatch();

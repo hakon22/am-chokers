@@ -3,8 +3,8 @@ export interface ItemQueryInterface {
   name?: string;
   /** С удалёнными */
   withDeleted?: boolean;
-  /** Id группы товара */
+  /** `id` группы товара */
   itemGroupId?: number;
-  /** Id коллекции товара */
+  /** `id` коллекции товара */
   itemCollectionId?: number;
 }

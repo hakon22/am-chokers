@@ -53,7 +53,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       ],
       } : null,
     { type: 'divider' },
-    { key: 'logout', label: <button type="button" className="button-link" onClick={logOut}>{tMenu('menu.logout')}</button> },
+    { key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
   const pages: Record<string, JSX.Element> = {

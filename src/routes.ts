@@ -12,6 +12,7 @@ export const routes = {
   signupPage: '/signup',
   profilePage: profilePath,
   recoveryPage: '/recovery',
+  cartPage: '/cart',
   notFoundPage: '*',
   catalog: catalogPath,
 
@@ -43,15 +44,16 @@ export const routes = {
 
   // order
   order: [apiPath, 'order', ':id'].join('/'),
+  createOrder: [apiPath, 'order', 'new'].join('/'),
 
   // itemGroup
   itemGroups: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
-  crudItemGroup: (id?: number | React.Key ) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
+  crudItemGroup: (id?: number | React.Key) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
   createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
 
   // itemCollections
   itemCollections: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'collections'].join('/'),
-  crudItemCollection: (id?: number | React.Key ) => [apiPath, 'item', 'collection', id ?? ':id'].join('/'),
+  crudItemCollection: (id?: number | React.Key) => [apiPath, 'item', 'collection', id ?? ':id'].join('/'),
   createItemCollection: [apiPath, 'item', 'collections', 'new'].join('/'),
 
   // storage
@@ -60,11 +62,13 @@ export const routes = {
   // item
   items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
-  crudItem: (id?: number ) => [apiPath, 'item', id ?? ':id'].join('/'),
+  crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
 
   // cart
   getCart: [apiPath, 'cart', 'getAll'].join('/'),
   createCartItem: [apiPath, 'cart', 'new'].join('/'),
   removeManyCartItems: [apiPath, 'cart', 'removeAll'].join('/'),
-  crudCart: (id?: number ) => [apiPath, 'cart', id ?? ':id'].join('/'),
+  incrementCartItem: (id?: number) => [apiPath, 'cart', id ?? ':id', 'increment'].join('/'),
+  decrementCartItem: (id?: number) => [apiPath, 'cart', id ?? ':id', 'decrement'].join('/'),
+  removeCartItem: (id?: number) => [apiPath, 'cart', id ?? ':id', 'remove'].join('/'),
 } as const;

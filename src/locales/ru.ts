@@ -151,7 +151,7 @@ export default {
           length: 'Введите длину товара (см)',
         },
       },
-      createItemGroup: {
+      itemGroup: {
         title: 'Группы товаров',
         description: 'Управление группами товаров',
         columns: {
@@ -174,7 +174,7 @@ export default {
         deleted: 'Удалена',
         back: 'Назад',
       },
-      createItemCollection: {
+      itemCollection: {
         title: 'Коллекции товаров',
         description: 'Управление коллекциями товаров',
         columns: {
@@ -195,6 +195,19 @@ export default {
         withDeleted: 'Показать удалённые',
         deleted: 'Удалена',
         back: 'Назад',
+      },
+      cart: {
+        title: 'Корзина ({{ count }})',
+        description: 'Товары в корзине',
+        checkAll: 'Выбрать всё',
+        deliveryType: 'Способ доставки',
+        delivery: 'Доставка',
+        total: 'Итого:',
+        submitPay: 'Оплатить заказ',
+        itemCount_zero: '{{ count }} товаров на сумму',
+        itemCount_one: '{{ count }} товар на сумму',
+        itemCount_few: '{{ count }} товара на сумму',
+        itemCount_many: '{{ count }} товаров на сумму',
       },
     },
     modules: {
@@ -258,6 +271,7 @@ export default {
       required: 'Обязательное поле',
       requirements: 'От 3 до 20 символов',
       passMin: 'Не менее 6 символов',
+      notZero: 'Число должно быть больше нуля',
       phone: 'Введите корректный номер телефона',
       code: 'Введите 4 цифры',
       mastMatch: 'Пароли должны совпадать',
@@ -281,6 +295,7 @@ export default {
       itemGroupExist: 'Группа с кодом {{ code }} уже существует',
       itemCollectionExist: 'Коллекция {{ name }} уже существует',
       itemDeletedSuccess: 'Товар {{ name }} успешно удалён',
+      orderCreateSuccess: 'Заказ успешно оформлен!',
     },
     spinner: {
       loading: 'Загрузка...',

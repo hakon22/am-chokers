@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
-import { Container, Singleton } from 'typescript-ioc';
+import { Singleton } from 'typescript-ioc';
+import passport from 'passport';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
-import { LoggerService } from '@server/services/app/logger.service';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
@@ -10,11 +10,8 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 export class MiddlewareService {
   private readonly checkIpService: CheckIpService;
 
-  private readonly loggerService: LoggerService;
-
   constructor() {
     this.checkIpService = new CheckIpService();
-    this.loggerService = Container.get(LoggerService);
   }
 
   private getClientIp = (req: Request) => {
@@ -50,6 +47,18 @@ export class MiddlewareService {
 
     res.status(401).json({ message: 'Unauthorized' });
   };
+
+  public optionalJwtAuth = (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('jwt', { session: false }, (err: any, user: any) => {
+      if (err) {
+        return next(err);
+      }
+      req.user = user ?? { id: null };
+      next();
+    })(req, res, next);
+  };
+
+  public jwtToken = passport.authenticate('jwt', { session: false });
 
   public checkAdminAccess = (req: Request, res: Response, next: NextFunction) => {
     try {

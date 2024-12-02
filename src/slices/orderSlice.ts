@@ -5,6 +5,7 @@ import type { OrderInterface } from '@/types/order/Order';
 import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
 import type { RootState } from '@/slices';
+import type { CartItemInterface } from '@/types/cart/Cart';
 
 export const orderAdapter = createEntityAdapter<OrderInterface>();
 
@@ -13,6 +14,18 @@ export const fetchOrders = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get<{ code: number, orders: OrderInterface[] }>(routes.getOrders);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const createOrder = createAsyncThunk(
+  'order/createOrder',
+  async (data: CartItemInterface[], { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number, order: OrderInterface }>(routes.createOrder, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -49,6 +62,21 @@ const orderSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchOrders.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(createOrder.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(createOrder.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          orderAdapter.addOne(state, payload.order);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(createOrder.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       });

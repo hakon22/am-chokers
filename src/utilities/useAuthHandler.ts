@@ -16,9 +16,9 @@ export const useAuthHandler = () => {
   const router = useRouter();
 
   const { logIn, loggedIn } = useContext(AuthContext);
-  const {
-    token, refreshToken, url,
-  } = useAppSelector((state) => state.user);
+
+  const { token, refreshToken, url } = useAppSelector((state) => state.user);
+  const { cart } = useAppSelector((state) => state.cart);
 
   useEffect(() => {
     const tokenStorage = window.localStorage.getItem(storageKey);
@@ -40,7 +40,7 @@ export const useAuthHandler = () => {
         router.push(routes.homePage);
       }
       dispatch(fetchOrders());
-      dispatch(fetchCart());
+      dispatch(fetchCart(cart));
     }
   }, [token]);
 

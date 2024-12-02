@@ -23,7 +23,7 @@ export class TelegramService {
         const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
         if (user) {
           await UserEntity.update(user.id, { telegramId: message?.from?.id?.toString() });
-          await this.sendMessage('Вы успешно подписались на обновления.', message?.from?.id?.toString() as string);
+          await this.sendMessage('Вы успешно подписались на уведомления.', message?.from?.id?.toString() as string);
         } else {
           await this.sendMessage('Номер телефона не найден в базе данных.', message?.from?.id?.toString() as string);
         }

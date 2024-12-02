@@ -37,55 +37,55 @@ export class RouterService {
 
   private routes = routes;
 
-  private jwtToken = passport.authenticate('jwt', { session: false });
-
   public set = () => {
     // user
     this.router.post(this.routes.login, this.userService.login);
     this.router.post(this.routes.signup, this.userService.signup);
     this.router.post(this.routes.recoveryPassword, this.userService.recoveryPassword);
-    this.router.post(this.routes.logout, this.jwtToken, this.userService.logout);
+    this.router.post(this.routes.logout, this.middlewareService.jwtToken, this.userService.logout);
     this.router.get(this.routes.updateTokens, passport.authenticate('jwt-refresh', { session: false }), this.userService.updateTokens);
     this.router.post(this.routes.confirmPhone, this.userService.confirmPhone);
-    this.router.post(this.routes.changeUserProfile, this.jwtToken, this.userService.changeUserProfile);
-    this.router.get(this.routes.unlinkTelegram, this.jwtToken, this.userService.unlinkTelegram);
+    this.router.post(this.routes.changeUserProfile, this.middlewareService.jwtToken, this.userService.changeUserProfile);
+    this.router.get(this.routes.unlinkTelegram, this.middlewareService.jwtToken, this.userService.unlinkTelegram);
 
     // integration
     this.router.post(this.routes.telegram, this.middlewareService.accessTelegram, this.telegramService.webhooks);
 
     // order
-    this.router.get(this.routes.getOrders, this.jwtToken, this.orderController.findMany);
+    this.router.get(this.routes.getOrders, this.middlewareService.jwtToken, this.orderController.findMany);
+    this.router.post(this.routes.createOrder, this.middlewareService.optionalJwtAuth, this.orderController.createOne);
 
     // itemGroup
     this.router.get(this.routes.itemGroups({ isServer: true }), this.itemGroupController.findMany);
-    this.router.post(this.routes.createItemGroup, this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.createOne);
-    this.router.put(this.routes.crudItemGroup(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.updateOne);
-    this.router.delete(this.routes.crudItemGroup(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.deleteOne);
-    this.router.patch(this.routes.crudItemGroup(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.restoreOne);
+    this.router.post(this.routes.createItemGroup, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.createOne);
+    this.router.put(this.routes.crudItemGroup(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.updateOne);
+    this.router.delete(this.routes.crudItemGroup(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.deleteOne);
+    this.router.patch(this.routes.crudItemGroup(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.restoreOne);
 
     // itemCollection
     this.router.get(this.routes.itemCollections({ isServer: true }), this.itemCollectionController.findMany);
-    this.router.post(this.routes.createItemCollection, this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.createOne);
-    this.router.put(this.routes.crudItemCollection(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.updateOne);
-    this.router.delete(this.routes.crudItemCollection(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.deleteOne);
-    this.router.patch(this.routes.crudItemCollection(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.restoreOne);
+    this.router.post(this.routes.createItemCollection, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.createOne);
+    this.router.put(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.updateOne);
+    this.router.delete(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.deleteOne);
+    this.router.patch(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.restoreOne);
 
     // storage
-    this.router.post(this.routes.imageUpload({ isServer: true }), this.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.upload(), this.imageService.uploadHandler);
+    this.router.post(this.routes.imageUpload({ isServer: true }), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.upload(), this.imageService.uploadHandler);
 
     // item
-    this.router.post(this.routes.createItem, this.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createOne);
-    this.router.put(this.routes.crudItem(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.updateOne);
-    this.router.delete(this.routes.crudItem(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
-    this.router.patch(this.routes.crudItem(), this.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
+    this.router.post(this.routes.createItem, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createOne);
+    this.router.put(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.updateOne);
+    this.router.delete(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
+    this.router.patch(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     this.router.get(this.routes.items({ isServer: true }), this.itemController.findMany);
 
     // cart
-    this.router.post(this.routes.createCartItem, this.jwtToken, this.cartController.createOne);
-    this.router.put(this.routes.crudCart(), this.jwtToken, this.cartController.updateOne);
-    this.router.delete(this.routes.crudCart(), this.jwtToken, this.cartController.deleteOne);
-    this.router.delete(this.routes.removeManyCartItems, this.jwtToken, this.cartController.deleteMany);
-    this.router.get(this.routes.getCart, this.jwtToken, this.cartController.findMany);
+    this.router.post(this.routes.createCartItem, this.middlewareService.optionalJwtAuth, this.cartController.createOne);
+    this.router.get(this.routes.incrementCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.incrementOne);
+    this.router.get(this.routes.decrementCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.decrementOne);
+    this.router.delete(this.routes.removeCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.deleteOne);
+    this.router.delete(this.routes.removeManyCartItems, this.middlewareService.optionalJwtAuth, this.cartController.deleteMany);
+    this.router.post(this.routes.getCart, this.middlewareService.jwtToken, this.cartController.findMany);
   };
 
   public get = () => this.router;

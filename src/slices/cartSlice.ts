@@ -6,14 +6,14 @@ import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
 
 interface CartStoreInterface extends InitialState {
-  cart: (CartItemInterface | CartItemFormInterface)[];
+  cart: CartItemInterface[];
 }
 
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
-  async (_, { rejectWithValue }) => {
+  async (data: CartItemInterface[], { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number, cart: CartItemInterface[] }>(routes.getCart);
+      const response = await axios.post<{ code: number, cart: CartItemInterface[] }>(routes.getCart, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -25,7 +25,7 @@ export const addCartItem = createAsyncThunk(
   'cart/addCartItem',
   async (data: CartItemFormInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; item: CartItemInterface }>(routes.createCartItem, data);
+      const response = await axios.post<{ code: number; cartItem: CartItemInterface }>(routes.createCartItem, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -33,11 +33,23 @@ export const addCartItem = createAsyncThunk(
   },
 );
 
-export const updateCartItem = createAsyncThunk(
-  'cart/updateCartItem',
-  async ({ id, data }: { id: number, data: Partial<CartItemInterface> }, { rejectWithValue }) => {
+export const incrementCartItem = createAsyncThunk(
+  'cart/incrementCartItem',
+  async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.put<{ code: number; item: CartItemInterface }>(routes.crudCart(id), data);
+      const response = await axios.get<{ code: number; cartItem: CartItemInterface }>(routes.incrementCartItem(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const decrementCartItem = createAsyncThunk(
+  'cart/decrementCartItem',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<{ code: number; cartItem: CartItemInterface }>(routes.decrementCartItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -49,7 +61,7 @@ export const removeCartItem = createAsyncThunk(
   'cart/removeCartItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; item: CartItemInterface }>(routes.crudCart(id));
+      const response = await axios.delete<{ code: number; cartItem: CartItemInterface }>(routes.removeCartItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -79,18 +91,6 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    createOne: (state, { payload }: PayloadAction<CartItemFormInterface>) => {
-      state.cart = [...state.cart, payload];
-    },
-    updateOne: (state, { payload }: PayloadAction<CartItemFormInterface>) => {
-      const cartIndex = state.cart.findIndex((cartItem) => cartItem.item.name === payload.item.name);
-      if (cartIndex !== -1) {
-        state.cart[cartIndex] = payload;
-      }
-    },
-    removeOne: (state, { payload }: PayloadAction<CartItemFormInterface>) => {
-      state.cart = state.cart.filter((cartItem) => cartItem.item.name !== payload.item.name);
-    },
     removeMany: (state) => {
       state.cart = [];
     },
@@ -118,7 +118,7 @@ const cartSlice = createSlice({
       })
       .addCase(addCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.cart = [...state.cart, payload.item];
+          state.cart = [...state.cart, payload.cartItem];
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -127,21 +127,39 @@ const cartSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
-      .addCase(updateCartItem.pending, (state) => {
+      .addCase(incrementCartItem.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(updateCartItem.fulfilled, (state, { payload }) => {
+      .addCase(incrementCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          const cartIndex = state.cart.findIndex((cartItem) => 'id' in cartItem && cartItem.item.id === payload.item.item.id);
+          const cartIndex = state.cart.findIndex((cartItem) => cartItem.id === payload.cartItem.id);
           if (cartIndex !== -1) {
-            state.cart[cartIndex] = payload.item;
+            state.cart[cartIndex] = payload.cartItem;
           }
         }
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(updateCartItem.rejected, (state, { payload }: PayloadAction<any>) => {
+      .addCase(incrementCartItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(decrementCartItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(decrementCartItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const cartIndex = state.cart.findIndex((cartItem) => cartItem.id === payload.cartItem.id);
+          if (cartIndex !== -1) {
+            state.cart[cartIndex] = payload.cartItem;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(decrementCartItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
@@ -151,7 +169,7 @@ const cartSlice = createSlice({
       })
       .addCase(removeCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.cart = state.cart.filter((cartItem) => 'id' in cartItem && cartItem.item.id !== payload.item.item.id);
+          state.cart = state.cart.filter((cartItem) => cartItem.item.id !== payload.cartItem.item.id);
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -178,8 +196,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const {
-  createOne, updateOne, removeOne, removeMany,
-} = cartSlice.actions;
+export const { removeMany } = cartSlice.actions;
 
 export default cartSlice.reducer;

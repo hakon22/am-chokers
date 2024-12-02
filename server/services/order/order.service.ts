@@ -3,12 +3,19 @@ import { Container, Singleton } from 'typescript-ioc';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import type { UserEntity } from '@server/db/entities/user.entity';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { CartEntity } from '@server/db/entities/cart.entity';
+import { CartService } from '@server/services/cart/cart.service';
 
 @Singleton
 export class OrderService extends BaseService {
   private readonly smsService = Container.get(SmsService);
+
+  private readonly cartService = Container.get(CartService);
 
   private createQueryBuilder = (query?: OrderQueryInterface) => {
     const manager = this.databaseService.getManager();
@@ -72,6 +79,31 @@ export class OrderService extends BaseService {
     const orders = await builder.getMany();
 
     return orders;
+  };
+
+  public createOne = async (body: OrderPositionEntity[], userId?: number) => {
+    const carIds = body.map(({ id }) => id);
+    const cart = await this.cartService.findMany(userId as number, undefined, { ids: carIds });
+
+    const order = await this.databaseService.getManager().transaction(async (manager) => {
+      const orderRepo = manager.getRepository(OrderEntity);
+      const cartRepo = manager.getRepository(CartEntity);
+      const orderPositionRepo = manager.getRepository(OrderPositionEntity);
+
+      const preparedPositions = cart.map((value) => ({
+        count: value.count,
+        price: value.item.price,
+        discount: value.item.discount,
+        discountPrice: value.item.discountPrice,
+        item: { id: value.item.id },
+      }));
+
+      const positions = await orderPositionRepo.save(preparedPositions);
+      await cartRepo.delete(carIds);
+      return orderRepo.save({ status: OrderStatusEnum.NEW, user: { id: userId }, positions });
+    });
+
+    return order;
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {

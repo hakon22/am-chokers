@@ -11,12 +11,12 @@ export const GroupItem = ({ items }: { items: ItemInterface[] }) => {
   return (
     <div className="d-grid col-12 gap-5" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
       {items.map(({
-        id, name, price, images, height, group, className,
+        id, name, price, images, group, className,
       }) => (
         <Link href={getHref({ name, group } as ItemInterface)} key={id}>
           <ImageHover
             className={className}
-            height={height}
+            height={300}
             images={images}
             name={name}
             description={t('price', { price })}

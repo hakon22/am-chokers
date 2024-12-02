@@ -50,6 +50,25 @@ export class TokenService {
     }),
   );
 
+  public tokenCartChecker = (passport: PassportStatic) => passport.use(
+    'jwt-cart',
+    new JwtStrategy(this.options, async ({ id }, done) => {
+      try {
+        const user = await UserEntity.findOne({ where: { id } });
+        if (user) {
+          const {
+            password, updated, created, ...rest
+          } = user;
+          done(null, rest);
+        } else {
+          done(null, { id: null });
+        }
+      } catch (e) {
+        this.logger.error(e);
+      }
+    }),
+  );
+
   public generateAccessToken = (id: number, phone: string) => jwt.sign({ id, phone }, process.env.KEY_TOKEN ?? '', { expiresIn: '10m' });
 
   public generateRefreshToken = (id: number, phone: string) => jwt.sign({ id, phone }, process.env.KEY_REFRESH_TOKEN ?? '', { expiresIn: '30d' });

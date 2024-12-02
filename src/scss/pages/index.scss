@@ -37,6 +37,10 @@
   }
 }
 
+.index-bg {
+  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
+}
+
 @media (max-width: 1367px) {
   .index-block-container .see-all {
       right: calc(var(--ratio) * 1.85vw);

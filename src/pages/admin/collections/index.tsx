@@ -67,7 +67,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
 );
 
 const CreateItemCollection = ({ itemCollections: fetchedItemCollections }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { t } = useTranslation('translation', { keyPrefix: 'pages.createItemCollection' });
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.itemCollection' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const dispatch = useAppDispatch();

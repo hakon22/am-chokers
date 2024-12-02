@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Rate } from 'antd';
-import { useContext, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
 import { HeartOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import Link from 'next/link';
@@ -8,9 +8,8 @@ import cn from 'classnames';
 
 import type { ItemInterface } from '@/types/item/Item';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { addCartItem, updateCartItem, createOne, updateOne, removeCartItem, removeOne } from '@/slices/cartSlice';
+import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem } from '@/slices/cartSlice';
 import type { CartItemFormInterface } from '@/types/cart/Cart';
-import { AuthContext } from '@/components/Context';
 
 export const CardItem = ({
   id, images, name, discount, discountPrice, description, price, composition, length, rating,
@@ -19,39 +18,31 @@ export const CardItem = ({
   const galleryRef = useRef<ImageGallery>(null);
 
   const dispatch = useAppDispatch();
-  
-  const { loggedIn } = useContext(AuthContext);
 
   const { cart } = useAppSelector((state) => state.cart);
-  const inCart = cart.find((cartItem) => 'id' in cartItem ? cartItem.item.id === id : cartItem.item.name === name);
+  const inCart = cart.find((cartItem) => cartItem.item.id === id);
 
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
 
   const add = () => {
     const item: CartItemFormInterface = {
-      name,
-      price,
       count: 1,
-      discount,
-      discountPrice,
       item: { id, name } as CartItemFormInterface['item'],
     };
-    dispatch(loggedIn ? addCartItem(item) : createOne(item));
+    dispatch(addCartItem(item));
   };
 
   const increment = () => {
     if (!inCart) return;
-    const updated = { ...inCart, count: inCart.count + 1 };
-    dispatch(loggedIn && 'id' in inCart ? updateCartItem({ id: inCart.id, data: updated }) : updateOne(updated));
+    dispatch(incrementCartItem(inCart.id));
   };
 
   const decrement = () => {
     if (!inCart) return;
-    const updated = { ...inCart, count: inCart.count - 1 };
-    if (updated.count) {
-      dispatch(loggedIn && 'id' in inCart ? updateCartItem({ id: inCart.id, data: updated }) : updateOne(updated));
+    if (inCart.count > 1) {
+      dispatch(decrementCartItem(inCart.id));
     } else {
-      dispatch(loggedIn && 'id' in inCart ? removeCartItem(inCart.id) : removeOne(updated));
+      dispatch(removeCartItem(inCart.id));
     }
   };
 
@@ -87,10 +78,10 @@ export const CardItem = ({
             <p className="fs-5 mb-4">{t('price', { price })}</p>
             <div className="d-flex align-items-center gap-5 mb-4">
               {inCart ? (
-                <div className="d-flex gap-3 justify-content-center align-items-center">
-                  <Button className="button border-button fs-5" onClick={decrement}><MinusOutlined /></Button>
+                <div className="d-flex gap-3 justify-content-center align-items-center cart-control">
+                  <Button onClick={decrement}><MinusOutlined className="fs-6" /></Button>
                   <span className="fs-5">{inCart.count}</span>
-                  <Button className="button border-button fs-5" onClick={increment}><PlusOutlined /></Button>
+                  <Button onClick={increment}><PlusOutlined className="fs-6" /></Button>
                 </div>
               ) : (
                 <Button className="button border-button fs-5" onClick={add}>{t('addToCart')}</Button>

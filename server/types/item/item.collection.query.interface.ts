@@ -1,5 +1,5 @@
 export interface ItemCollectionQueryInterface {
-  /** Id коллекции */
+  /** `id` коллекции */
   id?: number;
   /** Имя коллекции */
   name?: string;

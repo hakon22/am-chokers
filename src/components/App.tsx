@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import { Spin } from 'antd';
+import cn from 'classnames';
 
 import { useAppSelector } from '@/utilities/hooks';
 import { useErrorHandler } from '@/utilities/useErrorHandler';
@@ -11,9 +13,11 @@ import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
 import { useRootStyle } from '@/utilities/useRootStyle';
 import { Spinner } from '@/components/Spinner';
+import { routes } from '@/routes';
 
 export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
+  const router = useRouter();
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -39,9 +43,11 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
         <Breadcrumb />
       </header>
-      <main className="container">
-        {children}
-      </main>
+      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: '25%' }}>
+        <main className="container">
+          {children}
+        </main>
+      </div>
       <footer className="footer">
         <Footer />
       </footer>

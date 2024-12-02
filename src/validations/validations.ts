@@ -17,6 +17,9 @@ setLocale({
     max: () => t('validation.requirements'),
     length: () => t('validation.phone'),
   },
+  number: {
+    min: () => t('validation.notZero'),
+  },
 });
 
 const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T>) => ({
@@ -50,6 +53,10 @@ const idSchema = yup
       })
     : numberSchema
   ));
+
+const requiredIdSchema = yup.object().shape({
+  id: yup.number().required(),
+});
 
 const confirmPhoneSchema = yup.object().shape({
   phone: phoneSchema,
@@ -120,6 +127,12 @@ const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
 }).concat(newItemCatalogSchema);
 
+const newOrderPositionSchema = yup.array(yup.object().shape({
+  id: yup.number(),
+  count: numberSchema,
+  item: requiredIdSchema,
+}));
+
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
@@ -128,3 +141,4 @@ export const profileValidation = validate(profileSchema);
 export const newItemValidation = validate(newItemSchema);
 export const newItemGroupValidation = validate(newItemGroupSchema);
 export const newItemCatalogValidation = validate(newItemCatalogSchema);
+export const newOrderPositionValidation = validate(newOrderPositionSchema);
