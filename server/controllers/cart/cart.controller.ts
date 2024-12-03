@@ -4,7 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
-import { paramsIdSchema } from '@server/utilities/convertation.params';
+import { uuidArraySchema, uuidSchema } from '@/validations/validations';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { NullableParamsIdInterface } from '@server/types/params.id.interface';
 
@@ -41,7 +41,7 @@ export class CartController extends BaseService {
   public incrementOne = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as NullableParamsIdInterface;
-      const params = await paramsIdSchema.validate(req.params);
+      const params = await uuidSchema.validate(req.params);
 
       const cartItem = await this.cartService.updateOne(id, params, 'increment');
 
@@ -54,7 +54,7 @@ export class CartController extends BaseService {
   public decrementOne = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as NullableParamsIdInterface;
-      const params = await paramsIdSchema.validate(req.params);
+      const params = await uuidSchema.validate(req.params);
 
       const cartItem = await this.cartService.updateOne(id, params, 'decrement');
 
@@ -67,7 +67,7 @@ export class CartController extends BaseService {
   public deleteOne = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as NullableParamsIdInterface;
-      const params = await paramsIdSchema.validate(req.params);
+      const params = await uuidSchema.validate(req.params);
 
       const cartItem = await this.cartService.deleteOne(id, params);
 
@@ -80,8 +80,9 @@ export class CartController extends BaseService {
   public deleteMany = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as NullableParamsIdInterface;
+      const body = await uuidArraySchema.validate(req.body);
 
-      await this.cartService.deleteMany(id);
+      await this.cartService.deleteMany(id, body);
 
       res.json({ code: 1 });
     } catch (e) {

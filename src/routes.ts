@@ -68,7 +68,7 @@ export const routes = {
   getCart: [apiPath, 'cart', 'getAll'].join('/'),
   createCartItem: [apiPath, 'cart', 'new'].join('/'),
   removeManyCartItems: [apiPath, 'cart', 'removeAll'].join('/'),
-  incrementCartItem: (id?: number) => [apiPath, 'cart', id ?? ':id', 'increment'].join('/'),
-  decrementCartItem: (id?: number) => [apiPath, 'cart', id ?? ':id', 'decrement'].join('/'),
-  removeCartItem: (id?: number) => [apiPath, 'cart', id ?? ':id', 'remove'].join('/'),
+  incrementCartItem: (id?: string) => [apiPath, 'cart', id ?? ':id', 'increment'].join('/'),
+  decrementCartItem: (id?: string) => [apiPath, 'cart', id ?? ':id', 'decrement'].join('/'),
+  removeCartItem: (id?: string) => [apiPath, 'cart', id ?? ':id', 'remove'].join('/'),
 } as const;

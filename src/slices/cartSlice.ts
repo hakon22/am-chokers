@@ -35,7 +35,7 @@ export const addCartItem = createAsyncThunk(
 
 export const incrementCartItem = createAsyncThunk(
   'cart/incrementCartItem',
-  async (id: number, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue }) => {
     try {
       const response = await axios.get<{ code: number; cartItem: CartItemInterface }>(routes.incrementCartItem(id));
       return response.data;
@@ -47,7 +47,7 @@ export const incrementCartItem = createAsyncThunk(
 
 export const decrementCartItem = createAsyncThunk(
   'cart/decrementCartItem',
-  async (id: number, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue }) => {
     try {
       const response = await axios.get<{ code: number; cartItem: CartItemInterface }>(routes.decrementCartItem(id));
       return response.data;
@@ -59,7 +59,7 @@ export const decrementCartItem = createAsyncThunk(
 
 export const removeCartItem = createAsyncThunk(
   'cart/removeCartItem',
-  async (id: number, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue }) => {
     try {
       const response = await axios.delete<{ code: number; cartItem: CartItemInterface }>(routes.removeCartItem(id));
       return response.data;
@@ -71,9 +71,9 @@ export const removeCartItem = createAsyncThunk(
 
 export const removeManyCartItems = createAsyncThunk(
   'cart/removeCartItems',
-  async (_, { rejectWithValue }) => {
+  async (data: string[], { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; }>(routes.removeManyCartItems);
+      const response = await axios.post<{ code: number; }>(routes.removeManyCartItems, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -91,8 +91,12 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    removeMany: (state) => {
-      state.cart = [];
+    removeMany: (state, { payload }: PayloadAction<string[] | undefined>) => {
+      if (!payload) {
+        state.cart = [];
+      } else {
+        state.cart = state.cart.filter(({ id }) => !payload.includes(id));
+      }
     },
   },
   extraReducers: (builder) => {
@@ -169,7 +173,7 @@ const cartSlice = createSlice({
       })
       .addCase(removeCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.cart = state.cart.filter((cartItem) => cartItem.item.id !== payload.cartItem.item.id);
+          state.cart = state.cart.filter((cartItem) => cartItem.id !== payload.cartItem.id);
         }
         state.loadingStatus = 'finish';
         state.error = null;

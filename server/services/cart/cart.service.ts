@@ -2,7 +2,7 @@ import { Singleton } from 'typescript-ioc';
 import type { EntityManager } from 'typeorm';
 
 import { CartEntity } from '@server/db/entities/cart.entity';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import type { ParamsIdStringInterface } from '@server/types/params.id.interface';
 import type { CartQueryInterface } from '@server/types/cart/cart.query.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import { BaseService } from '@server/services/app/base.service';
@@ -53,7 +53,7 @@ export class CartService extends BaseService {
     return { code: 1, cartItem };
   };
 
-  private findOne = async (userId: number | null, params: ParamsIdInterface) => {
+  private findOne = async (userId: number | null, params: ParamsIdStringInterface) => {
     const builder = this.createQueryBuilder(userId, params);
 
     const item = await builder.getOne();
@@ -68,36 +68,16 @@ export class CartService extends BaseService {
   public findMany = async (userId: number | null, oldCart?: CartItemInterface[], query?: CartQueryInterface) => {
     const builder = this.createQueryBuilder(userId, query);
 
-    let cart = await builder.getMany();
+    const cart = await builder.getMany();
 
-    if (!oldCart?.length) {
+    if (!oldCart?.length || !userId) {
       return cart;
     }
 
-    const matchCartItemIds = oldCart.reduce((acc, oldCartItem) => {
-      const matchCartItem = cart.find(({ item }) => item.id === oldCartItem.item.id);
-      if (matchCartItem) {
-        acc.push(matchCartItem.id);
-      }
-      return acc;
-    }, [] as number[]);
-
-    const updatedCartItems = await this.databaseService.getManager().transaction(async (manager) => {
-      const cartRepo = manager.getRepository(CartEntity);
-
-      if (matchCartItemIds.length) {
-        await cartRepo.delete(matchCartItemIds);
-      }
-
-      return this.updateMany(userId, oldCart as CartEntity[], manager);
-    });
-
-    cart = [...cart.filter(({ id }) => !matchCartItemIds.includes(id)), ...updatedCartItems];
-
-    return cart;
+    return this.saveCartItems(cart, oldCart, userId);    
   };
 
-  public updateOne = async (userId: number | null, params: ParamsIdInterface, action: 'increment' | 'decrement') => {
+  public updateOne = async (userId: number | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement') => {
     const item = await this.findOne(userId, params);
 
     const newItem = { ...item, count: action === 'increment' ? item.count + 1 : item.count - 1 } as CartEntity;
@@ -124,7 +104,7 @@ export class CartService extends BaseService {
     return cartItems;
   };
 
-  public deleteOne = async (userId: number | null, params: ParamsIdInterface) => {
+  public deleteOne = async (userId: number | null, params: ParamsIdStringInterface) => {
     const item = await this.findOne(userId, params);
   
     await CartEntity.delete(item.id);
@@ -132,9 +112,31 @@ export class CartService extends BaseService {
     return item;
   };
 
-  public deleteMany = async (userId: number | null) => {
-    const cart = await this.findMany(userId);
+  public deleteMany = async (userId: number | null, ids?: string[]) => {
+    const cart = await this.findMany(userId, undefined, { ids });
 
     await CartEntity.delete(cart.map(({ id }) => id));
+  };
+
+  private saveCartItems = async (cart: CartEntity[], oldCart: CartItemInterface[], userId: number) => {
+    const matchCartItemIds = oldCart.reduce((acc, oldCartItem) => {
+      const matchCartItem = cart.find(({ item }) => item.id === oldCartItem.item.id);
+      if (matchCartItem) {
+        acc.push(matchCartItem.id);
+      }
+      return acc;
+    }, [] as string[]);
+
+    const updatedCartItems = await this.databaseService.getManager().transaction(async (manager) => {
+      const cartRepo = manager.getRepository(CartEntity);
+
+      if (matchCartItemIds.length) {
+        await cartRepo.delete(matchCartItemIds);
+      }
+
+      return this.updateMany(userId, oldCart as CartEntity[], manager);
+    });
+
+    return [...cart.filter(({ id }) => !matchCartItemIds.includes(id)), ...updatedCartItems];
   };
 }

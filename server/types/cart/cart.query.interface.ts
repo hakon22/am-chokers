@@ -1,6 +1,6 @@
 export interface CartQueryInterface {
   /** `id` товара корзины */
-  id?: number;
+  id?: string;
   /** Список `id` товара корзины */
-  ids?: number[];
+  ids?: string[];
 }

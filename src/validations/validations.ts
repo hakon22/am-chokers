@@ -127,11 +127,16 @@ const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
 }).concat(newItemCatalogSchema);
 
+export const uuidSchema = yup.object().shape({
+  id: yup.string().uuid().required(),
+});
+
+export const uuidArraySchema = yup.array(yup.string().uuid().required()).required();
+
 const newOrderPositionSchema = yup.array(yup.object().shape({
-  id: yup.number(),
   count: numberSchema,
   item: requiredIdSchema,
-}));
+}).concat(uuidSchema));
 
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);

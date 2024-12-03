@@ -9,8 +9,8 @@ import { ItemEntity } from '@server/db/entities/item.entity';
 })
 export class CartEntity extends BaseEntity {
   /** Уникальный id позиции корзины */
-  @PrimaryGeneratedColumn()
-  public id: number;
+  @PrimaryGeneratedColumn('uuid')
+  public id: string;
 
   /** Дата создания позиции корзины */
   @CreateDateColumn()

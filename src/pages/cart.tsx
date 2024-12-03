@@ -6,10 +6,10 @@ import type { CheckboxProps } from 'antd/lib';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { AuthContext, SubmitContext } from '@/components/Context';
+import { SubmitContext } from '@/components/Context';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import { ImageHover } from '@/components/ImageHover';
-import { removeManyCartItems, removeCartItem, incrementCartItem, decrementCartItem } from '@/slices/cartSlice';
+import { removeMany, removeCartItem, incrementCartItem, decrementCartItem } from '@/slices/cartSlice';
 import { createOrder } from '@/slices/orderSlice';
 import { toast } from '@/utilities/toast';
 
@@ -22,9 +22,6 @@ const Cart = () => {
 
   const { cart, loadingStatus } = useAppSelector((state) => state.cart);
 
-  const cartItemIds = cart.map(({ id }) => id);
-
-  const { loggedIn } = useContext(AuthContext);
   const { setIsSubmit } = useContext(SubmitContext);
 
   const [cartList, setCartList] = useState<CartItemInterface[]>([]);
@@ -52,7 +49,9 @@ const Cart = () => {
     setIsSubmit(true);
     const { payload: { code } } = await dispatch(createOrder(cartList)) as { payload: { code: number } };
     if (code === 1) {
-      dispatch(removeManyCartItems());
+      const ids = cartList.map(({ id }) => id);
+      dispatch(removeMany(ids));
+      setCartList(cartList.filter(({ id }) => !ids.includes(id)));
       toast(tToast('orderCreateSuccess'), 'success');
     }
     setIsSubmit(false);

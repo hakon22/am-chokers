@@ -4,12 +4,11 @@ import { OrderEntity } from '@server/db/entities/order.entity';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
-import type { UserEntity } from '@server/db/entities/user.entity';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
-import { CartEntity } from '@server/db/entities/cart.entity';
 import { CartService } from '@server/services/cart/cart.service';
+import type { CartItemInterface } from '@/types/cart/Cart';
 
 @Singleton
 export class OrderService extends BaseService {
@@ -81,13 +80,12 @@ export class OrderService extends BaseService {
     return orders;
   };
 
-  public createOne = async (body: OrderPositionEntity[], userId?: number) => {
-    const carIds = body.map(({ id }) => id);
-    const cart = await this.cartService.findMany(userId as number, undefined, { ids: carIds });
+  public createOne = async (body: CartItemInterface[], userId: number) => {
+    const cartIds = body.map(({ id }) => id);
+    const cart = await this.cartService.findMany(userId, undefined, { ids: cartIds });
 
     const order = await this.databaseService.getManager().transaction(async (manager) => {
       const orderRepo = manager.getRepository(OrderEntity);
-      const cartRepo = manager.getRepository(CartEntity);
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
 
       const preparedPositions = cart.map((value) => ({
@@ -99,7 +97,8 @@ export class OrderService extends BaseService {
       }));
 
       const positions = await orderPositionRepo.save(preparedPositions);
-      await cartRepo.delete(carIds);
+      await this.cartService.deleteMany(userId, cartIds);
+
       return orderRepo.save({ status: OrderStatusEnum.NEW, user: { id: userId }, positions });
     });
 
