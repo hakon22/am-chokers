@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List } from 'antd';
-import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, HeartOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
 import type { CheckboxProps } from 'antd/lib';
 
@@ -106,10 +106,22 @@ const Cart = () => {
                         <span>{item.item.name}</span>
                         <span>{tPrice('price', { price: item.item.price })}</span>
                       </div>
-                      <div className="d-flex gap-3 justify-content-center align-items-center cart-control">
-                        <Button onClick={() => cartItemHandler(item, 'decrement')}><MinusOutlined className="fs-6" /></Button>
-                        <span className="fs-6">{item.count}</span>
-                        <Button onClick={() => cartItemHandler(item, 'increment')}><PlusOutlined className="fs-6" /></Button>
+                      <div className="d-flex gap-4">
+                        <div className="d-flex gap-3 justify-content-center align-items-center cart-control">
+                          <Button onClick={() => cartItemHandler(item, 'decrement')}><MinusOutlined className="fs-6" /></Button>
+                          <span className="fs-6">{item.count}</span>
+                          <Button onClick={() => cartItemHandler(item, 'increment')}><PlusOutlined className="fs-6" /></Button>
+                        </div>
+                        <div className="d-flex gap-3">
+                          <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
+                            <DeleteOutlined className="icon fs-5" />
+                            <span className="visually-hidden">{t('delete')}</span>
+                          </button>
+                          <button className="icon-button" type="button" title={t('favorites')}>
+                            <HeartOutlined className="icon fs-5" />
+                            <span className="visually-hidden">{t('favorites')}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -204,6 +204,8 @@ export default {
         delivery: 'Доставка',
         total: 'Итого:',
         submitPay: 'Оплатить заказ',
+        delete: 'Удалить',
+        favorites: 'Избранное',
         itemCount_zero: '{{ count }} товаров на сумму',
         itemCount_one: '{{ count }} товар на сумму',
         itemCount_few: '{{ count }} товара на сумму',
