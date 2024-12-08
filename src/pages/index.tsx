@@ -315,7 +315,7 @@ const Index = () => {
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
             <p className="fw-light fs-5 mb-2">
               <span>{t('subscribe')}</span>
-              <Link href="https://t.me/AMChokers" className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
+              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
             </p>
             <p className="fw-light fs-5">{t('getUpdates')}</p>
           </section>

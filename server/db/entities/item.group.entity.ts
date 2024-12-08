@@ -10,7 +10,7 @@ import {
 })
 @Unique(['code'])
 export class ItemGroupEntity extends BaseEntity {
-  /** Уникальный id группы товара */
+  /** Уникальный `id` группы товара */
   @PrimaryGeneratedColumn()
   public id: number;
 

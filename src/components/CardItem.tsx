@@ -2,14 +2,13 @@ import { useTranslation } from 'react-i18next';
 import { Button, Rate } from 'antd';
 import { useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
-import { HeartOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
 
 import type { ItemInterface } from '@/types/item/Item';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem } from '@/slices/cartSlice';
-import type { CartItemFormInterface } from '@/types/cart/Cart';
+import { Favorites } from '@/components/Favorites';
+import { CartControl } from '@/components/CartControl';
+import { routes } from '@/routes';
 
 export const CardItem = ({
   id, images, name, discount, discountPrice, description, price, composition, length, rating,
@@ -17,34 +16,7 @@ export const CardItem = ({
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const galleryRef = useRef<ImageGallery>(null);
 
-  const dispatch = useAppDispatch();
-
-  const { cart } = useAppSelector((state) => state.cart);
-  const inCart = cart.find((cartItem) => cartItem.item.id === id);
-
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
-
-  const add = () => {
-    const item: CartItemFormInterface = {
-      count: 1,
-      item: { id, name } as CartItemFormInterface['item'],
-    };
-    dispatch(addCartItem(item));
-  };
-
-  const increment = () => {
-    if (!inCart) return;
-    dispatch(incrementCartItem(inCart.id));
-  };
-
-  const decrement = () => {
-    if (!inCart) return;
-    if (inCart.count > 1) {
-      dispatch(decrementCartItem(inCart.id));
-    } else {
-      dispatch(removeCartItem(inCart.id));
-    }
-  };
 
   return (
     <div className="d-flex flex-column">
@@ -53,13 +25,13 @@ export const CardItem = ({
           <ImageGallery
             ref={galleryRef}
             additionalClass="w-100"
-            items={images.sort((a, b) => b.order - a.order).map((image) => ({ original: `${image.path}/${image.name}`, thumbnail: `${image.path}/${image.name}` }))}
+            items={images.sort((a, b) => b.order - a.order).map((image) => ({ original: image.src, thumbnail: image.src }))}
             infinite
             showNav
             onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
             showPlayButton={false}
             thumbnailPosition="left"
-            onClick={() => galleryRef.current?.fullScreen()}
+            onClick={galleryRef.current?.fullScreen}
           />
           <div className="d-flex justify-content-end" style={{ width: '80%' }}>
             <div className="d-flex justify-content-between" style={{ width: 'calc(100% - 110px)' }}>
@@ -77,19 +49,8 @@ export const CardItem = ({
             </div>
             <p className="fs-5 mb-4">{t('price', { price })}</p>
             <div className="d-flex align-items-center gap-5 mb-4">
-              {inCart ? (
-                <div className="d-flex gap-3 justify-content-center align-items-center cart-control">
-                  <Button onClick={decrement}><MinusOutlined className="fs-6" /></Button>
-                  <span className="fs-5">{inCart.count}</span>
-                  <Button onClick={increment}><PlusOutlined className="fs-6" /></Button>
-                </div>
-              ) : (
-                <Button className="button border-button fs-5" onClick={add}>{t('addToCart')}</Button>
-              )}
-              <button className="icon-button" type="button">
-                <HeartOutlined className="icon" />
-                <span className="visually-hidden">{t('favorites')}</span>
-              </button>
+              <CartControl id={id} name={name} className="fs-5" />
+              <Favorites id={id} />
             </div>
             <p className="lh-lg" style={{ letterSpacing: '0.5px' }}>{description}</p>
             <div className="d-flex flex-column gap-3">
@@ -109,71 +70,71 @@ export const CardItem = ({
         <div className="col-11 d-flex flex-column justify-content-end">
           {tab === 'warranty' ? (
             <div className="warranty-fade">
-              <p>На все украшения, приобретенные в нашем магазине, мы даем гарантию 1 месяц с момента покупки при соблюдении наших рекомендаций.</p>
+              <p>{t('warranty.1')}</p>
               <div>
-                Стирание покрытия - это не дефект, а естественный износ украшения, признак того, что вы любите украшение и часто его носите.
+                {t('warranty.2')}
                 <br />
-                Если в течение этого периода украшения сломаются, мы отремонтируем их абсолютно бесплатно.
+                {t('warranty.3')}
                 <br />
-                Гарантийный случай наступает только при наличии чека и распространяется на крепления ниток камней, застежек, а также другие скрытые дефекты.
+                {t('warranty.4')}
                 <br />
               </div>
-              <p className="my-4 fs-5 fw-bold">Гарантийное обслуживание не распространяется:</p>
+              <p className="my-4 fs-5 fw-bold">{t('warranty.5')}</p>
               <div>
-                - на истирание, потемнение покрытия, которое произошло в следствии естественного износа;
+                {t('warranty.6')}
                 <br />
-                - на украшении есть следы механического повреждения (например, погнулось от удара);
+                {t('warranty.7')}
                 <br />
-                - были нарушены условия хранения и уход;
+                {t('warranty.8')}
                 <br />
-                - изменения произошли из-за естесвенного износа украшения;
+                {t('warranty.9')}
                 <br />
-                - часть украшения: серьга, кулон или другая деталь потеряны.
+                {t('warranty.10')}
                 <br />
               </div>
               <p className="my-4">
-                Для того, чтобы украшение служило Вам дольше, мы советуем следовать нашим
-                <b> рекомендациям по уходу</b>
+                {t('warranty.11')}
+                <b>{t('warranty.12')}</b>
                 .
               </p>
               <div>
-                Если Вам все же необходимо воспользоваться гарантийным ремонтом украшений, отправьте фото поврежденных изделий с описанием проблемы на наш электронный адрес
+                {t('warranty.13')}
                 {' '}
                 <Link href="mailto:amchokers@gmail.com" target="_blank" className="fw-bold">amchokers@gmail.com</Link>
                 {' '}
-                или в Телеграм
+                {t('warranty.14')}
                 {' '}
-                <Link href="https://t.me/AMChokers" target="_blank" className="fw-bold">@KS_Mary</Link>
+                <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
                 .
                 <br />
-                Мы свяжемся с Вами для уточнения деталей. Доставка поврежденных изделий осуществляется за счет Покупателя.
+                {t('warranty.15')}
                 <br />
-                Гарантийный период – это срок, во время которого клиент, обнаружив недостаток товара, имеет право потребовать от продавца или изготовителя принять меры по устранению дефекта.
+                {t('warranty.16')}
                 <br />
-                Продавец должен устранить недостатки, если не будет доказано, что они возникли вследствие нарушений покупателем правил эксплуатации.
+                {t('warranty.17')}
                 <br />
               </div>
             </div>
           ) : tab === 'delivery' && (
             <div className="delivery-fade">
-              <p key={1} className="mb-4 fs-5 fw-bold">ДОСТАВКА</p>
-              <p key={2}>При заказе от 8000 руб. отправляем изделия до пункта СДЭК за наш счет.</p>
+              <p key={1} className="mb-4 fs-5 fw-bold">{t('delivery.1')}</p>
+              <p key={2}>{t('delivery.2')}</p>
               <div key={3} className="mb-4">
-                Сбор и отправка заказа осуществяется в течение суток после оплаты заказа. Сроки доставки — от 2-х до 7-и рабочих дней, в зависимости от региона.
+                {t('delivery.3')}
                 <br />
-                В предпраздничные дни сроки доставки могут быть увеличены.
+                {t('delivery.4')}
               </div>
               <div key={4}>
-                Доставка осуществляется с помощью транспортной службы СДЭК.
+                {t('delivery.5')}
                 <br />
-                Срок и стоимость доставки рассчитываются автоматически при оформлении заказа, когда вы вводите свои данные.
+                {t('delivery.6')}
               </div>
-              <p key={5} className="my-4 fs-5 fw-bold">ОПЛАТА</p>
-              <p key={6} className="mb-4">Оплатить заказ можно на сайте банковской картой VISA, Mastercard или МИР через сервис безопасных платежей ЮКасса.</p>
+              <p key={5} className="my-4 fs-5 fw-bold">{t('delivery.7')}</p>
+              <p key={6} className="mb-4">{t('delivery.8')}</p>
               <div key={7}>
-                Мы отправляем заказы по 100% предоплате с возможностью примерки и даём гарантию обмена или возврата средств в случае, если изделие не подойдет по
+                {t('delivery.9')}
                 <br />
-                какой-то причине — 7 календарных дней с момента получения заказа (при условии сохранения товарного вида, целостности бирки и упаковки).
+                {t('delivery.10')}
               </div>
             </div>
           )}

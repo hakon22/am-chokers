@@ -5,7 +5,7 @@ import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn } 
   name: 'item_collection',
 })
 export class ItemCollectionEntity extends BaseEntity {
-  /** Уникальный id коллекции */
+  /** Уникальный `id` коллекции */
   @PrimaryGeneratedColumn()
   public id: number;
 

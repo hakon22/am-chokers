@@ -3,6 +3,7 @@ import {
   ManyToOne,
   JoinColumn,
   DeleteDateColumn,
+  AfterLoad,
 } from 'typeorm';
 
 
@@ -13,7 +14,7 @@ import { ItemEntity } from '@server/db/entities/item.entity';
   name: 'image',
 })
 export class ImageEntity extends BaseEntity {
-  /** Уникальный id изображения */
+  /** Уникальный `id` изображения */
   @PrimaryGeneratedColumn()
   public id: number;
 
@@ -45,4 +46,12 @@ export class ImageEntity extends BaseEntity {
     name: 'item_id',
   })
   public item: ItemEntity;
+
+  /** Полный путь изображения для вставки */
+  public src: string;
+
+  @AfterLoad()
+  genSrc() {
+    this.src = [this.path, this.name].join('/').replaceAll('\\', '/');
+  }
 }

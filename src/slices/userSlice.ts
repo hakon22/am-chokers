@@ -4,6 +4,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import type {
   UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface,
 } from '@/types/user/User';
+import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
 
@@ -89,9 +90,34 @@ export const updateTokens = createAsyncThunk(
   },
 );
 
+export const addFavorites = createAsyncThunk(
+  'user/addFavorites',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<{ code: number; item: ItemEntity }>(routes.addFavorites(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const removeFavorites = createAsyncThunk(
+  'user/removeFavorites',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<{ code: number; item: ItemEntity }>(routes.removeFavorites(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const initialState: { [K in keyof (Partial<UserInterface> & InitialState)]: UserInterface[K] } = {
   loadingStatus: 'idle',
   error: null,
+  favorites: [],
 };
 
 const userSlice = createSlice({
@@ -218,6 +244,36 @@ const userSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = payload.error;
         window.localStorage.removeItem(storageKey);
+      })
+      .addCase(addFavorites.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(addFavorites.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.favorites = [...state.favorites as ItemEntity[], payload.item];
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(addFavorites.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(removeFavorites.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(removeFavorites.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.favorites = state.favorites?.filter((item) => item.id !== payload.item.id);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(removeFavorites.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
       });
   },
 });

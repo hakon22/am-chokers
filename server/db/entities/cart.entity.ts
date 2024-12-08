@@ -8,7 +8,7 @@ import { ItemEntity } from '@server/db/entities/item.entity';
   name: 'cart',
 })
 export class CartEntity extends BaseEntity {
-  /** Уникальный id позиции корзины */
+  /** Уникальный `id` позиции корзины */
   @PrimaryGeneratedColumn('uuid')
   public id: string;
 

@@ -38,7 +38,13 @@ export class OrderService extends BaseService {
         'item.id',
         'item.name',
       ])
-      .leftJoinAndSelect('item.images', 'images');
+      .leftJoin('item.images', 'images')
+      .addSelect([
+        'images.id',
+        'images.name',
+        'images.path',
+        'images.deleted',
+      ]);
 
     if (query?.withUser) {
       builder

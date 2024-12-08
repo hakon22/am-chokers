@@ -63,6 +63,8 @@ export const routes = {
   items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
+  addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),
+  removeFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'remove'].join('/'),
 
   // cart
   getCart: [apiPath, 'cart', 'getAll'].join('/'),

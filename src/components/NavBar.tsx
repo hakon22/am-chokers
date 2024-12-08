@@ -29,6 +29,7 @@ export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
+  const { favorites } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
@@ -109,9 +110,11 @@ export const NavBar = () => {
               <SearchOutlined className="icon" />
               <span className="visually-hidden">{t('search')}</span>
             </Link>
-            <Link href="/" title={t('favorites')}>
-              <HeartOutlined className="icon" />
-              <span className="visually-hidden">{t('favorites')}</span>
+            <Link href={routes.favorites} title={t('favorites')}>
+              <Badge count={favorites?.length} offset={[3, 23]}>
+                <HeartOutlined className="icon" />
+                <span className="visually-hidden">{t('favorites')}</span>
+              </Badge>
             </Link>
             <Link href={routes.cartPage} title={t('cart')}>
               <Badge count={cart.reduce((acc, { count }) => acc + count, 0)} offset={[3, 23]}>

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List } from 'antd';
-import { DeleteOutlined, HeartOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
 import type { CheckboxProps } from 'antd/lib';
 
@@ -9,7 +9,9 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import { ImageHover } from '@/components/ImageHover';
-import { removeMany, removeCartItem, incrementCartItem, decrementCartItem } from '@/slices/cartSlice';
+import { Favorites } from '@/components/Favorites';
+import { CartControl } from '@/components/CartControl';
+import { removeMany, removeCartItem } from '@/slices/cartSlice';
 import { createOrder } from '@/slices/orderSlice';
 import { toast } from '@/utilities/toast';
 
@@ -30,6 +32,8 @@ const Cart = () => {
   const indeterminate = cartList.length > 0 && cartList.length < cart.length;
 
   const delivery = 500;
+
+  const height = 170;
 
   const { count, price } = cartList.reduce((acc, cartItem) => {
     acc.price += (cartItem.item.price - cartItem.item.discountPrice) * cartItem.count;
@@ -57,20 +61,6 @@ const Cart = () => {
     setIsSubmit(false);
   };
 
-  const decrement = (item: CartItemInterface) => item.count > 1 ? decrementCartItem : removeCartItem;
-
-  const cartItemHandler = async (item: CartItemInterface, action: 'increment' | 'decrement') => {
-    setIsSubmit(true);
-    const { payload } = await dispatch(action === 'increment' ? incrementCartItem(item.id) : decrement(item)(item.id)) as { payload: { code: number; cartItem: CartItemInterface; } };
-    if (payload.code === 1) {
-      setCartList((state) => {
-        const filtered = state.filter((cartItem) => cartItem.id !== item.id);
-        return action === 'decrement' && item.count === 1 ? filtered : [...filtered, payload.cartItem];
-      });
-    }
-    setIsSubmit(false);
-  };
-
   useEffect(() => {
     if (loadingStatus === 'finish') {
       setCartList(cart);
@@ -92,35 +82,28 @@ const Cart = () => {
               className="w-100"
               renderItem={(item) => (
                 <List.Item>
-                  <div className="d-flex gap-3" style={{ width: 150, height: 150 }}>
+                  <div className="d-flex gap-3" style={{ width: height, height }}>
                     <Checkbox value={item}>
                       <ImageHover
                         className="ms-3"
-                        height={150}
-                        width={150}
+                        height={height}
+                        width={height}
                         images={item.item?.images ?? []}
                       />
                     </Checkbox>
                     <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-                      <div className="d-flex flex-column">
-                        <span>{item.item.name}</span>
+                      <div className="d-flex flex-column gap-3">
+                        <span className="lh-1">{item.item.name}</span>
                         <span>{tPrice('price', { price: item.item.price })}</span>
                       </div>
                       <div className="d-flex gap-4">
-                        <div className="d-flex gap-3 justify-content-center align-items-center cart-control">
-                          <Button onClick={() => cartItemHandler(item, 'decrement')}><MinusOutlined className="fs-6" /></Button>
-                          <span className="fs-6">{item.count}</span>
-                          <Button onClick={() => cartItemHandler(item, 'increment')}><PlusOutlined className="fs-6" /></Button>
-                        </div>
+                        <CartControl id={item.item.id} name={item.item.name} />
                         <div className="d-flex gap-3">
                           <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
                             <DeleteOutlined className="icon fs-5" />
                             <span className="visually-hidden">{t('delete')}</span>
                           </button>
-                          <button className="icon-button" type="button" title={t('favorites')}>
-                            <HeartOutlined className="icon fs-5" />
-                            <span className="visually-hidden">{t('favorites')}</span>
-                          </button>
+                          <Favorites id={item.item.id} className="fs-5" outlined={true} />
                         </div>
                       </div>
                     </div>

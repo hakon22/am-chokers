@@ -6,7 +6,7 @@ import { Badge } from 'antd';
 import { ImageEntity } from '@server/db/entities/image.entity';
 
 const SortableItem = ({ image, index, activeId }: { image: ImageEntity, index: number, activeId: number }) => {
-  const { id, path, name } = image;
+  const { id, src, name } = image;
   const {
     attributes,
     listeners,
@@ -31,7 +31,7 @@ const SortableItem = ({ image, index, activeId }: { image: ImageEntity, index: n
 
   return (
     <Badge count={index} color="blue">
-      <Image src={`${path}/${name}`} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />
+      <Image src={src} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />
     </Badge>
   );
 };

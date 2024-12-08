@@ -2,9 +2,12 @@ import {
   Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BaseEntity,
   Unique,
   DeleteDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { ItemEntity } from '@server/db/entities/item.entity';
 
 /** Пользователь */
 @Entity({
@@ -12,7 +15,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 })
 @Unique(['phone'])
 export class UserEntity extends BaseEntity {
-  /** Уникальный id пользователя */
+  /** Уникальный `id` пользователя */
   @PrimaryGeneratedColumn()
   public id: number;
 
@@ -65,4 +68,19 @@ export class UserEntity extends BaseEntity {
     default: UserRoleEnum.MEMBER,
   })
   public role: UserRoleEnum;
+
+  /** Избранное */
+  @ManyToMany(() => ItemEntity, item => item.users)
+  @JoinTable({
+    name: 'favorites',
+    joinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'item_id',
+      referencedColumnName: 'id',
+    },
+  })
+  public favorites: ItemEntity[];
 }

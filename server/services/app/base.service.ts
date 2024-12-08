@@ -12,8 +12,8 @@ export abstract class BaseService {
 
   protected loggerService = Container.get(LoggerService);
 
-  protected errorHandler = (e: any, res: Response) => {
+  protected errorHandler = (e: any, res: Response, statusCode = 500) => {
     this.loggerService.error(e);
-    res.status(500).json({ error: `${e?.name}: ${e?.message}` });
+    res.status(statusCode).json({ error: `${e?.name}: ${e?.message}` });
   };
 }

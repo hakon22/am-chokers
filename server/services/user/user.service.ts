@@ -13,12 +13,16 @@ import type { UserQueryInterface } from '@server/types/user/user.query.interface
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
+import { ItemService } from '@server/services/item/item.service';
+import { paramsIdSchema } from '@server/utilities/convertation.params';
 
 @Singleton
 export class UserService extends BaseService {
   private readonly tokenService = Container.get(TokenService);
 
   private readonly smsService = Container.get(SmsService);
+
+  private readonly itemService = Container.get(ItemService);
 
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -32,7 +36,35 @@ export class UserService extends BaseService {
         'user.refreshTokens',
         'user.role',
         'user.deleted',
-      ]);
+      ])
+      .leftJoin('user.favorites', 'favorites')
+      .addSelect([
+        'favorites.id',
+        'favorites.name',
+        'favorites.description',
+        'favorites.deleted',
+        'favorites.price',
+        'favorites.discount',
+        'favorites.discountPrice',
+        'favorites.height',
+        'favorites.width',
+        'favorites.composition',
+        'favorites.length',
+        'favorites.rating',
+        'favorites.className',
+        'favorites.new',
+        'favorites.bestseller',
+        'favorites.order',
+      ])
+      .leftJoin('favorites.images', 'images')
+      .addSelect([
+        'images.id',
+        'images.name',
+        'images.path',
+        'images.deleted',
+      ])
+      .leftJoinAndSelect('favorites.group', 'group')
+      .leftJoinAndSelect('favorites.collection', 'collection');
 
     if (query?.id) {
       builder.andWhere('user.id = :id', { id: query.id });
@@ -85,8 +117,7 @@ export class UserService extends BaseService {
         user: { ...rest, token, refreshToken },
       });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -118,8 +149,7 @@ export class UserService extends BaseService {
 
       res.json({ code: 1, user: { ...rest, token, refreshToken } });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -159,8 +189,7 @@ export class UserService extends BaseService {
 
       res.json({ code: 1, key: request_id, phone });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -188,8 +217,7 @@ export class UserService extends BaseService {
         user: { ...rest, token, refreshToken },
       });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(401);
+      this.errorHandler(e, res, 401);
     }
   };
 
@@ -200,10 +228,9 @@ export class UserService extends BaseService {
 
       const refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
       await UserEntity.update(user.id, { refreshTokens });
-      res.status(200).json({ status: 'Tokens has been deleted' });
+      res.json({ status: 'Tokens has been deleted' });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -215,16 +242,15 @@ export class UserService extends BaseService {
 
       const user = await this.findOne({ phone });
       if (!user) {
-        res.status(200).json({ code: 2 });
+        res.json({ code: 2 });
         return;
       }
       const password = await this.smsService.sendPass(phone);
       const hashPassword = bcrypt.hashSync(password, 10);
       await UserEntity.update(user.id, { password: hashPassword });
-      res.status(200).json({ code: 1 });
+      res.json({ code: 1 });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -267,8 +293,7 @@ export class UserService extends BaseService {
 
       res.json({ code: 1 });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -282,10 +307,43 @@ export class UserService extends BaseService {
 
       await UserEntity.update(id, { telegramId: undefined });
 
-      res.status(200).json({ code: 1 });
+      res.json({ code: 1 });
     } catch (e) {
-      console.log(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
+    }
+  };
+
+  public addFavorites = async (req: Request, res: Response) => {
+    try {
+      const { ...user } = req.user as PassportRequestInterface;
+      const params = await paramsIdSchema.validate(req.params);
+
+      const item = await this.itemService.findOne(params);
+
+      await UserEntity.save({ ...user, favorites: [...user.favorites, item] });
+
+      res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public removeFavorites = async (req: Request, res: Response) => {
+    try {
+      const { ...user } = req.user as PassportRequestInterface;
+      const params = await paramsIdSchema.validate(req.params);
+
+      const item = user.favorites.find((value) => value.id === params.id);
+
+      if (!item) {
+        throw new Error(`Товар №${params.id} отсутствует в избранном`);
+      }
+
+      await UserEntity.save({ ...user, favorites: user.favorites.filter((value) => value.id !== item.id) });
+
+      res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
     }
   };
 }

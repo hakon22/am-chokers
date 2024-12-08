@@ -110,7 +110,9 @@ export class ImageService extends BaseService {
         path: tempPath,
       });
 
-      res.status(200).json({ code: 1, image });
+      image.src = [image.path, image.name].join('/').replaceAll('\\', '/');
+
+      res.json({ code: 1, image });
     } catch (e) {
       this.loggerService.error(e);
       res.status(500).json({ code: 2, message: 'Ошибка при обработке изображения' });

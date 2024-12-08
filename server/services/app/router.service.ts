@@ -78,6 +78,8 @@ export class RouterService {
     this.router.delete(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
     this.router.patch(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     this.router.get(this.routes.items({ isServer: true }), this.itemController.findMany);
+    this.router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
+    this.router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);
 
     // cart
     this.router.post(this.routes.createCartItem, this.middlewareService.optionalJwtAuth, this.cartController.createOne);

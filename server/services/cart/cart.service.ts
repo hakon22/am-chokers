@@ -27,7 +27,13 @@ export class CartService extends BaseService {
         'item.discount',
         'item.discountPrice',
       ])
-      .leftJoinAndSelect('item.images', 'images');
+      .leftJoin('item.images', 'images')
+      .addSelect([
+        'images.id',
+        'images.name',
+        'images.path',
+        'images.deleted',
+      ]);
 
     if (userId) {
       builder.andWhere('cart.user = :userId', { userId });

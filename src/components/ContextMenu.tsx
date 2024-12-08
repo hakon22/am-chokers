@@ -124,7 +124,7 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
                   className="w-100 h-100 py-0 ps-0 pe-5 d-flex justify-content-between align-items-center"
                   title={name}
                 >
-                  <Image alt={name} width={100} height={100} unoptimized src={`${images[0].path}/${images[0].name}`} />
+                  <Image alt={name} width={100} height={100} unoptimized src={images[0].src} />
                   <span className="fs-6">{name}</span>
                 </Button>,
                 value: id,

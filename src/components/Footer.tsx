@@ -25,10 +25,10 @@ export const Footer = () => {
         <div className="col-6">
           <h6 className="mb-4">{t('contacts')}</h6>
           <div className="d-flex gap-3 mb-3-5">
-            <Link href="https://t.me/AMChokers" target="_blank">
+            <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} target="_blank">
               <Image src={telegramIcon} width="35" priority alt={t('telegram')} />
             </Link>
-            <Link href="https://www.instagram.com/a_m_chokers?igsh=d2hoeXYyNXkzZXpy" target="_blank">
+            <Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.homePage} target="_blank">
               <Image src={instagramIcon} width="35" priority alt={t('instagram')} />
             </Link>
           </div>

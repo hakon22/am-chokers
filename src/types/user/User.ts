@@ -1,4 +1,5 @@
 import type { UserEntity } from '@server/db/entities/user.entity';
+import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { OmitBase } from '@/types/OmitBase';
 
 export interface UserInterface extends OmitBase<UserEntity> {
@@ -10,6 +11,7 @@ export interface UserInterface extends OmitBase<UserEntity> {
   key: string;
   /** Адрес для переадресации после входа */
   url: string;
+  favorites: ItemEntity[];
   [key: string]: any;
 }
 

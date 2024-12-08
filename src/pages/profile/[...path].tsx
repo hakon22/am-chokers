@@ -2,17 +2,17 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import { InferGetServerSidePropsType } from 'next';
 import Link from 'next/link';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { Menu } from 'antd';
 import { MenuProps } from 'antd/lib';
 
-import { setUrl } from '@/slices/userSlice';
 import { routes } from '@/routes';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/utilities/hooks';
 import { Helmet } from '@/components/Helmet';
 import { AuthContext } from '@/components/Context';
 import { Personal } from '@/components/profile/Personal';
 import { OrderHistory } from '@/components/profile/OrderHistory';
+import { Favorites } from '@/components/profile/Favorites';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NoAuthorization } from '@/components/NoAuthorization';
 
@@ -32,12 +32,11 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const { t: tMenu } = useTranslation('translation', { keyPrefix: 'pages.profile' });
   const { t } = useTranslation('translation', { keyPrefix: `pages.profile.${path.length === 1 ? path[0] : `${path[0]}.order`}` });
 
-  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const { logOut } = useContext(AuthContext);
 
-  const { id, role } = useAppSelector((state) => state.user);
+  const { id, role, favorites } = useAppSelector((state) => state.user);
 
   const items: MenuItem[] = [
     { key: routes.personalData, label: <Link href={routes.personalData}>{tMenu('menu.personal')}</Link> },
@@ -59,6 +58,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const pages: Record<string, JSX.Element> = {
     personal: <Personal t={t} />,
     orders: <OrderHistory t={t} />,
+    favorites: <Favorites />,
     order: <div>order</div>,
   };
 
@@ -72,18 +72,14 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     return pages[path[0]];
   };
 
-  useEffect(() => {
-    if (!id) {
-      dispatch(setUrl(router.asPath));
-    }
-  }, [id]);
+  const titleProps = { id: path[1], ...(router.asPath === routes.favorites ? { count: favorites?.length } : {}) };
 
   return (
     <>
-      <Helmet title={t('title', { id: path[1] })} description={t('description')} />
+      <Helmet title={t('title', titleProps)} description={t('description')} />
       {id ? (
         <>
-          <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { id: path[1] })}</h1>
+          <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
           <div className="d-flex">
             <div className="col-4">
               <Menu

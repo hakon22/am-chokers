@@ -15,7 +15,7 @@ import { OrderEntity } from '@server/db/entities/order.entity';
   name: 'order_position',
 })
 export class OrderPositionEntity extends BaseEntity {
-  /** Уникальный id позиции заказа */
+  /** Уникальный `id` позиции заказа */
   @PrimaryGeneratedColumn()
   public id: number;
 

@@ -39,7 +39,13 @@ export class ItemService extends BaseService {
         'item.bestseller',
         'item.order',
       ])
-      .leftJoinAndSelect('item.images', 'images')
+      .leftJoin('item.images', 'images')
+      .addSelect([
+        'images.id',
+        'images.name',
+        'images.path',
+        'images.deleted',
+      ])
       .leftJoinAndSelect('item.group', 'group')
       .leftJoinAndSelect('item.collection', 'collection');
 

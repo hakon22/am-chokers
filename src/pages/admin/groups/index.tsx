@@ -15,7 +15,6 @@ import { addItemGroup, deleteItemGroup, restoreItemGroup, updateItemGroup } from
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { NoAuthorization } from '@/components/NoAuthorization';
-import { setUrl } from '@/slices/userSlice';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
 
@@ -275,9 +274,7 @@ const CreateItemGroup = () => {
   }, [itemGroups.length]);
 
   useEffect(() => {
-    if (!role) {
-      dispatch(setUrl(router.asPath));
-    } else if (role === UserRoleEnum.MEMBER) {
+    if (role === UserRoleEnum.MEMBER) {
       router.push(routes.homePage);
     }
   }, [role]);

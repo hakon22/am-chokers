@@ -69,7 +69,7 @@ export const ImageHover = ({
             ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
               <Image
                 key={image.id}
-                src={`${image.path}/${image.name}`}
+                src={image.src}
                 unoptimized
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -100,7 +100,7 @@ export const ImageHover = ({
             ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
               <Image
                 key={image.id}
-                src={`${image.path}/${image.name}`}
+                src={image.src}
                 unoptimized
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

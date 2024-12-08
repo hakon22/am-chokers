@@ -17,7 +17,6 @@ import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from 
 import { routes } from '@/routes';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import { NoAuthorization } from '@/components/NoAuthorization';
-import { setUrl } from '@/slices/userSlice';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -162,9 +161,7 @@ const CreateItem = ({ itemCollections }: InferGetServerSidePropsType<typeof getS
   }, [itemGroup]);
 
   useEffect(() => {
-    if (!role) {
-      dispatch(setUrl(router.asPath));
-    } else if (role === UserRoleEnum.MEMBER) {
+    if (role === UserRoleEnum.MEMBER) {
       router.push(routes.homePage);
     }
   }, [role]);
@@ -192,13 +189,13 @@ const CreateItem = ({ itemCollections }: InferGetServerSidePropsType<typeof getS
                   </DndContext>
                 ) : (<ImageGallery
                   ref={galleryRef}
-                  items={images.map(({ name, path }) => ({ original: `${path}/${name}`, thumbnail: `${path}/${name}` }))}
+                  items={images.map(({ src }) => ({ original: src, thumbnail: src }))}
                   infinite
                   showNav
                   onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
                   showPlayButton={false}
                   thumbnailPosition="left"
-                  onClick={() => galleryRef.current?.fullScreen()}
+                  onClick={galleryRef.current?.fullScreen}
                 />)
                 : null}
               <Upload.Dragger {...props}>

@@ -3,18 +3,20 @@ import {
   BaseEntity,
   OneToMany,
   DeleteDateColumn,
+  ManyToMany,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 import { ImageEntity } from '@server/db/entities/image.entity';
+import { UserEntity } from '@server/db/entities/user.entity';
 
 /** Товар */
 @Entity({
   name: 'item',
 })
 export class ItemEntity extends BaseEntity {
-  /** Уникальный id товара */
+  /** Уникальный `id` товара */
   @PrimaryGeneratedColumn()
   public id: number;
 
@@ -124,4 +126,8 @@ export class ItemEntity extends BaseEntity {
     name: 'collection_id',
   })
   public collection: ItemCollectionEntity;
+
+  /** Пользователи, добавившие товар в избранное */
+  @ManyToMany(() => UserEntity, user => user.favorites)
+  public users: UserEntity[];
 }
