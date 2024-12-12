@@ -54,9 +54,9 @@ export class ItemController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
       const body = req.body as ItemEntity;
 
-      const item = await this.itemService.updateOne(params, body);
+      const { item, url } = await this.itemService.updateOne(params, body);
 
-      res.json({ code: 1, item });
+      res.json({ code: 1, item, url });
     } catch (e) {
       this.errorHandler(e, res);
     }

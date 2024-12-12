@@ -4,6 +4,8 @@ import {
   JoinColumn,
   DeleteDateColumn,
   AfterLoad,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 
@@ -21,6 +23,14 @@ export class ImageEntity extends BaseEntity {
   /** Имя изображения */
   @Column('character varying')
   public name: string;
+
+  /** Дата создания изображения */
+  @CreateDateColumn()
+  public created: Date;
+
+  /** Дата изменения изображения */
+  @UpdateDateColumn()
+  public updated: Date;
 
   /** Путь изображения */
   @Column('character varying')

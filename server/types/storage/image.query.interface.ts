@@ -5,4 +5,6 @@ export interface ImageQueryInterface {
   ids?: number[];
   /** С удалёнными */
   withDeleted?: boolean;
+  /** С товаром */
+  withItem?: boolean;
 }

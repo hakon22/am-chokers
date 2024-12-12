@@ -2,7 +2,7 @@ import { Button, Dropdown, Form, Popconfirm, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState, type ReactNode } from 'react';
 import type { MenuProps } from 'antd';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import Image from 'next/image';
 
 import type { ItemInterface } from '@/types/item/Item';
@@ -12,6 +12,7 @@ import { deleteItem, updateItem } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
+import { NotFoundContent } from '@/components/forms/NotFoundContent';
 
 export type Context = { action: string, id: number } | undefined;
 export type SetContext = React.Dispatch<React.SetStateAction<Context>>;
@@ -68,7 +69,7 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
     ...(item ? [{
       label: t('edit'),
       key: '1',
-      onClick: () => router.push(getHref(item)),
+      onClick: () => router.push({ pathname: getHref(item), query: { edit: true } }),
     },
     {
       label: (<Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(item)}>{t('remove')}</Popconfirm>),
@@ -108,6 +109,7 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
           <Form className="d-flex justify-content-center align-items-center p-absolute w-100">
             <Select
               showSearch
+              notFoundContent={<NotFoundContent />}
               style={{ width: 400 }}
               size="large"
               placeholder={t('selectItem')}

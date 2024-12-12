@@ -14,9 +14,9 @@ import { toast } from '@/utilities/toast';
 import { addItemGroup, deleteItemGroup, restoreItemGroup, updateItemGroup } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { NoAuthorization } from '@/components/NoAuthorization';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { BackButton } from '@/components/BackButton';
+import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
 interface ItemGroupTableInterface {
   key: string;
@@ -273,44 +273,30 @@ const CreateItemGroup = () => {
     setData(itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() })));
   }, [itemGroups.length]);
 
-  useEffect(() => {
-    if (role === UserRoleEnum.MEMBER) {
-      router.push(routes.homePage);
-    }
-  }, [role]);
-
-  return (
-    <>
+  return role === UserRoleEnum.ADMIN && (
+    <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
-      {role ? (
-        <>
-          <div className="d-flex flex-column mb-5 justify-content-center">
-            <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
-            <div className="d-flex align-items-center gap-3 mb-3">
-              <Button onClick={handleAdd} className="button border-button">
-                {t('addItemGroup')}
-              </Button>
-              <Button onClick={() => router.back()} className="back-button border-button" style={{ position: 'absolute', top: '15%' }}>
-                {t('back')}
-              </Button>
-              <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
-            </div>
-            <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
-              <Table<ItemGroupTableInterface>
-                components={{
-                  body: { cell: EditableCell },
-                }}
-                bordered
-                dataSource={data}
-                columns={mergedColumns}
-                rowClassName="editable-row"
-                pagination={{ position: ['none', 'none'] }}
-              />
-            </Form>
-          </div>
-        </>
-      ) : <NoAuthorization />}
-    </> 
+      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <Button onClick={handleAdd} className="button border-button">
+          {t('addItemGroup')}
+        </Button>
+        <BackButton />
+        <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+      </div>
+      <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
+        <Table<ItemGroupTableInterface>
+          components={{
+            body: { cell: EditableCell },
+          }}
+          bordered
+          dataSource={data}
+          columns={mergedColumns}
+          rowClassName="editable-row"
+          pagination={{ position: ['none', 'none'] }}
+        />
+      </Form>
+    </div>
   );
 };
 

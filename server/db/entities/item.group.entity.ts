@@ -2,6 +2,8 @@ import {
   Entity, Column, PrimaryGeneratedColumn, BaseEntity,
   DeleteDateColumn,
   Unique,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 /** Группы товаров */
@@ -17,6 +19,14 @@ export class ItemGroupEntity extends BaseEntity {
   /** Имя группы товара */
   @Column('character varying')
   public name: string;
+
+  /** Дата создания группы товара */
+  @CreateDateColumn()
+  public created: Date;
+
+  /** Дата изменения группы товара */
+  @UpdateDateColumn()
+  public updated: Date;
 
   /** Описание группы товара */
   @Column('character varying')

@@ -1,24 +1,43 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Rate } from 'antd';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
 import cn from 'classnames';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
 
 import type { ItemInterface } from '@/types/item/Item';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { routes } from '@/routes';
+import { useAppSelector } from '@/utilities/hooks';
+import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import CreateItem from '@/pages/admin/item/new';
+import { booleanSchema } from '@server/utilities/convertation.params';
 
 export const CardItem = ({
-  id, images, name, discount, discountPrice, description, price, composition, length, rating,
+  id, images, name, discount, discountPrice, description, price, composition, length, rating, ...rest
 }: ItemInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [tab, setTab] = useState<'delivery' | 'warranty'>();
+  const { role } = useAppSelector((state) => state.user);
 
-  return (
+  const router = useRouter();
+  const urlParams = useSearchParams();
+  const editParams = urlParams.get('edit');
+
+  const [tab, setTab] = useState<'delivery' | 'warranty'>();
+  const [isEdit, setEdit] = useState<boolean | undefined>();
+
+  useEffect(() => {
+    if (role === UserRoleEnum.ADMIN) {
+      setEdit(booleanSchema.validateSync(editParams));
+    }
+  }, [editParams, role]);
+
+  return isEdit ? <CreateItem oldItem={{ id, images, name, discount, discountPrice, description, price, composition, length, rating, ...rest }} /> : (
     <div className="d-flex flex-column">
       <div className="d-flex mb-5">
         <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
@@ -47,7 +66,15 @@ export const CardItem = ({
               <Rate disabled value={rating} />
               <span>{rating}</span>
             </div>
-            <p className="fs-5 mb-4">{t('price', { price })}</p>
+            <div className="d-flex gap-5">
+              <p className="fs-5 mb-4">{t('price', { price })}</p>
+              {role === UserRoleEnum.ADMIN ? <Button type="text" className="edit-button" onClick={() => {
+                router.push({
+                  pathname: router.pathname,
+                  query: { ...router.query, edit: true },
+                }, undefined, { shallow: true });
+              }}>{t('edit')}</Button> : null}
+            </div>
             <div className="d-flex align-items-center gap-5 mb-4">
               <CartControl id={id} name={name} className="fs-5" />
               <Favorites id={id} />

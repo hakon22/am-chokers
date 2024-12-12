@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
 
 /** Коллекции товаров */
 @Entity({
@@ -12,6 +12,14 @@ export class ItemCollectionEntity extends BaseEntity {
   /** Имя коллекции */
   @Column('character varying')
   public name: string;
+
+  /** Дата создания коллекции */
+  @CreateDateColumn()
+  public created: Date;
+
+  /** Дата изменения коллекции */
+  @UpdateDateColumn()
+  public updated: Date;
 
   /** Описание коллекции */
   @Column('character varying')

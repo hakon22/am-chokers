@@ -1,13 +1,12 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-import type { ItemGroupInterface, ItemCollectionInterface, ItemInterface, ItemsAndGroupsInterface } from '@/types/item/Item';
+import type { ItemGroupInterface, ItemCollectionInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
 import type { InitialState } from '@/types/InitialState';
 import { routes } from '@/routes';
+import type { ImageEntity } from '@server/db/entities/image.entity';
 
-interface AppStoreInterface extends ItemsAndGroupsInterface, InitialState {
-  itemCollections: ItemCollectionInterface[];
-}
+type AppStoreInterface = AppDataInterface & InitialState;
 
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
@@ -33,7 +32,7 @@ export const updateItem = createAsyncThunk(
   'app/updateItem',
   async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
     try {
-      const response = await axios.put<{ code: number; item: ItemInterface; }>(routes.crudItem(id), data);
+      const response = await axios.put<{ code: number; item: ItemInterface; url: string; }>(routes.crudItem(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -161,16 +160,26 @@ export const restoreItemCollection = createAsyncThunk(
   },
 );
 
+export const deleteItemImage = createAsyncThunk(
+  'app/deleteItemImage',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<{ code: number; image: ImageEntity; }>(routes.imageDelete(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    setItemsAndGroups: (state, { payload }: PayloadAction<ItemsAndGroupsInterface>) => {
+    setAppData: (state, { payload }: PayloadAction<AppDataInterface>) => {
       state.items = payload.items;
       state.itemGroups = payload.itemGroups;
-    },
-    setItemsCollections: (state, { payload }: PayloadAction<ItemCollectionInterface[]>) => {
-      state.itemCollections = payload;
+      state.itemCollections = payload.itemCollections;
     },
   },
   extraReducers: (builder) => {
@@ -342,7 +351,6 @@ const appSlice = createSlice({
       .addCase(deleteItemCollection.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.items = state.items
-            .filter((item) => item.collection)
             .map((item) => {
               if (item.collection.id === payload.itemCollection.id) {
                 return { ...item, collection: null } as unknown as ItemInterface;
@@ -372,10 +380,28 @@ const appSlice = createSlice({
       .addCase(restoreItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(deleteItemImage.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteItemImage.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const index = state.items.findIndex((item) => item.images.find(({ id }) => id === payload.image.id));
+          if (index !== -1) {
+            state.items[index].images = state.items[index].images.filter(({ id }) => id !== payload.image.id);
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(deleteItemImage.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
       });
   },
 });
 
-export const { setItemsAndGroups, setItemsCollections } = appSlice.actions;
+export const { setAppData } = appSlice.actions;
 
 export default appSlice.reducer;

@@ -1,16 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { Button, Result } from 'antd';
+import { Result } from 'antd';
 
 import { Helmet } from '@/components/Helmet';
 import image404 from '@/images/404.svg';
+import { BackButton } from '@/components/BackButton';
 
 const Page404 = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.404' });
-  const router = useRouter();
-
-  const back = () => router.back();
 
   return (
     <>
@@ -20,7 +17,7 @@ const Page404 = () => {
         title={t('title')}
         subTitle={t('description')}
         style={{ marginTop: '10%' }}
-        extra={<Button className="button col-2 mx-auto" onClick={back}>{t('prev')}</Button>}
+        extra={<BackButton className="button col-2 mx-auto" propsFullReplace />}
       />
     </>
   );

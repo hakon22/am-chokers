@@ -14,6 +14,7 @@ import { Footer } from '@/components/Footer';
 import { useRootStyle } from '@/utilities/useRootStyle';
 import { Spinner } from '@/components/Spinner';
 import { routes } from '@/routes';
+import { useAccessHandler } from '@/utilities/useAccessHandler';
 
 export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
@@ -30,6 +31,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
 
   useErrorHandler(userError, orderError, appError, cartError);
   useAuthHandler();
+  useAccessHandler();
   useRootStyle();
 
   useEffect(() => {

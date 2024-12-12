@@ -5,7 +5,6 @@ export default {
         title: 'Ошибка 404',
         description: 'Страница не найдена',
         text: 'Возможно, наши горе-разработчики что-то сломали :(',
-        prev: 'Назад',
       },
       index: {
         title: 'AM-Chokers',
@@ -127,7 +126,10 @@ export default {
       createItem: {
         title: 'Создание товара',
         description: 'Создание товара',
+        editTitle: 'Редактирование товара',
+        editDescription: 'Редактирование товара',
         submitButton: 'Добавить товар',
+        submitEditButton: 'Изменить товар',
         favorites: 'Избранное',
         success: 'Изображение {{ fileName }} успешно загружено',
         home: 'Главная',
@@ -251,6 +253,7 @@ export default {
       cardItem: {
         add: 'Добавить',
         remove: 'Удалить',
+        edit: 'Редактировать',
         addToCart: 'В корзину',
         favorites: 'Избранное',
         price: '{{ price }} ₽',
@@ -301,6 +304,15 @@ export default {
         cancel: 'Отменить',
         okText: 'Да',
       },
+      notFoundContent: {
+        text: 'Данных нет',
+      },
+      backButton: {
+        back: 'Назад',
+      },
+      sortableItem: {
+        delete: 'Удалить',
+      },
     },
     validation: {
       required: 'Обязательное поле',
@@ -330,6 +342,7 @@ export default {
       itemGroupExist: 'Группа с кодом {{ code }} уже существует',
       itemCollectionExist: 'Коллекция {{ name }} уже существует',
       itemDeletedSuccess: 'Товар {{ name }} успешно удалён',
+      itemUpdatedSuccess: 'Товар {{ name }} успешно обновлён',
       orderCreateSuccess: 'Заказ успешно оформлен!',
     },
     spinner: {

@@ -2,13 +2,14 @@ import { renameSync, mkdirSync, existsSync } from 'fs';
 import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
+import type { EntityManager } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
-import { itemPath, uploadFilesItemPath, uploadFilesTempPath } from '@server/utilities/upload.path';
+import { itemPath, tempPath, uploadFilesItemPath, uploadFilesTempPath } from '@server/utilities/upload.path';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
@@ -103,7 +104,6 @@ export class ItemService extends BaseService {
 
     const createdItem = await this.databaseService.getManager().transaction(async (manager) => {
       const itemRepo = manager.getRepository(ItemEntity);
-      const imageRepo = manager.getRepository(ImageEntity);
 
       const created = await itemRepo.save(body);
 
@@ -111,13 +111,7 @@ export class ItemService extends BaseService {
         mkdirSync(uploadFilesItemPath(created.id));
       }
 
-      fetchedImages.forEach((image, i) => {
-        renameSync(uploadFilesTempPath(image.name), uploadFilesItemPath(created.id, image.name));
-        image.path = itemPath(created.id);
-        image.item = created;
-        image.order = i;
-      });
-      await imageRepo.save(fetchedImages);
+      await this.processingImages(fetchedImages, created, manager);
 
       return created;
     });
@@ -132,11 +126,20 @@ export class ItemService extends BaseService {
   public updateOne = async (params: ParamsIdInterface, body: ItemEntity) => {
     const item = await this.findOne(params);
 
-    const newItem = { ...item, ...body } as ItemEntity;
+    const updated = await this.databaseService.getManager().transaction(async (manager) => {
+      const itemRepo = manager.getRepository(ItemEntity);
 
-    await ItemEntity.save(newItem);
+      const newItem = { ...item, ...body } as ItemEntity;
 
-    return newItem;
+      await itemRepo.save(newItem);
+      await this.processingImages(body.images, newItem, manager);
+
+      return newItem;
+    });
+
+    const url = path.join(routes.homePage, catalogPath.slice(1), updated.group.code, translate(updated.name));
+
+    return { item: updated, url };
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {
@@ -151,5 +154,18 @@ export class ItemService extends BaseService {
     const item = await deletedItem.recover();
 
     return item;
+  };
+
+  private processingImages = async (images: ImageEntity[], item: ItemEntity, manager: EntityManager) => {
+    const updatedImages = images.map((image, i) => {
+      if (image.path === tempPath) {
+        renameSync(uploadFilesTempPath(image.name), uploadFilesItemPath(item.id, image.name));
+        image.path = itemPath(item.id);
+        image.item = { id: item.id } as ItemEntity;
+      }
+      image.order = i;
+      return image;
+    });
+    await manager.getRepository(ImageEntity).save(updatedImages);
   };
 }

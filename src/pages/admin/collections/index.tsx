@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
 import axios from 'axios';
-import type { InferGetServerSidePropsType } from 'next';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -12,22 +11,12 @@ import { SubmitContext } from '@/components/Context';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 import { newItemCatalogValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItemCollection, deleteItemCollection, restoreItemCollection, setItemsCollections, updateItemCollection } from '@/slices/appSlice';
+import { addItemCollection, deleteItemCollection, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { NoAuthorization } from '@/components/NoAuthorization';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
-
-export const getServerSideProps = async () => {
-  const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[] }>(routes.itemCollections({ isServer: false }));
-
-  return {
-    props: {
-      itemCollections,
-    },
-  };
-};
+import { BackButton } from '@/components/BackButton';
+import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
 interface ItemCollectionTableInterface {
   key: string;
@@ -65,7 +54,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   </td>
 );
 
-const CreateItemCollection = ({ itemCollections: fetchedItemCollections }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const CreateItemCollection = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.itemCollection' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -273,51 +262,33 @@ const CreateItemCollection = ({ itemCollections: fetchedItemCollections }: Infer
   }, [withDeleted]);
 
   useEffect(() => {
-    dispatch(setItemsCollections(fetchedItemCollections));
-  }, []);
-
-  useEffect(() => {
     setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));
   }, [itemCollections.length]);
 
-  useEffect(() => {
-    if (role === UserRoleEnum.MEMBER) {
-      router.push(routes.homePage);
-    }
-  }, [role]);
-
-  return (
-    <>
+  return role === UserRoleEnum.ADMIN && (
+    <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
-      {role ? (
-        <>
-          <div className="d-flex flex-column mb-5 justify-content-center">
-            <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
-            <div className="d-flex align-items-center gap-3 mb-3">
-              <Button onClick={handleAdd} className="button border-button">
-                {t('addItemCollection')}
-              </Button>
-              <Button onClick={() => router.back()} className="back-button border-button" style={{ position: 'absolute', top: '15%' }}>
-                {t('back')}
-              </Button>
-              <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
-            </div>
-            <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
-              <Table<ItemCollectionTableInterface>
-                components={{
-                  body: { cell: EditableCell },
-                }}
-                bordered
-                dataSource={data}
-                columns={mergedColumns}
-                rowClassName="editable-row"
-                pagination={{ position: ['none', 'none'] }}
-              />
-            </Form>
-          </div>
-        </>
-      ) : <NoAuthorization />}
-    </> 
+      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
+      <div className="d-flex align-items-center gap-3 mb-3">
+        <Button onClick={handleAdd} className="button border-button">
+          {t('addItemCollection')}
+        </Button>
+        <BackButton />
+        <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+      </div>
+      <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
+        <Table<ItemCollectionTableInterface>
+          components={{
+            body: { cell: EditableCell },
+          }}
+          bordered
+          dataSource={data}
+          columns={mergedColumns}
+          rowClassName="editable-row"
+          pagination={{ position: ['none', 'none'] }}
+        />
+      </Form>
+    </div>
   );
 };
 

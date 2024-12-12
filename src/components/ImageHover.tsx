@@ -15,7 +15,6 @@ interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterf
   description?: string;
   marker?: boolean;
   style?: CSSProperties;
-  props?: HTMLAttributes<HTMLDivElement>[];
 }
 
 export const ImageHover = ({
@@ -82,7 +81,7 @@ export const ImageHover = ({
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
             {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
-            {name ? <div className="title">{name}</div> : null}
+            {name ? <div className="title lh-sm mb-3">{name}</div> : null}
             {description ? <div className="description">{description}</div> : null}
           </div>
         ) : null}
@@ -113,7 +112,7 @@ export const ImageHover = ({
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
             {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
-            {name ? <div className="title">{name}</div> : null}
+            {name ? <div className="title lh-sm mb-3">{name}</div> : null}
             {description ? <div className="description">{description}</div> : null}
           </div>
         ) : null}

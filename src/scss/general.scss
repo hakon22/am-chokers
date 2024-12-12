@@ -99,12 +99,19 @@ h2 {
 .icon {
   font-size: 1.8rem;
   cursor: pointer;
+  z-index: 1500;
 
   &-button {
     padding: 0;
     border: 0;
     outline: 0;
     background-color: transparent;
+  }
+}
+
+.hovered {
+  &:active, &:hover {
+    color: $ant-hover !important;
   }
 }
 
@@ -141,6 +148,21 @@ a {
 
   &:active, &:hover {
     background-color: $font-error-hover !important;
+    color: $white !important;
+  }
+}
+
+.edit-button {
+  background-color: $edit-button;
+  color: $white;
+  font-family: Oswald, sans-serif !important;
+  font-size: 1rem;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+
+  &:active, &:hover {
+    background-color: $edit-button-hover !important;
     color: $white !important;
   }
 }

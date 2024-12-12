@@ -10,6 +10,7 @@ import { ImageEntity } from '@server/db/entities/image.entity';
 import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { uploadFilesTempPath, tempPath } from '@server/utilities/upload.path';
+import { paramsIdSchema } from '@server/utilities/convertation.params';
 
 @Singleton
 export class ImageService extends BaseService {
@@ -33,6 +34,11 @@ export class ImageService extends BaseService {
     }
     if (query?.ids?.length) {
       builder.andWhere('image.id IN(:...ids)', { ids: query.ids });
+    }
+    if (query?.withItem) {
+      builder
+        .leftJoin('image.item', 'item')
+        .addSelect('item.id');
     }
 
     return builder;
@@ -60,31 +66,29 @@ export class ImageService extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
-      const query = req.params;
+      const params = await paramsIdSchema.validate(req.params);
 
-      const image = await this.findOne(query);
+      const image = await this.findOne(params);
 
       await image.softRemove();
 
-      res.json({ code: 1 });
+      res.json({ code: 1, image });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
-      const query = req.params;
+      const params = await paramsIdSchema.validate(req.params);
 
-      const deletedImage = await this.findOne(query);
+      const deletedImage = await this.findOne(params);
 
       const image = await deletedImage.recover();
 
       res.json({ code: 1, image });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 

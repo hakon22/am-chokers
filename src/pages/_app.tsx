@@ -22,15 +22,15 @@ import favicon57 from '@/images/favicon57x57.png';
 import favicon180 from '@/images/favicon180x180.png';
 import store from '@/slices/index';
 import { App } from '@/components/App';
-import { setItemsAndGroups } from '@/slices/appSlice';
+import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
-import type { ItemGroupInterface, ItemInterface, ItemsAndGroupsInterface } from '@/types/item/Item';
+import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
-const Init = (props: AppProps & ItemsAndGroupsInterface) => {
-  const { pageProps, Component, items, itemGroups } = props;
+const Init = (props: AppProps & AppDataInterface) => {
+  const { pageProps, Component, items, itemGroups, itemCollections } = props;
   const { dispatch } = store;
 
   const { id, refreshToken } = store.getState().user;
@@ -61,7 +61,7 @@ const Init = (props: AppProps & ItemsAndGroupsInterface) => {
 
   useEffect(() => {
     AOS.init();
-    dispatch(setItemsAndGroups({ items, itemGroups }));
+    dispatch(setAppData({ items, itemGroups, itemCollections }));
   }, []);
 
   return (
@@ -89,14 +89,15 @@ const Init = (props: AppProps & ItemsAndGroupsInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
-  const [{ data: { items } }, { data: { itemGroups } }] = await Promise.all([
+  const [{ data: { items } }, { data: { itemGroups } }, { data: { itemCollections } }] = await Promise.all([
     axios.get<{ items: ItemInterface[] }>(routes.items({ isServer: false })),
     axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false })),
+    axios.get<{ itemCollections: ItemCollectionInterface[] }>(routes.itemCollections({ isServer: false })),
   ]);
 
   const props = await AppNext.getInitialProps(context);
 
-  return { ...props, items, itemGroups };
+  return { ...props, items, itemGroups, itemCollections };
 };
 
 export default Init;

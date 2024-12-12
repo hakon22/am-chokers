@@ -58,6 +58,7 @@ export const routes = {
 
   // storage
   imageUpload: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
+  imageDelete: (id?: number) => [apiPath, 'image', id ?? ':id'].join('/'),
 
   // item
   items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
