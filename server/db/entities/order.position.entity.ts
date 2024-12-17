@@ -39,17 +39,17 @@ export class OrderPositionEntity extends BaseEntity {
   })
   public item: ItemEntity;
 
-  /** Цена */
+  /** Цена позиции заказа */
   @Column('numeric')
   public price: number;
 
-  /** Скидка */
+  /** Скидка на позицию заказа (в `процентах`) */
   @Column('int', {
     default: 0,
   })
   public discount: number;
 
-  /** Цена со скидкой */
+  /** Скидка на позицию заказа (в `рублях`) */
   @Column('int', {
     default: 0,
   })

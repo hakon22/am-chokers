@@ -7,6 +7,11 @@ import { routes } from '@/routes';
 import type { RootState } from '@/slices';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
+export interface OrderResponseInterface {
+  code: number;
+  order: OrderInterface;
+}
+
 export const orderAdapter = createEntityAdapter<OrderInterface>();
 
 export const fetchOrders = createAsyncThunk(
@@ -25,7 +30,31 @@ export const createOrder = createAsyncThunk(
   'order/createOrder',
   async (data: CartItemInterface[], { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number, order: OrderInterface }>(routes.createOrder, data);
+      const response = await axios.post<OrderResponseInterface>(routes.createOrder, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const updateOrder = createAsyncThunk(
+  'order/updateOrder',
+  async (data: OrderInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.put<OrderResponseInterface>(routes.crudOrder(data.id), data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const deleteOrder = createAsyncThunk(
+  'order/deleteOrder',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<OrderResponseInterface>(routes.crudOrder(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -77,6 +106,36 @@ const orderSlice = createSlice({
         state.error = null;
       })
       .addCase(createOrder.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(updateOrder.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(updateOrder.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          orderAdapter.updateOne(state, { id: payload.order.id, changes: payload.order });
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(updateOrder.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(deleteOrder.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(deleteOrder.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          orderAdapter.removeOne(state, payload.order.id);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(deleteOrder.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       });

@@ -11,12 +11,13 @@ import { SubmitContext } from '@/components/Context';
 import type { ItemGroupInterface } from '@/types/item/Item';
 import { newItemGroupValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItemGroup, deleteItemGroup, restoreItemGroup, updateItemGroup } from '@/slices/appSlice';
+import { addItemGroup, deleteItemGroup, type ItemGroupResponseInterface, restoreItemGroup, updateItemGroup } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { NotFoundContent } from '@/components/forms/NotFoundContent';
 
 interface ItemGroupTableInterface {
   key: string;
@@ -103,7 +104,7 @@ const CreateItemGroup = () => {
 
   const restore = async (key: React.Key) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemGroup } } = await dispatch(restoreItemGroup(key)) as { payload: { code: number; itemGroup: ItemGroupInterface } };
+    const { payload: { code: payloadCode, itemGroup } } = await dispatch(restoreItemGroup(key)) as { payload: ItemGroupResponseInterface };
     if (payloadCode === 1) {
       updateData(itemGroup);
     }
@@ -130,7 +131,7 @@ const CreateItemGroup = () => {
 
   const handleDelete = async (record: ItemGroupTableInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemGroup } } = await dispatch(deleteItemGroup(record.key)) as { payload: { code: number; itemGroup: ItemGroupInterface; } };
+    const { payload: { code: payloadCode, itemGroup } } = await dispatch(deleteItemGroup(record.key)) as { payload: ItemGroupResponseInterface };
     if (payloadCode === 1) {
       if (withDeleted) {
         updateData(itemGroup);
@@ -154,7 +155,7 @@ const CreateItemGroup = () => {
 
     const exist = itemGroups.find((itemGroup) => itemGroup.id.toString() === key.toString());
     if (exist) {
-      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({ id: exist.id, name, description, code } as ItemGroupInterface)) as { payload: { code: number; itemGroup: ItemGroupInterface; } };
+      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({ id: exist.id, name, description, code } as ItemGroupInterface)) as { payload: ItemGroupResponseInterface };
       if (payloadCode === 1) {
         updateData(itemGroup, row);
       }
@@ -273,7 +274,7 @@ const CreateItemGroup = () => {
     setData(itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() })));
   }, [itemGroups.length]);
 
-  return role === UserRoleEnum.ADMIN && (
+  return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
@@ -291,13 +292,16 @@ const CreateItemGroup = () => {
           }}
           bordered
           dataSource={data}
+          locale={{
+            emptyText: <NotFoundContent />,
+          }}
           columns={mergedColumns}
           rowClassName="editable-row"
-          pagination={{ position: ['none', 'none'] }}
+          pagination={false}
         />
       </Form>
     </div>
-  );
+  ) : null;
 };
 
 export default CreateItemGroup;

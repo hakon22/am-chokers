@@ -100,8 +100,6 @@ export class ItemService extends BaseService {
       return { code: 2 };
     }
 
-    const fetchedImages = await this.imageService.findMany({ ids: images.map(({ id }) => id) });
-
     const createdItem = await this.databaseService.getManager().transaction(async (manager) => {
       const itemRepo = manager.getRepository(ItemEntity);
 
@@ -111,12 +109,12 @@ export class ItemService extends BaseService {
         mkdirSync(uploadFilesItemPath(created.id));
       }
 
-      await this.processingImages(fetchedImages, created, manager);
+      await this.processingImages(images, created, manager);
 
       return created;
     });
 
-    const url = path.join(routes.homePage, catalogPath.slice(1), createdItem.group.code, translate(createdItem.name));
+    const url = this.getUrl(createdItem);
 
     const item = await this.findOne({ id: createdItem.id });
 
@@ -137,7 +135,7 @@ export class ItemService extends BaseService {
       return newItem;
     });
 
-    const url = path.join(routes.homePage, catalogPath.slice(1), updated.group.code, translate(updated.name));
+    const url = this.getUrl(updated);
 
     return { item: updated, url };
   };
@@ -168,4 +166,6 @@ export class ItemService extends BaseService {
     });
     await manager.getRepository(ImageEntity).save(updatedImages);
   };
+
+  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name));
 }

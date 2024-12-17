@@ -16,11 +16,32 @@ const initialState: AppStoreInterface = {
   itemCollections: [],
 };
 
+export interface ItemResponseInterface {
+  code: number;
+  item: ItemInterface;
+}
+
+export interface ItemWithUrlResponseInterface {
+  code: number;
+  item: ItemInterface;
+  url: string;
+}
+
+export interface ItemGroupResponseInterface {
+  code: number;
+  itemGroup: ItemGroupInterface;
+}
+
+export interface ItemCollectionResponseInterface {
+  code: number;
+  itemCollection: ItemCollectionInterface;
+}
+
 export const addItem = createAsyncThunk(
   'app/addItem',
   async (data: ItemInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; item: ItemInterface; url: string; }>(routes.createItem, data);
+      const response = await axios.post<ItemWithUrlResponseInterface>(routes.createItem, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -32,7 +53,7 @@ export const updateItem = createAsyncThunk(
   'app/updateItem',
   async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
     try {
-      const response = await axios.put<{ code: number; item: ItemInterface; url: string; }>(routes.crudItem(id), data);
+      const response = await axios.put<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -44,7 +65,7 @@ export const deleteItem = createAsyncThunk(
   'app/deleteItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
+      const response = await axios.delete<ItemResponseInterface>(routes.crudItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -56,7 +77,7 @@ export const restoreItem = createAsyncThunk(
   'app/restoreItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<{ code: number; item: ItemInterface; }>(routes.crudItem(id));
+      const response = await axios.patch<ItemResponseInterface>(routes.crudItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -68,7 +89,7 @@ export const addItemGroup = createAsyncThunk(
   'app/addItemGroup',
   async (data: ItemGroupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; itemGroup: ItemGroupInterface; }>(routes.createItemGroup, data);
+      const response = await axios.post<ItemGroupResponseInterface>(routes.createItemGroup, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -80,7 +101,7 @@ export const updateItemGroup = createAsyncThunk(
   'app/updateItemGroup',
   async (data: ItemGroupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.put<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(data.id), data);
+      const response = await axios.put<ItemGroupResponseInterface>(routes.crudItemGroup(data.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -92,7 +113,7 @@ export const deleteItemGroup = createAsyncThunk(
   'app/deleteItemGroup',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
+      const response = await axios.delete<ItemGroupResponseInterface>(routes.crudItemGroup(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -104,7 +125,7 @@ export const restoreItemGroup = createAsyncThunk(
   'app/restoreItemGroup',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<{ code: number; itemGroup: ItemGroupInterface; }>(routes.crudItemGroup(id));
+      const response = await axios.patch<ItemGroupResponseInterface>(routes.crudItemGroup(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -116,7 +137,7 @@ export const addItemCollection = createAsyncThunk(
   'app/addItemCollection',
   async (data: ItemCollectionInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.createItemCollection, data);
+      const response = await axios.post<ItemCollectionResponseInterface>(routes.createItemCollection, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -128,7 +149,7 @@ export const updateItemCollection = createAsyncThunk(
   'app/updateItemCollection',
   async (data: ItemCollectionInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.put<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(data.id), data);
+      const response = await axios.put<ItemCollectionResponseInterface>(routes.crudItemCollection(data.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -140,7 +161,7 @@ export const deleteItemCollection = createAsyncThunk(
   'app/deleteItemCollection',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
+      const response = await axios.delete<ItemCollectionResponseInterface>(routes.crudItemCollection(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -152,7 +173,7 @@ export const restoreItemCollection = createAsyncThunk(
   'app/restoreItemCollection',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<{ code: number; itemCollection: ItemCollectionInterface; }>(routes.crudItemCollection(id));
+      const response = await axios.patch<ItemCollectionResponseInterface>(routes.crudItemCollection(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

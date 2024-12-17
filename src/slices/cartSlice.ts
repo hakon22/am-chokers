@@ -9,6 +9,11 @@ interface CartStoreInterface extends InitialState {
   cart: CartItemInterface[];
 }
 
+export interface CartResponseInterface {
+  code: number;
+  cartItem: CartItemInterface;
+}
+
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (data: CartItemInterface[], { rejectWithValue }) => {
@@ -25,7 +30,7 @@ export const addCartItem = createAsyncThunk(
   'cart/addCartItem',
   async (data: CartItemFormInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; cartItem: CartItemInterface }>(routes.createCartItem, data);
+      const response = await axios.post<CartResponseInterface>(routes.createCartItem, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -37,7 +42,7 @@ export const incrementCartItem = createAsyncThunk(
   'cart/incrementCartItem',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number; cartItem: CartItemInterface }>(routes.incrementCartItem(id));
+      const response = await axios.get<CartResponseInterface>(routes.incrementCartItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -49,7 +54,7 @@ export const decrementCartItem = createAsyncThunk(
   'cart/decrementCartItem',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number; cartItem: CartItemInterface }>(routes.decrementCartItem(id));
+      const response = await axios.get<CartResponseInterface>(routes.decrementCartItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -61,7 +66,7 @@ export const removeCartItem = createAsyncThunk(
   'cart/removeCartItem',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; cartItem: CartItemInterface }>(routes.removeCartItem(id));
+      const response = await axios.delete<CartResponseInterface>(routes.removeCartItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

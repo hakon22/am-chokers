@@ -44,13 +44,13 @@ export class ItemEntity extends BaseEntity {
   @Column('int')
   public price: number;
 
-  /** Скидка товара */
+  /** Скидка на товар (в `процентах`) */
   @Column('int', {
     default: 0,
   })
   public discount: number;
 
-  /** Цена товара со скидкой */
+  /** Скидка на товар (в `рублях`) */
   @Column('int', {
     default: 0,
   })

@@ -43,7 +43,7 @@ export const routes = {
   telegram: [apiPath, 'telegram'].join('/'),
 
   // order
-  order: [apiPath, 'order', ':id'].join('/'),
+  crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),
   createOrder: [apiPath, 'order', 'new'].join('/'),
 
   // itemGroup

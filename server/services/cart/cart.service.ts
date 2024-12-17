@@ -33,6 +33,12 @@ export class CartService extends BaseService {
         'images.name',
         'images.path',
         'images.deleted',
+      ])
+      .leftJoin('item.group', 'group')
+      .addSelect([
+        'group.id',
+        'group.name',
+        'group.code',
       ]);
 
     if (userId) {

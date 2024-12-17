@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
+import Link from 'next/link';
 import type { CheckboxProps } from 'antd/lib';
 
 import { Helmet } from '@/components/Helmet';
@@ -14,6 +15,7 @@ import { CartControl } from '@/components/CartControl';
 import { removeMany, removeCartItem } from '@/slices/cartSlice';
 import { createOrder } from '@/slices/orderSlice';
 import { toast } from '@/utilities/toast';
+import { getHref } from '@/utilities/getHref';
 
 const Cart = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -22,11 +24,21 @@ const Cart = () => {
 
   const dispatch = useAppDispatch();
 
-  const { cart, loadingStatus } = useAppSelector((state) => state.cart);
+  const { cart } = useAppSelector((state) => state.cart);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
   const [cartList, setCartList] = useState<CartItemInterface[]>([]);
+
+  const { count, price: preparedPrice } = cartList.reduce((acc, cartItem) => {
+    acc.price += (cartItem.item.price - cartItem.item.discountPrice) * cartItem.count;
+    acc.count += cartItem.count;
+    return acc;
+  }, { count: 0, price: 0 });
+
+  const countCart = cart.reduce((acc, cartItem) => acc + cartItem.count, 0);
+
+  const price = Math.floor(preparedPrice);
 
   const isFull = cartList.length === cart.length;
   const indeterminate = cartList.length > 0 && cartList.length < cart.length;
@@ -34,12 +46,6 @@ const Cart = () => {
   const delivery = 500;
 
   const height = 170;
-
-  const { count, price } = cartList.reduce((acc, cartItem) => {
-    acc.price += (cartItem.item.price - cartItem.item.discountPrice) * cartItem.count;
-    acc.count += cartItem.count;
-    return acc;
-  }, { count: 0, price: 0 });
 
   const onChange = (cartItems: CartItemInterface[]) => {
     setCartList(cartItems);
@@ -62,15 +68,13 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    if (loadingStatus === 'finish') {
-      setCartList(cart);
-    }
-  }, [loadingStatus]);
+    setCartList(cart);
+  }, []);
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: '12%' }}>
-      <Helmet title={t('title', { count })} description={t('description')} />
-      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count })}</h1>
+      <Helmet title={t('title', { count: countCart })} description={t('description')} />
+      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex col-12 gap-3 large-input font-oswald" onFinish={onFinish}>
         <div className="d-flex flex-column justify-content-center align-items-between col-8">
           <Checkbox className="mb-4" indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
@@ -92,12 +96,12 @@ const Cart = () => {
                       />
                     </Checkbox>
                     <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-                      <div className="d-flex flex-column gap-3">
+                      <Link href={getHref(item.item)} className="d-flex flex-column gap-3">
                         <span className="lh-1">{item.item.name}</span>
                         <span>{tPrice('price', { price: item.item.price })}</span>
-                      </div>
+                      </Link>
                       <div className="d-flex gap-4">
-                        <CartControl id={item.item.id} name={item.item.name} />
+                        <CartControl id={item.item.id} name={item.item.name} setCartList={setCartList} />
                         <div className="d-flex gap-3">
                           <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
                             <DeleteOutlined className="icon fs-5" />

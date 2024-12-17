@@ -11,12 +11,13 @@ import { SubmitContext } from '@/components/Context';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 import { newItemCatalogValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItemCollection, deleteItemCollection, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
+import { addItemCollection, deleteItemCollection, type ItemCollectionResponseInterface, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { NotFoundContent } from '@/components/forms/NotFoundContent';
 
 interface ItemCollectionTableInterface {
   key: string;
@@ -102,7 +103,7 @@ const CreateItemCollection = () => {
 
   const restore = async (key: React.Key) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemCollection } } = await dispatch(restoreItemCollection(key)) as { payload: { code: number; itemCollection: ItemCollectionInterface } };
+    const { payload: { code: payloadCode, itemCollection } } = await dispatch(restoreItemCollection(key)) as { payload: ItemCollectionResponseInterface };
     if (payloadCode === 1) {
       updateData(itemCollection);
     }
@@ -128,7 +129,7 @@ const CreateItemCollection = () => {
 
   const handleDelete = async (record: ItemCollectionTableInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemCollection } } = await dispatch(deleteItemCollection(record.key)) as { payload: { code: number; itemCollection: ItemCollectionInterface; } };
+    const { payload: { code: payloadCode, itemCollection } } = await dispatch(deleteItemCollection(record.key)) as { payload: ItemCollectionResponseInterface };
     if (payloadCode === 1) {
       if (withDeleted) {
         updateData(itemCollection);
@@ -152,7 +153,7 @@ const CreateItemCollection = () => {
 
     const exist = itemCollections.find((itemCollection) => itemCollection.id.toString() === key.toString());
     if (exist) {
-      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: { code: number; itemCollection: ItemCollectionInterface; } };
+      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface };
       if (payloadCode === 1) {
         updateData(itemCollection, row);
       }
@@ -265,7 +266,7 @@ const CreateItemCollection = () => {
     setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));
   }, [itemCollections.length]);
 
-  return role === UserRoleEnum.ADMIN && (
+  return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
@@ -283,13 +284,16 @@ const CreateItemCollection = () => {
           }}
           bordered
           dataSource={data}
+          locale={{
+            emptyText: <NotFoundContent />,
+          }}
           columns={mergedColumns}
           rowClassName="editable-row"
           pagination={{ position: ['none', 'none'] }}
         />
       </Form>
     </div>
-  );
+  ) : null;
 };
 
 export default CreateItemCollection;

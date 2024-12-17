@@ -31,6 +31,7 @@ export class OrderService extends BaseService {
         'positions.id',
         'positions.price',
         'positions.discount',
+        'positions.discountPrice',
         'positions.count',
       ])
       .leftJoin('positions.item', 'item')
@@ -43,7 +44,6 @@ export class OrderService extends BaseService {
         'images.id',
         'images.name',
         'images.path',
-        'images.deleted',
       ]);
 
     if (query?.withUser) {
@@ -90,7 +90,7 @@ export class OrderService extends BaseService {
     const cartIds = body.map(({ id }) => id);
     const cart = await this.cartService.findMany(userId, undefined, { ids: cartIds });
 
-    const order = await this.databaseService.getManager().transaction(async (manager) => {
+    const created = await this.databaseService.getManager().transaction(async (manager) => {
       const orderRepo = manager.getRepository(OrderEntity);
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
 
@@ -108,7 +108,7 @@ export class OrderService extends BaseService {
       return orderRepo.save({ status: OrderStatusEnum.NEW, user: { id: userId }, positions });
     });
 
-    return order;
+    return this.findOne({ id: created.id });
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {

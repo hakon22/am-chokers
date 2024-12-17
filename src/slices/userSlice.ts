@@ -12,11 +12,21 @@ type KeysUserInitialState = keyof UserInterface;
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
+export interface UserResponseInterface {
+  code: number;
+  user: UserInterface;
+}
+
+export interface FavoritesResponseInterface {
+  code: number;
+  item: ItemEntity;
+}
+
 export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
   async (data: UserLoginInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number, user: UserInterface }>(routes.login, data);
+      const response = await axios.post<UserResponseInterface>(routes.login, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -28,7 +38,7 @@ export const fetchSignup = createAsyncThunk(
   'user/fetchSignup',
   async (data: UserSignupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number, user: UserInterface }>(routes.signup, data);
+      const response = await axios.post<UserResponseInterface>(routes.signup, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -40,7 +50,7 @@ export const fetchTokenStorage = createAsyncThunk(
   'user/fetchTokenStorage',
   async (refreshTokenStorage: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number, user: UserInterface }>(routes.updateTokens, {
+      const response = await axios.get<UserResponseInterface>(routes.updateTokens, {
         headers: { Authorization: `Bearer ${refreshTokenStorage}` },
       });
       return response.data;
@@ -76,7 +86,7 @@ export const updateTokens = createAsyncThunk(
           return data;
         }
       } else {
-        const { data } = await axios.get<{ code: number, user: UserInterface }>(routes.updateTokens, {
+        const { data } = await axios.get<UserResponseInterface>(routes.updateTokens, {
           headers: { Authorization: `Bearer ${refresh}` },
         });
         if (data.user.refreshToken) {
@@ -94,7 +104,7 @@ export const addFavorites = createAsyncThunk(
   'user/addFavorites',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number; item: ItemEntity }>(routes.addFavorites(id));
+      const response = await axios.get<FavoritesResponseInterface>(routes.addFavorites(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -106,7 +116,7 @@ export const removeFavorites = createAsyncThunk(
   'user/removeFavorites',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; item: ItemEntity }>(routes.removeFavorites(id));
+      const response = await axios.delete<FavoritesResponseInterface>(routes.removeFavorites(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

@@ -15,6 +15,7 @@ import { OrderHistory } from '@/components/profile/OrderHistory';
 import { Favorites } from '@/components/profile/Favorites';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NoAuthorization } from '@/components/NoAuthorization';
+import { Order } from '@/components/profile/Order';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -55,11 +56,13 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
+  const titleProps = { id: path[1], ...(router.asPath === routes.favorites ? { count: favorites?.length } : {}) };
+
   const pages: Record<string, JSX.Element> = {
     personal: <Personal t={t} />,
     orders: <OrderHistory t={t} />,
     favorites: <Favorites />,
-    order: <div>order</div>,
+    order: <Order orderId={+titleProps.id} t={t} />,
   };
 
   const getPage = () => {
@@ -71,8 +74,6 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     }
     return pages[path[0]];
   };
-
-  const titleProps = { id: path[1], ...(router.asPath === routes.favorites ? { count: favorites?.length } : {}) };
 
   return (
     <>

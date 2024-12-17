@@ -136,13 +136,21 @@ export class UserService extends BaseService {
         return;
       }
 
-      const user = await UserEntity.save({
-        ...payload,
-        password: bcrypt.hashSync(payload.password, 10),
-      });
+      const { user, token, refreshToken } = await this.databaseService.getManager().transaction(async (manager) => {
+        const userRepo = manager.getRepository(UserEntity);
 
-      const token = this.tokenService.generateAccessToken(user.id, user.phone);
-      const refreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
+        const createdUser = await userRepo.save({
+          ...payload,
+          password: bcrypt.hashSync(payload.password, 10),
+        });
+
+        const createdToken = this.tokenService.generateAccessToken(user.id, user.phone);
+        const createdRefreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
+
+        await userRepo.update(user.id, { refreshTokens: [refreshToken] });
+
+        return { user: createdUser, token: createdToken, refreshToken: createdRefreshToken };
+      });
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, refreshTokens, ...rest } = user;
@@ -207,7 +215,8 @@ export class UserService extends BaseService {
 
         await UserEntity.update(user.id, { refreshTokens: newRefreshTokens });
       } else {
-        throw new Error(`Ошибка доступа. Токен не найден: ${oldRefreshToken}, UserTokens: ${user.refreshTokens.join(', ')}`);
+        this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${user.refreshTokens.join(', ')}`);
+        throw new Error('Ошибка аутентификации. Войдите заново!');
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

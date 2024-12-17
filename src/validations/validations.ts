@@ -20,6 +20,9 @@ setLocale({
   number: {
     min: () => t('validation.notZero'),
   },
+  array: {
+    min: () => t('validation.emptyArray'),
+  },
 });
 
 const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T>) => ({
@@ -136,7 +139,9 @@ export const uuidArraySchema = yup.array(yup.string().uuid().required()).require
 const newOrderPositionSchema = yup.array(yup.object().shape({
   count: numberSchema,
   item: requiredIdSchema,
-}).concat(uuidSchema));
+})
+  .concat(uuidSchema))
+  .min(1);
 
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);

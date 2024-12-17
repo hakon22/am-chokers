@@ -5,10 +5,10 @@ import { Button } from 'antd';
 
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
-import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem } from '@/slices/cartSlice';
-import type { CartItemFormInterface } from '@/types/cart/Cart';
+import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
+import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
 
-export const CartControl = ({ id, name, className = 'fs-6' }: { id: number; name: string; className?: string; }) => {
+export const CartControl = ({ id, name, className = 'fs-6', setCartList }: { id: number; name: string; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>, className?: string; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const dispatch = useAppDispatch();
 
@@ -31,14 +31,36 @@ export const CartControl = ({ id, name, className = 'fs-6' }: { id: number; name
   const increment = async () => {
     if (!inCart) return;
     setIsSubmit(true);
-    await dispatch(incrementCartItem(inCart.id));
+    const { payload: { code, cartItem } } = await dispatch(incrementCartItem(inCart.id)) as { payload: CartResponseInterface };
+    if (setCartList && code === 1) {
+      setCartList((state) => {
+        const cartIndex = state.findIndex((cartListItem) => cartListItem.id === cartItem.id);
+        if (cartIndex !== -1) {
+          state[cartIndex] = cartItem;
+        }
+        return state;
+      });
+    }
     setIsSubmit(false);
   };
 
   const decrement = async () => {
     if (!inCart) return;
     setIsSubmit(true);
-    await dispatch(inCart.count > 1 ? decrementCartItem(inCart.id) : removeCartItem(inCart.id));
+    const { payload: { code, cartItem } } = await dispatch(inCart.count > 1 ? decrementCartItem(inCart.id) : removeCartItem(inCart.id)) as { payload: CartResponseInterface };
+    if (setCartList && code === 1) {
+      setCartList((state) => {
+        if (inCart.count > 1) {
+          const cartIndex = state.findIndex((cartListItem) => cartListItem.id === cartItem.id);
+          if (cartIndex !== -1) {
+            state[cartIndex] = cartItem;
+          }
+        } else {
+          return state.filter((cartListItem) => cartListItem.id !== cartItem.id);
+        }
+        return state;
+      });
+    }
     setIsSubmit(false);
   };
 

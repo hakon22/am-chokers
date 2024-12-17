@@ -12,6 +12,7 @@ export default {
         newItems: 'Новинки',
         collections: 'Коллекции',
         seeAll: 'Смотреть все',
+        seeCatalog: 'Смотреть каталог',
         bestsellers: 'Бестселлеры',
         necklacesAndChokers: 'Колье и чокеры',
         bracelets: 'Браслеты',
@@ -79,6 +80,11 @@ export default {
           },
           order: {
             title: 'Заказ №{{ id }}',
+            orderDate: 'Заказ от {{ date }}',
+            delivery: 'Доставка {{ delivery }}',
+            deliveryDate: 'Дата доставки {{ date }}',
+            countPrice: '{{ count }} шт - {{ price }} ₽',
+            evaluateItem: 'Оценить товар',
           },
         },
         favorites: {
@@ -319,6 +325,7 @@ export default {
       requirements: 'От 3 до 20 символов',
       passMin: 'Не менее 6 символов',
       notZero: 'Число должно быть больше нуля',
+      emptyArray: 'Список должен состоять хотя бы из одного элемента',
       phone: 'Введите корректный номер телефона',
       code: 'Введите 4 цифры',
       mastMatch: 'Пароли должны совпадать',

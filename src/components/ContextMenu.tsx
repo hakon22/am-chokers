@@ -8,7 +8,7 @@ import Image from 'next/image';
 import type { ItemInterface } from '@/types/item/Item';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { deleteItem, updateItem } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, updateItem } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
@@ -52,7 +52,7 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
 
   const handleDelete = async (target: ItemInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: { code: number; item: ItemInterface; } };
+    const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface };
     if (payloadCode === 1) {
       toast(tToast('itemDeletedSuccess', { name: deletedItem.name }), 'success');
     }

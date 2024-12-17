@@ -17,7 +17,7 @@ import { routes } from '@/routes';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItem, updateItem, deleteItemImage } from '@/slices/appSlice';
+import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/forms/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -82,13 +82,13 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
 
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [item, setItem] = useState<Partial<ItemInterface | undefined>>(oldItem);
+  const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
   const [isSortImage, setIsSortImage] = useState(false);
 
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<ItemInterface>();
 
   const itemName: string = Form.useWatch('name', form);
 
@@ -124,7 +124,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         setIsSubmit(false);
         return;
       }
-      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: values })) as { payload: { code: number; item: ItemInterface; url: string; } };
+      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: values })) as { payload: ItemWithUrlResponseInterface };
       code = payload.code;
       if (code === 1) {
         toast(tToast('itemUpdatedSuccess', { name: oldItem.name }), 'success');
@@ -134,7 +134,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         });
       }
     } else {
-      const { payload } = await dispatch(addItem(values)) as { payload: { code: number; item: ItemInterface; url: string; } };
+      const { payload } = await dispatch(addItem(values)) as { payload: ItemWithUrlResponseInterface };
       code = payload.code;
       if (code === 1) {
         setItem(undefined);
@@ -143,6 +143,8 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         setFileList([]);
         setImages([]);
         form.resetFields();
+        form.setFieldValue('group', undefined);
+        form.setFieldValue('collection', undefined);
         window.open(payload.url, '_blank');
       }
     }
@@ -174,7 +176,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     }
   }, [itemGroup]);
 
-  return role === UserRoleEnum.ADMIN && (
+  return role === UserRoleEnum.ADMIN ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
       {oldItem ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
@@ -308,7 +310,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         </div>
       </div>
     </>
-  );
+  ) : null;
 };
 
 export default CreateItem;
