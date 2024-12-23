@@ -31,7 +31,7 @@ export class UserEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
-  /** Удалён */
+  /** Дата удаления пользователя */
   @DeleteDateColumn()
   public deleted: Date;
 

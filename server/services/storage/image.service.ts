@@ -2,18 +2,23 @@ import { writeFileSync } from 'fs';
 
 import sharp from 'sharp';
 import type { Request, Response } from 'express';
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 import multer from 'multer';
 import { v4 as uuid } from 'uuid';
+import type { EntityManager } from 'typeorm';
 
 import { ImageEntity } from '@server/db/entities/image.entity';
 import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
 import { BaseService } from '@server/services/app/base.service';
-import { uploadFilesTempPath, tempPath } from '@server/utilities/upload.path';
+import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { paramsIdSchema } from '@server/utilities/convertation.params';
+import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import { ItemEntity } from '@server/db/entities/item.entity';
+import { CommentEntity } from '@server/db/entities/comment.entity';
 
 @Singleton
 export class ImageService extends BaseService {
+  private readonly uploadPathService = Container.get(UploadPathService);
 
   private createQueryBuilder = (query: ImageQueryInterface) => {
     const manager = this.databaseService.getManager();
@@ -106,12 +111,12 @@ export class ImageService extends BaseService {
 
       const name = `${uuid()}.jpeg`;
       // Сохранение обработанного изображения
-      const outputPath = uploadFilesTempPath(name);
+      const outputPath = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, name);
       writeFileSync(outputPath, data);
 
       const image = await ImageEntity.save({
         name,
-        path: tempPath,
+        path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
       });
 
       image.src = [image.path, image.name].join('/').replaceAll('\\', '/');
@@ -128,5 +133,28 @@ export class ImageService extends BaseService {
     const upload = multer({ storage });
 
     return upload.single('file');
+  };
+
+  public processingImages = async (images: ImageEntity[], folder: UploadPathEnum, id: number, manager: EntityManager) => {
+    if (!images?.length) {
+      return;
+    }
+    const updatedImages = images.map((image, i) => {
+      if (image.path === this.uploadPathService.getUrlPath(UploadPathEnum.TEMP)) {
+        this.uploadPathService.moveFile(folder, id, image.name);
+        image.path = this.uploadPathService.getUrlPath(folder, id);
+        switch (folder) {
+        case UploadPathEnum.ITEM:
+          image.item = { id } as ItemEntity;
+          break;
+        case UploadPathEnum.COMMENT:
+          image.comment = { id } as CommentEntity;
+          break;
+        }
+      }
+      image.order = i;
+      return image;
+    });
+    await manager.getRepository(ImageEntity).save(updatedImages);
   };
 }

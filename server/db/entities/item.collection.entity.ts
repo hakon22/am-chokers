@@ -21,11 +21,11 @@ export class ItemCollectionEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
+  /** Дата удаления коллекции */
+  @DeleteDateColumn()
+  public deleted: Date;
+
   /** Описание коллекции */
   @Column('character varying')
   public description: string;
-
-  /** Удалена */
-  @DeleteDateColumn()
-  public deleted: Date;
 }

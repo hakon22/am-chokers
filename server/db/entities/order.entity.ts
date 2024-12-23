@@ -28,7 +28,7 @@ export class OrderEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
-  /** Удалён */
+  /** Дата удаления заказа */
   @DeleteDateColumn()
   public deleted: Date;
 
@@ -41,11 +41,11 @@ export class OrderEntity extends BaseEntity {
 
   /** Покупатель */
   @ManyToOne(() => UserEntity, {
-    nullable: false,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({
     name: 'user_id',
-    referencedColumnName: 'id',
   })
   public user: UserEntity;
 

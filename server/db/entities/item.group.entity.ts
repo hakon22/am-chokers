@@ -28,6 +28,10 @@ export class ItemGroupEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
+  /** Дата удаления группы товара */
+  @DeleteDateColumn()
+  public deleted: Date;
+
   /** Описание группы товара */
   @Column('character varying')
   public description: string;
@@ -35,8 +39,4 @@ export class ItemGroupEntity extends BaseEntity {
   /** Код группы товара (отображается в url) */
   @Column('character varying')
   public code: string;
-
-  /** Удалена */
-  @DeleteDateColumn()
-  public deleted: Date;
 }

@@ -25,20 +25,23 @@ export class CartEntity extends BaseEntity {
   public count: number;
 
   /** Позиция */
-  @ManyToOne(() => ItemEntity)
+  @ManyToOne(() => ItemEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'item_id',
-    referencedColumnName: 'id',
   })
   public item: ItemEntity;
 
   /** Пользователь */
   @ManyToOne(() => UserEntity, {
     nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({
     name: 'user_id',
-    referencedColumnName: 'id',
   })
   public user?: UserEntity;
 }

@@ -10,6 +10,7 @@ import {
 
 
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { CommentEntity } from '@server/db/entities/comment.entity';
 
 /** Изображения */
 @Entity({
@@ -32,15 +33,15 @@ export class ImageEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
+  /** Дата удаления изображения */
+  @DeleteDateColumn()
+  public deleted: Date;
+
   /** Путь изображения */
   @Column('character varying')
   public path: string;
 
-  /** Удалена */
-  @DeleteDateColumn()
-  public deleted: Date;
-
-  /** Сортировка */
+  /** Очерёдность сортировки */
   @Column('int', {
     nullable: true,
   })
@@ -56,6 +57,17 @@ export class ImageEntity extends BaseEntity {
     name: 'item_id',
   })
   public item: ItemEntity;
+
+  /** Комментарий изображения */
+  @ManyToOne(() => CommentEntity, {
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'comment_id',
+  })
+  public comment: CommentEntity;
 
   /** Полный путь изображения для вставки */
   public src: string;

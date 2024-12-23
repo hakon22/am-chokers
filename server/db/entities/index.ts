@@ -6,6 +6,9 @@ import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { CartEntity } from '@server/db/entities/cart.entity';
+import { CommentEntity } from '@server/db/entities/comment.entity';
+import { GradeEntity } from '@server/db/entities/grade.entity';
+import { RatingEntity } from '@server/db/entities/rating.entity';
 
 export const entities = [
   UserEntity,
@@ -16,4 +19,7 @@ export const entities = [
   ImageEntity,
   ItemCollectionEntity,
   CartEntity,
+  GradeEntity,
+  CommentEntity,
+  RatingEntity,
 ];

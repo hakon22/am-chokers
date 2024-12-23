@@ -1,22 +1,23 @@
-import { renameSync, mkdirSync, existsSync } from 'fs';
 import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
-import type { EntityManager } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
+import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { ImageService } from '@server/services/storage/image.service';
-import { itemPath, tempPath, uploadFilesItemPath, uploadFilesTempPath } from '@server/utilities/upload.path';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
+import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 
 @Singleton
 export class ItemService extends BaseService {
   private readonly imageService = Container.get(ImageService);
+
+  private readonly uploadPathService = Container.get(UploadPathService);
 
   private createQueryBuilder = (query?: ItemQueryInterface) => {
     const manager = this.databaseService.getManager();
@@ -34,11 +35,9 @@ export class ItemService extends BaseService {
         'item.width',
         'item.composition',
         'item.length',
-        'item.rating',
         'item.className',
         'item.new',
         'item.bestseller',
-        'item.order',
       ])
       .leftJoin('item.images', 'images')
       .addSelect([
@@ -46,6 +45,10 @@ export class ItemService extends BaseService {
         'images.name',
         'images.path',
         'images.deleted',
+      ])
+      .leftJoin('item.rating', 'rating')
+      .addSelect([
+        'rating.rating',
       ])
       .leftJoinAndSelect('item.group', 'group')
       .leftJoinAndSelect('item.collection', 'collection');
@@ -105,11 +108,9 @@ export class ItemService extends BaseService {
 
       const created = await itemRepo.save(body);
 
-      if (!existsSync(uploadFilesItemPath(created.id))) {
-        mkdirSync(uploadFilesItemPath(created.id));
-      }
+      this.uploadPathService.checkFolder(UploadPathEnum.ITEM, created.id);
 
-      await this.processingImages(images, created, manager);
+      await this.imageService.processingImages(images, UploadPathEnum.ITEM, created.id, manager);
 
       return created;
     });
@@ -130,7 +131,7 @@ export class ItemService extends BaseService {
       const newItem = { ...item, ...body } as ItemEntity;
 
       await itemRepo.save(newItem);
-      await this.processingImages(body.images, newItem, manager);
+      await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, newItem.id, manager);
 
       return newItem;
     });
@@ -152,19 +153,6 @@ export class ItemService extends BaseService {
     const item = await deletedItem.recover();
 
     return item;
-  };
-
-  private processingImages = async (images: ImageEntity[], item: ItemEntity, manager: EntityManager) => {
-    const updatedImages = images.map((image, i) => {
-      if (image.path === tempPath) {
-        renameSync(uploadFilesTempPath(image.name), uploadFilesItemPath(item.id, image.name));
-        image.path = itemPath(item.id);
-        image.item = { id: item.id } as ItemEntity;
-      }
-      image.order = i;
-      return image;
-    });
-    await manager.getRepository(ImageEntity).save(updatedImages);
   };
 
   private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name));

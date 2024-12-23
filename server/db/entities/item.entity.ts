@@ -4,11 +4,13 @@ import {
   OneToMany,
   DeleteDateColumn,
   ManyToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 import { ImageEntity } from '@server/db/entities/image.entity';
+import { RatingEntity } from '@server/db/entities/rating.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
 
 /** Товар */
@@ -36,7 +38,7 @@ export class ItemEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
-  /** Удалён */
+  /** Дата удаления товара */
   @DeleteDateColumn()
   public deleted: Date;
 
@@ -76,12 +78,6 @@ export class ItemEntity extends BaseEntity {
   @Column('character varying')
   public length: string;
 
-  /** Рейтинг товара */
-  @Column('numeric', {
-    default: 0,
-  })
-  public rating: number;
-
   /** Бестселлер */
   @Column('boolean', {
     default: false,
@@ -93,12 +89,6 @@ export class ItemEntity extends BaseEntity {
     default: false,
   })
   public new: boolean;
-
-  /** Позиция на главной странице */
-  @Column('int', {
-    nullable: true,
-  })
-  public order: number;
 
   /** Классы товара (для компонента ImageHover) */
   @Column('character varying', {
@@ -119,15 +109,20 @@ export class ItemEntity extends BaseEntity {
 
   /** Коллекция товара */
   @ManyToOne(() => ItemCollectionEntity, {
+    nullable: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   })
   @JoinColumn({
     name: 'collection_id',
   })
-  public collection: ItemCollectionEntity;
+  public collection?: ItemCollectionEntity;
 
   /** Пользователи, добавившие товар в избранное */
   @ManyToMany(() => UserEntity, user => user.favorites)
   public users: UserEntity[];
+
+  /** Рейтинг товара */
+  @OneToOne(() => RatingEntity, rating => rating.item)
+  public rating: RatingEntity;
 }

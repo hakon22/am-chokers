@@ -4,11 +4,11 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
-  AfterLoad,
 } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
+import { GradeEntity } from '@server/db/entities/grade.entity';
 
 /** Позиция заказа */
 @Entity({
@@ -27,20 +27,27 @@ export class OrderPositionEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
-  /** Удалена */
+  /** Дата удаления позиции */
   @DeleteDateColumn()
   public deleted: Date;
 
   /** Товар */
-  @ManyToOne(() => ItemEntity)
+  @ManyToOne(() => ItemEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'item_id',
-    referencedColumnName: 'id',
   })
   public item: ItemEntity;
 
   /** Цена позиции заказа */
-  @Column('numeric')
+  @Column('numeric', {
+    transformer: {
+      from: (value) => +value,
+      to: (value) => +value,
+    },
+  })
   public price: number;
 
   /** Скидка на позицию заказа (в `процентах`) */
@@ -60,15 +67,23 @@ export class OrderPositionEntity extends BaseEntity {
   public count: number;
 
   /** Заказ */
-  @ManyToOne(() => OrderEntity)
+  @ManyToOne(() => OrderEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({
     name: 'order_id',
-    referencedColumnName: 'id',
   })
   public order: OrderEntity;
 
-  @AfterLoad()
-  transform() {
-    this.price = +this.price;
-  }
+  /** Оценка */
+  @ManyToOne(() => GradeEntity, {
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'grade_id',
+  })
+  public grade?: GradeEntity;
 }

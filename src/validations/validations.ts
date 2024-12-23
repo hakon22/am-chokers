@@ -35,8 +35,16 @@ const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T
   },
 });
 
+export const uuidSchema = yup.object().shape({
+  id: yup.string().uuid().required(),
+});
+
+export const uuidArraySchema = yup.array(yup.string().uuid().required()).required();
+
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
+
+const requiredIdSchema = yup.object().shape({ id: numberSchema });
 
 const phoneSchema = yup.string().trim().required().transform((value) => value.replace(/[^\d]/g, ''))
   .length(11)
@@ -50,16 +58,9 @@ const confirmCodeSchema = yup.object().shape({
 
 const idSchema = yup
   .lazy((value) => (typeof value === 'object'
-    ? yup.object()
-      .shape({
-        id: numberSchema,
-      })
+    ? requiredIdSchema
     : numberSchema
   ));
-
-const requiredIdSchema = yup.object().shape({
-  id: yup.number().required(),
-});
 
 const confirmPhoneSchema = yup.object().shape({
   phone: phoneSchema,
@@ -114,11 +115,15 @@ const newItemSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
   group: idSchema,
+  collection: idSchema.optional(),
+  new: yup.boolean(),
+  bestseller: yup.boolean(),
   price: numberSchema,
   width: numberSchema,
   height: numberSchema,
   composition: stringSchema,
   length: stringSchema,
+  images: yup.array(uuidSchema).optional(),
 });
 
 const newItemCatalogSchema = yup.object().shape({
@@ -130,18 +135,24 @@ const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
 }).concat(newItemCatalogSchema);
 
-export const uuidSchema = yup.object().shape({
-  id: yup.string().uuid().required(),
-});
-
-export const uuidArraySchema = yup.array(yup.string().uuid().required()).required();
-
 const newOrderPositionSchema = yup.array(yup.object().shape({
   count: numberSchema,
   item: requiredIdSchema,
 })
   .concat(uuidSchema))
   .min(1);
+
+const newCommentSchema = yup.object().shape({
+  text: stringSchema,
+  images: yup.array(uuidSchema).optional(),
+  reply: requiredIdSchema.optional(),
+});
+
+const newGradeSchema = yup.object().shape({
+  grade: numberSchema.max(5),
+  comment: newCommentSchema.optional(),
+  position: requiredIdSchema,
+});
 
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
@@ -152,3 +163,5 @@ export const newItemValidation = validate(newItemSchema);
 export const newItemGroupValidation = validate(newItemGroupSchema);
 export const newItemCatalogValidation = validate(newItemCatalogSchema);
 export const newOrderPositionValidation = validate(newOrderPositionSchema);
+export const newCommentValidation = validate(newCommentSchema);
+export const newGradeValidation = validate(newGradeSchema);
