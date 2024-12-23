@@ -97,6 +97,12 @@ export class ItemEntity extends BaseEntity {
   })
   public className: string;
 
+  /** Позиция на главной странице */
+  @Column('int', {
+    nullable: true,
+  })
+  public order: number;
+
   /** Группа товара */
   @ManyToOne(() => ItemGroupEntity, {
     onUpdate: 'CASCADE',
@@ -124,5 +130,5 @@ export class ItemEntity extends BaseEntity {
 
   /** Рейтинг товара */
   @OneToOne(() => RatingEntity, rating => rating.item)
-  public rating: RatingEntity;
+  public rating?: RatingEntity;
 }

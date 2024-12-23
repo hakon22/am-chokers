@@ -38,6 +38,7 @@ export class ItemService extends BaseService {
         'item.className',
         'item.new',
         'item.bestseller',
+        'item.order',
       ])
       .leftJoin('item.images', 'images')
       .addSelect([

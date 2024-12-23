@@ -214,7 +214,7 @@ const Index = () => {
                     height={200}
                     images={collection1?.images ?? []}
                   />
-                  <h2>{collection1?.collection.name}</h2>
+                  <h2>{collection1?.collection?.name}</h2>
                 </div>
               </ContextMenu>
               <ContextMenu item={collection2} order={5} data-aos="fade-right" data-aos-duration="1500">
@@ -225,7 +225,7 @@ const Index = () => {
                     height={200}
                     images={collection2?.images ?? []}
                   />
-                  <h2>{collection2?.collection.name}</h2>
+                  <h2>{collection2?.collection?.name}</h2>
                 </div>
               </ContextMenu>
               <ContextMenu item={collection3} order={6} data-aos="fade-right" data-aos-duration="1500">
@@ -236,7 +236,7 @@ const Index = () => {
                     height={200}
                     images={collection3?.images ?? []}
                   />
-                  <h2>{collection3?.collection.name}</h2>
+                  <h2>{collection3?.collection?.name}</h2>
                 </div>
               </ContextMenu>
             </div>

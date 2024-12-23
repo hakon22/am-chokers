@@ -63,8 +63,8 @@ export const CardItem = ({
           <div className="d-flex flex-column">
             <h1 className="mb-4 fs-3">{name}</h1>
             <div className="d-flex align-items-center gap-2 mb-4">
-              <Rate disabled value={rating.rating} />
-              <span>{rating.rating}</span>
+              <Rate disabled value={rating?.rating ?? 0} />
+              <span>{rating?.rating ?? 0}</span>
             </div>
             <div className="d-flex gap-5">
               <p className="fs-5 mb-4">{t('price', { price })}</p>
