@@ -373,7 +373,7 @@ const appSlice = createSlice({
         if (payload.code === 1) {
           state.items = state.items
             .map((item) => {
-              if (item.collection.id === payload.itemCollection.id) {
+              if (item.collection && item.collection.id === payload.itemCollection.id) {
                 return { ...item, collection: null } as unknown as ItemInterface;
               }
               return item;
