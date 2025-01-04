@@ -1,36 +1,28 @@
-import { AfterLoad, BaseEntity, JoinColumn, ManyToOne, ViewColumn, ViewEntity } from 'typeorm';
+import { JoinColumn, ManyToOne, ViewEntity } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { GradeEntity } from '@server/db/entities/grade.entity';
 
 const expression = `
   SELECT
-    "item"."id" AS "item_id",
-    ROUND(AVG("grade"."grade"), 1) AS "rating"
+    "grade".*,
+	  "item"."id" AS "item_id"
   FROM "chokers"."grade"
     LEFT JOIN "chokers"."order_position" "orderPosition" ON "orderPosition"."id" = "grade"."position_id"
     LEFT JOIN "chokers"."item" "item" ON "orderPosition"."item_id" = "item"."id"
-  GROUP BY "item"."id"
+  GROUP BY "item"."id", "grade"."id"
 `;
 
-/** Рейтинг (вьюха) */
+/** Оценки товаров (вьюха) */
 @ViewEntity({
-  name: 'rating',
+  name: 'item_grade',
   expression,
 })
-export class RatingEntity extends BaseEntity {
-  /** Рейтинг товара */
-  @ViewColumn()
-  public rating: number;
-
+export class ItemGradeEntity extends GradeEntity {
   /** Товар */
   @ManyToOne(() => ItemEntity)
   @JoinColumn({
     name: 'item_id',
   })
   public item: ItemEntity;
-
-  @AfterLoad()
-  transform() {
-    this.rating = +this.rating;
-  }
 }

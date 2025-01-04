@@ -15,6 +15,7 @@ export class ItemGroupService extends BaseService {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemGroupEntity, 'itemGroup')
+      .cache(true)
       .select([
         'itemGroup.id',
         'itemGroup.name',

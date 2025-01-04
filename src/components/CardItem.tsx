@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Rate } from 'antd';
+import { LikeOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
@@ -10,26 +11,49 @@ import { useRouter } from 'next/router';
 import type { ItemInterface } from '@/types/item/Item';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
+import { GradeList } from '@/components/GradeList';
+import { setItemGrades } from '@/slices/appSlice';
 import { routes } from '@/routes';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import CreateItem from '@/pages/admin/item/new';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import type { PaginationInterface } from '@/types/PaginationInterface';
 
-export const CardItem = ({
-  id, images, name, discount, discountPrice, description, price, composition, length, rating, ...rest
-}: ItemInterface) => {
+export const CardItem = ({ item, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
+  const { id, images, name, description, price, composition, length, rating, grades } = item;
+
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const galleryRef = useRef<ImageGallery>(null);
 
+  const dispatch = useAppDispatch();
+
   const { role } = useAppSelector((state) => state.user);
+  const { items, pagination } = useAppSelector((state) => state.app);
 
   const router = useRouter();
   const urlParams = useSearchParams();
   const editParams = urlParams.get('edit');
 
+  const grade = rating?.rating ?? 0;
+
+  const currentItem = items.find(({ id: stateId }) => stateId === id);
+
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
+
+  const scrollToElement = (elementId: string, offset: number) => {
+    const element = document.getElementById(elementId);
+    if (element) {
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   useEffect(() => {
     if (role === UserRoleEnum.ADMIN) {
@@ -37,7 +61,11 @@ export const CardItem = ({
     }
   }, [editParams, role]);
 
-  return isEdit ? <CreateItem oldItem={{ id, images, name, discount, discountPrice, description, price, composition, length, rating, ...rest }} /> : (
+  useEffect(() => {
+    dispatch(setItemGrades({ id, items: grades, paginationParams, code: 1 }));
+  }, [items.length]);
+
+  return isEdit ? <CreateItem oldItem={item} /> : (
     <div className="d-flex flex-column">
       <div className="d-flex mb-5">
         <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
@@ -62,9 +90,24 @@ export const CardItem = ({
         <div style={{ width: '55%' }}>
           <div className="d-flex flex-column">
             <h1 className="mb-4 fs-3">{name}</h1>
-            <div className="d-flex align-items-center gap-2 mb-4">
-              <Rate disabled value={rating?.rating ?? 0} />
-              <span>{rating?.rating ?? 0}</span>
+            <div className="d-flex align-items-center gap-4 mb-4">
+              <div className="d-flex align-items-center gap-2" title={grade.toString()}>
+                <Rate disabled allowHalf value={grade} />
+                <span>{grade}</span>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <LikeOutlined />
+                {pagination.count
+                  ? <button
+                    className="icon-button text-muted"
+                    style={{ color: '#393644' }}
+                    type="button"
+                    title={t('grades.gradeCount', { count: pagination.count })}
+                    onClick={() => scrollToElement('grades', 120)}>
+                    {t('grades.gradeCount', { count: pagination.count })}
+                  </button>
+                  : <span>{t('grades.gradeCount', { count: pagination.count })}</span>}
+              </div>
             </div>
             <div className="d-flex gap-5">
               <p className="fs-5 mb-4">{t('price', { price })}</p>
@@ -75,7 +118,7 @@ export const CardItem = ({
                 }, undefined, { shallow: true });
               }}>{t('edit')}</Button> : null}
             </div>
-            <div className="d-flex align-items-center gap-5 mb-4">
+            <div className="d-flex align-items-center gap-5 mb-3">
               <CartControl id={id} name={name} className="fs-5" />
               <Favorites id={id} />
             </div>
@@ -93,7 +136,7 @@ export const CardItem = ({
           </div>
         </div>
       </div>
-      <div className="d-flex justify-content-end">
+      <div className="d-flex justify-content-end mb-5">
         <div className="col-11 d-flex flex-column justify-content-end">
           {tab === 'warranty' ? (
             <div className="warranty-fade">
@@ -167,6 +210,7 @@ export const CardItem = ({
           )}
         </div>
       </div>
+      {currentItem && <GradeList item={currentItem} />}
     </div>
   );
 };

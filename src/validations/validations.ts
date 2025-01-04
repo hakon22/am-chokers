@@ -123,7 +123,7 @@ const newItemSchema = yup.object().shape({
   height: numberSchema,
   composition: stringSchema,
   length: stringSchema,
-  images: yup.array(uuidSchema).optional(),
+  images: yup.array(requiredIdSchema).optional(),
 });
 
 const newItemCatalogSchema = yup.object().shape({
@@ -144,13 +144,16 @@ const newOrderPositionSchema = yup.array(yup.object().shape({
 
 const newCommentSchema = yup.object().shape({
   text: stringSchema,
-  images: yup.array(uuidSchema).optional(),
-  reply: requiredIdSchema.optional(),
+  images: yup.array(requiredIdSchema).optional(),
+  parentComment: requiredIdSchema.optional(),
 });
 
 const newGradeSchema = yup.object().shape({
   grade: numberSchema.max(5),
-  comment: newCommentSchema.optional(),
+  comment: yup.object().shape({
+    text: yup.string().nullable().optional(),
+    images: yup.array(requiredIdSchema).optional(),
+  }),
   position: requiredIdSchema,
 });
 

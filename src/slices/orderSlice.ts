@@ -1,11 +1,14 @@
 import axios from 'axios';
 import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit';
 
+import { routes } from '@/routes';
 import type { OrderInterface } from '@/types/order/Order';
 import type { InitialState } from '@/types/InitialState';
-import { routes } from '@/routes';
 import type { RootState } from '@/slices';
 import type { CartItemInterface } from '@/types/cart/Cart';
+import type { GradeFormInterface } from '@/types/order/Grade';
+import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
+import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
 export interface OrderResponseInterface {
   code: number;
@@ -55,6 +58,18 @@ export const deleteOrder = createAsyncThunk(
   async (id: number, { rejectWithValue }) => {
     try {
       const response = await axios.delete<OrderResponseInterface>(routes.crudOrder(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const createGrade = createAsyncThunk(
+  'order/createGrade',
+  async (data: GradeFormInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number; grade: ItemGradeEntity; }>(routes.createGrade(data.position.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -136,6 +151,24 @@ const orderSlice = createSlice({
         state.error = null;
       })
       .addCase(deleteOrder.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(createGrade.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(createGrade.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const orderId = payload.grade.position.order.id;
+          const orderPositions = orderAdapter.getSelectors().selectById(state, orderId).positions;
+          const positions = orderPositions.map((position) => position.id === payload.grade.position.id ? ({ ...position, grade: payload.grade }) : position) as OrderPositionEntity[];
+          orderAdapter.updateOne(state, { id: orderId, changes: { positions } });
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(createGrade.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       });

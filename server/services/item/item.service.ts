@@ -5,9 +5,11 @@ import { Container, Singleton } from 'typescript-ioc';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { ImageService } from '@server/services/storage/image.service';
+import { GradeService } from '@server/services/rating/grade.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
@@ -17,12 +19,15 @@ import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 export class ItemService extends BaseService {
   private readonly imageService = Container.get(ImageService);
 
+  private readonly gradeService = Container.get(GradeService);
+
   private readonly uploadPathService = Container.get(UploadPathService);
 
   private createQueryBuilder = (query?: ItemQueryInterface) => {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemEntity, 'item')
+      .cache(true)
       .select([
         'item.id',
         'item.name',
@@ -56,6 +61,9 @@ export class ItemService extends BaseService {
 
     if (query?.withDeleted) {
       builder.withDeleted();
+    }
+    if (query?.id) {
+      builder.andWhere('item.id = :id', { id: query.id });
     }
     if (query?.name) {
       builder.andWhere('item.name = :name', { name: query.name });
@@ -155,6 +163,8 @@ export class ItemService extends BaseService {
 
     return item;
   };
+
+  public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
 
   private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name));
 }

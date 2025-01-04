@@ -11,7 +11,7 @@ import { UserEntity } from '@server/db/entities/user.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
-/** Оценки товаров */
+/** Оценки позиций товаров */
 @Entity({
   name: 'grade',
 })
@@ -35,6 +35,12 @@ export class GradeEntity extends BaseEntity {
   /** Оценка позиции заказа */
   @Column('smallint')
   public grade: number;
+
+  /** Допущен к публикации */
+  @Column('boolean', {
+    default: false,
+  })
+  public checked: boolean;
 
   /** Оценённая позиция заказа */
   @ManyToOne(() => OrderPositionEntity, {

@@ -11,6 +11,7 @@ import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { RatingEntity } from '@server/db/entities/rating.entity';
+import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
 
 /** Товар */
@@ -131,4 +132,8 @@ export class ItemEntity extends BaseEntity {
   /** Рейтинг товара */
   @OneToOne(() => RatingEntity, rating => rating.item)
   public rating?: RatingEntity;
+
+  /** Оценки товара */
+  @OneToMany(() => ItemGradeEntity, itemGrade => itemGrade.item)
+  public grades: ItemGradeEntity[];
 }

@@ -3,10 +3,14 @@ import axios from 'axios';
 
 import type { ItemGroupInterface, ItemCollectionInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
 import type { InitialState } from '@/types/InitialState';
-import { routes } from '@/routes';
+import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { CommentEntity } from '@server/db/entities/comment.entity';
+import type { PaginationEntityInterface, PaginationInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
+import type { ReplyComment } from '@/types/app/comment/ReplyComment';
+import { routes } from '@/routes';
 
-type AppStoreInterface = AppDataInterface & InitialState;
+type AppStoreInterface = AppDataInterface & InitialState & { pagination: PaginationInterface };
 
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
@@ -14,6 +18,11 @@ const initialState: AppStoreInterface = {
   items: [],
   itemGroups: [],
   itemCollections: [],
+  pagination: {
+    count: 0,
+    limit: 0,
+    offset: 0,
+  },
 };
 
 export interface ItemResponseInterface {
@@ -35,6 +44,16 @@ export interface ItemGroupResponseInterface {
 export interface ItemCollectionResponseInterface {
   code: number;
   itemCollection: ItemCollectionInterface;
+}
+
+export interface GradeResponseInterface {
+  code: number;
+  grade: ItemGradeEntity;
+}
+
+export interface CommentResponseInterface {
+  code: number;
+  comment: CommentEntity;
 }
 
 export const addItem = createAsyncThunk(
@@ -193,6 +212,47 @@ export const deleteItemImage = createAsyncThunk(
   },
 );
 
+export const getItemGrades = createAsyncThunk(
+  'app/getItemGrades',
+  async ({ id, limit, offset }: PaginationSearchInterface, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getGrades({ isServer: false, id }), {
+        params: {
+          limit,
+          offset,
+        },
+      });
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const createComment = createAsyncThunk(
+  'app/createComment',
+  async (data: ReplyComment, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<CommentResponseInterface>(routes.createComment, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const removeGrade = createAsyncThunk(
+  'app/removeGrade',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<GradeResponseInterface>(routes.removeGrade(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const appSlice = createSlice({
   name: 'app',
   initialState,
@@ -201,6 +261,17 @@ const appSlice = createSlice({
       state.items = payload.items;
       state.itemGroups = payload.itemGroups;
       state.itemCollections = payload.itemCollections;
+    },
+    setPaginationParams: (state, { payload }: PayloadAction<PaginationInterface>) => {
+      state.pagination = payload;
+    },
+    setItemGrades: (state, { payload }: PayloadAction<PaginationEntityInterface<ItemGradeEntity>>) => {
+      const itemIndex = state.items.findIndex((item) => item.id === payload.id);
+      if (itemIndex !== -1) {
+        const grades = payload.items.filter((item) => !(state.items[itemIndex]?.grades ?? []).some((stateItem) => stateItem.id === item.id));
+        state.items[itemIndex].grades = [...(state.items[itemIndex].grades || []), ...grades];
+        state.pagination = payload.paginationParams;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -419,10 +490,72 @@ const appSlice = createSlice({
       .addCase(deleteItemImage.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(getItemGrades.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(getItemGrades.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.id);
+          if (itemIndex !== -1) {
+            const stateGrades = state.items[itemIndex].grades;
+            const grades = payload.items.filter((grade) => !stateGrades.some((stateGrade) => stateGrade.id === grade.id));
+            state.items[itemIndex].grades = [...(stateGrades || []), ...grades];
+            state.pagination = payload.paginationParams;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(getItemGrades.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(createComment.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(createComment.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.comment.parentComment.grade?.position.item.id);
+          if (itemIndex !== -1) {
+            const stateGrades = state.items[itemIndex].grades;
+            const gradeIndex = stateGrades.findIndex((grade) => grade.id === payload.comment.parentComment.grade?.id);
+            const stateGrade = state.items[itemIndex].grades[gradeIndex];
+            if (gradeIndex !== -1 && stateGrade?.comment) {
+              stateGrade.comment.replies = [...(stateGrade.comment?.replies || []), payload.comment];
+            }
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(createComment.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(removeGrade.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(removeGrade.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.grade.position.item.id);
+          if (itemIndex !== -1) {
+            state.items[itemIndex].grades = state.items[itemIndex].grades.filter((grade) => grade.id !== payload.grade.id);
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(removeGrade.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
       });
   },
 });
 
-export const { setAppData } = appSlice.actions;
+export const { setAppData, setPaginationParams, setItemGrades } = appSlice.actions;
 
 export default appSlice.reducer;

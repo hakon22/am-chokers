@@ -41,20 +41,7 @@ export class UserService extends BaseService {
       .addSelect([
         'favorites.id',
         'favorites.name',
-        'favorites.description',
-        'favorites.deleted',
         'favorites.price',
-        'favorites.discount',
-        'favorites.discountPrice',
-        'favorites.height',
-        'favorites.width',
-        'favorites.composition',
-        'favorites.length',
-        'favorites.rating',
-        'favorites.className',
-        'favorites.new',
-        'favorites.bestseller',
-        'favorites.order',
       ])
       .leftJoin('favorites.images', 'images')
       .addSelect([

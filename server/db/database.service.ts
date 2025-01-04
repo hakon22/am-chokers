@@ -33,6 +33,14 @@ export abstract class DatabaseService {
       entities,
       subscribers: [],
       migrations: [],
+      cache: {
+        type: 'redis',
+        options: {
+          host: 'localhost',
+          port: 6379,
+        },
+        duration: 60000, // 60 секунд
+      },
     });
   }
 

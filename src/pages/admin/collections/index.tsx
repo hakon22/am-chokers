@@ -246,7 +246,7 @@ const CreateItemCollection = () => {
       router.push(`?withDeleted=${withDeleted}`, undefined, { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, itemCollections: ItemCollectionInterface[] }>(routes.itemCollections({ isServer: false }), {
+      axios.get<{ code: number, itemCollections: ItemCollectionInterface[] }>(routes.getItemCollections({ isServer: false }), {
         params: { withDeleted },
       })
         .then(({ data: response }) => {

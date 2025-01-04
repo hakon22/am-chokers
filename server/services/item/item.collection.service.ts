@@ -15,6 +15,7 @@ export class ItemCollectionService extends BaseService {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemCollectionEntity, 'itemCollection')
+      .cache(true)
       .select([
         'itemCollection.id',
         'itemCollection.name',

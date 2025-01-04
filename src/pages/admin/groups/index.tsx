@@ -254,7 +254,7 @@ const CreateItemGroup = () => {
       router.push(`?withDeleted=${withDeleted}`, undefined, { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, itemGroups: ItemGroupInterface[] }>(routes.itemGroups({ isServer: false }), {
+      axios.get<{ code: number, itemGroups: ItemGroupInterface[] }>(routes.getItemGroups({ isServer: false }), {
         params: { withDeleted },
       })
         .then(({ data: response }) => {

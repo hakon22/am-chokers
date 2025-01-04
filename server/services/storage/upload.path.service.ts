@@ -7,12 +7,11 @@ import { Singleton } from 'typescript-ioc';
 import { routes } from '@/routes';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 
-
 @Singleton
 export class UploadPathService {
   private dirname = dirname(fileURLToPath(import.meta.url));
 
-  private uploadFilesPath = join(this.dirname, '..', '..', 'public');
+  private uploadFilesPath = join(this.dirname, '..', '..', '..', 'public');
 
   /** Собирает относительный путь для загрузки на сервер */
   public getUploadPath = (folder: UploadPathEnum, id: number, fileName = '') => {
@@ -61,5 +60,5 @@ export class UploadPathService {
     }
   };
 
-  public moveFile = (folder: UploadPathEnum, id: number, fileName: string) => renameSync(this.getUploadPath(UploadPathEnum.TEMP, 0, fileName), this.getUploadPath(folder, 0, fileName));
+  public moveFile = (folder: UploadPathEnum, id: number, fileName: string) => renameSync(this.getUploadPath(UploadPathEnum.TEMP, 0, fileName), this.getUploadPath(folder, id, fileName));
 }

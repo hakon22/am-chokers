@@ -1,6 +1,10 @@
 const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
+interface ServerClientInterface {
+  isServer?: boolean;
+}
+
 export const catalogPath = '/catalog';
 const profilePath = '/profile';
 const adminPath = '/admin';
@@ -20,6 +24,7 @@ export const routes = {
   newItem: [adminPath, 'item', 'new'].join('/'),
   itemGroupsControl: [adminPath, 'groups'].join('/'),
   itemCollectionsControl: [adminPath, 'collections'].join('/'),
+  moderationOfReview: [adminPath, 'reviews'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -47,25 +52,26 @@ export const routes = {
   createOrder: [apiPath, 'order', 'new'].join('/'),
 
   // itemGroup
-  itemGroups: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
+  getItemGroups: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
   crudItemGroup: (id?: number | React.Key) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
   createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
 
   // itemCollections
-  itemCollections: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'collections'].join('/'),
+  getItemCollections: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'collections'].join('/'),
   crudItemCollection: (id?: number | React.Key) => [apiPath, 'item', 'collection', id ?? ':id'].join('/'),
   createItemCollection: [apiPath, 'item', 'collections', 'new'].join('/'),
 
   // storage
-  imageUpload: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
+  imageUpload: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
   imageDelete: (id?: number) => [apiPath, 'image', id ?? ':id'].join('/'),
 
   // item
-  items: ({ isServer }: { isServer: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
+  getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
   addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),
   removeFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'remove'].join('/'),
+  getGrades: ({ id, isServer }: { id?: number; isServer?: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
 
   // cart
   getCart: [apiPath, 'cart', 'getAll'].join('/'),
@@ -74,4 +80,15 @@ export const routes = {
   incrementCartItem: (id?: string) => [apiPath, 'cart', id ?? ':id', 'increment'].join('/'),
   decrementCartItem: (id?: string) => [apiPath, 'cart', id ?? ':id', 'decrement'].join('/'),
   removeCartItem: (id?: string) => [apiPath, 'cart', id ?? ':id', 'remove'].join('/'),
+
+  // comment
+  createComment: [apiPath, 'comment', 'add'].join('/'),
+  removeComment: (id?: number) => [apiPath, 'comment', id ?? ':id', 'remove'].join('/'),
+
+  // grade
+  createGrade: (id?: number) => [apiPath, 'order-position', id ?? ':id', 'grade', 'add'].join('/'),
+  removeGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'remove'].join('/'),
+  restoreGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'restore'].join('/'),
+  acceptGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'accept'].join('/'),
+  getUnchekedGrades: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'grade', 'getAll'].join('/'),
 } as const;

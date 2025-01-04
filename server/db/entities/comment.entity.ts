@@ -6,10 +6,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
+import { GradeEntity } from '@server/db/entities/grade.entity';
 
 /** Комментарии */
 @Entity({
@@ -36,17 +38,6 @@ export class CommentEntity extends BaseEntity {
   @Column('text')
   public text: string;
 
-  /** Ответ на комментарий */
-  @ManyToOne(() => CommentEntity, {
-    nullable: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({
-    name: 'reply_id',
-  })
-  public reply?: CommentEntity;
-
   /** Создатель комментария */
   @ManyToOne(() => UserEntity, {
     onUpdate: 'CASCADE',
@@ -60,4 +51,19 @@ export class CommentEntity extends BaseEntity {
   /** Фотографии комментария */
   @OneToMany(() => ImageEntity, image => image.comment)
   public images: ImageEntity[];
+
+  /** Ответные комментарии */
+  @OneToMany(() => CommentEntity, reply => reply.parentComment)
+  public replies: CommentEntity[];
+
+  /** Родительский комментарий */
+  @ManyToOne(() => CommentEntity, parent => parent.replies)
+  @JoinColumn({
+    name: 'parent_comment_id',
+  })
+  public parentComment: CommentEntity;
+
+  /** Оценка позиции */
+  @OneToOne(() => GradeEntity, grade => grade.comment)
+  public grade?: GradeEntity;
 }

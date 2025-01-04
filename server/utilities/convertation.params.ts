@@ -56,3 +56,24 @@ export const booleanSchema = yup
     return undefined;
   })
   .optional();
+
+export const queryPaginationSchema = yup.object().shape({
+  limit: yup
+    .number()
+    .integer()
+    .transform((value) => +value)
+    .min(0)
+    .required(),
+  offset: yup
+    .number()
+    .integer()
+    .transform((value) => +value)
+    .min(0)
+    .required(),
+});
+
+export const queryPaginationWithParams = queryPaginationSchema.concat(
+  yup.object().shape({
+    withDeleted: booleanSchema,
+  }),
+);

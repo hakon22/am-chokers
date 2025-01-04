@@ -1,4 +1,6 @@
 export interface ItemQueryInterface {
+  /** `id` товара */
+  id?: number;
   /** Имя товара */
   name?: string;
   /** С удалёнными */

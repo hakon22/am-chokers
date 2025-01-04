@@ -12,9 +12,7 @@ import { isEqual } from 'lodash';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
-import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import { routes } from '@/routes';
-import type { ImageEntity } from '@server/db/entities/image.entity';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
@@ -22,12 +20,9 @@ import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/forms/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
-
-type ResponseFile = {
-  code: number;
-  message: string;
-  image: ImageEntity;
-};
+import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
+import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 
 const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.createItem' });
@@ -42,7 +37,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  const props: UploadProps<ResponseFile> = {
+  const props: UploadProps<ResponseFileInterface> = {
     name: 'file',
     multiple: true,
     fileList,
@@ -195,16 +190,18 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                   </div>
                 </SortableContext>
               </DndContext>
-            ) : (<ImageGallery
-              ref={galleryRef}
-              items={images.map(({ src }) => ({ original: src, thumbnail: src }))}
-              infinite
-              showNav
-              onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
-              showPlayButton={false}
-              thumbnailPosition="left"
-              onClick={galleryRef.current?.fullScreen}
-            />)
+            ) : (
+              <ImageGallery
+                ref={galleryRef}
+                items={images.map(({ src }) => ({ original: src, thumbnail: src }))}
+                infinite
+                showNav
+                onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
+                showPlayButton={false}
+                thumbnailPosition="left"
+                onClick={galleryRef.current?.fullScreen}
+              />
+            )
             : null}
           <Upload.Dragger {...props}>
             <p className="ant-upload-drag-icon">

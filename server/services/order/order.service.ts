@@ -34,6 +34,8 @@ export class OrderService extends BaseService {
         'positions.discountPrice',
         'positions.count',
       ])
+      .leftJoin('positions.grade', 'grade')
+      .addSelect('grade.id')
       .leftJoin('positions.item', 'item')
       .addSelect([
         'item.id',

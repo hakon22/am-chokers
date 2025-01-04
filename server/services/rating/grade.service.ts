@@ -1,14 +1,18 @@
 import { Container, Singleton } from 'typescript-ioc';
 
-import { GradeEntity } from '@server/db/entities/grade.entity';
-import type { GradeQueryInterface } from '@server/types/rating/grade.query.interface';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { CommentService } from '@server/services/comment/comment.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { CommentEntity } from '@server/db/entities/comment.entity';
+import { GradeEntity } from '@server/db/entities/grade.entity';
+import type { GradeQueryInterface } from '@server/types/rating/grade.query.interface';
+import type { GradeOptionsInterface } from '@server/types/rating/grade.options.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
+import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface';
 
 @Singleton
 export class GradeService extends BaseService {
@@ -18,47 +22,109 @@ export class GradeService extends BaseService {
 
   private readonly commentService = Container.get(CommentService);
 
-  private createQueryBuilder = (query?: GradeQueryInterface) => {
+  private createQueryBuilder = (query?: GradeQueryInterface, options?: GradeOptionsInterface) => {
     const manager = this.databaseService.getManager();
 
-    const builder = manager.createQueryBuilder(GradeEntity, 'grade')
-      .select([
+    const builder = manager.createQueryBuilder(ItemGradeEntity, 'grade');
+
+    if (options?.onlyIds) {
+      builder
+        .select('grade.id')
+        .orderBy('grade.id', 'DESC');
+
+      if (query?.limit || query?.offset) {
+        builder
+          .limit(query.limit)
+          .offset(query.offset);
+      }
+    } else {
+      builder.select([
         'grade.id',
         'grade.created',
         'grade.updated',
         'grade.deleted',
         'grade.grade',
+        'grade.checked',
       ])
-      .leftJoin('grade.comment', 'comment')
-      .addSelect([
-        'comment.id',
-        'comment.created',
-        'comment.updated',
-        'comment.deleted',
-        'comment.text',
-      ])
-      .leftJoin('comment.images', 'images')
-      .addSelect([
-        'images.id',
-        'images.name',
-        'images.path',
-      ])
-      .leftJoin('grade.user', 'user')
-      .addSelect([
-        'user.id',
-        'user.name',
-      ]);
+        .leftJoin('grade.comment', 'comment')
+        .addSelect([
+          'comment.id',
+          'comment.created',
+          'comment.updated',
+          'comment.deleted',
+          'comment.text',
+        ])
+        .leftJoin('grade.user', 'user')
+        .addSelect([
+          'user.id',
+          'user.name',
+        ])
+        .leftJoin('comment.images', 'images')
+        .addSelect([
+          'images.id',
+          'images.name',
+          'images.path',
+        ])
+        .leftJoin('comment.replies', 'replies')
+        .addSelect([
+          'replies.id',
+          'replies.created',
+          'replies.text',
+        ])
+        .leftJoin('replies.user', 'commentReplyUser')
+        .addSelect([
+          'commentReplyUser.id',
+          'commentReplyUser.name',
+        ])
+        .leftJoin('replies.images', 'commentReplyImages')
+        .addSelect([
+          'commentReplyImages.id',
+          'commentReplyImages.name',
+          'commentReplyImages.path',
+        ])
+        .orderBy('grade.id', 'DESC')
+        .addOrderBy('replies.id', 'ASC');
+    }
 
-    if (query?.withDeleted) {
+    if (query?.id) {
+      builder.andWhere('grade.id = :id', { id: query.id });
+    }
+    if (options?.withDeleted) {
       builder.withDeleted();
+    }
+    if (options?.itemId) {
+      builder.andWhere('grade.item_id = :itemId', { itemId: options.itemId });
+    }
+    if (options?.ids?.length) {
+      builder.andWhere('grade.id IN(:...ids)', { ids: options.ids });
+    }
+    if (options?.itemId) {
+      builder.andWhere('grade.item_id = :itemId', { itemId: options.itemId });
+    }
+    if (options?.itemName) {
+      builder
+        .leftJoin('grade.item', 'item')
+        .andWhere('item.name = :itemName', { itemName: options.itemName });
+    }
+    if (options?.withOrder) {
+      builder
+        .leftJoin('grade.position', 'position')
+        .addSelect('position.id')
+        .leftJoin('position.order', 'order')
+        .addSelect('order.id');
+    }
+    if (options?.onlyChecked) {
+      builder.andWhere('grade.checked = TRUE');
+    }
+    if (options?.onlyNotChecked) {
+      builder.andWhere('grade.checked = FALSE');
     }
 
     return builder;
   };
 
-  public findOne = async (params: ParamsIdInterface, query?: GradeQueryInterface) => {
-    const builder = this.createQueryBuilder(query)
-      .andWhere('grade.id = :id', { id: params.id });
+  public findOne = async (params: ParamsIdInterface, options?: GradeOptionsInterface) => {
+    const builder = this.createQueryBuilder(params, options);
 
     const grade = await builder.getOne();
 
@@ -69,12 +135,36 @@ export class GradeService extends BaseService {
     return grade;
   };
 
-  public findMany = async (query?: GradeQueryInterface) => {
-    const builder = this.createQueryBuilder(query);
+  public findManyByItem = async (params: ParamsIdInterface, query?: PaginationQueryInterface): Promise<[ItemGradeEntity[], number]> => {
+    const idsBuilder = this.createQueryBuilder(query, { itemId: params.id, onlyIds: true, onlyChecked: true });
 
-    const grades = await builder.getMany();
+    const [ids, count] = await idsBuilder.getManyAndCount();
 
-    return grades;
+    let grades: ItemGradeEntity[] = [];
+
+    if (ids.length) {
+      const builder = this.createQueryBuilder({}, { ids: ids.map(({ id }) => id) });
+
+      grades = await builder.getMany();
+    }
+
+    return [grades, count];
+  };
+
+  public getUnchekedGrades = async (query: FetchGradeInterface): Promise<[ItemGradeEntity[], number]> => {
+    const idsBuilder = this.createQueryBuilder(query, { ...query, onlyNotChecked: true, onlyIds: true });
+
+    const [ids, count] = await idsBuilder.getManyAndCount();
+
+    let grades: ItemGradeEntity[] = [];
+
+    if (ids.length) {
+      const builder = this.createQueryBuilder({}, { ...query, ids: ids.map(({ id }) => id) });
+
+      grades = await builder.getMany();
+    }
+
+    return [grades, count];
   };
 
   public createOne = async (body: Partial<GradeEntity>, userId: number, comment?: CommentEntity) => {
@@ -82,37 +172,68 @@ export class GradeService extends BaseService {
       const gradeRepo = manager.getRepository(GradeEntity);
       const commentRepo = manager.getRepository(CommentEntity);
 
-      if (comment) {
+      if (comment?.text || comment?.images.length) {
         const { images, ...rest } = comment;
         const createdComment = await commentRepo.save(rest);
         if (images?.length) {
           this.uploadPathService.checkFolder(UploadPathEnum.COMMENT, createdComment.id);
           await this.imageService.processingImages(images, UploadPathEnum.COMMENT, createdComment.id, manager);
         }
+        return gradeRepo.save({ ...body, comment: createdComment, user: { id: userId } });
       }
 
       return gradeRepo.save({ ...body, user: { id: userId } });
     });
 
-    return this.findOne({ id: created.id });
+    return this.findOne({ id: created.id }, { withOrder: true });
+  };
+
+  public accept = async (params: ParamsIdInterface) => {
+    const grade = await this.findOne(params);
+
+    const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
+
+    await gradeRepo.save({ ...grade, checked: true });
+
+    grade.checked = true;
+
+    return grade;
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {
     const grade = await this.findOne(params);
 
-    return this.databaseService.getManager().transaction(async () => {
-      if (grade.comment) {
-        await this.commentService.deleteOne({ id: grade.comment.id });
-      }
-      return grade.softRemove();
+    const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
+
+    await gradeRepo.softDelete(grade.id);
+
+    return gradeRepo.findOne({
+      where: { id: grade.id },
+      withDeleted: true,
+      order: { comment: { replies: { id: 'ASC' } } },
+      relations: [
+        'position',
+        'position.item',
+        'user',
+        'comment',
+        'comment.replies',
+        'comment.parentComment',
+        'comment.replies.user',
+        'comment.parentComment.user',
+        'comment.images',
+        'comment.replies.images',
+        'comment.parentComment.images',
+      ],
     });
   };
 
   public restoreOne = async (params: ParamsIdInterface) => {
     const deletedGrade = await this.findOne(params, { withDeleted: true });
 
-    const grade = await deletedGrade.recover();
+    const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
 
-    return grade;
+    await gradeRepo.recover(deletedGrade);
+
+    return this.findOne(params);
   };
 }

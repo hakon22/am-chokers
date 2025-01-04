@@ -50,6 +50,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
         { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.newItem')}</Link> },
         { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.itemGroups')}</Link> },
         { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.itemCollections')}</Link> },
+        { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
       ],
       } : null,
     { type: 'divider' },

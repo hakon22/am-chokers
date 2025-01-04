@@ -5,7 +5,6 @@ import type { CommentQueryInterface } from '@server/types/comment/comment.query.
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
-import { GradeService } from '@server/services/rating/grade.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -15,8 +14,6 @@ export class CommentService extends BaseService {
   private readonly uploadPathService = Container.get(UploadPathService);
 
   private readonly imageService = Container.get(ImageService);
-
-  private readonly gradeService = Container.get(GradeService);
 
   private createQueryBuilder = (query?: CommentQueryInterface) => {
     const manager = this.databaseService.getManager();
@@ -29,13 +26,39 @@ export class CommentService extends BaseService {
         'comment.deleted',
         'comment.text',
       ])
-      .leftJoin('comment.reply', 'reply')
+      .leftJoin('comment.replies', 'replies')
       .addSelect([
-        'reply.id',
-        'reply.created',
-        'reply.updated',
-        'reply.deleted',
-        'reply.text',
+        'replies.id',
+        'replies.text',
+      ])
+      .leftJoin('replies.user', 'commentReplyUser')
+      .addSelect([
+        'commentReplyUser.id',
+        'commentReplyUser.name',
+      ])
+      .leftJoin('replies.images', 'commentReplyImages')
+      .addSelect([
+        'commentReplyImages.id',
+        'commentReplyImages.name',
+        'commentReplyImages.path',
+      ])
+      .leftJoin('comment.parentComment', 'parentComment')
+      .addSelect([
+        'parentComment.id',
+        'parentComment.text',
+      ])
+      .leftJoin('parentComment.grade', 'grade')
+      .addSelect([
+        'grade.id',
+      ])
+      .leftJoin('grade.position', 'position')
+      .addSelect('position.id')
+      .leftJoin('position.item', 'item')
+      .addSelect('item.id')
+      .leftJoin('parentComment.user', 'parentCommentUser')
+      .addSelect([
+        'parentCommentUser.id',
+        'parentCommentUser.name',
       ])
       .leftJoin('comment.user', 'user')
       .addSelect([
@@ -81,11 +104,14 @@ export class CommentService extends BaseService {
     const created = await this.databaseService.getManager().transaction(async (manager) => {
       const commentRepo = manager.getRepository(CommentEntity);
 
-      this.uploadPathService.checkFolder(UploadPathEnum.COMMENT, created.id);
+      const comment = await commentRepo.save({ ...body, user: { id: userId } });
 
-      await this.imageService.processingImages(images, UploadPathEnum.COMMENT, created.id, manager);
+      if (images?.length) {
+        this.uploadPathService.checkFolder(UploadPathEnum.COMMENT, comment.id);
+        await this.imageService.processingImages(images, UploadPathEnum.COMMENT, comment.id, manager);
+      }
 
-      return commentRepo.save({ ...body, user: { id: userId } });
+      return comment;
     });
 
     return this.findOne({ id: created.id });
@@ -94,14 +120,18 @@ export class CommentService extends BaseService {
   public deleteOne = async (params: ParamsIdInterface) => {
     const comment = await this.findOne(params);
 
-    return comment.softRemove();
+    await comment.softRemove();
+
+    comment.deleted = new Date();
+
+    return comment;
   };
 
   public restoreOne = async (params: ParamsIdInterface) => {
     const deletedComment = await this.findOne(params, { withDeleted: true });
 
-    const comment = await deletedComment.recover();
+    await deletedComment.recover();
 
-    return comment;
+    return this.findOne(params);
   };
 }

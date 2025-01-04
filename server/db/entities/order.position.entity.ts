@@ -4,6 +4,7 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
@@ -77,13 +78,6 @@ export class OrderPositionEntity extends BaseEntity {
   public order: OrderEntity;
 
   /** Оценка */
-  @ManyToOne(() => GradeEntity, {
-    nullable: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({
-    name: 'grade_id',
-  })
+  @OneToOne(() => GradeEntity, grade => grade.position)
   public grade?: GradeEntity;
 }

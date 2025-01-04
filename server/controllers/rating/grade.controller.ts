@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { GradeService } from '@server/services/rating/grade.service';
-import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
 import { newGradeValidation } from '@/validations/validations';
 import { GradeEntity } from '@server/db/entities/grade.entity';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
 export class GradeController extends BaseService {
@@ -25,25 +25,43 @@ export class GradeController extends BaseService {
     }
   };
 
-  public findMany = async (req: Request, res: Response) => {
+  public createOne = async (req: Request, res: Response) => {
     try {
-      const query = await queryOptionalSchema.validate(req.query);
+      const { id } = req.user as PassportRequestInterface;
+      const { comment, ...body } = req.body as GradeEntity;
+      await newGradeValidation.serverValidator(req.body);
 
-      const grades = await this.gradeService.findMany(query);
+      const grade = await this.gradeService.createOne(body, id, comment);
 
-      res.json({ code: 1, grades });
+      res.json({ code: 1, grade });
     } catch (e) {
       this.errorHandler(e, res);
     }
   };
 
-  public createOne = async (req: Request, res: Response) => {
+  public getUnchekedGrades = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
-      const { comment, ...body } = req.body as GradeEntity;
-      await newGradeValidation.serverValidator(body);
+      const query = await queryPaginationWithParams.validate(req.query);
 
-      const grade = await this.gradeService.createOne(body, id, comment);
+      const [items, count] = await this.gradeService.getUnchekedGrades(query);
+
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+
+      res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public accept = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+
+      const grade = await this.gradeService.accept(params);
 
       res.json({ code: 1, grade });
     } catch (e) {
