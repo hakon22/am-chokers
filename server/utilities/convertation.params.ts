@@ -75,5 +75,6 @@ export const queryPaginationSchema = yup.object().shape({
 export const queryPaginationWithParams = queryPaginationSchema.concat(
   yup.object().shape({
     withDeleted: booleanSchema,
+    showAccepted: booleanSchema,
   }),
 );

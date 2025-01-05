@@ -10,11 +10,12 @@ import type { PaginationEntityInterface, PaginationInterface, PaginationSearchIn
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import { routes } from '@/routes';
 
-type AppStoreInterface = AppDataInterface & InitialState & { pagination: PaginationInterface };
+type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface };
 
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
   error: null,
+  axiosAuth: false,
   items: [],
   itemGroups: [],
   itemCollections: [],
@@ -264,6 +265,9 @@ const appSlice = createSlice({
     },
     setPaginationParams: (state, { payload }: PayloadAction<PaginationInterface>) => {
       state.pagination = payload;
+    },
+    setAxiosAuth: (state, { payload }: PayloadAction<boolean>) => {
+      state.axiosAuth = payload;
     },
     setItemGrades: (state, { payload }: PayloadAction<PaginationEntityInterface<ItemGradeEntity>>) => {
       const itemIndex = state.items.findIndex((item) => item.id === payload.id);
@@ -541,7 +545,7 @@ const appSlice = createSlice({
       })
       .addCase(removeGrade.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.grade.position.item.id);
+          const itemIndex = state.items.findIndex((item) => item.id === payload.grade.item.id);
           if (itemIndex !== -1) {
             state.items[itemIndex].grades = state.items[itemIndex].grades.filter((grade) => grade.id !== payload.grade.id);
           }
@@ -556,6 +560,6 @@ const appSlice = createSlice({
   },
 });
 
-export const { setAppData, setPaginationParams, setItemGrades } = appSlice.actions;
+export const { setAppData, setAxiosAuth, setPaginationParams, setItemGrades } = appSlice.actions;
 
 export default appSlice.reducer;

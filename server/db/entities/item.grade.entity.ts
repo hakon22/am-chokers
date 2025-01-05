@@ -11,6 +11,7 @@ const expression = `
     LEFT JOIN "chokers"."order_position" "orderPosition" ON "orderPosition"."id" = "grade"."position_id"
     LEFT JOIN "chokers"."item" "item" ON "orderPosition"."item_id" = "item"."id"
   GROUP BY "item"."id", "grade"."id"
+  ORDER BY "grade"."id" DESC
 `;
 
 /** Оценки товаров (вьюха) */

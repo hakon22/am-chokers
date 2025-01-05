@@ -7,6 +7,8 @@ export interface GradeOptionsInterface {
   onlyNotChecked?: boolean;
   /** `id` товара */
   itemId?: number;
+  /** `id` пользователя */
+  userId?: number;
   /** `ids` оценок */
   ids?: number[];
   /** Имя товара */

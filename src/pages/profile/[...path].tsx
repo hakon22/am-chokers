@@ -16,6 +16,7 @@ import { Favorites } from '@/components/profile/Favorites';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NoAuthorization } from '@/components/NoAuthorization';
 import { Order } from '@/components/profile/Order';
+import { Reviews } from '@/components/profile/Reviews';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -37,6 +38,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
 
   const { logOut } = useContext(AuthContext);
 
+  const { pagination } = useAppSelector((state) => state.app);
   const { id, role, favorites } = useAppSelector((state) => state.user);
 
   const items: MenuItem[] = [
@@ -57,21 +59,23 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
-  const titleProps = { id: path[1], ...(router.asPath === routes.favorites ? { count: favorites?.length } : {}) };
+  const titleProps = {
+    id: path[1],
+    ...(routes.favorites === router.asPath ? { count: favorites?.length } : {}),
+    ...(routes.myReviews === router.asPath ? { count: pagination.count } : {}),
+  };
 
   const pages: Record<string, JSX.Element> = {
     personal: <Personal t={t} />,
     orders: <OrderHistory t={t} />,
     favorites: <Favorites />,
+    reviews: <Reviews t={t} />,
     order: <Order orderId={+titleProps.id} t={t} />,
   };
 
   const getPage = () => {
     if (path[0] === 'orders') {
-      if (path.length === 1) {
-        return pages.orders;
-      }
-      return pages.order;
+      return path.length === 1 ? pages.orders : pages.order;
     }
     return pages[path[0]];
   };

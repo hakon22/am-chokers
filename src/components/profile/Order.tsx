@@ -48,7 +48,7 @@ export const Order = ({ orderId, t }: { orderId: number; t: TFunction }) => {
   
   const [form] = Form.useForm();
 
-  const { loadingStatus  } = useAppSelector((state) => state.order);
+  const { loadingStatus } = useAppSelector((state) => state.order);
   const order = useAppSelector((state) => selectors.selectById(state, orderId));
 
   const height = 100;
@@ -67,8 +67,8 @@ export const Order = ({ orderId, t }: { orderId: number; t: TFunction }) => {
     form.setFieldValue('grade', rate);
   };
 
-  const onFinish = async () => {
-    const { payload: { code } } = await dispatch(createGrade({ ...grade, comment: { ...grade.comment, images: commentImages } } as GradeFormInterface)) as { payload: { code: number; } };
+  const onFinish = async (values: GradeFormInterface) => {
+    const { payload: { code } } = await dispatch(createGrade({ ...grade, comment: { ...grade.comment, ...values.comment, images: commentImages } } as GradeFormInterface)) as { payload: { code: number; } };
     if (code === 1) {
       clearGradeForm();
       toast(tToast('gradeSendSuccess'), 'success');

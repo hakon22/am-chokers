@@ -53,6 +53,7 @@ export class RouterService {
     this.router.post(this.routes.confirmPhone, this.userService.confirmPhone);
     this.router.post(this.routes.changeUserProfile, this.middlewareService.jwtToken, this.userService.changeUserProfile);
     this.router.get(this.routes.unlinkTelegram, this.middlewareService.jwtToken, this.userService.unlinkTelegram);
+    this.router.get(this.routes.getMyGrades, this.middlewareService.jwtToken, this.userService.getMyGrades);
 
     // integration
     this.router.post(this.routes.telegram, this.middlewareService.accessTelegram, this.telegramService.webhooks);

@@ -43,6 +43,7 @@ export const routes = {
   changeUserProfile: [apiPath, 'user', 'change-user-profile'].join('/'),
   unlinkTelegram: [apiPath, 'user', 'unlink-telegram'].join('/'),
   getOrders: [apiPath, 'user', 'orders'].join('/'),
+  getMyGrades: [apiPath, 'user', 'myGrades'].join('/'),
 
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
@@ -71,7 +72,7 @@ export const routes = {
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
   addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),
   removeFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'remove'].join('/'),
-  getGrades: ({ id, isServer }: { id?: number; isServer?: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
+  getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
 
   // cart
   getCart: [apiPath, 'cart', 'getAll'].join('/'),

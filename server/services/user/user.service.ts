@@ -14,7 +14,8 @@ import type { UserOptionsInterface } from '@server/types/user/user.options.inter
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema } from '@server/utilities/convertation.params';
+import { GradeService } from '@server/services/rating/grade.service';
+import { paramsIdSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
 
 @Singleton
 export class UserService extends BaseService {
@@ -23,6 +24,8 @@ export class UserService extends BaseService {
   private readonly smsService = Container.get(SmsService);
 
   private readonly itemService = Container.get(ItemService);
+
+  private readonly gradeService = Container.get(GradeService);
 
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -97,7 +100,7 @@ export class UserService extends BaseService {
         user.refreshTokens.push(refreshToken);
       }
 
-      await user.save();
+      await UserEntity.update(user.id, { refreshTokens: user.refreshTokens });
 
       res.json({
         code: 1,
@@ -304,6 +307,26 @@ export class UserService extends BaseService {
       await UserEntity.update(id, { telegramId: undefined });
 
       res.json({ code: 1 });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getMyGrades = async (req: Request, res: Response) => {
+    try {
+      const { id: userId } = req.user as PassportRequestInterface;
+
+      const query = await queryPaginationWithParams.validate(req.query);
+      
+      const [items, count] = await this.gradeService.getMyGrades(query, userId);
+      
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+      
+      res.json({ code: 1, items, paginationParams });
     } catch (e) {
       this.errorHandler(e, res);
     }
