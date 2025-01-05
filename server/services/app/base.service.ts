@@ -1,4 +1,5 @@
 import { Container } from 'typescript-ioc';
+import type { Response } from 'express';
 
 import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
@@ -10,4 +11,9 @@ export abstract class BaseService {
   protected redisService = Container.get(RedisService);
 
   protected loggerService = Container.get(LoggerService);
+
+  protected errorHandler = (e: any, res: Response, statusCode = 500) => {
+    this.loggerService.error(e);
+    res.status(statusCode).json({ error: `${e?.name}: ${e?.message}` });
+  };
 }

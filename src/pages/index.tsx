@@ -1,26 +1,51 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import pendant from '@/images/pendant.png';
-import choker from '@/images/choker.png';
-import choker2 from '@/images/choker2.jpg';
-import choker3 from '@/images/choker3.jpg';
-import { ImageHover } from '@/components/ImageHover';
 import {
   useEffect, useRef, useState, WheelEvent,
 } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
+
+import pendant from '@/images/pendant.png';
+import choker from '@/images/choker.png';
+import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
-import { translate } from '@/utilities/translate';
 import { Helmet } from '@/components/Helmet';
+import { useAppSelector } from '@/utilities/hooks';
+import type { ItemInterface } from '@/types/item/Item';
+import { ContextMenu } from '@/components/ContextMenu';
+import { getHref } from '@/utilities/getHref';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
+  const { items } = useAppSelector((state) => state.app);
+
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const { bestsellers, collections, news } = items.reduce((acc, item) => {
+    if (item.new) {
+      acc.news.push(item);
+    }
+    if (item.bestseller) {
+      acc.bestsellers.push(item);
+    }
+    if (item.collection) {
+      acc.collections.push(item);
+    }
+    return acc;
+  }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
+
+  const bestseller1 = bestsellers.find(({ order }) => order === 1);
+  const bestseller2 = bestsellers.find(({ order }) => order === 2);
+  const bestseller3 = bestsellers.find(({ order }) => order === 3);
+
+  const collection1 = collections.find(({ order }) => order === 4);
+  const collection2 = collections.find(({ order }) => order === 5);
+  const collection3 = collections.find(({ order }) => order === 6);
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -48,21 +73,6 @@ const Index = () => {
     },
   };
 
-  const items = [
-    {
-      id: 1, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 1', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 1000, rating: 1.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'necklace',
-    },
-    {
-      id: 2, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 2', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 2000, rating: 2.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'bracelets',
-    },
-    {
-      id: 3, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 3', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 3000, rating: 3.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'earrings',
-    },
-    {
-      id: 4, images: [choker2.src, choker3.src], width: 400, height: 400, name: 'Товар 4', description: 'Lorem ipsum dolor sit amet consectetur. Mi rhoncus venenatis magna sagittis dignissim. Et sed nisi purus quis facilisi est. Massa eget vel eros facilisis etiam commodo.', price: 4000, rating: 4.3, composition: 'Стеклянный бисер, варисцит, гематит, кристаллы, бижутерный сплав', length: '40 см + регулировка 6 см', className: 'me-3', group: 'accessories',
-    },
-  ];
-
   const handleWheel = throttle((event: WheelEvent<HTMLDivElement>) => {
     if (carouselRef.current) {
       if (event.deltaY > 0) {
@@ -80,16 +90,16 @@ const Index = () => {
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
-      <Link href={routes.catalog} title="Смотреть каталог" className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
+      <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
       {isLoaded && (
-      <>
-        <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 3, height: '62vh', width: '55%' }}>
-          <Image src={choker} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-        </div>
-        <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 2, height: '105vh', width: '60%' }}>
-          <Image src={pendant} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-        </div>
-      </>
+        <>
+          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 3, height: '62vh', width: '55%' }}>
+            <Image src={choker} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
+          </div>
+          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 2, height: '105vh', width: '60%' }}>
+            <Image src={pendant} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
+          </div>
+        </>
       )}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
@@ -121,16 +131,16 @@ const Index = () => {
                 swipeable
                 ssr
               >
-                {items.map((item) => (
-                  <Link href={`${routes.catalog}/${item.group}/${translate(item.name)}`} key={item.id}>
-                    <ImageHover
-                      className={item.className}
-                      height={item.height}
-                      images={item.images}
-                      name={item.name}
-                      description={tPrice('price', { price: item.price })}
-                    />
-                  </Link>
+                {news.map((item) => (
+                  <ImageHover
+                    key={item.id}
+                    className={item.className}
+                    href={getHref(item)}
+                    height={item.height}
+                    images={item.images}
+                    name={item.name}
+                    description={tPrice('price', { price: item.price })}
+                  />
                 ))}
               </Carousel>
             </div>
@@ -143,32 +153,39 @@ const Index = () => {
             <h2>{t('bestsellers')}</h2>
             <div className="d-flex" style={{ gap: '10%' }}>
               <div className="d-flex flex-column col-4 gap-5 justify-content-between">
-                <ImageHover
-                  className="col-6 align-self-start"
-                  height={200}
-                  images={[choker2.src, choker3.src]}
-                  name="Информация о товаре"
-                  description={tPrice('price', { price: 5000 })}
-                  width="95%"
-                />
-                <ImageHover
-                  className="col-6 d-flex align-self-end"
-                  style={{ alignSelf: 'end' }}
-                  height={200}
-                  images={[choker2.src, choker3.src]}
-                  name="Информация о товаре"
-                  description={tPrice('price', { price: 5000 })}
-                  width="95%"
-                />
+                <ContextMenu item={bestseller1} order={1} className="col-6 align-self-start" style={{ width: '95%' }}>
+                  <ImageHover
+                    height={200}
+                    href={getHref(bestseller1)}
+                    images={bestseller1?.images ?? []}
+                    name={bestseller1?.name}
+                    description={tPrice('price', { price: bestseller1?.price })}
+                  />
+                </ContextMenu>
+                <ContextMenu item={bestseller2} order={2} className="col-6 d-flex align-self-end">
+                  <ImageHover
+                    className="w-100"
+                    href={getHref(bestseller2)}
+                    style={{ alignSelf: 'end', width: '95%' }}
+                    height={200}
+                    images={bestseller2?.images ?? []}
+                    name={bestseller2?.name}
+                    description={tPrice('price', { price: bestseller2?.price })}
+                  />
+                </ContextMenu>
               </div>
               <div className="d-flex col-6">
-                <ImageHover
-                  className="w-100"
-                  height="100%"
-                  images={[choker2.src, choker3.src]}
-                  name="Информация о товаре"
-                  description={tPrice('price', { price: 5000 })}
-                />
+                <ContextMenu item={bestseller3} order={3} className="w-100">
+                  <ImageHover
+                    className="h-100"
+                    href={getHref(bestseller3)}
+                    style={{ width: '100%' }}
+                    height="100%"
+                    images={bestseller3?.images ?? []}
+                    name={bestseller3?.name}
+                    description={tPrice('price', { price: bestseller3?.price })}
+                  />
+                </ContextMenu>
               </div>
             </div>
           </section>
@@ -189,30 +206,39 @@ const Index = () => {
           <section className="d-flex flex-column align-items-center">
             <h2 className="col-10 text-start" style={{ marginBottom: '7%' }}>{t('collections')}</h2>
             <div className="d-flex flex-column col-10" style={{ gap: '5rem' }}>
-              <div className="d-flex justify-content-between align-items-end" data-aos="fade-right" data-aos-duration="1500">
-                <ImageHover
-                  className="col-6"
-                  height={200}
-                  images={[choker2.src, choker3.src]}
-                />
-                <h2>Название</h2>
-              </div>
-              <div className="d-flex flex-row-reverse justify-content-between align-items-end" data-aos="fade-left" data-aos-duration="1500">
-                <ImageHover
-                  className="col-6"
-                  height={200}
-                  images={[choker2.src, choker3.src]}
-                />
-                <h2>Название</h2>
-              </div>
-              <div className="d-flex flex-row-reverse justify-content-between align-items-end" data-aos="fade-left" data-aos-duration="1500">
-                <ImageHover
-                  className="col-6"
-                  height={200}
-                  images={[choker2.src, choker3.src]}
-                />
-                <h2>Название</h2>
-              </div>
+              <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
+                <div className="d-flex justify-content-between align-items-end">
+                  <ImageHover
+                    className="col-6"
+                    href={getHref(collection1)}
+                    height={200}
+                    images={collection1?.images ?? []}
+                  />
+                  <h2>{collection1?.collection?.name}</h2>
+                </div>
+              </ContextMenu>
+              <ContextMenu item={collection2} order={5} data-aos="fade-right" data-aos-duration="1500">
+                <div className="d-flex justify-content-between align-items-end flex-row-reverse">
+                  <ImageHover
+                    className="col-6"
+                    href={getHref(collection2)}
+                    height={200}
+                    images={collection2?.images ?? []}
+                  />
+                  <h2>{collection2?.collection?.name}</h2>
+                </div>
+              </ContextMenu>
+              <ContextMenu item={collection3} order={6} data-aos="fade-right" data-aos-duration="1500">
+                <div className="d-flex justify-content-between align-items-end flex-row-reverse">
+                  <ImageHover
+                    className="col-6"
+                    href={getHref(collection3)}
+                    height={200}
+                    images={collection3?.images ?? []}
+                  />
+                  <h2>{collection3?.collection?.name}</h2>
+                </div>
+              </ContextMenu>
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
@@ -220,7 +246,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
               />
@@ -228,7 +254,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[1]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
               />
@@ -237,7 +263,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
               />
@@ -245,7 +271,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
               />
@@ -254,7 +280,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
               />
@@ -262,7 +288,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
               />
@@ -271,7 +297,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
               />
@@ -279,7 +305,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={[choker2.src, choker3.src]}
+                images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
               />
@@ -289,7 +315,7 @@ const Index = () => {
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
             <p className="fw-light fs-5 mb-2">
               <span>{t('subscribe')}</span>
-              <Link href="https://t.me/AMChokers" className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
+              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
             </p>
             <p className="fw-light fs-5">{t('getUpdates')}</p>
           </section>

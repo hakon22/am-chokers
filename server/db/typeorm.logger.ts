@@ -1,7 +1,8 @@
-import { LoggerService } from '@server/services/app/logger.service';
 
 import { Logger, QueryRunner } from 'typeorm';
 import { Container, Singleton } from 'typescript-ioc';
+
+import { LoggerService } from '@server/services/app/logger.service';
 
 @Singleton
 export class TypeormLogger implements Logger {

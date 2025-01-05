@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 import { setLocale, ObjectSchema, AnyObject } from 'yup';
 import _ from 'lodash';
+
 import i18n from '@/locales';
 
 const { t } = i18n;
@@ -16,6 +17,12 @@ setLocale({
     max: () => t('validation.requirements'),
     length: () => t('validation.phone'),
   },
+  number: {
+    min: () => t('validation.notZero'),
+  },
+  array: {
+    min: () => t('validation.emptyArray'),
+  },
 });
 
 const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T>) => ({
@@ -28,9 +35,16 @@ const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T
   },
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const uuidSchema = yup.object().shape({
+  id: yup.string().uuid().required(),
+});
+
+export const uuidArraySchema = yup.array(yup.string().uuid().required()).required();
+
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
+
+const requiredIdSchema = yup.object().shape({ id: numberSchema });
 
 const phoneSchema = yup.string().trim().required().transform((value) => value.replace(/[^\d]/g, ''))
   .length(11)
@@ -41,6 +55,12 @@ const confirmCodeSchema = yup.object().shape({
     .transform((value) => value.replace(/[^\d]/g, ''))
     .test('code', t('validation.code'), (value) => value.length === 4),
 });
+
+const idSchema = yup
+  .lazy((value) => (typeof value === 'object'
+    ? requiredIdSchema
+    : numberSchema
+  ));
 
 const confirmPhoneSchema = yup.object().shape({
   phone: phoneSchema,
@@ -91,8 +111,60 @@ const profileSchema = yup.object().shape({
   ['password', 'password'],
 ]);
 
+const newItemSchema = yup.object().shape({
+  name: stringSchema,
+  description: stringSchema,
+  group: idSchema,
+  collection: idSchema.optional(),
+  new: yup.boolean(),
+  bestseller: yup.boolean(),
+  price: numberSchema,
+  width: numberSchema,
+  height: numberSchema,
+  composition: stringSchema,
+  length: stringSchema,
+  images: yup.array(requiredIdSchema).optional(),
+});
+
+const newItemCatalogSchema = yup.object().shape({
+  name: stringSchema,
+  description: stringSchema,
+});
+
+const newItemGroupSchema = yup.object().shape({
+  code: stringSchema,
+}).concat(newItemCatalogSchema);
+
+const newOrderPositionSchema = yup.array(yup.object().shape({
+  count: numberSchema,
+  item: requiredIdSchema,
+})
+  .concat(uuidSchema))
+  .min(1);
+
+const newCommentSchema = yup.object().shape({
+  text: stringSchema,
+  images: yup.array(requiredIdSchema).optional(),
+  parentComment: requiredIdSchema.optional(),
+});
+
+const newGradeSchema = yup.object().shape({
+  grade: numberSchema.max(5),
+  comment: yup.object().shape({
+    text: yup.string().nullable().optional(),
+    images: yup.array(requiredIdSchema).optional(),
+  }),
+  position: requiredIdSchema,
+});
+
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
 export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
+export const newItemValidation = validate(newItemSchema);
+export const newItemGroupValidation = validate(newItemGroupSchema);
+export const newItemCatalogValidation = validate(newItemCatalogSchema);
+export const newOrderPositionValidation = validate(newOrderPositionSchema);
+export const newCommentValidation = validate(newCommentSchema);
+export const newGradeValidation = validate(newGradeSchema);

@@ -1,16 +1,25 @@
 import {
   Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
+  OneToMany,
+  DeleteDateColumn,
+  ManyToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
+import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
+import { ImageEntity } from '@server/db/entities/image.entity';
+import { RatingEntity } from '@server/db/entities/rating.entity';
+import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
+import { UserEntity } from '@server/db/entities/user.entity';
 
 /** Товар */
 @Entity({
   name: 'item',
 })
 export class ItemEntity extends BaseEntity {
-  /** Уникальный id товара */
+  /** Уникальный `id` товара */
   @PrimaryGeneratedColumn()
   public id: number;
 
@@ -30,15 +39,29 @@ export class ItemEntity extends BaseEntity {
   @UpdateDateColumn()
   public updated: Date;
 
+  /** Дата удаления товара */
+  @DeleteDateColumn()
+  public deleted: Date;
+
   /** Цена товара */
   @Column('int')
   public price: number;
 
-  /** Фотографии товара */
-  @Column('character varying', {
-    array: true,
+  /** Скидка на товар (в `процентах`) */
+  @Column('int', {
+    default: 0,
   })
-  public images: string[];
+  public discount: number;
+
+  /** Скидка на товар (в `рублях`) */
+  @Column('int', {
+    default: 0,
+  })
+  public discountPrice: number;
+
+  /** Фотографии товара */
+  @OneToMany(() => ImageEntity, image => image.item)
+  public images: ImageEntity[];
 
   /** Высота картинки товара */
   @Column('int')
@@ -56,24 +79,61 @@ export class ItemEntity extends BaseEntity {
   @Column('character varying')
   public length: string;
 
-  /** Рейтинг товара */
-  @Column('numeric')
-  public rating: number;
+  /** Бестселлер */
+  @Column('boolean', {
+    default: false,
+  })
+  public bestseller: boolean;
+
+  /** Новинка */
+  @Column('boolean', {
+    default: false,
+  })
+  public new: boolean;
 
   /** Классы товара (для компонента ImageHover) */
   @Column('character varying', {
     name: 'class_name',
+    default: 'me-3',
   })
   public className: string;
 
+  /** Позиция на главной странице */
+  @Column('int', {
+    nullable: true,
+  })
+  public order: number;
+
   /** Группа товара */
   @ManyToOne(() => ItemGroupEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'group_id',
+  })
+  public group: ItemGroupEntity;
+
+  /** Коллекция товара */
+  @ManyToOne(() => ItemCollectionEntity, {
     nullable: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
   })
   @JoinColumn({
-    name: 'item_group_id',
+    name: 'collection_id',
   })
-  public group: ItemGroupEntity;
+  public collection?: ItemCollectionEntity;
+
+  /** Пользователи, добавившие товар в избранное */
+  @ManyToMany(() => UserEntity, user => user.favorites)
+  public users: UserEntity[];
+
+  /** Рейтинг товара */
+  @OneToOne(() => RatingEntity, rating => rating.item)
+  public rating?: RatingEntity;
+
+  /** Оценки товара */
+  @OneToMany(() => ItemGradeEntity, itemGrade => itemGrade.item)
+  public grades: ItemGradeEntity[];
 }

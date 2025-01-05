@@ -14,7 +14,7 @@ export class TokenService {
   public tokenChecker = (passport: PassportStatic) => passport.use(
     new JwtStrategy(this.options, async ({ id }, done) => {
       try {
-        const user = await UserEntity.findOne({ where: { id } });
+        const user = await UserEntity.findOne({ where: { id }, relations: ['favorites', 'favorites.images', 'favorites.group', 'favorites.collection'] });
         if (user) {
           const {
             password, updated, created, ...rest
@@ -33,7 +33,7 @@ export class TokenService {
     'jwt-refresh',
     new JwtStrategy(this.optionsRefresh, async ({ id, phone }, done) => {
       try {
-        const user = await UserEntity.findOne({ where: { id, phone } });
+        const user = await UserEntity.findOne({ where: { id, phone }, relations: ['favorites', 'favorites.images', 'favorites.group', 'favorites.collection'] });
         if (user) {
           const {
             password, updated, created, ...rest

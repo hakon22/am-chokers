@@ -12,7 +12,9 @@ import { TokenService } from '@server/services/user/token.service';
 import { BaseService } from '@server/services/app/base.service';
 import { routes } from '@/routes';
 
-const { NEXT_PUBLIC_PORT: port = 3001, TELEGRAM_TOKEN, NEXT_PUBLIC_PRODUCTION_HOST, NODE_ENV } = process.env;
+const {
+  NEXT_PUBLIC_PORT: port = 3001, TELEGRAM_TOKEN, NEXT_PUBLIC_PRODUCTION_HOST, NODE_ENV,
+} = process.env;
 
 class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
@@ -33,11 +35,13 @@ class Server extends BaseService {
     await this.databaseService.init();
     await this.redisService.init();
 
-    await this.telegramBot.telegram.setMyCommands([{
-      command: 'start',
-      description: '🔃 Запуск бота',
-    }]);
-    await this.telegramBot.telegram.setWebhook(`${NEXT_PUBLIC_PRODUCTION_HOST}${routes.telegram}`);
+    if (!this.dev) {
+      await this.telegramBot.telegram.setMyCommands([{
+        command: 'start',
+        description: '🔃 Запуск бота',
+      }]);
+      await this.telegramBot.telegram.setWebhook(`${NEXT_PUBLIC_PRODUCTION_HOST}${routes.telegram}`);
+    }
   };
 
   public start = async () => {

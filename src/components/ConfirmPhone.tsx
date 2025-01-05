@@ -1,11 +1,13 @@
 import { Button, Form, Progress } from 'antd';
 import { useContext, useState, useEffect } from 'react';
-import { fetchConfirmCode } from '@/slices/userSlice';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { useTranslation } from 'react-i18next';
 import VerificationInput from 'react-verification-input';
+
+import { SubmitContext } from '@/components/Context';
+import { fetchConfirmCode } from '@/slices/userSlice';
+import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { toast } from '@/utilities/toast';
-import { SubmitContext } from './Context';
+
 
 export const ConfirmPhone = ({ setState, newPhone }: { setState: (arg: boolean) => void, newPhone?: string }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.confirmPhone' });
@@ -62,7 +64,7 @@ export const ConfirmPhone = ({ setState, newPhone }: { setState: (arg: boolean) 
   }, [loadingStatus]);
 
   return (
-    <Form name="confirmPhone" onFinish={onFinish} className="d-flex flex-column align-items-center fs-5 my-4 w-100" style={{ fontFamily: 'Oswald, sans-serif' }}>
+    <Form name="confirmPhone" onFinish={onFinish} className="d-flex flex-column align-items-center fs-5 my-4 font-oswald w-100">
       <span className="mb-3-5 text-center fs-4">{t('enterTheCode')}</span>
       <div className="d-flex justify-content-center mb-5 col-10 position-relative">
         <VerificationInput

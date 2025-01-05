@@ -45,12 +45,11 @@ html {
 
 body {
   font-family: Oswald, sans-serif;
-  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
+  background: $bg;
   background-attachment: fixed;
   background-size: cover;
   color: $font;
   position: relative;
-  padding-bottom: 30%;
   overflow-x: hidden;
   overflow-y: scroll;
   min-height: 100vh;
@@ -100,6 +99,7 @@ h2 {
 .icon {
   font-size: 1.8rem;
   cursor: pointer;
+  z-index: 1500;
 
   &-button {
     padding: 0;
@@ -109,23 +109,15 @@ h2 {
   }
 }
 
+.hovered {
+  &:active, &:hover {
+    color: $ant-hover !important;
+  }
+}
+
 a {
   color: inherit;
   text-decoration: inherit;
-}
-
-.spinner {
-  position: absolute;
-  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
-  width: 100vw;
-  height: 100vh;
-  z-index: 1500;
-
-  div {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-  }
 }
 
 .button {
@@ -140,6 +132,37 @@ a {
 
   &:active, &:hover {
     background-color: $button-background-active !important;
+    color: $white !important;
+  }
+}
+
+.back-button {
+  background-color: $font-error;
+  color: $white;
+  font-family: Oswald, sans-serif !important;
+  font-size: 1.25rem;
+  font-weight: 400;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+
+  &:active, &:hover {
+    background-color: $font-error-hover !important;
+    color: $white !important;
+  }
+}
+
+.edit-button {
+  background-color: $edit-button;
+  color: $white;
+  font-family: Oswald, sans-serif !important;
+  font-size: 1rem;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+
+  &:active, &:hover {
+    background-color: $edit-button-hover !important;
     color: $white !important;
   }
 }
@@ -168,6 +191,31 @@ a {
   border-color: $dark-blue !important;
 }
 
+.switch-large {
+  display: flex;
+  align-items: center;
+  height: 30px;
+
+  .ant-switch-handle {
+    top: unset;
+    width: 20px;
+    height: 20px;
+    inset-inline-start: 2.5px;
+  }
+
+  .ant-switch-inner {
+    align-content: center;
+
+    &-checked, &-unchecked {
+      font-size: 1rem !important;
+    }
+  }
+}
+
+.ant-switch.ant-switch-checked .ant-switch-handle {
+  inset-inline-start: calc(100% - 22px) !important;
+}
+
 .ant-spin-fullscreen {
   z-index: 1500;
 }
@@ -189,6 +237,10 @@ a {
 .font-mr_hamiltoneg {
   font-family: mr_hamiltoneg;
   letter-spacing: 3px;
+}
+
+.fs-5-5 {
+  font-size: 1.1rem;
 }
 
 .color-dark-blue {
@@ -226,6 +278,45 @@ a {
   background: unset;
   border: 0;
   padding: 0;
+}
+
+.ant-card .ant-card-body {
+  padding: 40px 24px;
+}
+
+.font-oswald {
+  font-family: Oswald, sans-serif !important;
+}
+
+.cart-control {
+  background-color: $grey-light;
+  border-radius: 10px;
+  
+  button {
+    border: unset;
+    background-color: unset;
+    padding: 0 0.5rem;
+    box-shadow: none;
+  }
+}
+
+.large-input {
+  .ant-input-number-prefix {
+    font-size: 1.35rem !important;
+    font-family: Oswald, sans-serif !important;
+    padding: 0 1rem 0 0;
+  }
+
+  input, textarea, .ant-select-selector, .ant-checkbox-wrapper {
+    font-size: 1.35rem !important;
+    padding: 0 !important;
+    font-family: Oswald, sans-serif !important;
+  }
+
+  .ant-checkbox .ant-checkbox-inner {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 @keyframes show {

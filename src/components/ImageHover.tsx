@@ -1,24 +1,26 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import {
   useState, useEffect, CSSProperties, HTMLAttributes,
 } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
-type ImageHoverType = {
-  images: string[];
+import image404 from '@/images/404.svg';
+import type { ItemInterface } from '@/types/item/Item';
+
+interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterface, 'images'> {
   height: number | string;
   width?: number | string;
+  href?: string;
   name?: string;
   description?: string;
   marker?: boolean;
   style?: CSSProperties;
-  className?: string;
-  props?: HTMLAttributes<HTMLDivElement>[];
-};
+}
 
 export const ImageHover = ({
   images,
   height,
+  href,
   width = undefined,
   name = '',
   description = '',
@@ -52,34 +54,68 @@ export const ImageHover = ({
     return undefined;
   }, [isHovered]);
 
-  return (
-    <div className={`d-flex flex-column ${className}`} {...props}>
-      <div
-        className="image-hover"
-        style={{ width, height, ...style }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        {images.map((image, i) => (
-          <Image
-            key={image}
-            src={image}
-            unoptimized
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
-            alt={`Image ${index + 1}`}
-            className={i === index ? 'active' : ''}
-          />
-        ))}
+  return href
+    ? (
+      <div className={`d-flex flex-column ${className}`} {...props}>
+        <Link
+          href={href}
+          className="image-hover"
+          style={{ width, height, ...style }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {images.length
+            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
+              <Image
+                key={image.id}
+                src={image.src}
+                unoptimized
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                alt={`Image ${index + 1}`}
+                className={i === index ? 'active' : ''}
+              />
+            ))
+            : <Image src={image404} alt="" className="active" />}
+        </Link>
+        {marker || name || description ? (
+          <div className="image-hover-sub mt-3" style={{ width, ...style }}>
+            {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+            {name ? <div className="title lh-sm mb-3">{name}</div> : null}
+            {description ? <div className="description">{description}</div> : null}
+          </div>
+        ) : null}
       </div>
-      {marker || name || description ? (
-        <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-          {marker ? images.map((image, i) => <span key={image} className={i === index ? 'sphere active' : 'sphere'} />) : null}
-          {name ? <div className="title">{name}</div> : null}
-          {description ? <div className="description">{description}</div> : null}
+    )
+    :  (
+      <div className={`d-flex flex-column ${className}`} {...props}>
+        <div
+          className="image-hover"
+          style={{ width, height, ...style }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {images.length
+            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
+              <Image
+                key={image.id}
+                src={image.src}
+                unoptimized
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                alt={`Image ${index + 1}`}
+                className={i === index ? 'active' : ''}
+              />
+            ))
+            : <Image src={image404} alt="" className="active" />}
         </div>
-      ) : null}
-    </div>
-  );
+        {marker || name || description ? (
+          <div className="image-hover-sub mt-3" style={{ width, ...style }}>
+            {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+            {name ? <div className="title lh-sm mb-3">{name}</div> : null}
+            {description ? <div className="description">{description}</div> : null}
+          </div>
+        ) : null}
+      </div>
+    );
 };

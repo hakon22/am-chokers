@@ -33,10 +33,18 @@ export abstract class DatabaseService {
       entities,
       subscribers: [],
       migrations: [],
+      cache: {
+        type: 'redis',
+        options: {
+          host: 'localhost',
+          port: 6379,
+        },
+        duration: 60000, // 60 секунд
+      },
     });
   }
 
-  public getManager = async () => {
+  public getManager = () => {
     if (!this.db.isInitialized) {
       throw new Error('Database connection is not initialized. Please call init() first.');
     }

@@ -5,10 +5,12 @@ import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
-import { routes } from '@/routes';
+import { Badge, Menu, type MenuProps } from 'antd';
+
+import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
-import { Menu, type MenuProps } from 'antd';
+import { useAppSelector } from '@/utilities/hooks';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -26,6 +28,10 @@ const LabelWithIcon = ({ label, href }: { label: string, href: string }) => (
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
+  const { itemGroups } = useAppSelector((state) => state.app);
+  const { favorites } = useAppSelector((state) => state.user);
+  const { cart } = useAppSelector((state) => state.cart);
+
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>('108px');
   const [isLoaded, setIsLoaded] = useState(false);
@@ -41,16 +47,11 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     {
-      label: <LabelWithIcon label={t('menu.catalog.title')} href={routes.catalog} />,
+      label: <LabelWithIcon label={t('menu.catalog')} href={routes.catalog} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
-      children: [
-        { label: <Link href={routes.necklace}>{t('menu.catalog.necklace')}</Link>, key: 'necklace' },
-        { label: <Link href={routes.bracelets}>{t('menu.catalog.bracelets')}</Link>, key: 'bracelets' },
-        { label: <Link href={routes.earrings}>{t('menu.catalog.earrings')}</Link>, key: 'earrings' },
-        { label: <Link href={routes.accessories}>{t('menu.catalog.accessories')}</Link>, key: 'accessories' },
-      ],
+      children: itemGroups.map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code })),
     },
     {
       label: <Link href="/">{t('menu.aboutBrand')}</Link>,
@@ -88,7 +89,7 @@ export const NavBar = () => {
         <>
           <div className="nav-logo-container" data-aos="fade-down">
             <Link href="/">
-              <Image src={logoImage} unoptimized className="nav-logo" alt={t('logo')} />
+              <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
             </Link>
           </div>
           <div className="nav-menu" data-aos="fade-down">
@@ -109,13 +110,17 @@ export const NavBar = () => {
               <SearchOutlined className="icon" />
               <span className="visually-hidden">{t('search')}</span>
             </Link>
-            <Link href="/" title={t('favorites')}>
-              <HeartOutlined className="icon" />
-              <span className="visually-hidden">{t('favorites')}</span>
+            <Link href={routes.favorites} title={t('favorites')}>
+              <Badge count={favorites?.length} offset={[3, 23]}>
+                <HeartOutlined className="icon" />
+                <span className="visually-hidden">{t('favorites')}</span>
+              </Badge>
             </Link>
-            <Link href="/" title={t('cart')}>
-              <ShoppingCartOutlined className="icon" />
-              <span className="visually-hidden">{t('cart')}</span>
+            <Link href={routes.cartPage} title={t('cart')}>
+              <Badge count={cart.reduce((acc, { count }) => acc + count, 0)} offset={[3, 23]}>
+                <ShoppingCartOutlined className="icon" />
+                <span className="visually-hidden">{t('cart')}</span>
+              </Badge>
             </Link>
             <Link href={routes.profilePage} title={t('profile')}>
               <Image src={personIcon} unoptimized alt={t('logo')} />

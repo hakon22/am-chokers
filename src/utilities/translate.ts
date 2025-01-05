@@ -1,4 +1,5 @@
-export const translate = (str: string) => {
+export const translate = (str?: string) => {
+  if (!str) return '';
   const ru: Record<string, string> = {
     а: 'a',
     б: 'b',

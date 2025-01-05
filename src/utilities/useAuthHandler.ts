@@ -1,9 +1,12 @@
 import { useEffect, useContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import axios from 'axios';
+
 import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
+import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { fetchCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
@@ -13,7 +16,9 @@ export const useAuthHandler = () => {
   const router = useRouter();
 
   const { logIn, loggedIn } = useContext(AuthContext);
+
   const { token, refreshToken, url } = useAppSelector((state) => state.user);
+  const { cart } = useAppSelector((state) => state.cart);
 
   useEffect(() => {
     const tokenStorage = window.localStorage.getItem(storageKey);
@@ -23,15 +28,19 @@ export const useAuthHandler = () => {
   }, []);
 
   useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    }
     if (token && !loggedIn) {
       logIn();
       if (url) {
         router.push(url);
         dispatch(removeUrl());
+      } else if (router.asPath === routes.loginPage) {
+        router.push(routes.homePage);
       }
-    }
-    if (token) {
-      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+      dispatch(fetchOrders());
+      dispatch(fetchCart(cart));
     }
   }, [token]);
 

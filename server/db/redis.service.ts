@@ -9,6 +9,7 @@ export class RedisService {
     this.redis = await createClient()
       .on('error', (error) => console.log('Невозможно подключиться к Redis', error))
       .connect();
+    console.log('Соединение с Redis было успешно установлено');
   };
 
   /** Получение значения из кеша

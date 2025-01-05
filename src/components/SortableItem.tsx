@@ -1,0 +1,64 @@
+import { useTranslation } from 'react-i18next';
+import { useSortable } from '@dnd-kit/sortable';
+import { DeleteOutlined } from '@ant-design/icons';
+import { CSS } from '@dnd-kit/utilities';
+import Image from 'next/image';
+import { Badge } from 'antd';
+import { useContext } from 'react';
+
+import type { ImageEntity } from '@server/db/entities/image.entity';
+import { SubmitContext } from '@/components/Context';
+import { useAppDispatch } from '@/utilities/hooks';
+import { deleteItemImage } from '@/slices/appSlice';
+
+export const SortableItem = ({ image, index, activeId, setImages }: { image: ImageEntity, index: number, activeId: number, setImages: React.Dispatch<React.SetStateAction<ImageEntity[]>> }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.sortableItem' });
+  const dispatch = useAppDispatch();
+
+  const { setIsSubmit } = useContext(SubmitContext);
+
+  const { id, src, name } = image;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  let boxShadow = '';
+
+  if (transform && activeId === id) {
+    transform.scaleY = 1.1;
+    transform.scaleX = 1.05;
+    boxShadow = '0px 6px 5px rgba(0, 0, 0, 0.24), 0px 9px 18px rgba(0, 0, 0, 0.18)';
+  }
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    boxShadow,
+  };
+
+  const deleteHandler = async () => {
+    setIsSubmit(true);
+    await dispatch(deleteItemImage(id));
+    setImages((state) => state.filter((value) => value.id !== id));
+    setIsSubmit(false);
+  };
+
+  const DeleteButton = (
+    <button className="icon-button p-2" style={{ backgroundColor: '#f7f9fc', borderRadius: '50%' }} onClick={deleteHandler} title={t('delete')}>
+      <DeleteOutlined className="fs-5 hovered" />
+      <span className="visually-hidden">{t('delete')}</span>
+    </button>
+  );
+
+  return (
+    <Badge count={DeleteButton} offset={[0, 90]}>
+      <Badge count={index} color="blue">
+        <Image src={src} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />
+      </Badge>
+    </Badge>
+  );
+};

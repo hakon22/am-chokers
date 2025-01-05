@@ -3,9 +3,8 @@ import qs from 'qs';
 import passGen from 'generate-password';
 import { getDigitalCode } from 'node-verification-code';
 import { Container, Singleton } from 'typescript-ioc';
-import { LoggerService } from '@server/services/app/logger.service';
 
-export const codeGen = () => getDigitalCode(4).toString();
+import { LoggerService } from '@server/services/app/logger.service';
 
 @Singleton
 export class SmsService {
@@ -13,7 +12,7 @@ export class SmsService {
 
   public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
     try {
-      const code = codeGen();
+      const code = this.codeGen();
 
       if (process.env.NODE_ENV === 'production') {
         const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
@@ -66,4 +65,6 @@ export class SmsService {
       throw Error('Произошла ошибка при отправке SMS');
     }
   };
+
+  private codeGen = () => getDigitalCode(4).toString();
 }

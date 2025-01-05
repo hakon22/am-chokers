@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 
+import { getWidth, getRatio } from '@/utilities/screenExtension';
+
 export const useRootStyle = () => {
   useEffect(() => {
     const handleResize = () => {
-      const width = window.innerWidth; // Фактическая ширина окна
-      const ratio = window.devicePixelRatio; // Соотношение, считаем как масштаб
+      const width = getWidth();
+      const ratio = getRatio();
       console.log(width, ratio, width * ratio);
       document.documentElement.style.setProperty('--ratio', `${ratio}`);
     };

@@ -3,13 +3,14 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
+import { Alert } from 'react-bootstrap';
+import { useContext, useEffect, useState } from 'react';
+
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { signupValidation } from '@/validations/validations';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { routes } from '@/routes';
-import { Alert } from 'react-bootstrap';
-import { useContext, useEffect, useState } from 'react';
 import { SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -37,31 +38,26 @@ const Signup = () => {
   const [form] = Form.useForm();
 
   const onFinish = async (values: UserSignupInterface) => {
-    try {
-      setIsSubmit(true);
-      const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
-      if (code === 1) {
-        setUser(values);
-        setIsProcessConfirmed(true);
-      }
-      if (code === 4) {
-        toast(tToast('timeNotOverForSms'), 'error');
-      }
-      if (code === 5) {
-        form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
-      }
-      setIsSubmit(false);
-    } catch (e) {
-      setTimeout(setIsSubmit, 1500, false);
-      axiosErrorHandler(e, tToast, setIsSubmit);
+    setIsSubmit(true);
+    const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
+    if (code === 1) {
+      setUser(values);
+      setIsProcessConfirmed(true);
     }
+    if (code === 4) {
+      toast(tToast('timeNotOverForSms'), 'error');
+    }
+    if (code === 5) {
+      form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
+    }
+    setIsSubmit(false);
   };
 
   useEffect(() => {
     if (isConfirmed && user) {
       dispatch(fetchSignup(user))
-        .then(() => { router.push(routes.profilePage) })
-        .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit) })
+        .then(() => { router.push(routes.profilePage); })
+        .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit); });
     }
   }, [isConfirmed, user]);
 

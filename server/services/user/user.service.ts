@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 
@@ -9,10 +9,12 @@ import { confirmCodeValidation, phoneValidation, signupValidation } from '@/vali
 import { upperCase } from '@server/utilities/text.transform';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { TokenService } from '@server/services/user/token.service';
-import { UserQueryInterface } from '@server/types/user/user.query.interface';
-import { UserOptionsInterface } from '@server/types/user/user.options.interface';
+import type { UserQueryInterface } from '@server/types/user/user.query.interface';
+import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
+import { ItemService } from '@server/services/item/item.service';
+import { paramsIdSchema } from '@server/utilities/convertation.params';
 
 @Singleton
 export class UserService extends BaseService {
@@ -20,8 +22,10 @@ export class UserService extends BaseService {
 
   private readonly smsService = Container.get(SmsService);
 
+  private readonly itemService = Container.get(ItemService);
+
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
-    const manager = await this.databaseService.getManager();
+    const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(UserEntity, 'user')
       .select([
@@ -31,13 +35,32 @@ export class UserService extends BaseService {
         'user.telegramId',
         'user.refreshTokens',
         'user.role',
-      ]);
+        'user.deleted',
+      ])
+      .leftJoin('user.favorites', 'favorites')
+      .addSelect([
+        'favorites.id',
+        'favorites.name',
+        'favorites.price',
+      ])
+      .leftJoin('favorites.images', 'images')
+      .addSelect([
+        'images.id',
+        'images.name',
+        'images.path',
+        'images.deleted',
+      ])
+      .leftJoinAndSelect('favorites.group', 'group')
+      .leftJoinAndSelect('favorites.collection', 'collection');
 
     if (query?.id) {
       builder.andWhere('user.id = :id', { id: query.id });
     }
     if (query?.phone) {
       builder.andWhere('user.phone = :phone', { phone: query.phone });
+    }
+    if (query?.withDeleted) {
+      builder.withDeleted();
     }
     if (options?.withPassword) {
       builder.addSelect('user.password');
@@ -53,15 +76,16 @@ export class UserService extends BaseService {
 
       const user = await this.findOne({ phone: payload.phone }, { withPassword: true });
       if (!user) {
-        return res.json({ code: 3 });
+        res.json({ code: 3 });
+        return;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, refreshTokens, ...rest } = user;
 
       const isValidPassword = bcrypt.compareSync(payload.password, password);
       if (!isValidPassword) {
-        return res.json({ code: 2 });
+        res.json({ code: 2 });
+        return;
       }
 
       const token = this.tokenService.generateAccessToken(user.id, user.phone);
@@ -75,13 +99,12 @@ export class UserService extends BaseService {
 
       await user.save();
 
-      res.status(200).send({
+      res.json({
         code: 1,
         user: { ...rest, token, refreshToken },
       });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -93,27 +116,35 @@ export class UserService extends BaseService {
       req.body.name = upperCase(req.body.name);
       const payload = req.body as UserFormInterface;
 
-      const candidate = await this.findOne({ phone: payload.phone });
+      const candidate = await this.findOne({ phone: payload.phone, withDeleted: true });
 
       if (candidate) {
-        return res.json({ code: 2 });
+        res.json({ code: 2 });
+        return;
       }
 
-      const user = await UserEntity.save({
-        ...payload,
-        password: bcrypt.hashSync(payload.password, 10),
-      });
+      const { user, token, refreshToken } = await this.databaseService.getManager().transaction(async (manager) => {
+        const userRepo = manager.getRepository(UserEntity);
 
-      const token = this.tokenService.generateAccessToken(user.id, user.phone);
-      const refreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
+        const createdUser = await userRepo.save({
+          ...payload,
+          password: bcrypt.hashSync(payload.password, 10),
+        });
+
+        const createdToken = this.tokenService.generateAccessToken(user.id, user.phone);
+        const createdRefreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
+
+        await userRepo.update(user.id, { refreshTokens: [refreshToken] });
+
+        return { user: createdUser, token: createdToken, refreshToken: createdRefreshToken };
+      });
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, refreshTokens, ...rest } = user;
 
       res.json({ code: 1, user: { ...rest, token, refreshToken } });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -123,9 +154,10 @@ export class UserService extends BaseService {
       const { phone, key, code: userCode } = req.body as { phone: string, key?: string, code?: string };
       await phoneValidation.serverValidator({ phone });
 
-      const candidate = await this.findOne({ phone });
+      const candidate = await this.findOne({ phone, withDeleted: true });
       if (candidate) {
-        return res.json({ code: 5 });
+        res.json({ code: 5 });
+        return;
       }
 
       if (key) {
@@ -134,25 +166,25 @@ export class UserService extends BaseService {
         if (key && userCode) {
           await confirmCodeValidation.serverValidator({ code: userCode });
           if (data && data.phone === phone && data.code === userCode) {
-            return res.json({ code: 2, key });
+            res.json({ code: 2, key });
+            return;
           }
-          return res.json({ code: 3 }); // код подтверждения не совпадает
+          res.json({ code: 3 }); // код подтверждения не совпадает
+          return;
         }
       }
       if (await this.redisService.exists(phone)) {
-        return res.json({ code: 4 });
+        res.json({ code: 4 });
+        return;
       }
 
-      // eslint-disable-next-line camelcase
       const { request_id, code } = await this.smsService.sendCode(phone);
       await this.redisService.setEx(request_id, { phone, code }, 3600);
       await this.redisService.setEx(phone, { phone }, 59);
 
-      // eslint-disable-next-line camelcase
       res.json({ code: 1, key: request_id, phone });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -170,18 +202,18 @@ export class UserService extends BaseService {
 
         await UserEntity.update(user.id, { refreshTokens: newRefreshTokens });
       } else {
-        throw new Error('Ошибка доступа');
+        this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${user.refreshTokens.join(', ')}`);
+        throw new Error('Ошибка аутентификации. Войдите заново!');
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { refreshTokens, ...rest } = user;
-      res.status(200).send({
+      res.json({
         code: 1,
         user: { ...rest, token, refreshToken },
       });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(401);
+      this.errorHandler(e, res, 401);
     }
   };
 
@@ -192,10 +224,9 @@ export class UserService extends BaseService {
 
       const refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
       await UserEntity.update(user.id, { refreshTokens });
-      res.status(200).json({ status: 'Tokens has been deleted' });
+      res.json({ status: 'Tokens has been deleted' });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
@@ -207,31 +238,32 @@ export class UserService extends BaseService {
 
       const user = await this.findOne({ phone });
       if (!user) {
-        return res.status(200).json({ code: 2 });
+        res.json({ code: 2 });
+        return;
       }
       const password = await this.smsService.sendPass(phone);
       const hashPassword = bcrypt.hashSync(password, 10);
       await UserEntity.update(user.id, { password: hashPassword });
-      res.status(200).json({ code: 1 });
+      res.json({ code: 1 });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
     }
   };
 
   public changeUserProfile = async (req: Request, res: Response) => {
     try {
-      const { ...user } = req.user as PassportRequestInterface;
+      const { id, phone } = req.user as PassportRequestInterface;
       const {
         confirmPassword, oldPassword, key, ...values
       } = req.body as UserProfileType;
 
       if (values.password) {
-        const fetchUser = await this.findOne({ phone: user.phone }, { withPassword: true });
+        const fetchUser = await this.findOne({ phone }, { withPassword: true });
         if (oldPassword && fetchUser && confirmPassword === values.password) {
           const isValidPassword = bcrypt.compareSync(oldPassword, fetchUser.password);
           if (!isValidPassword) {
-            return res.json({ code: 2 });
+            res.json({ code: 2 });
+            return;
           }
           const hashPassword = bcrypt.hashSync(values.password, 10);
           values.password = hashPassword;
@@ -253,12 +285,61 @@ export class UserService extends BaseService {
           throw new Error('Телефон не подтверждён');
         }
       }
-      await UserEntity.update(user.id, values);
+      await UserEntity.update(id, values);
 
       res.json({ code: 1 });
     } catch (e) {
-      this.loggerService.error(e);
-      res.sendStatus(500);
+      this.errorHandler(e, res);
+    }
+  };
+
+  public unlinkTelegram = async (req: Request, res: Response) => {
+    try {
+      const { id, telegramId } = req.user as PassportRequestInterface;
+
+      if (!telegramId) {
+        throw new Error('Телеграм-аккаунт не найден');
+      }
+
+      await UserEntity.update(id, { telegramId: undefined });
+
+      res.json({ code: 1 });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public addFavorites = async (req: Request, res: Response) => {
+    try {
+      const { ...user } = req.user as PassportRequestInterface;
+      const params = await paramsIdSchema.validate(req.params);
+
+      const item = await this.itemService.findOne(params);
+
+      await UserEntity.save({ ...user, favorites: [...user.favorites, item] });
+
+      res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public removeFavorites = async (req: Request, res: Response) => {
+    try {
+      const { ...user } = req.user as PassportRequestInterface;
+      const params = await paramsIdSchema.validate(req.params);
+
+      const item = user.favorites.find((value) => value.id === params.id);
+
+      if (!item) {
+        throw new Error(`Товар №${params.id} отсутствует в избранном`);
+      }
+
+      await UserEntity.save({ ...user, favorites: user.favorites.filter((value) => value.id !== item.id) });
+
+      res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
     }
   };
 }

@@ -1,5 +1,6 @@
 import 'dayjs/locale/ru';
-import type { AppProps } from 'next/app';
+import type { AppProps, AppContext } from 'next/app';
+import AppNext from 'next/app';
 import Head from 'next/head';
 import {
   useCallback, useEffect, useMemo, useState,
@@ -9,22 +10,27 @@ import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
+
 import { AuthContext, SubmitContext, NavbarContext } from '@/components/Context';
 import { routes } from '@/routes';
-import { removeToken } from '@/slices/userSlice';
+import { removeToken as removeUserToken } from '@/slices/userSlice';
+import { removeMany as removeManyCart } from '@/slices/cartSlice';
+import { removeMany } from '@/slices/orderSlice';
 import favicon16 from '@/images/favicon16x16.png';
 import favicon32 from '@/images/favicon32x32.png';
 import favicon57 from '@/images/favicon57x57.png';
 import favicon180 from '@/images/favicon180x180.png';
 import store from '@/slices/index';
 import { App } from '@/components/App';
+import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
+import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
-const Init = (props: AppProps) => {
-  const { pageProps, Component } = props;
+const Init = (props: AppProps & AppDataInterface) => {
+  const { pageProps, Component, items, itemGroups, itemCollections } = props;
   const { dispatch } = store;
 
   const { id, refreshToken } = store.getState().user;
@@ -43,7 +49,10 @@ const Init = (props: AppProps) => {
     }
     await axios.post(routes.logout, { id, refreshToken });
     setLoggedIn(false);
-    dispatch(removeToken());
+    dispatch(removeUserToken());
+    dispatch(removeMany());
+    dispatch(removeManyCart());
+    axios.defaults.headers.common.Authorization = null;
   }, [id]);
 
   const authServices = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);
@@ -52,6 +61,7 @@ const Init = (props: AppProps) => {
 
   useEffect(() => {
     AOS.init();
+    dispatch(setAppData({ items, itemGroups, itemCollections }));
   }, []);
 
   return (
@@ -76,6 +86,18 @@ const Init = (props: AppProps) => {
       </AuthContext.Provider>
     </I18nextProvider>
   );
+};
+
+Init.getInitialProps = async (context: AppContext) => {
+  const [{ data: { items } }, { data: { itemGroups } }, { data: { itemCollections } }] = await Promise.all([
+    axios.get<{ items: ItemInterface[] }>(routes.getItems({ isServer: false })),
+    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.getItemGroups({ isServer: false })),
+    axios.get<{ itemCollections: ItemCollectionInterface[] }>(routes.getItemCollections({ isServer: false })),
+  ]);
+
+  const props = await AppNext.getInitialProps(context);
+
+  return { ...props, items, itemGroups, itemCollections };
 };
 
 export default Init;

@@ -1,7 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import { Singleton } from 'typescript-ioc';
+import passport from 'passport';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
+import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
+@Singleton
 export class MiddlewareService {
   private readonly checkIpService: CheckIpService;
 
@@ -16,8 +21,8 @@ export class MiddlewareService {
     }
     return req.socket.remoteAddress;
   };
-  
-  public accessTelegram = (request: Request, response: Response, next: NextFunction) => {
+
+  public accessTelegram = (req: Request, res: Response, next: NextFunction) => {
     const subnets = [
       '91.108.4.0/22',
       '91.105.192.0/23',
@@ -34,11 +39,38 @@ export class MiddlewareService {
       '149.154.172.0/22',
       '185.76.151.0/24',
     ];
-  
-    if (subnets.find((subnet) => this.checkIpService.isCorrectIP(this.getClientIp(request) as string, subnet))) {
-      return next();
+
+    if (subnets.find((subnet) => this.checkIpService.isCorrectIP(this.getClientIp(req) as string, subnet))) {
+      next();
+      return;
     }
-  
-    return response.status(401).json({ message: 'Unauthorized' });
+
+    res.status(401).json({ message: 'Unauthorized' });
+  };
+
+  public optionalJwtAuth = (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('jwt', { session: false }, (err: any, user: any) => {
+      if (err) {
+        return next(err);
+      }
+      req.user = user ?? { id: null };
+      next();
+    })(req, res, next);
+  };
+
+  public jwtToken = passport.authenticate('jwt', { session: false });
+
+  public checkAdminAccess = (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { role } = req.user as PassportRequestInterface;
+      if (role === UserRoleEnum.ADMIN) {
+        next();
+      } else {
+        res.sendStatus(403);
+      }
+    } catch (e) {
+      console.log(e);
+      res.sendStatus(500);
+    }
   };
 }
