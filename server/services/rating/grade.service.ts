@@ -73,6 +73,10 @@ export class GradeService extends BaseService {
           'user.id',
           'user.name',
         ])
+        .leftJoin('grade.position', 'position')
+        .addSelect('position.id')
+        .leftJoin('position.order', 'order')
+        .addSelect('order.id')
         .leftJoin('comment.images', 'images')
         .addSelect([
           'images.id',
@@ -123,13 +127,6 @@ export class GradeService extends BaseService {
         .leftJoin('grade.item', 'item')
         .andWhere('item.name = :itemName', { itemName: options.itemName });
     }
-    if (options?.withOrder) {
-      builder
-        .leftJoin('grade.position', 'position')
-        .addSelect('position.id')
-        .leftJoin('position.order', 'order')
-        .addSelect('order.id');
-    }
     if (options?.onlyChecked) {
       builder.andWhere('grade.checked = TRUE');
     }
@@ -169,7 +166,7 @@ export class GradeService extends BaseService {
   };
 
   public getUnchekedGrades = async (query: FetchGradeInterface): Promise<[ItemGradeEntity[], number]> => {
-    const idsBuilder = this.createQueryBuilder(query, { ...query, ...(query?.showAccepted ? {} : { onlyNotChecked: true }), withOrder: true, onlyIds: true });
+    const idsBuilder = this.createQueryBuilder(query, { ...query, ...(query?.showAccepted ? {} : { onlyNotChecked: true }), onlyIds: true });
 
     const [ids, count] = await idsBuilder.getManyAndCount();
 
@@ -185,7 +182,7 @@ export class GradeService extends BaseService {
   };
 
   public getMyGrades = async (query: FetchGradeInterface, userId: number): Promise<[ItemGradeEntity[], number]> => {
-    const idsBuilder = this.createQueryBuilder(query, { userId, withDeleted: true, withOrder: true, onlyIds: true });
+    const idsBuilder = this.createQueryBuilder(query, { userId, withDeleted: true, onlyIds: true });
 
     const [ids, count] = await idsBuilder.getManyAndCount();
 
@@ -218,7 +215,7 @@ export class GradeService extends BaseService {
       return gradeRepo.save({ ...body, user: { id: userId } });
     });
 
-    return this.findOne({ id: created.id }, { withOrder: true });
+    return this.findOne({ id: created.id });
   };
 
   public accept = async (params: ParamsIdInterface) => {
@@ -234,7 +231,7 @@ export class GradeService extends BaseService {
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {
-    const grade = await this.findOne(params, { withOrder: true });
+    const grade = await this.findOne(params);
 
     const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
 

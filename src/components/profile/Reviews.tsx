@@ -70,7 +70,7 @@ export const Reviews = ({ t }: { t: TFunction }) => {
         next={() => fetchMyGrades({ limit: pagination.limit, offset: pagination.offset + 10 })}
         hasMore={data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-        endMessage={<Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider>}
+        endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         scrollableTarget="scrollableDiv"
       >
         <List

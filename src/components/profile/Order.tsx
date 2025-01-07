@@ -11,16 +11,17 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { createGrade, selectors } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { ImageHover } from '@/components/ImageHover';
-import { getOrderStatusColor } from '@/utilities/getOrderStatusColor';
-import { getOrderPrice } from '@/utilities/getOrderPrice';
+import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
+import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { Spinner } from '@/components/Spinner';
 import { UploadImage } from '@/components/UploadImage';
 import { newGradeValidation } from '@/validations/validations';
+import { toast } from '@/utilities/toast';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
-import { toast } from '@/utilities/toast';
+import type { OrderInterface } from '@/types/order/Order';
 
-export const Order = ({ orderId, t }: { orderId: number; t: TFunction }) => {
+export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: TFunction, order?: OrderInterface }) => {
   const { t: tOrders } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -49,7 +50,7 @@ export const Order = ({ orderId, t }: { orderId: number; t: TFunction }) => {
   const [form] = Form.useForm();
 
   const { loadingStatus } = useAppSelector((state) => state.order);
-  const order = useAppSelector((state) => selectors.selectById(state, orderId));
+  const order = useAppSelector((state) => selectors.selectById(state, orderId)) || orderParams;
 
   const height = 100;
 
@@ -93,7 +94,7 @@ export const Order = ({ orderId, t }: { orderId: number; t: TFunction }) => {
   return order
     ? (
       <div className="d-flex flex-column gap-4" style={{ width: '90%' }}>
-        <Badge.Ribbon text={tOrders(`statuses.${order.status}`)} color={getOrderStatusColor(order)}>
+        <Badge.Ribbon text={tOrders(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
           <Card>
             <div className="d-flex col-12" style={{ lineHeight: 0.5 }}>
               <div className="d-flex flex-column justify-content-between col-12">
@@ -125,7 +126,7 @@ export const Order = ({ orderId, t }: { orderId: number; t: TFunction }) => {
                             <span className="lh-1">{t('countPrice', { count: orderPosition.count, price: (orderPosition.price - orderPosition.discountPrice) * orderPosition.count })}</span>
                           </div>
                         </div>
-                        {!orderPosition.grade
+                        {!orderParams && !orderPosition.grade
                           ? grade.position && orderPosition.id === grade.position.id
                             ? <Button className="button border-button py-2 fs-6" title={t('cancel')} onClick={clearGradeForm}>{t('cancel')}</Button>
                             : <Button className="button border-button py-2 fs-6" title={t('rateItem')} onClick={() => gradeFormInit(orderPosition.id)}>{t('rateItem')}</Button>

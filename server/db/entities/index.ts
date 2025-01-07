@@ -10,6 +10,7 @@ import { CommentEntity } from '@server/db/entities/comment.entity';
 import { GradeEntity } from '@server/db/entities/grade.entity';
 import { RatingEntity } from '@server/db/entities/rating.entity';
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
+import { MessageEntity } from '@server/db/entities/message.entity';
 
 export const entities = [
   UserEntity,
@@ -24,4 +25,5 @@ export const entities = [
   CommentEntity,
   RatingEntity,
   ItemGradeEntity,
+  MessageEntity,
 ];

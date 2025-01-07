@@ -60,6 +60,10 @@ export class RouterService {
 
     // order
     this.router.get(this.routes.getOrders, this.middlewareService.jwtToken, this.orderController.findMany);
+    this.router.get(this.routes.cancelOrder(), this.middlewareService.jwtToken, this.orderController.cancel);
+    this.router.patch(this.routes.crudOrder(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.orderController.updateStatus);
+    this.router.get(this.routes.getAllOrders, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.orderController.getAllOrders);
+    this.router.get(this.routes.crudOrder(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.orderController.findOne);
     this.router.post(this.routes.createOrder, this.middlewareService.optionalJwtAuth, this.orderController.createOne);
 
     // itemGroup

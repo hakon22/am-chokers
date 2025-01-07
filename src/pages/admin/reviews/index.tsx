@@ -210,7 +210,7 @@ const Reviews = () => {
         next={() => fetchGrades({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, showAccepted })}
         hasMore={data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-        endMessage={<Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider>}
+        endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         scrollableTarget="scrollableDiv"
       >
         <List
@@ -244,7 +244,7 @@ const Reviews = () => {
                 >
                   <List.Item.Meta
                     className="w-100 mb-5"
-                    title={<GradeListTitle grade={value} withTags />}
+                    title={<GradeListTitle grade={value} withTags withLinkToOrder />}
                     description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />}
                   />
                   {reply.parentComment && value.comment?.id === reply.parentComment.id ? (

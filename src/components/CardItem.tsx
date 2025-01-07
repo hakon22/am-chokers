@@ -8,7 +8,6 @@ import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
 
-import type { ItemInterface } from '@/types/item/Item';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
@@ -16,8 +15,9 @@ import { setItemGrades } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import CreateItem from '@/pages/admin/item/new';
+import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
 export const CardItem = ({ item, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {

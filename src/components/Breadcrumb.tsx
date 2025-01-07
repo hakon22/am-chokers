@@ -15,6 +15,7 @@ type BreadcrumbState = {
   title: JSX.Element | string;
   helmet: string;
   description: string;
+  image?: string;
 }
 
 export const Breadcrumb = () => {
@@ -27,7 +28,7 @@ export const Breadcrumb = () => {
 
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbState[]>([]);
 
-  const { helmet, description } = breadcrumbs[breadcrumbs.length - 1] ?? { helmet: t('pages.index.title'), description: t('pages.index.description') };
+  const { helmet, description, image } = breadcrumbs[breadcrumbs.length - 1] ?? { helmet: t('pages.index.title'), description: t('pages.index.description'), image: undefined };
 
   useEffect(() => {
     const pathArray = pathname.replace('/', 'index/').split('/').filter(Boolean);
@@ -52,13 +53,14 @@ export const Breadcrumb = () => {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
         helmet: page,
         description: (item && pathArray.length - 1 === index ? item?.description : itemGroup?.description) ?? page,
+        image: item?.images?.[0].src,
       };
     }));
   }, [pathname, items]);
 
   return router.pathname.includes(catalogPath) ? (
     <>
-      <Helmet title={helmet} description={description} />
+      <Helmet title={helmet} description={description} image={image} />
       <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '9%' }} />
     </>
   ) : null;

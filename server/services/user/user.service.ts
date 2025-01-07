@@ -1,21 +1,22 @@
 import type { Request, Response } from 'express';
+import type { EntityManager } from 'typeorm';
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
-import type { UserFormInterface, UserProfileType } from '@/types/user/User';
 import { confirmCodeValidation, phoneValidation, signupValidation } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { TokenService } from '@server/services/user/token.service';
-import type { UserQueryInterface } from '@server/types/user/user.query.interface';
-import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
 import { GradeService } from '@server/services/rating/grade.service';
 import { paramsIdSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import type { UserQueryInterface } from '@server/types/user/user.query.interface';
+import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
+import type { UserFormInterface, UserProfileType } from '@/types/user/User';
 
 @Singleton
 export class UserService extends BaseService {
@@ -62,7 +63,7 @@ export class UserService extends BaseService {
     if (query?.phone) {
       builder.andWhere('user.phone = :phone', { phone: query.phone });
     }
-    if (query?.withDeleted) {
+    if (options?.withDeleted) {
       builder.withDeleted();
     }
     if (options?.withPassword) {
@@ -119,33 +120,26 @@ export class UserService extends BaseService {
       req.body.name = upperCase(req.body.name);
       const payload = req.body as UserFormInterface;
 
-      const candidate = await this.findOne({ phone: payload.phone, withDeleted: true });
+      const candidate = await this.findOne({ phone: payload.phone }, { withDeleted: true });
 
       if (candidate) {
         res.json({ code: 2 });
         return;
       }
 
-      const { user, token, refreshToken } = await this.databaseService.getManager().transaction(async (manager) => {
-        const userRepo = manager.getRepository(UserEntity);
+      const { code, user, token, refreshToken } = await this.databaseService
+        .getManager()
+        .transaction(async (manager) => this.createOne(payload.name, payload.phone, manager, payload.password));
 
-        const createdUser = await userRepo.save({
-          ...payload,
-          password: bcrypt.hashSync(payload.password, 10),
-        });
+      if (code === 2) {
+        res.json({ code: 2 });
+        return;
+      } else if (code === 1 && user) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password, refreshTokens, ...rest } = user;
 
-        const createdToken = this.tokenService.generateAccessToken(user.id, user.phone);
-        const createdRefreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
-
-        await userRepo.update(user.id, { refreshTokens: [refreshToken] });
-
-        return { user: createdUser, token: createdToken, refreshToken: createdRefreshToken };
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, refreshTokens, ...rest } = user;
-
-      res.json({ code: 1, user: { ...rest, token, refreshToken } });
+        res.json({ code: 1, user: { ...rest, token, refreshToken } });
+      }
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -157,7 +151,7 @@ export class UserService extends BaseService {
       const { phone, key, code: userCode } = req.body as { phone: string, key?: string, code?: string };
       await phoneValidation.serverValidator({ phone });
 
-      const candidate = await this.findOne({ phone, withDeleted: true });
+      const candidate = await this.findOne({ phone }, { withDeleted: true });
       if (candidate) {
         res.json({ code: 5 });
         return;
@@ -364,5 +358,32 @@ export class UserService extends BaseService {
     } catch (e) {
       this.errorHandler(e, res);
     }
+  };
+
+  public createOne = async (name: string, phone: string, manager: EntityManager, password?: string) => {
+    const candidate = await this.findOne({ phone }, { withDeleted: true });
+
+    if (candidate && password) {
+      return { code: 2 };
+    } else if (candidate && !password) {
+      return { code: 1, user: candidate };
+    }
+
+    const userRepo = manager.getRepository(UserEntity);
+
+    const userPassword = password || await this.smsService.sendPass(phone);
+
+    const createdUser = await userRepo.save({
+      name,
+      phone,
+      password: bcrypt.hashSync(userPassword, 10),
+    });
+
+    const createdToken = this.tokenService.generateAccessToken(createdUser.id, createdUser.phone);
+    const createdRefreshToken = this.tokenService.generateRefreshToken(createdUser.id, createdUser.phone);
+
+    await userRepo.update(createdUser.id, { refreshTokens: [createdRefreshToken] });
+
+    return { code: 1, user: createdUser, token: createdToken, refreshToken: createdRefreshToken };
   };
 }

@@ -1,5 +1,7 @@
 import * as yup from 'yup';
 
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+
 export const queryOptionalSchema = yup.object().shape({
   itemGroupId: yup
     .number()
@@ -76,5 +78,12 @@ export const queryPaginationWithParams = queryPaginationSchema.concat(
   yup.object().shape({
     withDeleted: booleanSchema,
     showAccepted: booleanSchema,
+  }),
+);
+
+export const queryOrderParams = queryPaginationSchema.concat(
+  yup.object().shape({
+    withDeleted: booleanSchema,
+    statuses: yup.array(yup.string().oneOf(Object.values(OrderStatusEnum)).defined()),
   }),
 );

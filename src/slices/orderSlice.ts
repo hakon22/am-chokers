@@ -43,9 +43,9 @@ export const createOrder = createAsyncThunk(
 
 export const updateOrder = createAsyncThunk(
   'order/updateOrder',
-  async (data: OrderInterface, { rejectWithValue }) => {
+  async ({ id, data }: { id: number; data: Partial<OrderInterface>; }, { rejectWithValue }) => {
     try {
-      const response = await axios.put<OrderResponseInterface>(routes.crudOrder(data.id), data);
+      const response = await axios.patch<OrderResponseInterface>(routes.crudOrder(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -53,11 +53,11 @@ export const updateOrder = createAsyncThunk(
   },
 );
 
-export const deleteOrder = createAsyncThunk(
-  'order/deleteOrder',
+export const cancelOrder = createAsyncThunk(
+  'order/cancelOrder',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<OrderResponseInterface>(routes.crudOrder(id));
+      const response = await axios.get<OrderResponseInterface>(routes.cancelOrder(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -139,18 +139,18 @@ const orderSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
-      .addCase(deleteOrder.pending, (state) => {
+      .addCase(cancelOrder.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(deleteOrder.fulfilled, (state, { payload }) => {
+      .addCase(cancelOrder.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          orderAdapter.removeOne(state, payload.order.id);
+          orderAdapter.updateOne(state, { id: payload.order.id, changes: payload.order });
         }
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(deleteOrder.rejected, (state, { payload }: PayloadAction<any>) => {
+      .addCase(cancelOrder.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })

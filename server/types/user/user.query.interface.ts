@@ -3,6 +3,4 @@ export interface UserQueryInterface {
   id?: number;
   /** Телефон пользователя */
   phone?: string;
-  /** С удалёнными */
-  withDeleted?: boolean;
 }

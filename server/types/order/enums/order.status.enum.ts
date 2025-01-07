@@ -3,6 +3,8 @@ export enum OrderStatusEnum {
   NEW = 'NEW',
   /** Сборка */
   ASSEMBLY = 'ASSEMBLY',
+  /** Собран */
+  ASSEMBLED = 'ASSEMBLED',
   /** Доставляется */
   DELIVERING = 'DELIVERING',
   /** Доставлено */

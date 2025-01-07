@@ -2,10 +2,10 @@ import { Singleton } from 'typescript-ioc';
 import type { EntityManager } from 'typeorm';
 
 import { CartEntity } from '@server/db/entities/cart.entity';
+import { BaseService } from '@server/services/app/base.service';
 import type { ParamsIdStringInterface } from '@server/types/params.id.interface';
 import type { CartQueryInterface } from '@server/types/cart/cart.query.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
-import { BaseService } from '@server/services/app/base.service';
 import type { UserEntity } from '@server/db/entities/user.entity';
 
 @Singleton
@@ -44,7 +44,6 @@ export class CartService extends BaseService {
     if (userId) {
       builder.andWhere('cart.user = :userId', { userId });
     }
-
     if (query?.id) {
       builder.andWhere('cart.id = :id', { id: query.id });
     }

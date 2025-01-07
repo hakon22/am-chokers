@@ -52,6 +52,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
         { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.newItem')}</Link> },
         { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.itemGroups')}</Link> },
         { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.itemCollections')}</Link> },
+        { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link> },
         { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
       ],
       } : null,
@@ -86,7 +87,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       {id ? (
         <>
           <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
-          <div className="d-flex">
+          <div className="d-flex flex-column flex-md-row">
             <div className="col-4">
               <Menu
                 selectedKeys={[router.asPath]}
@@ -95,7 +96,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                 items={items}
               />
             </div>
-            <div className="col-8 d-flex justify-content-center">{getPage()}</div>
+            <div className="col-12 col-md-8 d-flex justify-content-center">{getPage()}</div>
           </div>
         </>
       ) : <NoAuthorization />}

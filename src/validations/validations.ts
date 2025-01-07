@@ -3,6 +3,7 @@ import { setLocale, ObjectSchema, AnyObject } from 'yup';
 import _ from 'lodash';
 
 import i18n from '@/locales';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 
 const { t } = i18n;
 
@@ -142,6 +143,10 @@ const newOrderPositionSchema = yup.array(yup.object().shape({
   .concat(uuidSchema))
   .min(1);
 
+const orderChangeStatusSchema = yup.object().shape({
+  status: yup.string().oneOf(Object.values(OrderStatusEnum)),
+});
+
 const newCommentSchema = yup.object().shape({
   text: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
@@ -168,3 +173,4 @@ export const newItemCatalogValidation = validate(newItemCatalogSchema);
 export const newOrderPositionValidation = validate(newOrderPositionSchema);
 export const newCommentValidation = validate(newCommentSchema);
 export const newGradeValidation = validate(newGradeSchema);
+export const orderChangeStatusValidation = validate(orderChangeStatusSchema);

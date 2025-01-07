@@ -21,9 +21,10 @@ export const routes = {
   catalog: catalogPath,
 
   // admin pages
-  newItem: [adminPath, 'item', 'new'].join('/'),
+  newItem: [adminPath, 'item'].join('/'),
   itemGroupsControl: [adminPath, 'groups'].join('/'),
   itemCollectionsControl: [adminPath, 'collections'].join('/'),
+  allOrders: [adminPath, 'orders'].join('/'),
   moderationOfReview: [adminPath, 'reviews'].join('/'),
 
   // profile
@@ -50,7 +51,10 @@ export const routes = {
 
   // order
   crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),
+  cancelOrder: (id?: number) => [apiPath, 'order', id ?? ':id', 'cancel'].join('/'),
   createOrder: [apiPath, 'order', 'new'].join('/'),
+  getAllOrders: [apiPath, 'order', 'getAll'].join('/'),
+  getOrder:  ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'order', id ?? ':id'].join('/'),
 
   // itemGroup
   getItemGroups: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),

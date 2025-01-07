@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Reply } from 'react-bootstrap-icons';
 import moment from 'moment';
 import Image from 'next/image';
+import Link from 'next/link';
 import type { FormInstance, UploadFile } from 'antd/lib';
 
 import { getItemGrades, createComment, removeGrade } from '@/slices/appSlice';
@@ -18,10 +19,16 @@ import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import type { PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ItemInterface } from '@/types/item/Item';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
+import { routes } from '@/routes';
 
-interface GradeListComponentInterface {
+interface GradeListTitleInterface {
   grade: ItemGradeEntity;
   withTags?: boolean;
+  withLinkToOrder?: boolean;
+}
+
+interface GradeListDescriptionInterface {
+  grade: ItemGradeEntity;
   setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -37,14 +44,16 @@ interface GradeListReplyFormInterface {
   setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const GradeListTitle = ({ grade, withTags }: Pick<GradeListComponentInterface, 'grade' | 'withTags'>) => {
+export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTitleInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList.tags' });
 
   return (
     <div className="d-flex flex-column gap-2 mb-3">
       <div className="d-flex align-items-center gap-3">
         <Rate disabled allowHalf value={grade.grade} />
-        <span>{grade.user.name}</span>
+        {withLinkToOrder
+          ? <Link href={`${routes.orderHistory}/${grade.position.order.id}`}>{grade.user.name}</Link>
+          : <span>{grade.user.name}</span>}
         {withTags
           ? grade.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan">{t('accepted')}</Tag> : null
           : null}
@@ -53,7 +62,7 @@ export const GradeListTitle = ({ grade, withTags }: Pick<GradeListComponentInter
     </div>
   );};
 
-export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }: GradeListComponentInterface) => (
+export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }: GradeListDescriptionInterface) => (
   <div className="d-flex flex-column">
     <span className="fs-5-5 font-oswald" style={{ color: 'black' }}>{grade.comment?.text}</span>
     {grade?.comment?.images.length

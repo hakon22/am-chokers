@@ -15,6 +15,4 @@ export interface GradeOptionsInterface {
   itemName?: string;
   /** С удалёнными */
   withDeleted?: boolean;
-  /** С заказом */
-  withOrder?: boolean;
 }

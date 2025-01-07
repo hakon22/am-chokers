@@ -13,6 +13,8 @@ export const useAccessHandler = () => {
     routes.newItem,
     routes.itemGroupsControl,
     routes.itemCollectionsControl,
+    routes.allOrders,
+    routes.moderationOfReview,
   ];
 
   useEffect(() => {

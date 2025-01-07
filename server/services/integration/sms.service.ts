@@ -5,6 +5,8 @@ import { getDigitalCode } from 'node-verification-code';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { LoggerService } from '@server/services/app/logger.service';
+import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
+import { MessageEntity } from '@server/db/entities/message.entity';
 
 @Singleton
 export class SmsService {
@@ -13,9 +15,11 @@ export class SmsService {
   public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
     try {
       const code = this.codeGen();
+      const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
+
+      const history = await MessageEntity.save({ text: object.txt, type: MessageTypeEnum.SMS, phone });
 
       if (process.env.NODE_ENV === 'production') {
-        const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
         this.loggerService.info(`[SMS Service] Отправка SMS по номеру телефона: ${phone}`);
 
         const { data } = await axios.post('https://api3.greensms.ru/sms/send', object, {
@@ -23,18 +27,20 @@ export class SmsService {
         });
 
         if (data.request_id) {
+          history.send = true;
+          await history.save();
           return { ...data, code };
         }
 
-        throw Error(data.error);
+        throw new Error(data.error);
       } else {
         const data = { request_id: Date.now().toString(), error: 'null' };
-        console.log(code);
+        console.log(object.txt);
         return { ...data, code };
       }
     } catch (e) {
       this.loggerService.error(e);
-      throw Error('Произошла ошибка при отправке SMS');
+      throw new Error('Произошла ошибка при отправке SMS');
     }
   };
 
@@ -53,9 +59,13 @@ export class SmsService {
         sender_name: 'AM-PROJECTS',
       };
 
+      const history = await MessageEntity.save({ text: object.text, type: MessageTypeEnum.SMS, phone });
+
       if (process.env.NODE_ENV === 'production') {
         this.loggerService.info(`[SMS Service] Отправка SMS по номеру телефона: ${phone}`);
         await axios.post('https://ssl.bs00.ru', qs.stringify(object));
+        history.send = true;
+        await history.save();
       } else {
         console.log(password);
       }
