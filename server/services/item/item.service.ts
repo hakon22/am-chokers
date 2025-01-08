@@ -27,7 +27,6 @@ export class ItemService extends BaseService {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemEntity, 'item')
-      .cache(true)
       .select([
         'item.id',
         'item.name',
@@ -166,5 +165,5 @@ export class ItemService extends BaseService {
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
 
-  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name));
+  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name)).replaceAll('\\', '/');
 }

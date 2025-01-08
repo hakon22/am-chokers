@@ -24,6 +24,8 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
   const { id, images, name, description, price, composition, length, rating, grades } = item;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
+
   const galleryRef = useRef<ImageGallery>(null);
 
   const dispatch = useAppDispatch();
@@ -187,24 +189,24 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
             </div>
           ) : tab === 'delivery' && (
             <div className="delivery-fade">
-              <p key={1} className="mb-4 fs-5 fw-bold">{t('delivery.1')}</p>
-              <p key={2}>{t('delivery.2')}</p>
+              <p key={1} className="mb-4 fs-5 fw-bold">{tDelivery('1')}</p>
+              <p key={2}>{tDelivery('2')}</p>
               <div key={3} className="mb-4">
-                {t('delivery.3')}
+                {tDelivery('3')}
                 <br />
-                {t('delivery.4')}
+                {tDelivery('4')}
               </div>
               <div key={4}>
-                {t('delivery.5')}
+                {tDelivery('5')}
                 <br />
-                {t('delivery.6')}
+                {tDelivery('6')}
               </div>
-              <p key={5} className="my-4 fs-5 fw-bold">{t('delivery.7')}</p>
-              <p key={6} className="mb-4">{t('delivery.8')}</p>
+              <p key={5} className="my-4 fs-5 fw-bold">{tDelivery('7')}</p>
+              <p key={6} className="mb-4">{tDelivery('8')}</p>
               <div key={7}>
-                {t('delivery.9')}
+                {tDelivery('9')}
                 <br />
-                {t('delivery.10')}
+                {tDelivery('10')}
               </div>
             </div>
           )}

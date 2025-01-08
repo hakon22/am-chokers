@@ -123,10 +123,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
       code = payload.code;
       if (code === 1) {
         toast(tToast('itemUpdatedSuccess', { name: oldItem.name }), 'success');
-        router.push({
-          pathname: payload.url,
-          query: { ...router.query, edit: false },
-        });
+        router.push(payload.url);
       }
     } else {
       const { payload } = await dispatch(addItem(values)) as { payload: ItemWithUrlResponseInterface };

@@ -36,13 +36,5 @@ export const translate = (str?: string) => {
     й: 'i',
   };
 
-  return [...str.replaceAll(' ', '_')].map((l) => {
-    let latL = ru[l.toLocaleLowerCase()];
-
-    if (latL === undefined) {
-      latL = l;
-    }
-
-    return latL;
-  }).join('');
+  return [...str.replaceAll(' ', '_')].map((l) => ru[l.toLowerCase()] || l).join('');
 };

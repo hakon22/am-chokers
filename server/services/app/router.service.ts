@@ -81,7 +81,7 @@ export class RouterService {
     this.router.patch(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.restoreOne);
 
     // storage
-    this.router.post(this.routes.imageUpload({ isServer: true }), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.upload(), this.imageService.uploadHandler);
+    this.router.post(this.routes.imageUpload({ isServer: true }), this.middlewareService.jwtToken, this.imageService.upload(), this.imageService.uploadHandler);
     this.router.delete(this.routes.imageDelete(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.deleteOne);
 
     // item

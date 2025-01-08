@@ -48,7 +48,7 @@ export const Breadcrumb = () => {
       const link = linkArray.reduce((acc, fold) => `${acc}/${fold}`, '');
       const page = folder === 'catalog'
         ? t('modules.navbar.menu.catalog')
-        : item && pathArray.length - 1 === index ? item.name : itemGroup?.name ?? 'error';
+        : item && pathArray.length - 1 === index ? item.name : itemGroup?.name ?? '';
       return {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
         helmet: page,
