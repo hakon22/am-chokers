@@ -121,7 +121,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
               }}>{t('edit')}</Button> : null}
             </div>
             <div className="d-flex align-items-center gap-5 mb-3">
-              <CartControl id={id} name={name} className="fs-5" />
+              <CartControl id={id} className="fs-5" />
               <Favorites id={id} />
             </div>
             <p className="lh-lg" style={{ letterSpacing: '0.5px' }}>{description}</p>

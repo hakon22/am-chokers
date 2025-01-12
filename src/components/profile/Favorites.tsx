@@ -37,7 +37,7 @@ export const Favorites = () => {
                 <span>{tPrice('price', { price: item.price })}</span>
               </Link>
               <div className="d-flex gap-4">
-                <CartControl id={item.id} name={item.name} />
+                <CartControl id={item.id} />
                 <FavoritesButton id={item.id} className="fs-5" outlined={true} />
               </div>
             </div>
