@@ -166,7 +166,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
               </div>
               <p className="my-4">
                 {t('warranty.11')}
-                <b>{t('warranty.12')}</b>
+                <b><Link href={routes.jewelryCarePage} title={t('warranty.12')}>{t('warranty.12')}</Link></b>
                 .
               </p>
               <div>

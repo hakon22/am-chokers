@@ -52,11 +52,7 @@ export const paramsIdSchema = yup.object().shape({
 
 export const booleanSchema = yup
   .mixed<boolean>()
-  .transform((value) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    return undefined;
-  })
+  .transform((value) => ['true', true].includes(value) ? true : false)
   .optional();
 
 export const queryPaginationSchema = yup.object().shape({
@@ -87,3 +83,13 @@ export const queryOrderParams = queryPaginationSchema.concat(
     statuses: yup.array(yup.string().oneOf(Object.values(OrderStatusEnum)).defined()),
   }),
 );
+
+export const queryNameParams = yup.object().shape({
+  name: yup.string().required(),
+});
+
+export const queryPromotionalParams = yup.object().shape({
+  withDeleted: booleanSchema,
+  withExpired: booleanSchema,
+  name: yup.string().optional(),
+});

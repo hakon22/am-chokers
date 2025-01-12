@@ -38,8 +38,7 @@ export class ItemCollectionController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const body = req.body as ItemCollectionEntity;
-      await newItemCatalogValidation.serverValidator({ ...body });
+      const body = await newItemCatalogValidation.serverValidator(req.body) as ItemCollectionEntity;
 
       const result = await this.itemCollectionService.createOne(body);
 

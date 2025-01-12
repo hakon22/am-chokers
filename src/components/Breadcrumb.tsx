@@ -53,7 +53,7 @@ export const Breadcrumb = () => {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
         helmet: page,
         description: (item && pathArray.length - 1 === index ? item?.description : itemGroup?.description) ?? page,
-        image: item?.images?.[0].src,
+        image: item?.images?.[0]?.src,
       };
     }));
   }, [pathname, items]);

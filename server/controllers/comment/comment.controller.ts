@@ -40,8 +40,7 @@ export class CommentController extends BaseService {
   public createOne = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as PassportRequestInterface;
-      const { images, ...body } = req.body as CommentEntity;
-      await newCommentValidation.serverValidator(req.body);
+      const { images, ...body } = await newCommentValidation.serverValidator(req.body) as CommentEntity;
 
       const comment = await this.commentService.createOne(body, images, id);
 

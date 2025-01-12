@@ -17,7 +17,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 
 interface ItemGroupTableInterface {
   key: string;

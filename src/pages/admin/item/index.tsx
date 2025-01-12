@@ -17,7 +17,7 @@ import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
 import type { ImageEntity } from '@server/db/entities/image.entity';
@@ -119,7 +119,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         setIsSubmit(false);
         return;
       }
-      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: values })) as { payload: ItemWithUrlResponseInterface };
+      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } })) as { payload: ItemWithUrlResponseInterface };
       code = payload.code;
       if (code === 1) {
         toast(tToast('itemUpdatedSuccess', { name: oldItem.name }), 'success');

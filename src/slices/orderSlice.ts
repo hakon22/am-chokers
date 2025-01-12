@@ -9,6 +9,7 @@ import type { CartItemInterface } from '@/types/cart/Cart';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 
 export interface OrderResponseInterface {
   code: number;
@@ -31,9 +32,9 @@ export const fetchOrders = createAsyncThunk(
 
 export const createOrder = createAsyncThunk(
   'order/createOrder',
-  async (data: CartItemInterface[], { rejectWithValue }) => {
+  async ({ cart, promotional, deliveryPrice }: { cart: CartItemInterface[]; promotional?: PromotionalInterface; deliveryPrice: number; }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<OrderResponseInterface>(routes.createOrder, data);
+      const response = await axios.post<OrderResponseInterface>(routes.createOrder, { cart, promotional, deliveryPrice });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

@@ -28,8 +28,7 @@ export class GradeController extends BaseService {
   public createOne = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as PassportRequestInterface;
-      const { comment, ...body } = req.body as GradeEntity;
-      await newGradeValidation.serverValidator(req.body);
+      const { comment, ...body } = await newGradeValidation.serverValidator(req.body) as GradeEntity;
 
       const grade = await this.gradeService.createOne(body, id, comment);
 

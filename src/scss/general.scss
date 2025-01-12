@@ -243,6 +243,10 @@ a {
   font-size: 1.1rem;
 }
 
+.fs-6-5 {
+  font-size: 0.8rem !important;
+}
+
 .color-dark-blue {
   color: $dark-blue;
 }
@@ -307,7 +311,7 @@ a {
     padding: 0 1rem 0 0;
   }
 
-  input, textarea, .ant-select-selector, .ant-checkbox-wrapper {
+  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
@@ -330,6 +334,8 @@ a {
   }
 }
 
-@media (min-width: 768px) {
-
+@media (max-width: 768px) {
+  .ant-table-content {
+    overflow-x: scroll;
+  }
 }

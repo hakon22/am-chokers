@@ -8,7 +8,7 @@ import type { TFunction } from 'i18next';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import { routes } from '@/routes';
 import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';

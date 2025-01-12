@@ -30,6 +30,7 @@ export const routes = {
   itemCollectionsControl: [adminPath, 'collections'].join('/'),
   allOrders: [adminPath, 'orders'].join('/'),
   moderationOfReview: [adminPath, 'reviews'].join('/'),
+  promotionalCodes: [adminPath, 'promotional'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -93,6 +94,15 @@ export const routes = {
   // comment
   createComment: [apiPath, 'comment', 'add'].join('/'),
   removeComment: (id?: number) => [apiPath, 'comment', id ?? ':id', 'remove'].join('/'),
+
+  // promotional
+  createPromotional: [apiPath, 'promotional', 'add'].join('/'),
+  getPromotionalByName: [apiPath, 'promotional', 'get-by-name'].join('/'),
+  getPromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id'].join('/'),
+  getPromotionals: [apiPath, 'promotional', 'getAll'].join('/'),
+  updatePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'update'].join('/'),
+  restorePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'restore'].join('/'),
+  removePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'remove'].join('/'),
 
   // grade
   createGrade: (id?: number) => [apiPath, 'order-position', id ?? ':id', 'grade', 'add'].join('/'),

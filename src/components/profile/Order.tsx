@@ -12,11 +12,12 @@ import { createGrade, selectors } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { ImageHover } from '@/components/ImageHover';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
-import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { Spinner } from '@/components/Spinner';
 import { UploadImage } from '@/components/UploadImage';
 import { newGradeValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
+import { getHref } from '@/utilities/getHref';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
@@ -101,10 +102,18 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
                 <div className="d-flex flex-column font-oswald">
                   <div className="d-flex mb-5 justify-content-between align-items-center">
                     <span className="fs-5 fw-bold">{t('orderDate', { date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
-                    <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                      <span>{tOrders('payment')}</span>
-                      <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>
-                    </Tag>
+                    <div className="d-flex flex-column gap-2">
+                      {order.promotional
+                        ? <Tag color="#e3dcfa" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                          <span>{tOrders('promotional')}</span>
+                          <span className="fw-bold">{tOrders('promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
+                        </Tag>
+                        : null}
+                      <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                        <span>{tOrders('payment')}</span>
+                        <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>
+                      </Tag>
+                    </div>
                   </div>
                   <div className="d-flex flex-column fs-6 gap-4 mb-5">
                     <span>{t('delivery')}</span>
@@ -119,6 +128,7 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
                           <ImageHover
                             height={height}
                             width={height}
+                            href={getHref(orderPosition.item)}
                             images={orderPosition.item.images}
                           />
                           <div className="d-flex flex-column justify-content-between fs-6 h-100">

@@ -13,6 +13,7 @@ import { ImageService } from '@server/services/storage/image.service';
 import { CartController } from '@server/controllers/cart/cart.controller';
 import { CommentController } from '@server/controllers/comment/comment.controller';
 import { GradeController } from '@server/controllers/rating/grade.controller';
+import { PromotionalController } from '@server/controllers/promotional/promotional.controller';
 import { routes } from '@/routes';
 
 @Singleton
@@ -38,6 +39,8 @@ export class RouterService {
   private readonly commentController = Container.get(CommentController);
 
   private readonly gradeController = Container.get(GradeController);
+
+  private readonly promotionalController = Container.get(PromotionalController);
 
   private router = express.Router();
 
@@ -91,6 +94,7 @@ export class RouterService {
     this.router.patch(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     this.router.get(this.routes.getItems({ isServer: true }), this.itemController.findMany);
     this.router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
+    this.router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);
     this.router.get(this.routes.getGrades({ isServer: true }), this.itemController.getGrades);
 
     // cart
@@ -111,6 +115,15 @@ export class RouterService {
     this.router.get(this.routes.restoreGrade(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.restoreOne);
     this.router.get(this.routes.acceptGrade(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.accept);
     this.router.get(this.routes.getUnchekedGrades({ isServer: true }), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.getUnchekedGrades);
+  
+    // promotional
+    this.router.get(this.routes.getPromotionalByName, this.promotionalController.findByName);
+    this.router.get(this.routes.getPromotionals, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.findMany);
+    this.router.get(this.routes.getPromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.findOne);
+    this.router.post(this.routes.createPromotional, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.createOne);
+    this.router.put(this.routes.updatePromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.updateOne);
+    this.router.delete(this.routes.removePromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.deleteOne);
+    this.router.patch(this.routes.restorePromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.restoreOne);
   };
 
   public get = () => this.router;

@@ -8,6 +8,7 @@ import { newOrderPositionValidation, orderChangeStatusValidation } from '@/valid
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import type { OrderInterface } from '@/types/order/Order';
+import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
 
 @Singleton
 export class OrderController extends BaseService {
@@ -58,8 +59,7 @@ export class OrderController extends BaseService {
   public updateStatus = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as OrderInterface;
-      await orderChangeStatusValidation.serverValidator(body);
+      const body = await orderChangeStatusValidation.serverValidator(req.body) as OrderInterface;
 
       const order = await this.orderService.updateStatus(params, body, req.user as PassportRequestInterface);
 
@@ -83,10 +83,9 @@ export class OrderController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const body = req.body as CartItemInterface[];
-      await newOrderPositionValidation.serverValidator(body);
+      const { cart, promotional, deliveryPrice } = await newOrderPositionValidation.serverValidator(req.body) as { cart: CartItemInterface[]; deliveryPrice: number; promotional?: PromotionalEntity; };
 
-      const order = await this.orderService.createOne(body, req.user as PassportRequestInterface);
+      const order = await this.orderService.createOne(cart, deliveryPrice, req.user as PassportRequestInterface, promotional);
 
       res.json({ code: 1, order });
     } catch (e) {

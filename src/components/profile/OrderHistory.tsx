@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { truncateText } from '@/utilities/truncateText';
-import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { getExtension } from '@/utilities/screenExtension';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
@@ -120,21 +120,29 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
     ? (
       <div className={cn('d-flex flex-column gap-4 w-100', { 'ms-md-3': !setData })}>
         {!setData && <OrderStatusFilter statuses={statuses} setStatuses={setStatuses} />}
-        {orders.filter((order) => !statuses.length || statuses.includes(order.status)).map((order) => (
+        {orders.sort((a, b) => b.id - a.id).filter((order) => !statuses.length || statuses.includes(order.status)).map((order) => (
           <Badge.Ribbon key={order.id} text={t(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
             <Card
               actions={getActions(order.status, order.id)}
             >
-              <div className="d-flex flex-column flex-md-row col-12 gap-3 gap-md-0" style={{ lineHeight: 0.5 }}>
+              <div className="d-flex flex-column flex-md-row col-12 gap-3 gap-md-0">
                 <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="d-flex flex-column justify-content-between col-12 gap-3 gap-md-0 col-md-4">
-                  <div className="d-flex flex-column">
+                  <div className="d-flex flex-column" style={{ minHeight: 100 }}>
                     <span className="fs-6 mb-3">{t('orderNumber', { id: order.id })}</span>
                     <span className="text-muted">{moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>
                   </div>
-                  <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                    <span>{t('payment')}</span>
-                    <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
-                  </Tag>
+                  <div className="d-flex flex-column gap-2">
+                    {order.promotional
+                      ? <Tag color="#e3dcfa" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                        <span>{t('promotional')}</span>
+                        <span className="fw-bold">{t('promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
+                      </Tag>
+                      : null}
+                    <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                      <span>{t('payment')}</span>
+                      <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
+                    </Tag>
+                  </div>
                 </Link>
                 <div className="d-flex flex-column col-12 col-md-8 gap-2">
                   {order.positions.map((position) =>

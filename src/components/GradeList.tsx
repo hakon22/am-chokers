@@ -14,7 +14,7 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { newCommentValidation } from '@/validations/validations';
 import { PreviewImage } from '@/components/PreviewImage';
 import { UploadImage, urlToBase64, getBase64 } from '@/components/UploadImage';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import type { PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ItemInterface } from '@/types/item/Item';

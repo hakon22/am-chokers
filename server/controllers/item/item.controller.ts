@@ -38,10 +38,12 @@ export class ItemController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { images, ...body } = req.body as ItemEntity;
-      await newItemValidation.serverValidator(req.body);
+      const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
-      const result = await this.itemService.createOne(body as ItemEntity, images);
+      const { images, ...rest } = body;
+
+
+      const result = await this.itemService.createOne(rest as ItemEntity, images);
 
       res.json(result);
     } catch (e) {
@@ -52,7 +54,7 @@ export class ItemController extends BaseService {
   public updateOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as ItemEntity;
+      const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
       const { item, url } = await this.itemService.updateOne(params, body);
 

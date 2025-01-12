@@ -4,7 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
-import { uuidArraySchema, uuidSchema } from '@/validations/validations';
+import { uuidArraySchema, uuidSchema, newCartItemValidation } from '@/validations/validations';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { NullableParamsIdInterface } from '@server/types/params.id.interface';
 
@@ -28,7 +28,7 @@ export class CartController extends BaseService {
   public createOne = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as NullableParamsIdInterface;
-      const body = req.body as CartEntity;
+      const body = await newCartItemValidation.serverValidator(req.body) as CartEntity;
 
       const result = await this.cartService.createOne(id, body);
 

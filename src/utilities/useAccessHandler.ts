@@ -15,11 +15,18 @@ export const useAccessHandler = () => {
     routes.itemCollectionsControl,
     routes.allOrders,
     routes.moderationOfReview,
+    routes.promotionalCodes,
   ];
 
   useEffect(() => {
-    if (role === UserRoleEnum.MEMBER && adminPaths.includes(router.asPath)) {
-      router.push(routes.homePage);
+    if (adminPaths.includes(router.asPath)) {
+      const timeout = setTimeout(() => {
+        if (role !== UserRoleEnum.ADMIN) {
+          router.push(routes.homePage);
+        }
+      }, 300);
+      
+      return () => clearTimeout(timeout);
     }
   }, [role, router.asPath]);
 };

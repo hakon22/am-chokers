@@ -5,7 +5,7 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
-import { confirmCodeValidation, phoneValidation, signupValidation } from '@/validations/validations';
+import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
 import { TokenService } from '@server/services/user/token.service';
 import { SmsService } from '@server/services/integration/sms.service';
@@ -75,10 +75,10 @@ export class UserService extends BaseService {
 
   public login = async (req: Request, res: Response) => {
     try {
-      req.body.phone = phoneTransform(req.body.phone);
-      const payload = req.body as { phone: string, password: string };
+      const body = await loginValidation.serverValidator(req.body) as { phone: string, password: string };
+      body.phone = phoneTransform(body.phone);
 
-      const user = await this.findOne({ phone: payload.phone }, { withPassword: true });
+      const user = await this.findOne({ phone: body.phone }, { withPassword: true });
       if (!user) {
         res.json({ code: 3 });
         return;
@@ -86,7 +86,7 @@ export class UserService extends BaseService {
 
       const { password, refreshTokens, ...rest } = user;
 
-      const isValidPassword = bcrypt.compareSync(payload.password, password);
+      const isValidPassword = bcrypt.compareSync(body.password, password);
       if (!isValidPassword) {
         res.json({ code: 2 });
         return;
@@ -114,13 +114,12 @@ export class UserService extends BaseService {
 
   public signup = async (req: Request, res: Response) => {
     try {
-      await signupValidation.serverValidator({ ...req.body });
+      const body = await signupValidation.serverValidator(req.body) as UserFormInterface;
 
-      req.body.phone = phoneTransform(req.body.phone);
-      req.body.name = upperCase(req.body.name);
-      const payload = req.body as UserFormInterface;
+      body.phone = phoneTransform(req.body.phone);
+      body.name = upperCase(req.body.name);
 
-      const candidate = await this.findOne({ phone: payload.phone }, { withDeleted: true });
+      const candidate = await this.findOne({ phone: body.phone }, { withDeleted: true });
 
       if (candidate) {
         res.json({ code: 2 });
@@ -129,7 +128,7 @@ export class UserService extends BaseService {
 
       const { code, user, token, refreshToken } = await this.databaseService
         .getManager()
-        .transaction(async (manager) => this.createOne(payload.name, payload.phone, manager, payload.password));
+        .transaction(async (manager) => this.createOne(body.name, body.phone, manager, body.password));
 
       if (code === 2) {
         res.json({ code: 2 });
@@ -229,9 +228,8 @@ export class UserService extends BaseService {
 
   public recoveryPassword = async (req: Request, res: Response) => {
     try {
-      req.body.phone = phoneTransform(req.body.phone);
-      const { phone } = req.body as { phone: string };
-      await phoneValidation.serverValidator({ phone });
+      const body = await phoneValidation.serverValidator(req.body) as { phone: string };
+      const phone = phoneTransform(body.phone);
 
       const user = await this.findOne({ phone });
       if (!user) {

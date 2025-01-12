@@ -12,6 +12,7 @@ import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { routes } from '@/routes';
+import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
@@ -54,6 +55,7 @@ export class OrderService extends BaseService {
           'order.id',
           'order.created',
           'order.status',
+          'order.deliveryPrice',
           'order.deleted',
         ])
         .leftJoin('order.positions', 'positions')
@@ -71,12 +73,24 @@ export class OrderService extends BaseService {
           'item.id',
           'item.name',
         ])
+        .leftJoin('item.group', 'group')
+        .addSelect([
+          'group.code',
+        ])
+        .leftJoin('order.promotional', 'promotional')
+        .addSelect([
+          'promotional.id',
+          'promotional.name',
+          'promotional.discount',
+          'promotional.discountPercent',
+        ])
         .leftJoin('item.images', 'images')
         .addSelect([
           'images.id',
           'images.name',
           'images.path',
-        ]);
+        ])
+        .orderBy('order.id', 'DESC');
     }
 
     if (options?.withUser) {
@@ -138,7 +152,7 @@ export class OrderService extends BaseService {
     return [orders, count];
   };
 
-  public createOne = async (body: CartItemInterface[], user: PassportRequestInterface) => {
+  public createOne = async (body: CartItemInterface[], deliveryPrice: number, user: PassportRequestInterface, promotional?: PromotionalEntity) => {
     const cartIds = body.map(({ id }) => id);
 
     const created = await this.databaseService.getManager().transaction(async (manager) => {
@@ -160,7 +174,7 @@ export class OrderService extends BaseService {
       const positions = await orderPositionRepo.save(preparedPositions);
       await this.cartService.deleteMany(null, cartIds);
 
-      return orderRepo.save({ status: OrderStatusEnum.NEW, user: { id: user.id || createdUser?.id }, positions });
+      return orderRepo.save({ status: OrderStatusEnum.NEW, user: { id: user.id || createdUser?.id }, deliveryPrice, positions, promotional });
     });
 
     if (user?.telegramId) {

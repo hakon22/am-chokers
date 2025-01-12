@@ -7,7 +7,7 @@ import { ImageHover } from '@/components/ImageHover';
 import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { getHref } from '@/utilities/getHref';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 
 export const Favorites = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });

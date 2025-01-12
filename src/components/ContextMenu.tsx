@@ -12,7 +12,7 @@ import { deleteItem, type ItemResponseInterface, updateItem } from '@/slices/app
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 
 export type Context = { action: string, id: number } | undefined;
 export type SetContext = React.Dispatch<React.SetStateAction<Context>>;

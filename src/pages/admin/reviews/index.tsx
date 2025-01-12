@@ -15,7 +15,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import { PreviewImage } from '@/components/PreviewImage';
 import { GradeListTitle, GradeListDescription, GradeListReplyForm } from '@/components/GradeList';
 import { toast } from '@/utilities/toast';

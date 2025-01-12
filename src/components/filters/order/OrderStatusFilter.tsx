@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
