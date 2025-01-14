@@ -149,6 +149,25 @@ export class ItemService extends BaseService {
     return { item: updated, url };
   };
 
+  public partialUpdateOne = async (params: ParamsIdInterface, body: ItemEntity) => {
+    const item = await this.findOne(params);
+
+    const updated = await this.databaseService.getManager().transaction(async (manager) => {
+      const itemRepo = manager.getRepository(ItemEntity);
+
+      const newItem = { ...item, ...body } as ItemEntity;
+
+      await itemRepo.save(newItem);
+      await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, newItem.id, manager);
+
+      return newItem;
+    });
+
+    const url = this.getUrl(updated);
+
+    return { item: updated, url };
+  };
+
   public deleteOne = async (params: ParamsIdInterface) => {
     const item = await this.findOne(params);
 

@@ -4,7 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
-import { uuidArraySchema, uuidSchema, newCartItemValidation } from '@/validations/validations';
+import { uuidArraySchema, uuidSchema, cartItemsSchemaValidation, newCartItemValidation } from '@/validations/validations';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { NullableParamsIdInterface } from '@server/types/params.id.interface';
 
@@ -15,7 +15,7 @@ export class CartController extends BaseService {
   public findMany = async (req: Request, res: Response) => {
     try {
       const { id } = req.user as NullableParamsIdInterface;
-      const oldCart = req.body as CartItemInterface[];
+      const oldCart = await cartItemsSchemaValidation.serverValidator(req.body) as CartItemInterface[];
 
       const cart = await this.cartService.findMany(id, oldCart);
 

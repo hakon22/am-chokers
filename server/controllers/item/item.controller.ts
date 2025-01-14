@@ -3,7 +3,7 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import { BaseService } from '@server/services/app/base.service';
-import { newItemValidation } from '@/validations/validations';
+import { newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
 import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema } from '@server/utilities/convertation.params';
 
@@ -57,6 +57,19 @@ export class ItemController extends BaseService {
       const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
       const { item, url } = await this.itemService.updateOne(params, body);
+
+      res.json({ code: 1, item, url });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public partialUpdateOne = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+      const body = await partialUpdateItemValidation.serverValidator(req.body) as ItemEntity;
+
+      const { item, url } = await this.itemService.partialUpdateOne(params, body);
 
       res.json({ code: 1, item, url });
     } catch (e) {

@@ -135,6 +135,22 @@ const newItemSchema = yup.object().shape({
   images: yup.array(requiredIdSchema).optional(),
 });
 
+const partialUpdateItemSchema = yup.object().shape({
+  name: stringSchema.optional(),
+  description: stringSchema.optional(),
+  group: idSchema.optional(),
+  collection: idNullableSchema.optional(),
+  new: booleanSchema.optional(),
+  bestseller: booleanSchema.optional(),
+  price: numberSchema.optional(),
+  width: numberSchema.optional(),
+  height: numberSchema.optional(),
+  composition: stringSchema.optional(),
+  length: stringSchema.optional(),
+  order: yup.number().optional(),
+  images: yup.array(requiredIdSchema).optional(),
+});
+
 const newItemCatalogSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
@@ -148,6 +164,8 @@ const newCartItemSchema = yup.object().shape({
   count: numberSchema,
   item: requiredIdSchema,
 });
+
+const cartItemsSchema = yup.array(newCartItemSchema.concat(uuidSchema));
 
 const newOrderPositionSchema = yup.object().shape({
   cart: yup.array(newCartItemSchema.concat(uuidSchema)).min(1),
@@ -233,6 +251,8 @@ export const newItemValidation = validate(newItemSchema);
 export const newItemGroupValidation = validate(newItemGroupSchema);
 export const newItemCatalogValidation = validate(newItemCatalogSchema);
 export const newCartItemValidation = validate(newCartItemSchema);
+export const partialUpdateItemValidation = validate(partialUpdateItemSchema);
+export const cartItemsSchemaValidation = validate(cartItemsSchema);
 export const newOrderPositionValidation = validate(newOrderPositionSchema);
 export const newCommentValidation = validate(newCommentSchema);
 export const newGradeValidation = validate(newGradeSchema);

@@ -32,9 +32,9 @@ export const translate = (str?: string) => {
     ю: 'u',
     я: 'ya',
     ъ: 'ie',
-    ь: '',
+    ь: 'y',
     й: 'i',
   };
 
-  return [...str.replaceAll(' ', '_')].map((l) => ru[l.toLowerCase()] || l).join('');
+  return [...str.replaceAll(' ', '_')].map((l) => ru[l.toLowerCase()] ?? l).join('');
 };

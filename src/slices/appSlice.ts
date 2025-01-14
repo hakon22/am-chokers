@@ -71,9 +71,21 @@ export const addItem = createAsyncThunk(
 
 export const updateItem = createAsyncThunk(
   'app/updateItem',
-  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number, data: ItemInterface; }, { rejectWithValue }) => {
     try {
       const response = await axios.put<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const partialUpdateItem = createAsyncThunk(
+  'app/partialUpdateItem',
+  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -310,6 +322,24 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(updateItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(partialUpdateItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(partialUpdateItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
+          if (itemIndex !== -1) {
+            state.items[itemIndex] = payload.item;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(partialUpdateItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })

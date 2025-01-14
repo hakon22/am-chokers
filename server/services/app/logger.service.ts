@@ -6,7 +6,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 export class LoggerService {
   private readonly logDir = '/srv/logs';
 
-  private readonly appName = process.env.APP_NAME ?? 'app';
+  private readonly appName = process.env.NEXT_PUBLIC_APP_NAME ?? 'app';
 
   private colorizer = winston.format.colorize();
 

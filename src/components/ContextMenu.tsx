@@ -8,7 +8,7 @@ import Image from 'next/image';
 import type { ItemInterface } from '@/types/item/Item';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { deleteItem, type ItemResponseInterface, updateItem } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, partialUpdateItem } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
@@ -61,7 +61,7 @@ export const ContextMenu = ({ children, order, item, ...props }: CardContextMenu
 
   const handleUpdate = async (target: ItemInterface, value: undefined | number) => {
     setIsSubmit(true);
-    await dispatch(updateItem({ id: target.id, data: { order: value } }));
+    await dispatch(partialUpdateItem({ id: target.id, data: { order: value } }));
     setIsSubmit(false);
   };
 

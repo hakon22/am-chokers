@@ -79,6 +79,7 @@ export const routes = {
   getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
+  restoreItem: (id?: number) => [apiPath, 'item', id ?? ':id', 'restore'].join('/'),
   addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),
   removeFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'remove'].join('/'),
   getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),

@@ -91,7 +91,8 @@ export class RouterService {
     this.router.post(this.routes.createItem, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createOne);
     this.router.put(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.updateOne);
     this.router.delete(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
-    this.router.patch(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
+    this.router.get(this.routes.restoreItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
+    this.router.patch(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.partialUpdateOne);
     this.router.get(this.routes.getItems({ isServer: true }), this.itemController.findMany);
     this.router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
     this.router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);

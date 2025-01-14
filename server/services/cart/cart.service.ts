@@ -5,41 +5,46 @@ import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import type { ParamsIdStringInterface } from '@server/types/params.id.interface';
 import type { CartQueryInterface } from '@server/types/cart/cart.query.interface';
+import type { CartOptionsInterface } from '@server/types/cart/cart.options.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { UserEntity } from '@server/db/entities/user.entity';
 
 @Singleton
 export class CartService extends BaseService {
 
-  private createQueryBuilder = (userId: number | null, query?: CartQueryInterface, entityManager?: EntityManager) => {
+  private createQueryBuilder = (userId: number | null, query?: CartQueryInterface, options?: CartOptionsInterface, entityManager?: EntityManager) => {
     const manager = entityManager || this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(CartEntity, 'cart')
       .select([
         'cart.id',
         'cart.count',
-      ])
-      .leftJoin('cart.item', 'item')
-      .addSelect([
-        'item.id',
-        'item.name',
-        'item.price',
-        'item.discount',
-        'item.discountPrice',
-      ])
-      .leftJoin('item.images', 'images')
-      .addSelect([
-        'images.id',
-        'images.name',
-        'images.path',
-        'images.deleted',
-      ])
-      .leftJoin('item.group', 'group')
-      .addSelect([
-        'group.id',
-        'group.name',
-        'group.code',
       ]);
+
+    if (!options?.withoutJoin) {
+      builder
+        .leftJoin('cart.item', 'item')
+        .addSelect([
+          'item.id',
+          'item.name',
+          'item.price',
+          'item.discount',
+          'item.discountPrice',
+        ])
+        .leftJoin('item.images', 'images')
+        .addSelect([
+          'images.id',
+          'images.name',
+          'images.path',
+          'images.deleted',
+        ])
+        .leftJoin('item.group', 'group')
+        .addSelect([
+          'group.id',
+          'group.name',
+          'group.code',
+        ]);
+    }
 
     if (userId) {
       builder.andWhere('cart.user = :userId', { userId });
@@ -108,7 +113,7 @@ export class CartService extends BaseService {
     const cartRepo = manager.getRepository(CartEntity);
     const created = await cartRepo.save(body);
 
-    const builder = this.createQueryBuilder(userId, { ids: created.map(({ id }) => id) }, manager);
+    const builder = this.createQueryBuilder(userId, { ids: created.map(({ id }) => id) }, {}, manager);
 
     const cartItems = await builder.getMany();
 

@@ -65,7 +65,7 @@ const Cart = () => {
     setCartList(cartItems);
   };
 
-  const onCheckAllChange: CheckboxProps['onChange'] = ({ target }) => {
+  const onCheckAllChange: CheckboxProps['onChange'] = async ({ target }) => {
     setCartList(target.checked ? cart : []);
   };
 

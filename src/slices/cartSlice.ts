@@ -14,6 +14,11 @@ export interface CartResponseInterface {
   cartItem: CartItemInterface;
 }
 
+export interface SelectedCartResponseInterface {
+  code: number;
+  cartItems: CartItemInterface[];
+}
+
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (data: CartItemInterface[], { rejectWithValue }) => {
