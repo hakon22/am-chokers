@@ -17,6 +17,7 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { Helmet } from '@/components/Helmet';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
@@ -69,6 +70,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
 
   return isEdit ? <CreateItem oldItem={item} /> : (
     <div className="d-flex flex-column">
+      <Helmet title={name} description={description} image={images?.[0]?.src} />
       <div className="d-flex mb-5">
         <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
           <ImageGallery

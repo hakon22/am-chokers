@@ -7,15 +7,11 @@ import { Breadcrumb as BreadcrumbAntd } from 'antd';
 import { RightOutlined } from '@ant-design/icons';
 
 import { routes, catalogPath } from '@/routes';
-import { Helmet } from '@/components/Helmet';
 import { translate } from '@/utilities/translate';
 import { useAppSelector } from '@/utilities/hooks';
 
 type BreadcrumbState = {
   title: JSX.Element | string;
-  helmet: string;
-  description: string;
-  image?: string;
 }
 
 export const Breadcrumb = () => {
@@ -28,8 +24,6 @@ export const Breadcrumb = () => {
 
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbState[]>([]);
 
-  const { helmet, description, image } = breadcrumbs[breadcrumbs.length - 1] ?? { helmet: t('pages.index.title'), description: t('pages.index.description'), image: undefined };
-
   useEffect(() => {
     const pathArray = pathname.replace('/', 'index/').split('/').filter(Boolean);
     const linkArray: string[] = [];
@@ -38,8 +32,6 @@ export const Breadcrumb = () => {
       if (index === 0) {
         return {
           title: pathArray.length === 1 ? '' : <Link href={routes.homePage}>{t('modules.navbar.menu.home')}</Link>,
-          helmet: t('pages.index.title'),
-          description: t('pages.index.description'),
         };
       }
       linkArray.push(folder);
@@ -51,16 +43,12 @@ export const Breadcrumb = () => {
         : item && pathArray.length - 1 === index ? item.name : itemGroup?.name ?? '';
       return {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
-        helmet: page,
-        description: (item && pathArray.length - 1 === index ? item?.description : itemGroup?.description) ?? page,
-        image: item?.images?.[0]?.src,
       };
     }));
   }, [pathname, items]);
 
   return router.pathname.includes(catalogPath) ? (
     <>
-      <Helmet title={helmet} description={description} image={image} />
       <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '9%' }} />
     </>
   ) : null;
