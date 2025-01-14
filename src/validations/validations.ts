@@ -147,7 +147,7 @@ const partialUpdateItemSchema = yup.object().shape({
   height: numberSchema.optional(),
   composition: stringSchema.optional(),
   length: stringSchema.optional(),
-  order: yup.number().optional(),
+  order: yup.number().optional().nullable(),
   images: yup.array(requiredIdSchema).optional(),
 });
 

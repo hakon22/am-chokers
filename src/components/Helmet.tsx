@@ -9,6 +9,7 @@ type HelmetProps = {
 
 export const Helmet = ({ title, description, image }: HelmetProps) => {
   const router = useRouter();
+  const productionHost = process.env.NEXT_PUBLIC_PRODUCTION_HOST;
   
   return (
     <Head>
@@ -16,12 +17,12 @@ export const Helmet = ({ title, description, image }: HelmetProps) => {
       <meta name="description" content={description} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <link rel="canonical" href={`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${router.asPath}`} />
-      <meta property="og:url" content={`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${router.asPath}`} />
+      <link rel="canonical" href={`${productionHost}${router.asPath}`} />
+      <meta property="og:url" content={`${productionHost}${router.asPath}`} />
       {image
         ? <>
-          <meta name="image" content={`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${image}`} />
-          <meta property="og:image" content={`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${image}`} />
+          <meta name="image" content={`${productionHost}${image}`} />
+          <meta property="og:image" content={`${productionHost}${image}`} />
         </>
         : null}
     </Head>

@@ -196,7 +196,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                 onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
                 showPlayButton={false}
                 thumbnailPosition="left"
-                onClick={galleryRef.current?.fullScreen}
+                onClick={() => galleryRef.current?.fullScreen()}
               />
             )
             : null}

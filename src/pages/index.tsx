@@ -254,7 +254,7 @@ const Index = () => {
               <ImageHover
                 className="col-4"
                 height={200}
-                images={items[1]?.images ?? []}
+                images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
               />

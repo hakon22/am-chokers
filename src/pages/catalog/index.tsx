@@ -19,6 +19,7 @@ const Catalog = () => {
         </Link>
       ))}
     </div>
-  );};
+  );
+};
 
 export default Catalog;

@@ -44,6 +44,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
 
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
+  const [originalHeight, setOriginalHeight] = useState(400);
 
   const scrollToElement = (elementId: string, offset: number) => {
     const element = document.getElementById(elementId);
@@ -76,13 +77,24 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
           <ImageGallery
             ref={galleryRef}
             additionalClass="w-100"
-            items={images.sort((a, b) => b.order - a.order).map((image) => ({ original: image.src, thumbnail: image.src }))}
+            showIndex
+            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight }))}
             infinite
             showNav
-            onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
+            onScreenChange={(fullscreen) => {
+              if (fullscreen) {
+                setOriginalHeight(1000);
+                document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
+                document.documentElement.style.setProperty('--galleryHeight', '100vh');
+              } else {
+                setOriginalHeight(400);
+                document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)');
+                document.documentElement.style.setProperty('--galleryHeight', '400px');
+              }
+            }}
             showPlayButton={false}
             thumbnailPosition="left"
-            onClick={galleryRef.current?.fullScreen}
+            onClick={() => galleryRef.current?.fullScreen()}
           />
           <div className="d-flex justify-content-end" style={{ width: '80%' }}>
             <div className="d-flex justify-content-between" style={{ width: 'calc(100% - 110px)' }}>

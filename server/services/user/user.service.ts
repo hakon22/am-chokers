@@ -52,6 +52,7 @@ export class UserService extends BaseService {
         'images.id',
         'images.name',
         'images.path',
+        'images.order',
         'images.deleted',
       ])
       .leftJoinAndSelect('favorites.group', 'group')

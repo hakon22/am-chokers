@@ -89,6 +89,7 @@ export class OrderService extends BaseService {
           'images.id',
           'images.name',
           'images.path',
+          'images.order',
         ])
         .orderBy('order.id', 'DESC');
     }

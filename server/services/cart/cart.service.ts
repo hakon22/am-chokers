@@ -36,6 +36,7 @@ export class CartService extends BaseService {
           'images.id',
           'images.name',
           'images.path',
+          'images.order',
           'images.deleted',
         ])
         .leftJoin('item.group', 'group')

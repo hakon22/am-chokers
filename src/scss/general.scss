@@ -1,5 +1,6 @@
 :root {
   --galleryWidth: calc(80% - 110px);
+  --galleryHeight: 400px;
 }
 
 @font-face {
@@ -232,6 +233,7 @@ a {
 
 .image-gallery-slide-wrapper.image-gallery-thumbnails-left {
   width: var(--galleryWidth);
+  min-height: var(--galleryHeight);
 }
 
 .font-mr_hamiltoneg {

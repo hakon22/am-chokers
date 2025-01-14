@@ -49,6 +49,7 @@ export class ItemService extends BaseService {
         'images.id',
         'images.name',
         'images.path',
+        'images.order',
         'images.deleted',
       ])
       .leftJoin('item.rating', 'rating')
