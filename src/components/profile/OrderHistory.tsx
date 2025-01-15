@@ -42,6 +42,7 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
 
   const extension = getExtension();
 
+  const width = 70;
   const height = 100;
 
   const { setIsSubmit } = useContext(SubmitContext);
@@ -150,7 +151,7 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
                       <span className="col-5 col-md-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</span>
                       <div className="d-flex col-md-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto
-                          ? <Image key={image.id} src={image.src} width={height} height={height} alt={position.item.name} />
+                          ? <Image key={image.id} src={image.src} width={width} height={height} alt={position.item.name} />
                           : index === maxPhoto && extension > 400
                             ? <div key={image.id} className="d-flex align-items-center fs-6">
                               <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>

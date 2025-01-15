@@ -20,6 +20,7 @@ import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
+import { CropImage } from '@/components/CropImage';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
@@ -39,7 +40,6 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
 
   const props: UploadProps<ResponseFileInterface> = {
     name: 'file',
-    multiple: true,
     fileList,
     accept: 'image/png,image/jpg,image/jpeg',
     action: routes.imageUpload({ isServer: false }),
@@ -58,8 +58,8 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     },
     onRemove(file) {
       setImages((state) => state.filter((image) => image.id !== file.response?.image.id));
-      if (oldItem && file.response?.image.id) {
-        dispatch(deleteItemImage(file.response?.image.id));
+      if (file.response?.image.id) {
+        dispatch(deleteItemImage(file.response.image.id));
       }
     },
   };
@@ -183,7 +183,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
               >
                 <SortableContext items={images} strategy={rectSortingStrategy}>
                   <div className="d-flex flex-wrap gap-3">
-                    {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} setImages={setImages} />)}
+                    {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} setImages={setImages} setFileList={setFileList} />)}
                   </div>
                 </SortableContext>
               </DndContext>
@@ -200,13 +200,15 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
               />
             )
             : null}
-          <Upload.Dragger {...props}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">{t('uploadText')}</p>
-            <p className="ant-upload-hint">{t('uploadHint')}</p>
-          </Upload.Dragger>
+          <CropImage>
+            <Upload.Dragger {...props}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">{t('uploadText')}</p>
+              <p className="ant-upload-hint">{t('uploadHint')}</p>
+            </Upload.Dragger>
+          </CropImage>
         </div>
         <div style={{ width: '55%' }}>
           <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id }} className="d-flex flex-column" onFinish={onFinish} form={form}>

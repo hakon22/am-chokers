@@ -70,13 +70,14 @@ export const ImageHover = ({
                 key={image.id}
                 src={image.src}
                 unoptimized
+                style={{ borderRadius: 7 }}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt={`Image ${index + 1}`}
-                className={i === index ? 'active' : ''}
+                className={i === index ? 'active object-fit-contain' : 'object-fit-contain'}
               />
             ))
-            : <Image src={image404} alt="" className="active" />}
+            : <Image src={image404} alt="" className="active object-fit-contain" />}
         </Link>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
@@ -101,13 +102,14 @@ export const ImageHover = ({
                 key={image.id}
                 src={image.src}
                 unoptimized
+                style={{ borderRadius: 7 }}
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt={`Image ${index + 1}`}
-                className={i === index ? 'active' : ''}
+                className={i === index ? 'active object-fit-contain' : 'object-fit-contain'}
               />
             ))
-            : <Image src={image404} alt="" className="active" />}
+            : <Image src={image404} alt="" className="active object-fit-contain" />}
         </div>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>

@@ -55,7 +55,7 @@ const Index = () => {
         max: 3000,
         min: 1024,
       },
-      items: 3,
+      items: 4,
     },
     mobile: {
       breakpoint: {
@@ -136,7 +136,8 @@ const Index = () => {
                     key={item.id}
                     className={item.className}
                     href={getHref(item)}
-                    height={item.height}
+                    height={300}
+                    width={227}
                     images={item.images}
                     name={item.name}
                     description={tPrice('price', { price: item.price })}

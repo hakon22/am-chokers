@@ -122,7 +122,7 @@ export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileLis
       </Form.Item>
       <div className="d-flex justify-content-between align-items-center">
         <Button className="button border-button py-2 fs-6" title={t('reply')} htmlType="submit">{t('reply')}</Button>
-        <UploadImage preview filelist={fileList} setFileList={setFileList} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
+        <UploadImage crop preview filelist={fileList} setFileList={setFileList} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
       </div>
     </Form>
   );

@@ -347,6 +347,11 @@ export default {
       },
     },
     modules: {
+      imageCrop: {
+        modalCancel: 'Закрыть',
+        modalTitle: 'Редактирование изображения',
+        resetText: 'Сброс',
+      },
       confirmPhone: {
         h1: 'Подтверждение телефона',
         enterTheCode: 'Введите код из СМС',

@@ -53,6 +53,7 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
   const { loadingStatus } = useAppSelector((state) => state.order);
   const order = useAppSelector((state) => selectors.selectById(state, orderId)) || orderParams;
 
+  const width = 70;
   const height = 100;
 
   const gradeFormInit = (positionId: number) => setGrade({ ...newGrade, position: { id: positionId } });
@@ -127,7 +128,7 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
                         <div className="d-flex align-items-center gap-3 h-100">
                           <ImageHover
                             height={height}
-                            width={height}
+                            width={width}
                             href={getHref(orderPosition.item)}
                             images={orderPosition.item.images}
                           />
@@ -155,7 +156,7 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
                           </Form.Item>
                           <div className="d-flex justify-content-between align-items-center">
                             <Button className="button border-button py-2 fs-6" title={t('rateSubmit')} htmlType="submit">{t('rateSubmit')}</Button>
-                            <UploadImage preview filelist={fileList} setFileList={setFileList} previewImage={previewImage} previewOpen={previewOpen} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
+                            <UploadImage crop preview filelist={fileList} setFileList={setFileList} previewImage={previewImage} previewOpen={previewOpen} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
                           </div>
                         </Form>
                       ) : null}

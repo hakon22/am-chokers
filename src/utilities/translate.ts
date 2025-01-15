@@ -34,6 +34,7 @@ export const translate = (str?: string) => {
     ъ: 'ie',
     ь: 'y',
     й: 'i',
+    '"': '',
   };
 
   return [...str.replaceAll(' ', '_')].map((l) => ru[l.toLowerCase()] ?? l).join('');

@@ -14,6 +14,7 @@ export const Favorites = () => {
 
   const { favorites } = useAppSelector((state) => state.user);
 
+  const width = 130;
   const height = 170;
 
   return (
@@ -25,10 +26,10 @@ export const Favorites = () => {
       className="d-flex flex-column align-items-between col-8 w-100"
       renderItem={(item) => (
         <List.Item className="ms-3">
-          <div className="d-flex gap-4" style={{ width: height, height }}>
+          <div className="d-flex gap-4" style={{ width, height }}>
             <ImageHover
               height={height}
-              width={height}
+              width={width}
               images={item.images ?? []}
             />
             <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">

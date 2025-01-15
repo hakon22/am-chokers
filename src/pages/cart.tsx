@@ -57,6 +57,7 @@ const Cart = () => {
   const isFull = cartList.length === cart.length;
   const indeterminate = cartList.length > 0 && cartList.length < cart.length;
 
+  const width = 130;
   const height = 170;
 
   const [form] = Form.useForm();
@@ -131,12 +132,13 @@ const Cart = () => {
               }}
               renderItem={(item) => (
                 <List.Item>
-                  <div className="d-flex gap-3" style={{ width: height, height }}>
+                  <div className="d-flex gap-3" style={{ width, height }}>
                     <Checkbox value={item}>
                       <ImageHover
                         className="ms-3"
                         height={height}
-                        width={height}
+                        width={width}
+                        style={{ borderRadius: 7 }}
                         images={item.item?.images ?? []}
                       />
                     </Checkbox>
