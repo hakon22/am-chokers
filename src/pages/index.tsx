@@ -47,6 +47,9 @@ const Index = () => {
   const collection2 = collections.find(({ order }) => order === 5);
   const collection3 = collections.find(({ order }) => order === 6);
 
+  const height = 300;
+  const width = 227;
+
   const carouselRef = useRef<Carousel>(null);
 
   const responsive = {
@@ -136,8 +139,8 @@ const Index = () => {
                     key={item.id}
                     className={item.className}
                     href={getHref(item)}
-                    height={300}
-                    width={227}
+                    height={height}
+                    width={width}
                     images={item.images}
                     name={item.name}
                     description={tPrice('price', { price: item.price })}
@@ -145,7 +148,7 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <Link href="/" className="see-all color-dark-blue icon-button">
+            <Link href={routes.catalog} className="see-all color-dark-blue icon-button">
               <span>{t('seeAll')}</span>
               <ArrowRight />
             </Link>
@@ -153,10 +156,11 @@ const Index = () => {
           <section className="d-flex flex-column col-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <h2>{t('bestsellers')}</h2>
             <div className="d-flex" style={{ gap: '10%' }}>
-              <div className="d-flex flex-column col-4 gap-5 justify-content-between">
+              <div className="d-flex flex-column col-5 justify-content-between">
                 <ContextMenu item={bestseller1} order={1} className="col-6 align-self-start" style={{ width: '95%' }}>
                   <ImageHover
-                    height={200}
+                    height={height}
+                    width={width}
                     href={getHref(bestseller1)}
                     images={bestseller1?.images ?? []}
                     name={bestseller1?.name}
@@ -168,7 +172,8 @@ const Index = () => {
                     className="w-100"
                     href={getHref(bestseller2)}
                     style={{ alignSelf: 'end', width: '95%' }}
-                    height={200}
+                    height={height}
+                    width={width}
                     images={bestseller2?.images ?? []}
                     name={bestseller2?.name}
                     description={tPrice('price', { price: bestseller2?.price })}
@@ -180,7 +185,7 @@ const Index = () => {
                   <ImageHover
                     className="h-100"
                     href={getHref(bestseller3)}
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', alignSelf: 'start' }}
                     height="100%"
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.name}
@@ -212,7 +217,8 @@ const Index = () => {
                   <ImageHover
                     className="col-6"
                     href={getHref(collection1)}
-                    height={200}
+                    height={height}
+                    width={width}
                     images={collection1?.images ?? []}
                   />
                   <h2>{collection1?.collection?.name}</h2>
@@ -223,7 +229,8 @@ const Index = () => {
                   <ImageHover
                     className="col-6"
                     href={getHref(collection2)}
-                    height={200}
+                    height={height}
+                    width={width}
                     images={collection2?.images ?? []}
                   />
                   <h2>{collection2?.collection?.name}</h2>
@@ -234,7 +241,8 @@ const Index = () => {
                   <ImageHover
                     className="col-6"
                     href={getHref(collection3)}
-                    height={200}
+                    height={height}
+                    width={width}
                     images={collection3?.images ?? []}
                   />
                   <h2>{collection3?.collection?.name}</h2>
@@ -246,7 +254,9 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
@@ -254,7 +264,9 @@ const Index = () => {
               <h2 className="col-4 text-center">{t('necklacesAndChokers')}</h2>
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
@@ -263,7 +275,9 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
@@ -271,7 +285,9 @@ const Index = () => {
               <h2 className="col-4 text-center">{t('bracelets')}</h2>
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
@@ -280,7 +296,9 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
@@ -288,7 +306,9 @@ const Index = () => {
               <h2 className="col-4 text-center">{t('glassesChains')}</h2>
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"
@@ -297,7 +317,9 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-right"
                 data-aos-duration="1500"
@@ -305,7 +327,9 @@ const Index = () => {
               <h2 className="col-4 text-center">{t('otherAccessories')}</h2>
               <ImageHover
                 className="col-4"
-                height={200}
+                style={{ alignSelf: 'center' }}
+                height={height}
+                width={width}
                 images={items[0]?.images ?? []}
                 data-aos="fade-left"
                 data-aos-duration="1500"

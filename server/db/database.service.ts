@@ -56,7 +56,7 @@ export abstract class DatabaseService {
       await this.db.initialize();
       console.log('Соединение с PostgreSQL было успешно установлено');
     } catch (e) {
-      console.log('Невозможно выполнить подключение к БД: ', e);
+      console.log('Невозможно выполнить подключение к PostgreSQL: ', e);
     }
   };
 }

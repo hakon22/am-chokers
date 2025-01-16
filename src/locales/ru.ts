@@ -419,6 +419,8 @@ export default {
         length: 'Длина:',
         warrantyAndCare: 'Гарантия и уход',
         deliveryAndPayment: 'Доставка и оплата',
+        add: 'Добавить',
+        remove: 'Удалить',
         grades: {
           gradeCount_zero: 'Отзывов пока нет',
           gradeCount_one: '{{ count }} отзыв',

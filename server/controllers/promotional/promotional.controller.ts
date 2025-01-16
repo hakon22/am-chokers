@@ -36,7 +36,7 @@ export class PromotionalController extends BaseService {
         return;
       }
 
-      if (!moment().isBetween(moment(promotional.start), moment(promotional.end), 'day', '[]')) {
+      if (!moment().isBetween(moment(promotional.start), moment(promotional.end), 'day', '[]') || !promotional.active) {
         res.json({ code: 3 });
         return;
       }
