@@ -10,6 +10,8 @@ import { MessageEntity } from '@server/db/entities/message.entity';
 
 @Singleton
 export class SmsService {
+  private TAG = 'SMS Service';
+
   private readonly loggerService = Container.get(LoggerService);
 
   public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
@@ -17,10 +19,10 @@ export class SmsService {
       const code = this.codeGen();
       const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
 
-      const history = await MessageEntity.save({ text: object.txt, type: MessageTypeEnum.SMS, phone });
+      const history = await MessageEntity.create({ text: object.txt, type: MessageTypeEnum.SMS, phone }).save();
 
       if (process.env.NODE_ENV === 'production') {
-        this.loggerService.info(`[SMS Service] Отправка SMS по номеру телефона: ${phone}`);
+        this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
 
         const { data } = await axios.post('https://api3.greensms.ru/sms/send', object, {
           headers: { Authorization: `Bearer ${process.env.SMS_API_KEY}` },
@@ -39,7 +41,7 @@ export class SmsService {
         return { ...data, code };
       }
     } catch (e) {
-      this.loggerService.error(e);
+      this.loggerService.error(this.TAG, e);
       throw new Error('Произошла ошибка при отправке SMS');
     }
   };
@@ -59,10 +61,10 @@ export class SmsService {
         sender_name: 'AM-PROJECTS',
       };
 
-      const history = await MessageEntity.save({ text: object.text, type: MessageTypeEnum.SMS, phone });
+      const history = await MessageEntity.create({ text: object.text, type: MessageTypeEnum.SMS, phone }).save();
 
       if (process.env.NODE_ENV === 'production') {
-        this.loggerService.info(`[SMS Service] Отправка SMS по номеру телефона: ${phone}`);
+        this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
         await axios.post('https://ssl.bs00.ru', qs.stringify(object));
         history.send = true;
         await history.save();
@@ -71,7 +73,7 @@ export class SmsService {
       }
       return password;
     } catch (e) {
-      this.loggerService.error(e);
+      this.loggerService.error(this.TAG, e);
       throw Error('Произошла ошибка при отправке SMS');
     }
   };

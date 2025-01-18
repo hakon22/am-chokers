@@ -12,6 +12,8 @@ import { MessageTypeEnum } from '@server/types/integration/enums/message.type.en
 
 @Singleton
 export class TelegramService {
+  private TAG = 'TelegramBotService';
+
   private readonly loggerService = Container.get(LoggerService);
 
   public webhooks = async (req: Request, res: Response) => {
@@ -33,13 +35,13 @@ export class TelegramService {
         }
       } else if (context.myChatMember?.new_chat_member?.status === 'kicked') {
         const telegramId = context.myChatMember.chat.id.toString();
-        this.loggerService.info('[TelegramBotService]', `User has blocked a bot. Deleting telegramID: ${telegramId}`);
+        this.loggerService.info(this.TAG, `User has blocked a bot. Deleting telegramID: ${telegramId}`);
 
         await UserEntity.update({ telegramId }, { telegramId: undefined });
       }
       res.end();
     } catch (e) {
-      this.loggerService.error(e);
+      this.loggerService.error(this.TAG, e);
       res.sendStatus(500);
     }
   };
@@ -63,7 +65,7 @@ export class TelegramService {
   public sendMessage = async (message: string | string[], telegramId: string, options?: object) => {
     const text = Array.isArray(message) ? message.reduce((acc, field) => acc += `${field}\n`, '') : message;
 
-    const history = await MessageEntity.save({ text, type: MessageTypeEnum.TELEGRAM, telegramId });
+    const history = await MessageEntity.create({ text, type: MessageTypeEnum.TELEGRAM, telegramId }).save();
 
     const { data } = await axios.post<{ ok: boolean }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
       chat_id: telegramId,
@@ -72,11 +74,11 @@ export class TelegramService {
       ...options,
     });
     if (data?.ok) {
-      this.loggerService.info('Сообщение в Telegram отправлено!');
+      this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
       history.send = true;
       await history.save();
     } else {
-      this.loggerService.error('Ошибка отправки сообщения в Telegram :(', data);
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, data);
     }
   };
 }
