@@ -22,7 +22,6 @@ class PromotionalStatusControlCron {
     this.loggerService.info(TAG, 'Процесс запущен');
 
     const now = moment();
-    this.loggerService.info(TAG, `Текущее время: ${now.format()}`);
 
     const promotionals = await PromotionalEntity.find();
 

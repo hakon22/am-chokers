@@ -93,7 +93,13 @@ export class ItemGroupService extends BaseService {
       const itemRepo = manager.getRepository(ItemEntity);
       const itemGroupRepo = manager.getRepository(ItemGroupEntity);
 
-      await itemRepo.softRemove(items);
+      const deleted = new Date();
+
+      items.forEach((value) => {
+        value.deleted = deleted;
+      });
+
+      await itemRepo.save(items);
       return itemGroupRepo.softRemove(itemGroup);
     });
 
@@ -109,7 +115,11 @@ export class ItemGroupService extends BaseService {
       const itemRepo = manager.getRepository(ItemEntity);
       const itemGroupRepo = manager.getRepository(ItemGroupEntity);
 
-      await itemRepo.recover(items);
+      items.forEach((value) => {
+        value.deleted = null;
+      });
+
+      await itemRepo.save(items);
       const recoverItemGroup = await itemGroupRepo.recover(deletedItemGroup);
   
       return recoverItemGroup;

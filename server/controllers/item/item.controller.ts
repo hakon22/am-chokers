@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import type { ItemEntity } from '@server/db/entities/item.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import type { ItemEntity } from '@server/db/entities/item.entity';
 
 @Singleton
 export class ItemController extends BaseService {
@@ -31,6 +31,24 @@ export class ItemController extends BaseService {
       const items = await this.itemService.findMany(query);
 
       res.json({ code: 1, items });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getList = async (req: Request, res: Response) => {
+    try {
+      const query = await queryPaginationWithParams.validate(req.query);
+
+      const [items, count] = await this.itemService.getList(query);
+
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+
+      res.json({ code: 1, items, paginationParams });
     } catch (e) {
       this.errorHandler(e, res);
     }

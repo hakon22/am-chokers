@@ -2,7 +2,6 @@ import {
   Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
   OneToMany,
-  DeleteDateColumn,
   ManyToMany,
   OneToOne,
 } from 'typeorm';
@@ -40,8 +39,10 @@ export class ItemEntity extends BaseEntity {
   public updated: Date;
 
   /** Дата удаления товара */
-  @DeleteDateColumn()
-  public deleted: Date;
+  @Column('timestamp with time zone', {
+    nullable: true,
+  })
+  public deleted: Date | null;
 
   /** Цена товара */
   @Column('int')

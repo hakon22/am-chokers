@@ -88,12 +88,13 @@ export class RouterService {
     this.router.delete(this.routes.imageDelete(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.deleteOne);
 
     // item
+    this.router.get(this.routes.restoreItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     this.router.post(this.routes.createItem, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createOne);
     this.router.put(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.updateOne);
     this.router.delete(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
-    this.router.get(this.routes.restoreItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     this.router.patch(this.routes.crudItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.partialUpdateOne);
     this.router.get(this.routes.getItems({ isServer: true }), this.itemController.findMany);
+    this.router.get(this.routes.getItemList, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.getList);
     this.router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
     this.router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);
     this.router.get(this.routes.getGrades({ isServer: true }), this.itemController.getGrades);
@@ -115,7 +116,7 @@ export class RouterService {
     this.router.delete(this.routes.removeGrade(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.deleteOne);
     this.router.get(this.routes.restoreGrade(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.restoreOne);
     this.router.get(this.routes.acceptGrade(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.accept);
-    this.router.get(this.routes.getUnchekedGrades({ isServer: true }), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.getUnchekedGrades);
+    this.router.get(this.routes.getUnchekedGrades, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gradeController.getUnchekedGrades);
   
     // promotional
     this.router.get(this.routes.getPromotionalByName, this.promotionalController.findByName);

@@ -109,7 +109,7 @@ export const restoreItem = createAsyncThunk(
   'app/restoreItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<ItemResponseInterface>(routes.crudItem(id));
+      const response = await axios.get<ItemResponseInterface>(routes.restoreItem(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

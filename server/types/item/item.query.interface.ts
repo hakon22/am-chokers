@@ -1,4 +1,6 @@
-export interface ItemQueryInterface {
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
+
+export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   /** `id` товара */
   id?: number;
   /** Имя товара */

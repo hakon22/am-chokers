@@ -148,7 +148,7 @@ const Reviews = () => {
         return;
       }
       setIsLoading(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getUnchekedGrades({ isServer: false }), {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getUnchekedGrades, {
         params,
       });
       if (code === 1) {

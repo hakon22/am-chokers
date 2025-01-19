@@ -16,6 +16,7 @@ export const useAccessHandler = () => {
     routes.allOrders,
     routes.moderationOfReview,
     routes.promotionalCodes,
+    routes.itemList,
   ];
 
   useEffect(() => {

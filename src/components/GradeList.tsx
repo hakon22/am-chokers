@@ -52,7 +52,7 @@ export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTi
       <div className="d-flex align-items-center gap-3">
         <Rate disabled allowHalf value={grade.grade} />
         {withLinkToOrder
-          ? <Link href={`${routes.orderHistory}/${grade.position.order.id}`}>{grade.user.name}</Link>
+          ? <Link href={`${routes.allOrders}/${grade.position.order.id}`}>{grade.user.name}</Link>
           : <span>{grade.user.name}</span>}
         {withTags
           ? grade.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan">{t('accepted')}</Tag> : null
@@ -60,7 +60,8 @@ export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTi
       </div>
       <span className="text-muted">{moment(grade.created).format(DateFormatEnum.DD_MM_YYYY)}</span>
     </div>
-  );};
+  );
+};
 
 export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }: GradeListDescriptionInterface) => (
   <div className="d-flex flex-column">

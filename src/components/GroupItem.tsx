@@ -21,6 +21,7 @@ export const GroupItem = ({ items }: { items: ItemInterface[] }) => {
         <Link href={getHref({ name, group } as ItemInterface)} key={id}>
           <ImageHover
             className={className}
+            width={231}
             height={300}
             images={images}
             name={name}

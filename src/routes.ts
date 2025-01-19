@@ -26,6 +26,7 @@ export const routes = {
 
   // admin pages
   newItem: [adminPath, 'item'].join('/'),
+  itemList: [adminPath, 'item', 'list'].join('/'),
   itemGroupsControl: [adminPath, 'groups'].join('/'),
   itemCollectionsControl: [adminPath, 'collections'].join('/'),
   allOrders: [adminPath, 'orders'].join('/'),
@@ -77,6 +78,7 @@ export const routes = {
 
   // item
   getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
+  getItemList: [apiPath, 'item', 'list'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
   restoreItem: (id?: number) => [apiPath, 'item', id ?? ':id', 'restore'].join('/'),
@@ -110,5 +112,5 @@ export const routes = {
   removeGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'remove'].join('/'),
   restoreGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'restore'].join('/'),
   acceptGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'accept'].join('/'),
-  getUnchekedGrades: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'grade', 'getAll'].join('/'),
+  getUnchekedGrades: [apiPath, 'grade', 'getAll'].join('/'),
 } as const;

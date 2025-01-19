@@ -1,10 +1,12 @@
 import { Container, Singleton } from 'typescript-ioc';
+import moment from 'moment';
 
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { SmsService } from '@server/services/integration/sms.service';
 import { UserService } from '@server/services/user/user.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
+import { PromotionalService } from '@server/services/promotional/promotional.service';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { CartService } from '@server/services/cart/cart.service';
@@ -29,6 +31,8 @@ export class OrderService extends BaseService {
   private readonly cartService = Container.get(CartService);
 
   private readonly userService = Container.get(UserService);
+
+  private readonly promotionalService = Container.get(PromotionalService);
 
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -156,11 +160,19 @@ export class OrderService extends BaseService {
   public createOne = async (body: CartItemInterface[], deliveryPrice: number, user: PassportRequestInterface, promotional?: PromotionalEntity) => {
     const cartIds = body.map(({ id }) => id);
 
+    if (promotional) {
+      const promo = await this.promotionalService.findOne({ id: promotional.id });
+
+      if (!moment().isBetween(moment(promo.start), moment(promo.end), 'day', '[]') || !promo.active) {
+        throw new Error(`Промокод "${promotional.name}" не активен или истёк`);
+      }
+    }
+
     const created = await this.databaseService.getManager().transaction(async (manager) => {
       const orderRepo = manager.getRepository(OrderEntity);
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
 
-      const { user: createdUser } = await this.userService.createOne('Пользователь', '79100000000', manager);
+      const { user: createdUser } = await this.userService.createOne('Пользователь', '79151003951', manager);
 
       const cart = await this.cartService.findMany(null, undefined, { ids: cartIds });
 
