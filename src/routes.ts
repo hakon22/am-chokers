@@ -80,6 +80,7 @@ export const routes = {
   getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
   getItemList: [apiPath, 'item', 'list'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
+  searchItem: [apiPath, 'item', 'search'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
   restoreItem: (id?: number) => [apiPath, 'item', id ?? ':id', 'restore'].join('/'),
   addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),

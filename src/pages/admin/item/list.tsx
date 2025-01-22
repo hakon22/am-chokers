@@ -14,6 +14,7 @@ import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
+import { Search } from '@/components/Search';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
@@ -31,6 +32,7 @@ const ItemList = () => {
 
   const urlParams = useSearchParams();
   const withDeletedParams = urlParams.get('withDeleted');
+  const searchParams = urlParams.get('search');
 
   const width = 200;
   const height = 260;
@@ -41,12 +43,13 @@ const ItemList = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [data, setData] = useState<ItemInterface[]>([]);
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
+  const [search, setSearch] = useState<{ value: string; onFetch: boolean; } | undefined>({ value: searchParams as string, onFetch: true });
 
   const withDeletedHandler = () => setWithDeleted(!withDeleted);
 
-  const fetchItems = async (params: FetchItemInterface, replacement = false) => {
+  const fetchItems = async (params: FetchItemInterface, replacement = false, onFetch = true) => {
     try {
-      if (isLoading) {
+      if (isLoading || !onFetch) {
         return;
       }
       setIsLoading(true);
@@ -95,24 +98,27 @@ const ItemList = () => {
   };
 
   useEffect(() => {
-    if (withDeleted !== undefined && data.length) {
-      router.push({
-        query: { 
-          ...router.query, 
-          ...(withDeleted !== undefined ? { withDeleted } : {}), 
-        },
-      },
-      undefined,
-      { shallow: true });
-
+    if (data.length) {
       const params: FetchItemInterface = {
         limit: pagination.limit || 10,
         offset: 0,
         withDeleted,
+        search: search?.value,
       };
-      fetchItems(params, true);
+      fetchItems(params, true, search?.onFetch);
     }
-  }, [withDeleted]);
+  }, [withDeleted, search?.value]);
+
+  useEffect(() => {
+    router.push({
+      query: {
+        ...(withDeleted !== undefined ? { withDeleted } : {}), 
+        ...(search?.value !== undefined ? { search: search.value } : {}),
+      },
+    },
+    undefined,
+    { shallow: true });
+  }, [withDeleted, search?.value]);
 
   useEffect(() => {
     if (axiosAuth) {
@@ -120,6 +126,7 @@ const ItemList = () => {
         limit: 10,
         offset: 0,
         withDeleted,
+        search: search?.value,
       };
       fetchItems(params);
     }
@@ -129,13 +136,16 @@ const ItemList = () => {
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
-      <div className="d-flex align-items-center gap-3 mb-5">
-        <BackButton style={{}} />
-        <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+      <div className="d-flex align-items-center justify-content-between mb-5">
+        <div className="d-flex align-items-center gap-3">
+          <BackButton style={{}} />
+          <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+        </div>
+        <Search search={search} withDeleted={withDeleted} setSearch={setSearch} fetch={() => fetchItems({ limit: 10, offset: 0, withDeleted, search: search?.value }, true)} />
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchItems({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted })}
+        next={() => fetchItems({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, search: search?.value })}
         hasMore={data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

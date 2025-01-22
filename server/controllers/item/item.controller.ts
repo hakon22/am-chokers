@@ -4,7 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { BaseService } from '@server/services/app/base.service';
 import { newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryPaginationWithParams, querySearchParams } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 
 @Singleton
@@ -49,6 +49,18 @@ export class ItemController extends BaseService {
       };
 
       res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public search = async (req: Request, res: Response) => {
+    try {
+      const query = await querySearchParams.validate(req.query);
+
+      const search = await this.itemService.search(query);
+
+      res.json({ code: 1, search });
     } catch (e) {
       this.errorHandler(e, res);
     }

@@ -485,6 +485,9 @@ export default {
       sortableItem: {
         delete: 'Удалить',
       },
+      search: {
+        title: 'Поиск',
+      },
     },
     validation: {
       required: 'Обязательное поле',

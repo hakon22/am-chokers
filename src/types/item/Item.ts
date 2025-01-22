@@ -14,4 +14,5 @@ export interface AppDataInterface {
 
 export interface FetchItemInterface extends PaginationQueryInterface {
   withDeleted?: boolean;
+  search?: string;
 }

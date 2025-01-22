@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
+import { Brackets } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { BaseService } from '@server/services/app/base.service';
@@ -40,6 +41,16 @@ export class ItemService extends BaseService {
           .limit(query.limit)
           .offset(query.offset);
       }
+
+      if (query?.search) {
+        builder
+          .setParameter('search', `%${query.search.trim()}%`)
+          .andWhere(new Brackets((qb) => {
+            qb
+              .andWhere('item.name ILIKE :search')
+              .orWhere('item.description ILIKE :search');
+          }));
+      }
     } else {
       builder
         .select([
@@ -76,7 +87,11 @@ export class ItemService extends BaseService {
     }
 
     if (query?.withDeleted) {
-      builder.andWhere('item.deleted IS NOT NULL OR item.deleted IS NULL');
+      builder.andWhere(new Brackets((qb) => {
+        qb
+          .andWhere('item.deleted IS NOT NULL')
+          .orWhere('item.deleted IS NULL');
+      }));
     } else {
       builder.andWhere('item.deleted IS NULL');
     }
@@ -127,6 +142,35 @@ export class ItemService extends BaseService {
     const items = await builder.getMany();
 
     return items;
+  };
+
+  public search = async (query: Pick<ItemQueryInterface, 'search' | 'withDeleted'>) => {
+    const manager = this.databaseService.getManager();
+
+    const builder = manager.createQueryBuilder(ItemEntity, 'item')
+      .select('item.name');
+
+    if (query?.withDeleted) {
+      builder.andWhere(new Brackets((qb) => {
+        qb
+          .andWhere('item.deleted IS NOT NULL')
+          .orWhere('item.deleted IS NULL');
+      }));
+    } else {
+      builder.andWhere('item.deleted IS NULL');
+    }
+
+    if (query?.search) {
+      builder
+        .setParameter('search', `%${query.search.trim()}%`)
+        .andWhere(new Brackets((qb) => {
+          qb
+            .andWhere('item.name ILIKE :search')
+            .orWhere('item.description ILIKE :search');
+        }));
+    }
+
+    return builder.getMany();
   };
 
   public getList = async (query: FetchItemInterface): Promise<[ItemEntity[], number]> => {

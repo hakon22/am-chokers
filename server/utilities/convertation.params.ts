@@ -74,6 +74,7 @@ export const queryPaginationWithParams = queryPaginationSchema.concat(
   yup.object().shape({
     withDeleted: booleanSchema,
     showAccepted: booleanSchema,
+    search: yup.string().optional(),
   }),
 );
 
@@ -92,4 +93,9 @@ export const queryPromotionalParams = yup.object().shape({
   withDeleted: booleanSchema,
   withExpired: booleanSchema,
   name: yup.string().optional(),
+});
+
+export const querySearchParams = yup.object().shape({
+  withDeleted: booleanSchema,
+  search: yup.string(),
 });
