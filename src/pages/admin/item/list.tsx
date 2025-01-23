@@ -113,7 +113,7 @@ const ItemList = () => {
     router.push({
       query: {
         ...(withDeleted !== undefined ? { withDeleted } : {}), 
-        ...(search?.value !== undefined ? { search: search.value } : {}),
+        ...(search?.value !== undefined && search?.value !== null ? { search: search.value } : {}),
       },
     },
     undefined,

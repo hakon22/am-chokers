@@ -48,7 +48,8 @@ export class ItemService extends BaseService {
           .andWhere(new Brackets((qb) => {
             qb
               .andWhere('item.name ILIKE :search')
-              .orWhere('item.description ILIKE :search');
+              .orWhere('item.description ILIKE :search')
+              .orWhere('collection.name ILIKE :search');
           }));
       }
     } else {
@@ -63,7 +64,6 @@ export class ItemService extends BaseService {
           'item.discountPrice',
           'item.height',
           'item.width',
-          'item.composition',
           'item.length',
           'item.className',
           'item.new',
@@ -83,7 +83,8 @@ export class ItemService extends BaseService {
           'rating.rating',
         ])
         .leftJoinAndSelect('item.group', 'group')
-        .leftJoinAndSelect('item.collection', 'collection');
+        .leftJoinAndSelect('item.collection', 'collection')
+        .leftJoinAndSelect('item.compositions', 'compositions');
     }
 
     if (query?.withDeleted) {
@@ -166,7 +167,8 @@ export class ItemService extends BaseService {
         .andWhere(new Brackets((qb) => {
           qb
             .andWhere('item.name ILIKE :search')
-            .orWhere('item.description ILIKE :search');
+            .orWhere('item.description ILIKE :search')
+            .orWhere('collection.name ILIKE :search');
         }));
     }
 

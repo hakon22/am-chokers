@@ -31,7 +31,8 @@ export const routes = {
   itemCollectionsControl: [adminPath, 'collections'].join('/'),
   allOrders: [adminPath, 'orders'].join('/'),
   moderationOfReview: [adminPath, 'reviews'].join('/'),
-  promotionalCodes: [adminPath, 'promotional'].join('/'),
+  promotionalCodes: [adminPath, 'promotionals'].join('/'),
+  compositionsControl: [adminPath, 'compositions'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -107,6 +108,14 @@ export const routes = {
   updatePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'update'].join('/'),
   restorePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'restore'].join('/'),
   removePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'remove'].join('/'),
+
+  // composition
+  createComposition: [apiPath, 'composition', 'add'].join('/'),
+  getComposition: (id?: number) => [apiPath, 'composition', id ?? ':id'].join('/'),
+  getCompositions: [apiPath, 'composition', 'getAll'].join('/'),
+  updateComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'update'].join('/'),
+  restoreComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'restore'].join('/'),
+  removeComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'remove'].join('/'),
 
   // grade
   createGrade: (id?: number) => [apiPath, 'order-position', id ?? ':id', 'grade', 'add'].join('/'),

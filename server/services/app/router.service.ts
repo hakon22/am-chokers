@@ -14,6 +14,7 @@ import { CartController } from '@server/controllers/cart/cart.controller';
 import { CommentController } from '@server/controllers/comment/comment.controller';
 import { GradeController } from '@server/controllers/rating/grade.controller';
 import { PromotionalController } from '@server/controllers/promotional/promotional.controller';
+import { CompositionController } from '@server/controllers/composition/composition.controller';
 import { routes } from '@/routes';
 
 @Singleton
@@ -41,6 +42,8 @@ export class RouterService {
   private readonly gradeController = Container.get(GradeController);
 
   private readonly promotionalController = Container.get(PromotionalController);
+
+  private readonly compositionController = Container.get(CompositionController);
 
   private router = express.Router();
 
@@ -127,6 +130,14 @@ export class RouterService {
     this.router.put(this.routes.updatePromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.updateOne);
     this.router.delete(this.routes.removePromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.deleteOne);
     this.router.patch(this.routes.restorePromotional(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.restoreOne);
+
+    // composition
+    this.router.get(this.routes.getCompositions, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.compositionController.findMany);
+    this.router.get(this.routes.getComposition(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.compositionController.findOne);
+    this.router.post(this.routes.createComposition, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.compositionController.createOne);
+    this.router.put(this.routes.updateComposition(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.compositionController.updateOne);
+    this.router.delete(this.routes.removeComposition(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.compositionController.deleteOne);
+    this.router.patch(this.routes.restoreComposition(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.compositionController.restoreOne);
   };
 
   public get = () => this.router;

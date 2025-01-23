@@ -8,6 +8,7 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
 import { isEqual } from 'lodash';
+import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -21,9 +22,12 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
 import { CropImage } from '@/components/CropImage';
+import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
+import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 
 const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.createItem' });
@@ -34,7 +38,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const router = useRouter();
 
   const { role, token } = useAppSelector((state) => state.user);
-  const { itemGroups, itemCollections } = useAppSelector((state) => state.app);
+  const { itemGroups, itemCollections, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
@@ -81,6 +85,8 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
+  const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
+  const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
 
   const [form] = Form.useForm<ItemInterface>();
@@ -112,6 +118,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     values.images = images;
     values.group = itemGroup as ItemGroupInterface;
     values.collection = itemCollection as ItemCollectionInterface;
+    values.compositions = (itemCompositions ?? [])?.map((composition) => ({ id: composition as unknown as number } as CompositionEntity));
 
     let code: number;
     if (oldItem) {
@@ -132,11 +139,13 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         setItem(undefined);
         setItemGroup(undefined);
         setItemCollection(undefined);
+        setItemCompositions(undefined);
         setFileList([]);
         setImages([]);
         form.resetFields();
         form.setFieldValue('group', undefined);
         form.setFieldValue('collection', undefined);
+        form.setFieldValue('compositions', undefined);
         window.open(payload.url, '_blank');
       }
     }
@@ -167,6 +176,20 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
       setBreadcrumbs((state) => [state[0], state[1], { title: '' }, itemName ? state[3] : { title: '' }]);
     }
   }, [itemGroup]);
+
+  useEffect(() => {
+    if (axiosAuth) {
+      axios.get(routes.getCompositions)
+        .then(({ data: response }) => {
+          if (response.code === 1) {
+            setCompositions(response.compositions);
+          }
+        })
+        .catch((e) => {
+          axiosErrorHandler(e, tToast);
+        });
+    }
+  }, [axiosAuth]);
 
   return role === UserRoleEnum.ADMIN ? (
     <>
@@ -211,7 +234,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
           </CropImage>
         </div>
         <div style={{ width: '55%' }}>
-          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id }} className="d-flex flex-column" onFinish={onFinish} form={form}>
+          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
               <Form.Item<ItemInterface> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
                 <Input variant="borderless" size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
@@ -290,8 +313,23 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('composition')}</span>
-                  <Form.Item<ItemInterface> name="composition" className="large-input" rules={[newItemValidation]}>
-                    <Input.TextArea variant="borderless" size="large" placeholder={t('placeholders.composition')} rows={1} />
+                  <Form.Item<ItemInterface> name="compositions" className="large-input" rules={[newItemValidation]}>
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      className="col-6"
+                      size="large"
+                      notFoundContent={<NotFoundContent />}
+                      placeholder={t('placeholders.composition')}
+                      variant="borderless"
+                      optionFilterProp="label"
+                      filterSort={(optionA, optionB) =>
+                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                      }
+                      onChange={(state) => setItemCompositions(state)}
+                      onClear={() => setItemCompositions([])}
+                      options={compositions?.map(({ id, name }) => ({ value: id, label: name }))}
+                    />
                   </Form.Item>
                 </div>
                 <div className="d-flex flex-column gap-2">

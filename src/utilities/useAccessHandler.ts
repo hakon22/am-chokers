@@ -17,6 +17,7 @@ export const useAccessHandler = () => {
     routes.moderationOfReview,
     routes.promotionalCodes,
     routes.itemList,
+    routes.compositionsControl,
   ];
 
   useEffect(() => {

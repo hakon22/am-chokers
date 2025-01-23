@@ -4,6 +4,8 @@ import {
   OneToMany,
   ManyToMany,
   OneToOne,
+  Unique,
+  JoinTable,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
@@ -12,11 +14,13 @@ import { ImageEntity } from '@server/db/entities/image.entity';
 import { RatingEntity } from '@server/db/entities/rating.entity';
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
+import { CompositionEntity } from '@server/db/entities/composition.entity';
 
 /** Товар */
 @Entity({
   name: 'item',
 })
+@Unique(['name'])
 export class ItemEntity extends BaseEntity {
   /** Уникальный `id` товара */
   @PrimaryGeneratedColumn()
@@ -72,10 +76,6 @@ export class ItemEntity extends BaseEntity {
   @Column('int')
   public width: number;
 
-  /** Состав товара (в описании) */
-  @Column('character varying')
-  public composition: string;
-
   /** Длина товара (в описании) */
   @Column('character varying')
   public length: string;
@@ -125,6 +125,21 @@ export class ItemEntity extends BaseEntity {
     name: 'collection_id',
   })
   public collection?: ItemCollectionEntity;
+
+  /** Состав товара (в описании) */
+  @ManyToMany(() => CompositionEntity, composition => composition.items)
+  @JoinTable({
+    name: 'item_composition',
+    joinColumn: {
+      name: 'item_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'composition_id',
+      referencedColumnName: 'id',
+    },
+  })
+  public compositions: CompositionEntity[];
 
   /** Пользователи, добавившие товар в избранное */
   @ManyToMany(() => UserEntity, user => user.favorites)

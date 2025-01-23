@@ -1,9 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, Unique } from 'typeorm';
 
 /** Коллекции товаров */
 @Entity({
   name: 'item_collection',
 })
+@Unique(['name'])
 export class ItemCollectionEntity extends BaseEntity {
   /** Уникальный `id` коллекции */
   @PrimaryGeneratedColumn()

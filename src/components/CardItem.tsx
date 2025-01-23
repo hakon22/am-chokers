@@ -22,7 +22,7 @@ import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
 export const CardItem = ({ item, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
-  const { id, images, name, description, price, composition, length, rating, grades } = item;
+  const { id, images, name, description, price, compositions, length, rating, grades } = item;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
@@ -142,7 +142,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
             <div className="d-flex flex-column gap-3">
               <div className="d-flex flex-column gap-2">
                 <span>{t('composition')}</span>
-                <span>{composition}</span>
+                <span>{compositions.map((composition) => composition.name).join(', ')}</span>
               </div>
               <div className="d-flex flex-column gap-2">
                 <span>{t('length')}</span>

@@ -12,6 +12,7 @@ import { RatingEntity } from '@server/db/entities/rating.entity';
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
+import { CompositionEntity } from '@server/db/entities/composition.entity';
 
 export const entities = [
   UserEntity,
@@ -28,4 +29,5 @@ export const entities = [
   ItemGradeEntity,
   MessageEntity,
   PromotionalEntity,
+  CompositionEntity,
 ];

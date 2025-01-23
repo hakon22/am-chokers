@@ -1,11 +1,11 @@
 import { Container, Singleton } from 'typescript-ioc';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
-import type { ItemGroupQueryInterface } from '@server/types/item/item.group.query.interface';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import type { ItemGroupQueryInterface } from '@server/types/item/item.group.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class ItemGroupService extends BaseService {

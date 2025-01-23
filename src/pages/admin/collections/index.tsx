@@ -9,7 +9,7 @@ import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
 import type { ItemCollectionInterface } from '@/types/item/Item';
-import { newItemCatalogValidation } from '@/validations/validations';
+import { newItemCollectionValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItemCollection, deleteItemCollection, type ItemCollectionResponseInterface, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
 import { routes } from '@/routes';
@@ -45,7 +45,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
       <Form.Item
         name={dataIndex}
         style={{ margin: 0 }}
-        rules={[newItemCatalogValidation]}
+        rules={[newItemCollectionValidation]}
       >
         <Input placeholder={title} />
       </Form.Item>

@@ -1,24 +1,24 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
+import { CompositionEntity } from '@server/db/entities/composition.entity';
 import { BaseService } from '@server/services/app/base.service';
-import { newItemCollectionValidation } from '@/validations/validations';
-import { ItemCollectionService } from '@server/services/item/item.collection.service';
+import { newCompositionValidation } from '@/validations/validations';
+import { CompositionService } from '@server/services/composition/composition.service';
 import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
 
 @Singleton
-export class ItemCollectionController extends BaseService {
-  private readonly itemCollectionService = Container.get(ItemCollectionService);
+export class CompositionController extends BaseService {
+  private readonly compositionService = Container.get(CompositionService);
 
   public findOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const itemCollection = await this.itemCollectionService.findOne(params, query);
+      const composition = await this.compositionService.findOne(params, query);
 
-      res.json({ code: 1, itemCollection });
+      res.json({ code: 1, composition });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -28,9 +28,9 @@ export class ItemCollectionController extends BaseService {
     try {
       const query = await queryOptionalSchema.validate(req.query);
 
-      const itemCollections = await this.itemCollectionService.findMany(query);
+      const compositions = await this.compositionService.findMany(query);
 
-      res.json({ code: 1, itemCollections });
+      res.json({ code: 1, compositions });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -38,9 +38,9 @@ export class ItemCollectionController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const body = await newItemCollectionValidation.serverValidator(req.body) as ItemCollectionEntity;
+      const body = await newCompositionValidation.serverValidator(req.body) as CompositionEntity;
 
-      const result = await this.itemCollectionService.createOne(body);
+      const result = await this.compositionService.createOne(body);
 
       res.json(result);
     } catch (e) {
@@ -51,11 +51,11 @@ export class ItemCollectionController extends BaseService {
   public updateOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as ItemCollectionEntity;
+      const body = req.body as CompositionEntity;
 
-      const itemCollection = await this.itemCollectionService.updateOne(params, body);
+      const composition = await this.compositionService.updateOne(params, body);
 
-      res.json({ code: 1, itemCollection });
+      res.json({ code: 1, composition });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -65,9 +65,9 @@ export class ItemCollectionController extends BaseService {
     try {
       const params = await paramsIdSchema.validate(req.params);
 
-      const itemCollection = await this.itemCollectionService.deleteOne(params);
+      const composition = await this.compositionService.deleteOne(params);
 
-      res.json({ code: 1, itemCollection });
+      res.json({ code: 1, composition });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -77,9 +77,9 @@ export class ItemCollectionController extends BaseService {
     try {
       const params = await paramsIdSchema.validate(req.params);
 
-      const itemCollection = await this.itemCollectionService.restoreOne(params);
+      const composition = await this.compositionService.restoreOne(params);
 
-      res.json({ code: 1, itemCollection });
+      res.json({ code: 1, composition });
     } catch (e) {
       this.errorHandler(e, res);
     }

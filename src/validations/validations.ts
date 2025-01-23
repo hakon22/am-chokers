@@ -130,7 +130,7 @@ const newItemSchema = yup.object().shape({
   price: numberSchema,
   width: numberSchema,
   height: numberSchema,
-  composition: stringSchema,
+  compositions: yup.array(idSchema).min(1).required(),
   length: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
 });
@@ -145,20 +145,24 @@ const partialUpdateItemSchema = yup.object().shape({
   price: numberSchema.optional(),
   width: numberSchema.optional(),
   height: numberSchema.optional(),
-  composition: stringSchema.optional(),
+  compositions: yup.array(idSchema).optional(),
   length: stringSchema.optional(),
   order: yup.number().optional().nullable(),
   images: yup.array(requiredIdSchema).optional(),
 });
 
-const newItemCatalogSchema = yup.object().shape({
+const newCompositionSchema = yup.object().shape({
+  name: stringSchema,
+});
+
+const newItemCollectionSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
 });
 
 const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
-}).concat(newItemCatalogSchema);
+}).concat(newItemCollectionSchema);
 
 const newCartItemSchema = yup.object().shape({
   count: numberSchema,
@@ -249,7 +253,7 @@ export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
 export const newItemValidation = validate(newItemSchema);
 export const newItemGroupValidation = validate(newItemGroupSchema);
-export const newItemCatalogValidation = validate(newItemCatalogSchema);
+export const newItemCollectionValidation = validate(newItemCollectionSchema);
 export const newCartItemValidation = validate(newCartItemSchema);
 export const partialUpdateItemValidation = validate(partialUpdateItemSchema);
 export const cartItemsSchemaValidation = validate(cartItemsSchema);
@@ -258,3 +262,4 @@ export const newCommentValidation = validate(newCommentSchema);
 export const newGradeValidation = validate(newGradeSchema);
 export const newPromotionalValidation = validate(newPromotionalSchema);
 export const orderChangeStatusValidation = validate(orderChangeStatusSchema);
+export const newCompositionValidation = validate(newCompositionSchema);
