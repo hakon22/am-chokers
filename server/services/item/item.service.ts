@@ -6,6 +6,7 @@ import { Brackets } from 'typeorm';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
+import { TelegramService } from '@server/services/integration/telegram.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { GradeService } from '@server/services/rating/grade.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -25,6 +26,8 @@ export class ItemService extends BaseService {
   private readonly gradeService = Container.get(GradeService);
 
   private readonly uploadPathService = Container.get(UploadPathService);
+
+  private readonly telegramService = Container.get(TelegramService);
 
   private createQueryBuilder = (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -214,6 +217,19 @@ export class ItemService extends BaseService {
     const url = this.getUrl(createdItem);
 
     const item = await this.findOne({ id: createdItem.id });
+
+    if (process.env.TELEGRAM_GROUP_ID) {
+      const text = [
+        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()} - <b>${item.name}</b>.`,
+        (item?.collection ? `Коллекция: <b${item.collection.name}</b>` : ''),
+        `${item.description}`,
+        `Состав: <b${item.compositions.map(({ name }) => name).join(', ')}</b>`,
+        `Длина: <b${item.length}</b>`,
+        `Цена: <b${item.price}</b>`,
+      ];
+
+      await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => src), process.env.TELEGRAM_GROUP_ID);
+    }
 
     return { code: 1, item, url };
   };
