@@ -125,7 +125,7 @@ const CreateItemGroup = () => {
       code: '',
       key: (data.length + 1).toString(),
     };
-    setData([...data, newData]);
+    setData([newData, ...data]);
     edit(newData);
   };
 

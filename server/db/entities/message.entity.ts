@@ -56,4 +56,11 @@ export class MessageEntity extends BaseEntity {
     nullable: true,
   })
   public telegramId?: string;
+
+  /** Уникальный id сообщения в Telegram */
+  @Column('character varying', {
+    name: 'message_id',
+    nullable: true,
+  })
+  public messageId?: string;
 }

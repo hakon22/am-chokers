@@ -51,8 +51,7 @@ export class ItemService extends BaseService {
           .andWhere(new Brackets((qb) => {
             qb
               .andWhere('item.name ILIKE :search')
-              .orWhere('item.description ILIKE :search')
-              .orWhere('collection.name ILIKE :search');
+              .orWhere('item.description ILIKE :search');
           }));
       }
     } else {
@@ -170,8 +169,7 @@ export class ItemService extends BaseService {
         .andWhere(new Brackets((qb) => {
           qb
             .andWhere('item.name ILIKE :search')
-            .orWhere('item.description ILIKE :search')
-            .orWhere('collection.name ILIKE :search');
+            .orWhere('item.description ILIKE :search');
         }));
     }
 
@@ -220,15 +218,16 @@ export class ItemService extends BaseService {
 
     if (process.env.TELEGRAM_GROUP_ID) {
       const text = [
-        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()} - <b>${item.name}</b>.`,
-        (item?.collection ? `Коллекция: <b${item.collection.name}</b>` : ''),
+        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}!`,
+        `<b>${item.name}</b>`,
+        (item?.collection ? `Коллекция: <b>${item.collection.name}</b>` : ''),
         `${item.description}`,
-        `Состав: <b${item.compositions.map(({ name }) => name).join(', ')}</b>`,
-        `Длина: <b${item.length}</b>`,
-        `Цена: <b${item.price}</b>`,
+        `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
+        `Длина: <b>${item.length}</b>`,
+        `Цена: <b>${item.price} ₽</b>`,
       ];
 
-      await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => src), process.env.TELEGRAM_GROUP_ID);
+      await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
     }
 
     return { code: 1, item, url };
