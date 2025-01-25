@@ -4,6 +4,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram';
 
 import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
 
@@ -63,4 +64,12 @@ export class MessageEntity extends BaseEntity {
     nullable: true,
   })
   public messageId?: string;
+
+  /** Медиа, прикреплённые к сообщению в Telegram */
+  @Column('character varying', {
+    name: 'media_files',
+    array: true,
+    default: [],
+  })
+  public mediaFiles: InputMediaPhoto[];
 }

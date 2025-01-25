@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Container, Singleton } from 'typescript-ioc';
 import { Context } from 'telegraf';
 import { Message } from 'typegram/message';
+import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
@@ -63,54 +64,59 @@ export class TelegramService {
   };
 
   public sendMessage = async (message: string | string[], telegramId: string, options?: object) => {
-    const text = Array.isArray(message) ? message.reduce((acc, field) => acc += `${field}\n`, '') : message;
+    const text = this.serializeText(message);
 
     const history = await MessageEntity.create({ text, type: MessageTypeEnum.TELEGRAM, telegramId }).save();
 
-    const { data } = await axios.post<{ ok: boolean; result: { message_id: string; } }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
-      chat_id: telegramId,
-      parse_mode: 'html',
-      text,
-      ...options,
-    });
-    if (data?.ok) {
-      this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
-      history.send = true;
-      history.messageId = data.result.message_id;
-      await history.save();
-      return { ...data, text };
-    } else {
-      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, data);
+    try {
+      const { data } = await axios.post<{ ok: boolean; result: { message_id: string; } }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
+        chat_id: telegramId,
+        parse_mode: 'HTML',
+        text,
+        ...options,
+      });
+      if (data?.ok) {
+        this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
+        history.send = true;
+        history.messageId = data.result.message_id;
+        await history.save();
+        return { ...data, text };
+      }
+    } catch (e) {
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
     }
   };
 
   public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, options?: any) => {
-    const result = await this.sendMessage(message, telegramId, options);
+    const text = this.serializeText(message);
 
-    if (!result) {
-      return;
-    }
-
-    await Promise.all(images.map(async (photo) => {
-      const request = {
-        chat_id: telegramId,
-        reply_to_message_id: result.result.message_id,
-        photo,
-      };
-      try {
-        const history = await MessageEntity.create({ text: JSON.stringify(request), type: MessageTypeEnum.TELEGRAM, telegramId }).save();
-
-        const { data } = await axios.post<{ ok: boolean; result: { message_id: string; } }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendPhoto`, request);
-    
-        if (data?.ok) {
-          this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
-          history.send = true;
-          history.messageId = data.result.message_id;
-          await history.save();
-        }
-      } catch (e) {
-        this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
-      }
+    const media: InputMediaPhoto[] = images.map((image, i) => ({
+      type: 'photo',
+      media: image,
+      ...(!i ? { caption: text, parse_mode: 'HTML' } : {}),
     }));
+
+    const request = {
+      chat_id: telegramId,
+      media,
+      ...options,
+    };
+
+    const history = await MessageEntity.create({ text, mediaFiles: media, type: MessageTypeEnum.TELEGRAM, telegramId }).save();
+
+    try {
+      const { data } = await axios.post<{ ok: boolean; result: { message_id: string; } }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMediaGroup`, request);
+
+      if (data?.ok) {
+        this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
+        history.send = true;
+        history.messageId = data.result.message_id;
+        await history.save();
+      }
+    } catch (e) {
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
+    }
   };
+
+  private serializeText = (message: string | string[]) => Array.isArray(message) ? message.reduce((acc, field) => acc += `${field}\n`, '') : message;
 }
