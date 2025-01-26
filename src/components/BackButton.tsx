@@ -9,7 +9,7 @@ export const BackButton = ({ className, style = { position: 'absolute', top: '15
   const router = useRouter();
 
   return (
-    <Button onClick={() => router.back()} className={cn(propsFullReplace ? null : 'back-button border-button', className)} style={propsFullReplace ? {} : style}>
+    <Button onClick={router.back} className={cn(propsFullReplace ? null : 'back-button border-button', className)} style={propsFullReplace ? {} : style}>
       {t('back')}
     </Button>
   );

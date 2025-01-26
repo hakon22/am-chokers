@@ -64,8 +64,6 @@ export class ItemService extends BaseService {
           'item.price',
           'item.discount',
           'item.discountPrice',
-          'item.height',
-          'item.width',
           'item.length',
           'item.className',
           'item.new',
@@ -83,6 +81,11 @@ export class ItemService extends BaseService {
         .leftJoin('item.rating', 'rating')
         .addSelect([
           'rating.rating',
+        ])
+        .leftJoin('item.message', 'message')
+        .addSelect([
+          'message.id',
+          'message.created',
         ])
         .leftJoinAndSelect('item.group', 'group')
         .leftJoinAndSelect('item.collection', 'collection')
@@ -112,7 +115,7 @@ export class ItemService extends BaseService {
     }
     if (options?.withGrades) {
       builder
-        .leftJoin('item.grades', 'grades')
+        .leftJoin('item.grades', 'grades', 'grades.checked = true')
         .addSelect('grades.id');
     }
 
@@ -192,7 +195,7 @@ export class ItemService extends BaseService {
     return [items, count];
   };
 
-  public createOne = async (body: ItemEntity, images: ImageEntity[]) => {
+  public createOne = async (body: ItemEntity & { sendToTelegram: boolean; }, images: ImageEntity[]) => {
 
     const isExist = await this.exist({ name: body.name });
 
@@ -216,18 +219,9 @@ export class ItemService extends BaseService {
 
     const item = await this.findOne({ id: createdItem.id });
 
-    if (process.env.TELEGRAM_GROUP_ID) {
-      const text = [
-        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}!`,
-        `<b>${item.name}</b>`,
-        (item?.collection ? `Коллекция: <b>${item.collection.name}</b>` : ''),
-        `${item.description}`,
-        `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
-        `Длина: <b>${item.length}</b>`,
-        `Цена: <b>${item.price} ₽</b>`,
-      ];
-
-      await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
+    if (process.env.TELEGRAM_GROUP_ID && body.sendToTelegram && images.length > 1) {
+      const { message } = await this.publishToTelegram(item);
+      item.message = message;
     }
 
     return { code: 1, item, url };
@@ -269,6 +263,42 @@ export class ItemService extends BaseService {
     const url = this.getUrl(updated);
 
     return { item: updated, url };
+  };
+
+  public publishToTelegram = async (params: ParamsIdInterface, value?: ItemEntity) => {
+    const item = value || await this.findOne(params);
+
+    if (item.images.length < 2) {
+      throw new Error('Для публикации в группу Telegram товар должен иметь более одной фотографии');
+    }
+
+    const url = this.getUrl(item);
+
+    if (process.env.TELEGRAM_GROUP_ID) {
+      const text = [
+        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}!`,
+        '',
+        `<b>${item.name}</b>`,
+        '',
+        `${item.description}`,
+        '',
+        ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
+        `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
+        `Длина: <b>${item.length}</b>`,
+        `Цена: <b>${item.price} ₽</b>`,
+        '',
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
+      ];
+
+      const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
+
+      if (message?.history) {
+        await ItemEntity.update(item.id, { message: message.history });
+        item.message = message.history;
+      }
+    }
+
+    return item;
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {

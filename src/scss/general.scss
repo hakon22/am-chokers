@@ -153,8 +153,7 @@ a {
   }
 }
 
-.edit-button {
-  background-color: $edit-button;
+.action-button {
   color: $white;
   font-family: Oswald, sans-serif !important;
   font-size: 1rem;
@@ -162,9 +161,40 @@ a {
   display: flex;
   align-items: center;
 
-  &:active, &:hover {
-    background-color: $edit-button-hover !important;
-    color: $white !important;
+    &:active, &:hover {
+      color: $white !important;
+    }
+
+  &.edit {
+    background-color: $edit-button;
+
+    &:active, &:hover {
+      background-color: $edit-button-hover !important;
+    }
+  }
+
+  &.remove {
+    background-color: $remove-button;
+
+    &:active, &:hover {
+      background-color: $remove-button-hover !important;
+    }
+  }
+
+  &.restore {
+    background-color: $restore-button;
+
+    &:active, &:hover {
+      background-color: $restore-button-hover !important;
+    }
+  }
+
+  &.send-to-telegram {
+    background-color: $send-to-telegram-button;
+
+    &:active, &:hover {
+      background-color: $send-to-telegram-button-hover !important;
+    }
   }
 }
 

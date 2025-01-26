@@ -73,7 +73,7 @@ export class ItemController extends BaseService {
       const { images, ...rest } = body;
 
 
-      const result = await this.itemService.createOne(rest as ItemEntity, images);
+      const result = await this.itemService.createOne(rest as ItemEntity & { sendToTelegram: boolean; }, images);
 
       res.json(result);
     } catch (e) {
@@ -124,6 +124,18 @@ export class ItemController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
 
       const item = await this.itemService.restoreOne(params);
+
+      res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public publishToTelegram = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+
+      const item = await this.itemService.publishToTelegram(params);
 
       res.json({ code: 1, item });
     } catch (e) {

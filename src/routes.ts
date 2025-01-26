@@ -86,6 +86,7 @@ export const routes = {
   restoreItem: (id?: number) => [apiPath, 'item', id ?? ':id', 'restore'].join('/'),
   addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),
   removeFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'remove'].join('/'),
+  publishToTelegram: (id?: number) => [apiPath, 'item', id ?? ':id', 'publish'].join('/'),
   getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
 
   // cart

@@ -15,6 +15,7 @@ import { RatingEntity } from '@server/db/entities/rating.entity';
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { CompositionEntity } from '@server/db/entities/composition.entity';
+import { MessageEntity } from '@server/db/entities/message.entity';
 
 /** Товар */
 @Entity({
@@ -67,14 +68,6 @@ export class ItemEntity extends BaseEntity {
   /** Фотографии товара */
   @OneToMany(() => ImageEntity, image => image.item)
   public images: ImageEntity[];
-
-  /** Высота картинки товара */
-  @Column('int')
-  public height: number;
-
-  /** Ширирна картинки товара */
-  @Column('int')
-  public width: number;
 
   /** Длина товара (в описании) */
   @Column('character varying')
@@ -152,4 +145,15 @@ export class ItemEntity extends BaseEntity {
   /** Оценки товара */
   @OneToMany(() => ItemGradeEntity, itemGrade => itemGrade.item)
   public grades: ItemGradeEntity[];
+
+  /** Сообщение о публикации товара в группу Telegram */
+  @ManyToOne(() => MessageEntity, {
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'message_id',
+  })
+  public message?: MessageEntity;
 }

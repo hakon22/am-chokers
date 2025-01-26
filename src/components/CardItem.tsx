@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Rate } from 'antd';
+import { Button, Popconfirm, Rate, Tag } from 'antd';
 import { LikeOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
@@ -7,17 +7,20 @@ import Link from 'next/link';
 import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
+import moment from 'moment';
 
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { setItemGrades } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, publishItem, setItemGrades } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { toast } from '@/utilities/toast';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
@@ -25,6 +28,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
   const { id, images, name, description, price, compositions, length, rating, grades } = item;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
 
   const galleryRef = useRef<ImageGallery>(null);
@@ -125,14 +129,40 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
                   : <span>{t('grades.gradeCount', { count: pagination.count })}</span>}
               </div>
             </div>
-            <div className="d-flex gap-5">
-              <p className="fs-5 mb-4">{t('price', { price })}</p>
-              {role === UserRoleEnum.ADMIN ? <Button type="text" className="edit-button" onClick={() => {
-                router.push({
-                  pathname: router.pathname,
-                  query: { ...router.query, edit: true },
-                }, undefined, { shallow: true });
-              }}>{t('edit')}</Button> : null}
+            <div className="d-flex gap-5 mb-4">
+              <p className="fs-5 m-0">{t('price', { price })}</p>
+              {role === UserRoleEnum.ADMIN
+                ? (
+                  <>
+                    <Button type="text" className="action-button edit" onClick={() => {
+                      router.push({
+                        pathname: router.pathname,
+                        query: { ...router.query, edit: true },
+                      }, undefined, { shallow: true });
+                    }}>{t('edit')}</Button>
+                    <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => {
+                      dispatch(deleteItem(id));
+                      router.back();
+                      toast(tToast('itemDeletedSuccess', { name }), 'success');
+                    }}>
+                      <Button type="text" className="action-button remove">{t('remove')}</Button>
+                    </Popconfirm>
+                    {!currentItem?.message?.created
+                      ? <Button
+                        type="text"
+                        className="action-button send-to-telegram"
+                        onClick={async () => {
+                          const { payload } = await dispatch(publishItem(id)) as { payload: ItemResponseInterface & { error: string; } };
+                          if (!payload?.error) {
+                            toast(tToast('itemPublishSuccess', { name }), 'success');
+                          }
+                        }}>
+                        {t('publishToTelegram')}
+                      </Button>
+                      : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
+                  </>
+                )
+                : null}
             </div>
             <div className="d-flex align-items-center gap-5 mb-3">
               <CartControl id={id} className="fs-5" />

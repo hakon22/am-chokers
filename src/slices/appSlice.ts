@@ -117,6 +117,18 @@ export const restoreItem = createAsyncThunk(
   },
 );
 
+export const publishItem = createAsyncThunk(
+  'app/publishItem',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<ItemResponseInterface>(routes.publishToTelegram(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 export const addItemGroup = createAsyncThunk(
   'app/addItemGroup',
   async (data: ItemGroupInterface, { rejectWithValue }) => {
@@ -322,6 +334,24 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(updateItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(publishItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(publishItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
+          if (itemIndex !== -1) {
+            state.items[itemIndex] = payload.item;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(publishItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })

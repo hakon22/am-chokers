@@ -81,7 +81,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
 
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
+  const [item, setItem] = useState<Partial<ItemInterface & { sendToTelegram: boolean; }> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
@@ -89,7 +89,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
 
-  const [form] = Form.useForm<ItemInterface>();
+  const [form] = Form.useForm<ItemInterface & { sendToTelegram: boolean; }>();
 
   const itemName: string = Form.useWatch('name', form);
 
@@ -236,11 +236,11 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         <div style={{ width: '55%' }}>
           <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
-              <Form.Item<ItemInterface> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
+              <Form.Item<typeof item> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
                 <Input variant="borderless" size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
               </Form.Item>
               <div className="d-flex justify-content-between align-items-center mb-4">
-                <Form.Item<ItemInterface> name="group" className="large-input" rules={[newItemValidation]}>
+                <Form.Item<typeof item> name="group" className="large-input" rules={[newItemValidation]}>
                   <Select
                     showSearch
                     allowClear
@@ -262,7 +262,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                     options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<ItemInterface> name="collection" className="large-input">
+                <Form.Item<typeof item> name="collection" className="large-input">
                   <Select
                     showSearch
                     allowClear
@@ -284,36 +284,37 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                     options={itemCollections.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<ItemInterface> name="new" valuePropName="checked" className="large-input">
+                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input">
                   <Checkbox>{t('new')}</Checkbox>
                 </Form.Item>
-                <Form.Item<ItemInterface> name="bestseller" valuePropName="checked" className="large-input">
+                <Form.Item<typeof item> name="bestseller" valuePropName="checked" className="large-input">
                   <Checkbox>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
               <div className="d-flex flex-column flex-md-row justify-content-between">
-                <Form.Item<ItemInterface> name="price" className="mb-4 fs-2" rules={[newItemValidation]}>
+                <Form.Item<typeof item> name="price" className="mb-4 fs-2" rules={[newItemValidation]}>
                   <InputNumber size="large" variant="borderless" placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                <Form.Item<ItemInterface> name="width" className="mb-4 fs-2" rules={[newItemValidation]}>
-                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.width')} className="large-input ps-0 w-100" />
-                </Form.Item>
-                <Form.Item<ItemInterface> name="height" className="mb-4 fs-2" rules={[newItemValidation]}>
-                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.height')} className="large-input ps-0 w-100" />
-                </Form.Item>
+                {!oldItem
+                  ? (
+                    <Form.Item<typeof item> name="sendToTelegram" valuePropName="checked" className="large-input">
+                      <Checkbox>{t('sendToTelegram')}</Checkbox>
+                    </Form.Item>
+                  )
+                  : null}
               </div>
               <div className="d-flex align-items-center gap-5 mb-4 position-relative">
                 {oldItem && <BackButton style={{ position: 'absolute', left: '60%' }} />}
                 <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
               </div>
-              <Form.Item<ItemInterface> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
+              <Form.Item<typeof item> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
                 <Input.TextArea variant="borderless" size="large" rows={2} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
               </Form.Item>
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('composition')}</span>
-                  <Form.Item<ItemInterface> name="compositions" className="large-input" rules={[newItemValidation]}>
+                  <Form.Item<typeof item> name="compositions" className="large-input" rules={[newItemValidation]}>
                     <Select
                       mode="multiple"
                       allowClear
@@ -334,7 +335,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                 </div>
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('length')}</span>
-                  <Form.Item<ItemInterface> name="length" className="large-input" rules={[newItemValidation]}>
+                  <Form.Item<typeof item> name="length" className="large-input" rules={[newItemValidation]}>
                     <Input variant="borderless" size="large" placeholder={t('placeholders.length')} />
                   </Form.Item>
                 </div>

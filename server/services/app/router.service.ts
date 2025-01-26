@@ -102,6 +102,7 @@ export class RouterService {
     this.router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
     this.router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);
     this.router.get(this.routes.getGrades({ isServer: true }), this.itemController.getGrades);
+    this.router.get(this.routes.publishToTelegram(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.publishToTelegram);
 
     // cart
     this.router.post(this.routes.createCartItem, this.middlewareService.optionalJwtAuth, this.cartController.createOne);
