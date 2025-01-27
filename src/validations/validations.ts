@@ -243,6 +243,10 @@ const newPromotionalSchema = yup.object().shape({
     }),
 }).concat(periodSchema).concat(discountAndDiscountPercentSchema);
 
+const setCoverImageSchema = yup.object().shape({
+  coverOrder: numberSchema.max(8),
+}).concat(requiredIdSchema);
+
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
@@ -260,3 +264,4 @@ export const newGradeValidation = validate(newGradeSchema);
 export const newPromotionalValidation = validate(newPromotionalSchema);
 export const orderChangeStatusValidation = validate(orderChangeStatusSchema);
 export const newCompositionValidation = validate(newCompositionSchema);
+export const setCoverImageValidation = validate(setCoverImageSchema);

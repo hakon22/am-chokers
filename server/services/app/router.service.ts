@@ -89,6 +89,9 @@ export class RouterService {
     // storage
     this.router.post(this.routes.imageUpload({ isServer: true }), this.middlewareService.jwtToken, this.imageService.upload(), this.imageService.uploadHandler);
     this.router.delete(this.routes.imageDelete(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.deleteOne);
+    this.router.post(this.routes.setCoverImage, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.setCoverImage);
+    this.router.delete(this.routes.removeCoverImage(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.imageService.removeCoverImage);
+    this.router.get(this.routes.getCoverImages({ isServer: true }), this.imageService.getCoverImages);
 
     // item
     this.router.get(this.routes.restoreItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);

@@ -8,19 +8,21 @@ import { v4 as uuid } from 'uuid';
 import type { EntityManager } from 'typeorm';
 
 import { ImageEntity } from '@server/db/entities/image.entity';
-import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { paramsIdSchema } from '@server/utilities/convertation.params';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
+import { setCoverImageValidation } from '@/validations/validations';
+import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class ImageService extends BaseService {
   private readonly uploadPathService = Container.get(UploadPathService);
 
-  private createQueryBuilder = (query: ImageQueryInterface) => {
+  private createQueryBuilder = (query?: ImageQueryInterface) => {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ImageEntity, 'image')
@@ -29,6 +31,7 @@ export class ImageService extends BaseService {
         'image.name',
         'image.path',
         'image.deleted',
+        'image.coverOrder',
       ]);
 
     if (query?.withDeleted) {
@@ -125,6 +128,49 @@ export class ImageService extends BaseService {
     } catch (e) {
       this.loggerService.error(e);
       res.status(500).json({ code: 2, message: 'Ошибка при обработке изображения' });
+    }
+  };
+
+  public setCoverImage = async (req: Request, res: Response) => {
+    try {
+      const body = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; };
+  
+      const image = await this.findOne({ id: body.id });
+  
+      await ImageEntity.update(image.id, { coverOrder: body.coverOrder });
+
+      image.coverOrder = body.coverOrder;
+  
+      res.json({ code: 1, image });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public removeCoverImage = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+  
+      const image = await this.findOne(params);
+  
+      await ImageEntity.update(image.id, { coverOrder: null });
+  
+      res.json({ code: 1 });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getCoverImages = async (req: Request, res: Response) => {
+    try {
+      const builder = this.createQueryBuilder()
+        .where('image.coverOrder IS NOT NULL');
+  
+      const coverImages = await builder.getMany();
+  
+      res.json({ code: 1, coverImages });
+    } catch (e) {
+      this.errorHandler(e, res);
     }
   };
 

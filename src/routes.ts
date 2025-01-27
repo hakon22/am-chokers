@@ -76,6 +76,9 @@ export const routes = {
   // storage
   imageUpload: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
   imageDelete: (id?: number) => [apiPath, 'image', id ?? ':id'].join('/'),
+  removeCoverImage: (id?: number) => [apiPath, 'image', id ?? ':id'].join('/'),
+  setCoverImage: [apiPath, 'image', 'set-cover'].join('/'),
+  getCoverImages: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'getAll'].join('/'),
 
   // item
   getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),

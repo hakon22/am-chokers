@@ -19,6 +19,7 @@ const initialState: AppStoreInterface = {
   items: [],
   itemGroups: [],
   itemCollections: [],
+  coverImages: [],
   pagination: {
     count: 0,
     limit: 0,
@@ -55,6 +56,11 @@ export interface GradeResponseInterface {
 export interface CommentResponseInterface {
   code: number;
   comment: CommentEntity;
+}
+
+export interface ImageResponseInterface {
+  code: number;
+  image: ImageEntity;
 }
 
 export const addItem = createAsyncThunk(
@@ -278,6 +284,30 @@ export const removeGrade = createAsyncThunk(
   },
 );
 
+export const setCoverImage = createAsyncThunk(
+  'app/setCoverImage',
+  async ({ id, coverOrder }: {id: number; coverOrder: number; }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<ImageResponseInterface>(routes.setCoverImage, { id, coverOrder });
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const removeCoverImage = createAsyncThunk(
+  'app/removeCoverImage',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<ImageResponseInterface>(routes.removeCoverImage(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const appSlice = createSlice({
   name: 'app',
   initialState,
@@ -286,6 +316,7 @@ const appSlice = createSlice({
       state.items = payload.items;
       state.itemGroups = payload.itemGroups;
       state.itemCollections = payload.itemCollections;
+      state.coverImages = payload.coverImages;
     },
     setPaginationParams: (state, { payload }: PayloadAction<PaginationInterface>) => {
       state.pagination = payload;
@@ -614,6 +645,36 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(removeGrade.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(setCoverImage.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(setCoverImage.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.coverImages = [...state.coverImages, payload.image];
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(setCoverImage.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(removeCoverImage.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(removeCoverImage.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.coverImages = state.coverImages.filter((image) => image.id !== payload.image.id);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(removeCoverImage.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       });

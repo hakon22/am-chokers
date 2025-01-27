@@ -26,11 +26,12 @@ import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
+import type { ImageEntity } from '@server/db/entities/image.entity';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
 const Init = (props: AppProps & AppDataInterface) => {
-  const { pageProps, Component, items, itemGroups, itemCollections } = props;
+  const { pageProps, Component, items, itemGroups, itemCollections, coverImages } = props;
   const { dispatch } = store;
 
   const { id, refreshToken } = store.getState().user;
@@ -61,7 +62,7 @@ const Init = (props: AppProps & AppDataInterface) => {
 
   useEffect(() => {
     AOS.init();
-    dispatch(setAppData({ items, itemGroups, itemCollections }));
+    dispatch(setAppData({ items, itemGroups, itemCollections, coverImages }));
   }, []);
 
   return (
@@ -89,15 +90,16 @@ const Init = (props: AppProps & AppDataInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
-  const [{ data: { items } }, { data: { itemGroups } }, { data: { itemCollections } }] = await Promise.all([
+  const [{ data: { items } }, { data: { itemGroups } }, { data: { itemCollections } }, { data: { coverImages } }] = await Promise.all([
     axios.get<{ items: ItemInterface[] }>(routes.getItems({ isServer: false })),
     axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.getItemGroups({ isServer: false })),
     axios.get<{ itemCollections: ItemCollectionInterface[] }>(routes.getItemCollections({ isServer: false })),
+    axios.get<{ coverImages: ImageEntity[] }>(routes.getCoverImages({ isServer: false })),
   ]);
 
   const props = await AppNext.getInitialProps(context);
 
-  return { ...props, items, itemGroups, itemCollections };
+  return { ...props, items, itemGroups, itemCollections, coverImages };
 };
 
 export default Init;
