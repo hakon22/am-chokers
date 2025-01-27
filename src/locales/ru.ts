@@ -170,7 +170,7 @@ export default {
         new: 'Новинка',
         collection: 'Коллекция',
         bestseller: 'Бестселлер',
-        publishToTelegram: 'Опубликовать в группу Telegram',
+        publishToTelegram: 'Опубликовать в Telegram',
         placeholders: {
           name: 'Введите название товара',
           group: 'Выберите группу',
@@ -460,7 +460,7 @@ export default {
         deliveryAndPayment: 'Доставка и оплата',
         add: 'Добавить',
         remove: 'Удалить',
-        publishToTelegram: 'Опубликовать в группу Telegram',
+        publishToTelegram: 'Опубликовать в Telegram',
         removeTitle: 'Удаление товара',
         removeDescription: 'Вы действительно хотите удалить товар?',
         cancel: 'Отменить',

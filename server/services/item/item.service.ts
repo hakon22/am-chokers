@@ -219,8 +219,8 @@ export class ItemService extends BaseService {
 
     const item = await this.findOne({ id: createdItem.id });
 
-    if (process.env.TELEGRAM_GROUP_ID && body.sendToTelegram && images.length > 1) {
-      const { message } = await this.publishToTelegram(item);
+    if (body.sendToTelegram && images.length > 1) {
+      const { message } = await this.publishToTelegram({ id: item.id }, item);
       item.message = message;
     }
 
