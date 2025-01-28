@@ -122,7 +122,7 @@ export class ImageService extends BaseService {
         path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
       });
 
-      image.src = [image.path, image.name].join('/').replaceAll('\\', '/');
+      image.src = this.getSrc(image);
 
       res.json({ code: 1, image });
     } catch (e) {
@@ -133,13 +133,18 @@ export class ImageService extends BaseService {
 
   public setCoverImage = async (req: Request, res: Response) => {
     try {
-      const body = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; };
+      const { id, coverOrder } = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; };
   
-      const image = await this.findOne({ id: body.id });
-  
-      await ImageEntity.update(image.id, { coverOrder: body.coverOrder });
+      const image = await this.findOne({ id });
 
-      image.coverOrder = body.coverOrder;
+      this.uploadPathService.moveFile(UploadPathEnum.COVER, 0, image.name);
+
+      image.path = this.uploadPathService.getUrlPath(UploadPathEnum.COVER);
+      image.coverOrder = coverOrder;
+  
+      await image.save();
+
+      image.src = this.getSrc(image);
   
       res.json({ code: 1, image });
     } catch (e) {
@@ -153,9 +158,11 @@ export class ImageService extends BaseService {
   
       const image = await this.findOne(params);
   
-      await ImageEntity.update(image.id, { coverOrder: null });
+      await ImageEntity.delete(image.id);
+
+      this.uploadPathService.removeFile(UploadPathEnum.COVER, image.name);
   
-      res.json({ code: 1 });
+      res.json({ code: 1, image });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -203,4 +210,6 @@ export class ImageService extends BaseService {
     });
     await manager.getRepository(ImageEntity).save(updatedImages);
   };
+
+  private getSrc = (image: ImageEntity) => [image.path, image.name].join('/').replaceAll('\\', '/');
 }

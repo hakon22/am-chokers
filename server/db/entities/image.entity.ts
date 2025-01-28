@@ -52,7 +52,7 @@ export class ImageEntity extends BaseEntity {
     nullable: true,
     name: 'cover_order',
   })
-  public coverOrder?: number | null;
+  public coverOrder?: number;
 
   /** Товар изображения */
   @ManyToOne(() => ItemEntity, {

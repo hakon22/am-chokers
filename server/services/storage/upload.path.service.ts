@@ -1,6 +1,6 @@
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync, mkdirSync, renameSync } from 'fs';
+import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs';
 
 import { Singleton } from 'typescript-ioc';
 
@@ -31,6 +31,11 @@ export class UploadPathService {
         ? join(this.uploadFilesPath, UploadPathEnum.COMMENT, id.toString(), fileName)
         : join(this.uploadFilesPath, UploadPathEnum.COMMENT, id.toString());
       break;
+    case UploadPathEnum.COVER:
+      path = fileName
+        ? join(this.uploadFilesPath, UploadPathEnum.COVER, fileName)
+        : join(this.uploadFilesPath, UploadPathEnum.COVER);
+      break;
     }
     return path;
   };
@@ -49,16 +54,22 @@ export class UploadPathService {
     case UploadPathEnum.COMMENT:
       path = join(routes.homePage, UploadPathEnum.COMMENT, id.toString());
       break;
+    case UploadPathEnum.COVER:
+      path = join(routes.homePage, UploadPathEnum.COVER);
+      break;
     }
     return path;
   };
 
   /** Проверяет наличие папки. В случае отсутствия - создаёт её */
   public checkFolder = (folder: UploadPathEnum, id: number) => {
-    if (!existsSync(this.getUploadPath(folder, id))) {
-      mkdirSync(this.getUploadPath(folder, id));
+    const path = this.getUploadPath(folder, id);
+    if (!existsSync(path)) {
+      mkdirSync(path);
     }
   };
 
   public moveFile = (folder: UploadPathEnum, id: number, fileName: string) => renameSync(this.getUploadPath(UploadPathEnum.TEMP, 0, fileName), this.getUploadPath(folder, id, fileName));
+
+  public removeFile = (folder: UploadPathEnum, fileName: string, id?: number) => unlinkSync(this.getUploadPath(folder, id ?? 0, fileName));
 }
