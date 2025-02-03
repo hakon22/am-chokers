@@ -13,11 +13,22 @@ export const useAccessHandler = () => {
     routes.newItem,
     routes.itemGroupsControl,
     routes.itemCollectionsControl,
+    routes.allOrders,
+    routes.moderationOfReview,
+    routes.promotionalCodes,
+    routes.itemList,
+    routes.compositionsControl,
   ];
 
   useEffect(() => {
-    if (role === UserRoleEnum.MEMBER && adminPaths.includes(router.asPath)) {
-      router.push(routes.homePage);
+    if (adminPaths.includes(router.asPath)) {
+      const timeout = setTimeout(() => {
+        if (role !== UserRoleEnum.ADMIN) {
+          router.push(routes.homePage);
+        }
+      }, 300);
+      
+      return () => clearTimeout(timeout);
     }
   }, [role, router.asPath]);
 };

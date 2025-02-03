@@ -1,5 +1,6 @@
 :root {
   --galleryWidth: calc(80% - 110px);
+  --galleryHeight: 400px;
 }
 
 @font-face {
@@ -152,8 +153,7 @@ a {
   }
 }
 
-.edit-button {
-  background-color: $edit-button;
+.action-button {
   color: $white;
   font-family: Oswald, sans-serif !important;
   font-size: 1rem;
@@ -161,9 +161,40 @@ a {
   display: flex;
   align-items: center;
 
-  &:active, &:hover {
-    background-color: $edit-button-hover !important;
-    color: $white !important;
+    &:active, &:hover {
+      color: $white !important;
+    }
+
+  &.edit {
+    background-color: $edit-button;
+
+    &:active, &:hover {
+      background-color: $edit-button-hover !important;
+    }
+  }
+
+  &.remove {
+    background-color: $remove-button;
+
+    &:active, &:hover {
+      background-color: $remove-button-hover !important;
+    }
+  }
+
+  &.restore {
+    background-color: $restore-button;
+
+    &:active, &:hover {
+      background-color: $restore-button-hover !important;
+    }
+  }
+
+  &.send-to-telegram {
+    background-color: $send-to-telegram-button;
+
+    &:active, &:hover {
+      background-color: $send-to-telegram-button-hover !important;
+    }
   }
 }
 
@@ -232,6 +263,7 @@ a {
 
 .image-gallery-slide-wrapper.image-gallery-thumbnails-left {
   width: var(--galleryWidth);
+  min-height: var(--galleryHeight);
 }
 
 .font-mr_hamiltoneg {
@@ -241,6 +273,10 @@ a {
 
 .fs-5-5 {
   font-size: 1.1rem;
+}
+
+.fs-6-5 {
+  font-size: 0.8rem !important;
 }
 
 .color-dark-blue {
@@ -307,7 +343,7 @@ a {
     padding: 0 1rem 0 0;
   }
 
-  input, textarea, .ant-select-selector, .ant-checkbox-wrapper {
+  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
@@ -330,6 +366,8 @@ a {
   }
 }
 
-@media (min-width: 768px) {
-
+@media (max-width: 768px) {
+  .ant-table-content {
+    overflow-x: scroll;
+  }
 }

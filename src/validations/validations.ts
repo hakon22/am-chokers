@@ -1,8 +1,11 @@
 import * as yup from 'yup';
-import { setLocale, ObjectSchema, AnyObject } from 'yup';
+import { setLocale, type ObjectSchema, type AnyObject } from 'yup';
+import moment from 'moment';
 import _ from 'lodash';
 
 import i18n from '@/locales';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { booleanSchema } from '@server/utilities/convertation.params';
 
 const { t } = i18n;
 
@@ -31,7 +34,7 @@ const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T
     await schema.validateSyncAt(field, obj);
   },
   async serverValidator(data: typeof schema) {
-    await schema.validate(data);
+    return schema.validate(data);
   },
 });
 
@@ -59,6 +62,12 @@ const confirmCodeSchema = yup.object().shape({
 const idSchema = yup
   .lazy((value) => (typeof value === 'object'
     ? requiredIdSchema
+    : numberSchema
+  ));
+
+const idNullableSchema = yup
+  .lazy((value) => (typeof value === 'object'
+    ? requiredIdSchema.nullable()
     : numberSchema
   ));
 
@@ -115,32 +124,61 @@ const newItemSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
   group: idSchema,
-  collection: idSchema.optional(),
-  new: yup.boolean(),
-  bestseller: yup.boolean(),
+  collection: idNullableSchema.optional(),
+  new: booleanSchema,
+  bestseller: booleanSchema,
   price: numberSchema,
-  width: numberSchema,
-  height: numberSchema,
-  composition: stringSchema,
+  compositions: yup.array(idSchema).min(1).required(),
   length: stringSchema,
+  images: yup.array(requiredIdSchema).optional(),
+  sendToTelegram: booleanSchema,
+});
+
+const partialUpdateItemSchema = yup.object().shape({
+  name: stringSchema.optional(),
+  description: stringSchema.optional(),
+  group: idSchema.optional(),
+  collection: idNullableSchema.optional(),
+  new: booleanSchema.optional(),
+  bestseller: booleanSchema.optional(),
+  price: numberSchema.optional(),
+  compositions: yup.array(idSchema).optional(),
+  length: stringSchema.optional(),
+  order: yup.number().optional().nullable(),
   images: yup.array(requiredIdSchema).optional(),
 });
 
-const newItemCatalogSchema = yup.object().shape({
+const newCompositionSchema = yup.object().shape({
+  name: stringSchema,
+});
+
+const newItemCollectionSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
 });
 
 const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
-}).concat(newItemCatalogSchema);
+}).concat(newItemCollectionSchema);
 
-const newOrderPositionSchema = yup.array(yup.object().shape({
+const newCartItemSchema = yup.object().shape({
   count: numberSchema,
   item: requiredIdSchema,
-})
-  .concat(uuidSchema))
-  .min(1);
+});
+
+const cartItemsSchema = yup.array(newCartItemSchema.concat(uuidSchema));
+
+const newOrderPositionSchema = yup.object().shape({
+  cart: yup.array(newCartItemSchema.concat(uuidSchema)).min(1),
+  deliveryPrice: numberSchema,
+  promotion: yup.object().shape({
+    id: yup.number(),
+  }).optional(),
+});
+
+const orderChangeStatusSchema = yup.object().shape({
+  status: yup.string().oneOf(Object.values(OrderStatusEnum)),
+});
 
 const newCommentSchema = yup.object().shape({
   text: stringSchema,
@@ -157,6 +195,58 @@ const newGradeSchema = yup.object().shape({
   position: requiredIdSchema,
 });
 
+export const periodSchema = yup.object().shape({
+  start: yup
+    .date()
+    .required()
+    .test('is-in-future', t('validation.isInFuture'), function (value) {
+      const { end } = this.parent; // доступ к другим полям в текущем объекте
+      return moment(value).isSameOrBefore(moment(end), 'day');
+    }),
+  end: yup
+    .date()
+    .required()
+    .test('is-after-start', t('validation.isAfterStart'), function (value) {
+      const { start } = this.parent; // доступ к другим полям в текущем объекте
+      return moment(value).isSameOrAfter(moment(start), 'day');
+    }),
+});
+
+export const discountAndDiscountPercentSchema = yup.object().shape({
+  discount: yup
+    .number()
+    .nullable()
+    .min(1)
+    .test('one-of', t('validation.discountOrDiscountPercent'), function (value) {
+      const { discountPercent } = this.parent;
+      return !!value === true && !discountPercent ? true : !!value === false && discountPercent ? true : false;
+    }),
+  discountPercent: yup
+    .number()
+    .nullable()
+    .min(1)
+    .test('one-of', t('validation.discountOrDiscountPercent'), function (value) {
+      const { discount } = this.parent;
+      return !!value === true && !discount ? true : !!value === false && discount ? true : false;
+    }),
+});
+
+const newPromotionalSchema = yup.object().shape({
+  name: stringSchema,
+  description: stringSchema,
+  active: yup
+    .boolean()
+    .test('is-expired', t('validation.isExpired'), function (value) {
+      const { end } = this.parent; // доступ к другим полям в текущем объекте
+      const isExpired = moment(end).isBefore(moment(), 'day');
+      return value ? !isExpired : true;
+    }),
+}).concat(periodSchema).concat(discountAndDiscountPercentSchema);
+
+const setCoverImageSchema = yup.object().shape({
+  coverOrder: numberSchema.max(8),
+}).concat(requiredIdSchema);
+
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
@@ -164,7 +254,14 @@ export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
 export const newItemValidation = validate(newItemSchema);
 export const newItemGroupValidation = validate(newItemGroupSchema);
-export const newItemCatalogValidation = validate(newItemCatalogSchema);
+export const newItemCollectionValidation = validate(newItemCollectionSchema);
+export const newCartItemValidation = validate(newCartItemSchema);
+export const partialUpdateItemValidation = validate(partialUpdateItemSchema);
+export const cartItemsSchemaValidation = validate(cartItemsSchema);
 export const newOrderPositionValidation = validate(newOrderPositionSchema);
 export const newCommentValidation = validate(newCommentSchema);
 export const newGradeValidation = validate(newGradeSchema);
+export const newPromotionalValidation = validate(newPromotionalSchema);
+export const orderChangeStatusValidation = validate(orderChangeStatusSchema);
+export const newCompositionValidation = validate(newCompositionSchema);
+export const setCoverImageValidation = validate(setCoverImageSchema);

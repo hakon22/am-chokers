@@ -38,8 +38,7 @@ export class ItemGroupController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const body = req.body as ItemGroupEntity;
-      await newItemGroupValidation.serverValidator({ ...body });
+      const body = await newItemGroupValidation.serverValidator(req.body) as ItemGroupEntity;
 
       const result = await this.itemGroupService.createOne(body);
 
@@ -52,7 +51,7 @@ export class ItemGroupController extends BaseService {
   public updateOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as ItemGroupEntity;
+      const body = await newItemGroupValidation.serverValidator(req.body) as ItemGroupEntity;
 
       const itemGroup = await this.itemGroupService.updateOne(params, body);
 

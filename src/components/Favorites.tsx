@@ -11,7 +11,7 @@ export const Favorites = ({ id, className, outlined = false }: { id: number; out
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const dispatch = useAppDispatch();
 
-  const { favorites } = useAppSelector((state) => state.user);
+  const { id: userId, favorites } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
@@ -25,7 +25,7 @@ export const Favorites = ({ id, className, outlined = false }: { id: number; out
     setIsSubmit(false);
   };
 
-  return favorites ? (
+  return userId ? (
     <button className="icon-button" type="button" title={t('favorites')} onClick={favoritesHandler}>
       {inFavorites
         ? <HeartFilled className={totalClassName} style={{ color: '#4d689e' }} />

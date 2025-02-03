@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import type { ItemEntity } from '@server/db/entities/item.entity';
 import { BaseService } from '@server/services/app/base.service';
-import { newItemValidation } from '@/validations/validations';
+import { newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryPaginationWithParams, querySearchParams } from '@server/utilities/convertation.params';
+import type { ItemEntity } from '@server/db/entities/item.entity';
 
 @Singleton
 export class ItemController extends BaseService {
@@ -36,12 +36,44 @@ export class ItemController extends BaseService {
     }
   };
 
+  public getList = async (req: Request, res: Response) => {
+    try {
+      const query = await queryPaginationWithParams.validate(req.query);
+
+      const [items, count] = await this.itemService.getList(query);
+
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+
+      res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public search = async (req: Request, res: Response) => {
+    try {
+      const query = await querySearchParams.validate(req.query);
+
+      const search = await this.itemService.search(query);
+
+      res.json({ code: 1, search });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { images, ...body } = req.body as ItemEntity;
-      await newItemValidation.serverValidator(req.body);
+      const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
-      const result = await this.itemService.createOne(body as ItemEntity, images);
+      const { images, ...rest } = body;
+
+
+      const result = await this.itemService.createOne(rest as ItemEntity & { sendToTelegram: boolean; }, images);
 
       res.json(result);
     } catch (e) {
@@ -52,9 +84,22 @@ export class ItemController extends BaseService {
   public updateOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as ItemEntity;
+      const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
       const { item, url } = await this.itemService.updateOne(params, body);
+
+      res.json({ code: 1, item, url });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public partialUpdateOne = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+      const body = await partialUpdateItemValidation.serverValidator(req.body) as ItemEntity;
+
+      const { item, url } = await this.itemService.partialUpdateOne(params, body);
 
       res.json({ code: 1, item, url });
     } catch (e) {
@@ -79,6 +124,18 @@ export class ItemController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
 
       const item = await this.itemService.restoreOne(params);
+
+      res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public publishToTelegram = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+
+      const item = await this.itemService.publishToTelegram(params);
 
       res.json({ code: 1, item });
     } catch (e) {

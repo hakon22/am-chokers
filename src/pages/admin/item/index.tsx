@@ -8,6 +8,7 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
 import { isEqual } from 'lodash';
+import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -17,12 +18,16 @@ import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
+import { CropImage } from '@/components/CropImage';
+import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
+import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 
 const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.createItem' });
@@ -33,13 +38,12 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const router = useRouter();
 
   const { role, token } = useAppSelector((state) => state.user);
-  const { itemGroups, itemCollections } = useAppSelector((state) => state.app);
+  const { itemGroups, itemCollections, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   const props: UploadProps<ResponseFileInterface> = {
     name: 'file',
-    multiple: true,
     fileList,
     accept: 'image/png,image/jpg,image/jpeg',
     action: routes.imageUpload({ isServer: false }),
@@ -58,8 +62,8 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     },
     onRemove(file) {
       setImages((state) => state.filter((image) => image.id !== file.response?.image.id));
-      if (oldItem && file.response?.image.id) {
-        dispatch(deleteItemImage(file.response?.image.id));
+      if (file.response?.image.id) {
+        dispatch(deleteItemImage(file.response.image.id));
       }
     },
   };
@@ -77,13 +81,15 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
 
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
+  const [item, setItem] = useState<Partial<ItemInterface & { sendToTelegram: boolean; }> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
+  const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
+  const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
 
-  const [form] = Form.useForm<ItemInterface>();
+  const [form] = Form.useForm<ItemInterface & { sendToTelegram: boolean; }>();
 
   const itemName: string = Form.useWatch('name', form);
 
@@ -112,6 +118,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     values.images = images;
     values.group = itemGroup as ItemGroupInterface;
     values.collection = itemCollection as ItemCollectionInterface;
+    values.compositions = (itemCompositions ?? [])?.map((composition) => ({ id: composition as unknown as number } as CompositionEntity));
 
     let code: number;
     if (oldItem) {
@@ -119,14 +126,11 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         setIsSubmit(false);
         return;
       }
-      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: values })) as { payload: ItemWithUrlResponseInterface };
+      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } })) as { payload: ItemWithUrlResponseInterface };
       code = payload.code;
       if (code === 1) {
         toast(tToast('itemUpdatedSuccess', { name: oldItem.name }), 'success');
-        router.push({
-          pathname: payload.url,
-          query: { ...router.query, edit: false },
-        });
+        router.push(payload.url);
       }
     } else {
       const { payload } = await dispatch(addItem(values)) as { payload: ItemWithUrlResponseInterface };
@@ -135,11 +139,13 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         setItem(undefined);
         setItemGroup(undefined);
         setItemCollection(undefined);
+        setItemCompositions(undefined);
         setFileList([]);
         setImages([]);
         form.resetFields();
         form.setFieldValue('group', undefined);
         form.setFieldValue('collection', undefined);
+        form.setFieldValue('compositions', undefined);
         window.open(payload.url, '_blank');
       }
     }
@@ -171,6 +177,20 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     }
   }, [itemGroup]);
 
+  useEffect(() => {
+    if (axiosAuth) {
+      axios.get(routes.getCompositions)
+        .then(({ data: response }) => {
+          if (response.code === 1) {
+            setCompositions(response.compositions);
+          }
+        })
+        .catch((e) => {
+          axiosErrorHandler(e, tToast);
+        });
+    }
+  }, [axiosAuth]);
+
   return role === UserRoleEnum.ADMIN ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
@@ -186,7 +206,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
               >
                 <SortableContext items={images} strategy={rectSortingStrategy}>
                   <div className="d-flex flex-wrap gap-3">
-                    {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} setImages={setImages} />)}
+                    {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} setImages={setImages} setFileList={setFileList} />)}
                   </div>
                 </SortableContext>
               </DndContext>
@@ -199,26 +219,28 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                 onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
                 showPlayButton={false}
                 thumbnailPosition="left"
-                onClick={galleryRef.current?.fullScreen}
+                onClick={() => galleryRef.current?.fullScreen()}
               />
             )
             : null}
-          <Upload.Dragger {...props}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">{t('uploadText')}</p>
-            <p className="ant-upload-hint">{t('uploadHint')}</p>
-          </Upload.Dragger>
+          <CropImage>
+            <Upload.Dragger {...props}>
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">{t('uploadText')}</p>
+              <p className="ant-upload-hint">{t('uploadHint')}</p>
+            </Upload.Dragger>
+          </CropImage>
         </div>
         <div style={{ width: '55%' }}>
-          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id }} className="d-flex flex-column" onFinish={onFinish} form={form}>
+          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
-              <Form.Item<ItemInterface> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
+              <Form.Item<typeof item> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
                 <Input variant="borderless" size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
               </Form.Item>
               <div className="d-flex justify-content-between align-items-center mb-4">
-                <Form.Item<ItemInterface> name="group" className="large-input" rules={[newItemValidation]}>
+                <Form.Item<typeof item> name="group" className="large-input" rules={[newItemValidation]}>
                   <Select
                     showSearch
                     allowClear
@@ -240,7 +262,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                     options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<ItemInterface> name="collection" className="large-input">
+                <Form.Item<typeof item> name="collection" className="large-input">
                   <Select
                     showSearch
                     allowClear
@@ -262,42 +284,58 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                     options={itemCollections.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<ItemInterface> name="new" valuePropName="checked" className="large-input">
+                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input">
                   <Checkbox>{t('new')}</Checkbox>
                 </Form.Item>
-                <Form.Item<ItemInterface> name="bestseller" valuePropName="checked" className="large-input">
+                <Form.Item<typeof item> name="bestseller" valuePropName="checked" className="large-input">
                   <Checkbox>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
               <div className="d-flex flex-column flex-md-row justify-content-between">
-                <Form.Item<ItemInterface> name="price" className="mb-4 fs-2" rules={[newItemValidation]}>
+                <Form.Item<typeof item> name="price" className="mb-4 fs-2" rules={[newItemValidation]}>
                   <InputNumber size="large" variant="borderless" placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                <Form.Item<ItemInterface> name="width" className="mb-4 fs-2" rules={[newItemValidation]}>
-                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.width')} className="large-input ps-0 w-100" />
-                </Form.Item>
-                <Form.Item<ItemInterface> name="height" className="mb-4 fs-2" rules={[newItemValidation]}>
-                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.height')} className="large-input ps-0 w-100" />
-                </Form.Item>
+                {!oldItem
+                  ? (
+                    <Form.Item<typeof item> name="sendToTelegram" valuePropName="checked" className="large-input">
+                      <Checkbox>{t('sendToTelegram')}</Checkbox>
+                    </Form.Item>
+                  )
+                  : null}
               </div>
               <div className="d-flex align-items-center gap-5 mb-4 position-relative">
                 {oldItem && <BackButton style={{ position: 'absolute', left: '60%' }} />}
                 <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
               </div>
-              <Form.Item<ItemInterface> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
+              <Form.Item<typeof item> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
                 <Input.TextArea variant="borderless" size="large" rows={2} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
               </Form.Item>
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('composition')}</span>
-                  <Form.Item<ItemInterface> name="composition" className="large-input" rules={[newItemValidation]}>
-                    <Input.TextArea variant="borderless" size="large" placeholder={t('placeholders.composition')} rows={1} />
+                  <Form.Item<typeof item> name="compositions" className="large-input" rules={[newItemValidation]}>
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      className="col-6"
+                      size="large"
+                      notFoundContent={<NotFoundContent />}
+                      placeholder={t('placeholders.composition')}
+                      variant="borderless"
+                      optionFilterProp="label"
+                      filterSort={(optionA, optionB) =>
+                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
+                      }
+                      onChange={(state) => setItemCompositions(state)}
+                      onClear={() => setItemCompositions([])}
+                      options={compositions?.map(({ id, name }) => ({ value: id, label: name }))}
+                    />
                   </Form.Item>
                 </div>
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('length')}</span>
-                  <Form.Item<ItemInterface> name="length" className="large-input" rules={[newItemValidation]}>
+                  <Form.Item<typeof item> name="length" className="large-input" rules={[newItemValidation]}>
                     <Input variant="borderless" size="large" placeholder={t('placeholders.length')} />
                   </Form.Item>
                 </div>

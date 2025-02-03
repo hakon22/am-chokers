@@ -1,12 +1,13 @@
 import { Singleton } from 'typescript-ioc';
 import winston from 'winston';
+import moment from 'moment-timezone';
 import DailyRotateFile from 'winston-daily-rotate-file';
 
 @Singleton
 export class LoggerService {
   private readonly logDir = '/srv/logs';
 
-  private readonly appName = process.env.APP_NAME ?? 'app';
+  private readonly appName = process.env.NEXT_PUBLIC_APP_NAME ?? 'app';
 
   private colorizer = winston.format.colorize();
 
@@ -34,7 +35,7 @@ export class LoggerService {
 
   constructor() {
     this.colorizer.addColors(this.colors);
-    this.transports = process.env.DB === 'LOCAL'
+    this.transports = process.env.DB === 'LOCAL' || process.env.CRON
       ? [new winston.transports.Console()]
       : [// Логи в файл с ежедневной ротацией
         new DailyRotateFile({
@@ -62,11 +63,13 @@ export class LoggerService {
       level: 'debug',
       levels: this.levels,
       format: winston.format.combine(
-        winston.format.timestamp(),
+        winston.format.timestamp({
+          format: () => moment().tz('Europe/Moscow').format(),
+        }),
         winston.format.printf(
           (info) => {
             const metadata = `${process.pid} ${info.timestamp} ${info.level}: ${info.module ? `[${info.module}]` : ''}`;
-            if (process.env.APP_ENV === 'production') {
+            if (process.env.NODE_ENV === 'production') {
               return `${metadata}${info.message[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`} ${info.stack ? JSON.stringify(info.stack) : ''}`;
             }
             switch (info.level) {

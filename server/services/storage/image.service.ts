@@ -8,19 +8,21 @@ import { v4 as uuid } from 'uuid';
 import type { EntityManager } from 'typeorm';
 
 import { ImageEntity } from '@server/db/entities/image.entity';
-import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { paramsIdSchema } from '@server/utilities/convertation.params';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
+import { setCoverImageValidation } from '@/validations/validations';
+import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class ImageService extends BaseService {
   private readonly uploadPathService = Container.get(UploadPathService);
 
-  private createQueryBuilder = (query: ImageQueryInterface) => {
+  private createQueryBuilder = (query?: ImageQueryInterface) => {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ImageEntity, 'image')
@@ -29,6 +31,7 @@ export class ImageService extends BaseService {
         'image.name',
         'image.path',
         'image.deleted',
+        'image.coverOrder',
       ]);
 
     if (query?.withDeleted) {
@@ -119,12 +122,62 @@ export class ImageService extends BaseService {
         path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
       });
 
-      image.src = [image.path, image.name].join('/').replaceAll('\\', '/');
+      image.src = this.getSrc(image);
 
       res.json({ code: 1, image });
     } catch (e) {
       this.loggerService.error(e);
       res.status(500).json({ code: 2, message: 'Ошибка при обработке изображения' });
+    }
+  };
+
+  public setCoverImage = async (req: Request, res: Response) => {
+    try {
+      const { id, coverOrder } = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; };
+  
+      const image = await this.findOne({ id });
+
+      this.uploadPathService.moveFile(UploadPathEnum.COVER, 0, image.name);
+
+      image.path = this.uploadPathService.getUrlPath(UploadPathEnum.COVER);
+      image.coverOrder = coverOrder;
+  
+      await image.save();
+
+      image.src = this.getSrc(image);
+  
+      res.json({ code: 1, image });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public removeCoverImage = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+  
+      const image = await this.findOne(params);
+  
+      await ImageEntity.delete(image.id);
+
+      this.uploadPathService.removeFile(UploadPathEnum.COVER, image.name);
+  
+      res.json({ code: 1, image });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getCoverImages = async (req: Request, res: Response) => {
+    try {
+      const builder = this.createQueryBuilder()
+        .where('image.coverOrder IS NOT NULL');
+  
+      const coverImages = await builder.getMany();
+  
+      res.json({ code: 1, coverImages });
+    } catch (e) {
+      this.errorHandler(e, res);
     }
   };
 
@@ -157,4 +210,6 @@ export class ImageService extends BaseService {
     });
     await manager.getRepository(ImageEntity).save(updatedImages);
   };
+
+  private getSrc = (image: ImageEntity) => [image.path, image.name].join('/').replaceAll('\\', '/');
 }

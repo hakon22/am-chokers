@@ -10,14 +10,16 @@ import type { PaginationEntityInterface, PaginationInterface, PaginationSearchIn
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import { routes } from '@/routes';
 
-type AppStoreInterface = AppDataInterface & InitialState & { pagination: PaginationInterface };
+type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface };
 
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
   error: null,
+  axiosAuth: false,
   items: [],
   itemGroups: [],
   itemCollections: [],
+  coverImages: [],
   pagination: {
     count: 0,
     limit: 0,
@@ -56,6 +58,11 @@ export interface CommentResponseInterface {
   comment: CommentEntity;
 }
 
+export interface ImageResponseInterface {
+  code: number;
+  image: ImageEntity;
+}
+
 export const addItem = createAsyncThunk(
   'app/addItem',
   async (data: ItemInterface, { rejectWithValue }) => {
@@ -70,9 +77,21 @@ export const addItem = createAsyncThunk(
 
 export const updateItem = createAsyncThunk(
   'app/updateItem',
-  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number, data: ItemInterface; }, { rejectWithValue }) => {
     try {
       const response = await axios.put<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const partialUpdateItem = createAsyncThunk(
+  'app/partialUpdateItem',
+  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -96,7 +115,19 @@ export const restoreItem = createAsyncThunk(
   'app/restoreItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<ItemResponseInterface>(routes.crudItem(id));
+      const response = await axios.get<ItemResponseInterface>(routes.restoreItem(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const publishItem = createAsyncThunk(
+  'app/publishItem',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<ItemResponseInterface>(routes.publishToTelegram(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -253,6 +284,30 @@ export const removeGrade = createAsyncThunk(
   },
 );
 
+export const setCoverImage = createAsyncThunk(
+  'app/setCoverImage',
+  async ({ id, coverOrder }: {id: number; coverOrder: number; }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<ImageResponseInterface>(routes.setCoverImage, { id, coverOrder });
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const removeCoverImage = createAsyncThunk(
+  'app/removeCoverImage',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete<ImageResponseInterface>(routes.removeCoverImage(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const appSlice = createSlice({
   name: 'app',
   initialState,
@@ -261,9 +316,13 @@ const appSlice = createSlice({
       state.items = payload.items;
       state.itemGroups = payload.itemGroups;
       state.itemCollections = payload.itemCollections;
+      state.coverImages = payload.coverImages;
     },
     setPaginationParams: (state, { payload }: PayloadAction<PaginationInterface>) => {
       state.pagination = payload;
+    },
+    setAxiosAuth: (state, { payload }: PayloadAction<boolean>) => {
+      state.axiosAuth = payload;
     },
     setItemGrades: (state, { payload }: PayloadAction<PaginationEntityInterface<ItemGradeEntity>>) => {
       const itemIndex = state.items.findIndex((item) => item.id === payload.id);
@@ -306,6 +365,42 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(updateItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(publishItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(publishItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
+          if (itemIndex !== -1) {
+            state.items[itemIndex] = payload.item;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(publishItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(partialUpdateItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(partialUpdateItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
+          if (itemIndex !== -1) {
+            state.items[itemIndex] = payload.item;
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(partialUpdateItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
@@ -541,7 +636,7 @@ const appSlice = createSlice({
       })
       .addCase(removeGrade.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.grade.position.item.id);
+          const itemIndex = state.items.findIndex((item) => item.id === payload.grade.item.id);
           if (itemIndex !== -1) {
             state.items[itemIndex].grades = state.items[itemIndex].grades.filter((grade) => grade.id !== payload.grade.id);
           }
@@ -552,10 +647,40 @@ const appSlice = createSlice({
       .addCase(removeGrade.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(setCoverImage.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(setCoverImage.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.coverImages = [...state.coverImages, payload.image];
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(setCoverImage.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(removeCoverImage.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(removeCoverImage.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.coverImages = state.coverImages.filter((image) => image.id !== payload.image.id);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(removeCoverImage.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
       });
   },
 });
 
-export const { setAppData, setPaginationParams, setItemGrades } = appSlice.actions;
+export const { setAppData, setAxiosAuth, setPaginationParams, setItemGrades } = appSlice.actions;
 
 export default appSlice.reducer;

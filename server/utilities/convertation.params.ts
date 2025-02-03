@@ -1,5 +1,7 @@
 import * as yup from 'yup';
 
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+
 export const queryOptionalSchema = yup.object().shape({
   itemGroupId: yup
     .number()
@@ -50,11 +52,7 @@ export const paramsIdSchema = yup.object().shape({
 
 export const booleanSchema = yup
   .mixed<boolean>()
-  .transform((value) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    return undefined;
-  })
+  .transform((value) => ['true', true].includes(value) ? true : false)
   .optional();
 
 export const queryPaginationSchema = yup.object().shape({
@@ -75,5 +73,29 @@ export const queryPaginationSchema = yup.object().shape({
 export const queryPaginationWithParams = queryPaginationSchema.concat(
   yup.object().shape({
     withDeleted: booleanSchema,
+    showAccepted: booleanSchema,
+    search: yup.string().optional(),
   }),
 );
+
+export const queryOrderParams = queryPaginationSchema.concat(
+  yup.object().shape({
+    withDeleted: booleanSchema,
+    statuses: yup.array(yup.string().oneOf(Object.values(OrderStatusEnum)).defined()),
+  }),
+);
+
+export const queryNameParams = yup.object().shape({
+  name: yup.string().required(),
+});
+
+export const queryPromotionalParams = yup.object().shape({
+  withDeleted: booleanSchema,
+  withExpired: booleanSchema,
+  name: yup.string().optional(),
+});
+
+export const querySearchParams = yup.object().shape({
+  withDeleted: booleanSchema,
+  search: yup.string(),
+});

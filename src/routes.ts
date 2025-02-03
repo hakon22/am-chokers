@@ -16,15 +16,23 @@ export const routes = {
   signupPage: '/signup',
   profilePage: profilePath,
   recoveryPage: '/recovery',
+  aboutBrandPage: '/about-brand',
+  jewelryCarePage: '/jewelry-care',
+  contactsPage: '/contacts',
+  deliveryPage: '/delivery',
   cartPage: '/cart',
   notFoundPage: '*',
   catalog: catalogPath,
 
   // admin pages
-  newItem: [adminPath, 'item', 'new'].join('/'),
+  newItem: [adminPath, 'item'].join('/'),
+  itemList: [adminPath, 'item', 'list'].join('/'),
   itemGroupsControl: [adminPath, 'groups'].join('/'),
   itemCollectionsControl: [adminPath, 'collections'].join('/'),
+  allOrders: [adminPath, 'orders'].join('/'),
   moderationOfReview: [adminPath, 'reviews'].join('/'),
+  promotionalCodes: [adminPath, 'promotionals'].join('/'),
+  compositionsControl: [adminPath, 'compositions'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -43,13 +51,17 @@ export const routes = {
   changeUserProfile: [apiPath, 'user', 'change-user-profile'].join('/'),
   unlinkTelegram: [apiPath, 'user', 'unlink-telegram'].join('/'),
   getOrders: [apiPath, 'user', 'orders'].join('/'),
+  getMyGrades: [apiPath, 'user', 'myGrades'].join('/'),
 
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
 
   // order
   crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),
+  cancelOrder: (id?: number) => [apiPath, 'order', id ?? ':id', 'cancel'].join('/'),
   createOrder: [apiPath, 'order', 'new'].join('/'),
+  getAllOrders: [apiPath, 'order', 'getAll'].join('/'),
+  getOrder:  ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'order', id ?? ':id'].join('/'),
 
   // itemGroup
   getItemGroups: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
@@ -64,14 +76,21 @@ export const routes = {
   // storage
   imageUpload: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'upload'].join('/'),
   imageDelete: (id?: number) => [apiPath, 'image', id ?? ':id'].join('/'),
+  removeCoverImage: (id?: number) => [apiPath, 'image', id ?? ':id', 'remove-cover'].join('/'),
+  setCoverImage: [apiPath, 'image', 'set-cover'].join('/'),
+  getCoverImages: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'getAll'].join('/'),
 
   // item
   getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
+  getItemList: [apiPath, 'item', 'list'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
+  searchItem: [apiPath, 'item', 'search'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
+  restoreItem: (id?: number) => [apiPath, 'item', id ?? ':id', 'restore'].join('/'),
   addFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'add'].join('/'),
   removeFavorites: (id?: number) => [apiPath, 'item', id ?? ':id', 'remove'].join('/'),
-  getGrades: ({ id, isServer }: { id?: number; isServer?: boolean }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
+  publishToTelegram: (id?: number) => [apiPath, 'item', id ?? ':id', 'publish'].join('/'),
+  getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
 
   // cart
   getCart: [apiPath, 'cart', 'getAll'].join('/'),
@@ -85,10 +104,27 @@ export const routes = {
   createComment: [apiPath, 'comment', 'add'].join('/'),
   removeComment: (id?: number) => [apiPath, 'comment', id ?? ':id', 'remove'].join('/'),
 
+  // promotional
+  createPromotional: [apiPath, 'promotional', 'add'].join('/'),
+  getPromotionalByName: [apiPath, 'promotional', 'get-by-name'].join('/'),
+  getPromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id'].join('/'),
+  getPromotionals: [apiPath, 'promotional', 'getAll'].join('/'),
+  updatePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'update'].join('/'),
+  restorePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'restore'].join('/'),
+  removePromotional: (id?: number) => [apiPath, 'promotional', id ?? ':id', 'remove'].join('/'),
+
+  // composition
+  createComposition: [apiPath, 'composition', 'add'].join('/'),
+  getComposition: (id?: number) => [apiPath, 'composition', id ?? ':id'].join('/'),
+  getCompositions: [apiPath, 'composition', 'getAll'].join('/'),
+  updateComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'update'].join('/'),
+  restoreComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'restore'].join('/'),
+  removeComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'remove'].join('/'),
+
   // grade
   createGrade: (id?: number) => [apiPath, 'order-position', id ?? ':id', 'grade', 'add'].join('/'),
   removeGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'remove'].join('/'),
   restoreGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'restore'].join('/'),
   acceptGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'accept'].join('/'),
-  getUnchekedGrades: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'grade', 'getAll'].join('/'),
+  getUnchekedGrades: [apiPath, 'grade', 'getAll'].join('/'),
 } as const;

@@ -54,19 +54,19 @@ export const NavBar = () => {
       children: itemGroups.map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code })),
     },
     {
-      label: <Link href="/">{t('menu.aboutBrand')}</Link>,
+      label: <Link href={routes.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,
       key: 'aboutBrand',
     },
     {
-      label: <Link href="/">{t('menu.delivery')}</Link>,
+      label: <Link href={routes.deliveryPage}>{t('menu.delivery')}</Link>,
       key: 'delivery',
     },
     {
-      label: <Link href="/">{t('menu.jewelryCaring')}</Link>,
+      label: <Link href={routes.jewelryCarePage}>{t('menu.jewelryCaring')}</Link>,
       key: 'jewelryCaring',
     },
     {
-      label: <Link href="/">{t('menu.contacts')}</Link>,
+      label: <Link href={routes.contactsPage}>{t('menu.contacts')}</Link>,
       key: 'contacts',
     },
   ];

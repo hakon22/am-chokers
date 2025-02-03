@@ -1,13 +1,14 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderService } from '@server/services/order/order.service';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
-import { newOrderPositionValidation } from '@/validations/validations';
+import { paramsIdSchema, queryOrderParams } from '@server/utilities/convertation.params';
+import { newOrderPositionValidation, orderChangeStatusValidation } from '@/validations/validations';
 import type { CartItemInterface } from '@/types/cart/Cart';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
+import type { OrderInterface } from '@/types/order/Order';
+import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
 
 @Singleton
 export class OrderController extends BaseService {
@@ -16,9 +17,8 @@ export class OrderController extends BaseService {
   public findOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const query = await queryOptionalSchema.validate(req.query);
 
-      const order = await this.orderService.findOne(params, query);
+      const order = await this.orderService.findOne(params);
 
       res.json({ code: 1, order });
     } catch (e) {
@@ -28,10 +28,9 @@ export class OrderController extends BaseService {
 
   public findMany = async (req: Request, res: Response) => {
     try {
-      const { id: userId, role } = req.user as PassportRequestInterface;
-      const query = await queryOptionalSchema.validate(req.query);
+      const { id: userId } = req.user as PassportRequestInterface;
 
-      const orders = await this.orderService.findMany(role === UserRoleEnum.MEMBER ? { ...query, userId } : query);
+      const orders = await this.orderService.findMany({}, { userId });
 
       res.json({ code: 1, orders });
     } catch (e) {
@@ -39,13 +38,54 @@ export class OrderController extends BaseService {
     }
   };
 
+  public getAllOrders = async (req: Request, res: Response) => {
+    try {
+      const query = await queryOrderParams.validate(req.query);
+  
+      const [items, count] = await this.orderService.getAllOrders(query);
+  
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+  
+      res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public updateStatus = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+      const body = await orderChangeStatusValidation.serverValidator(req.body) as OrderInterface;
+
+      const order = await this.orderService.updateStatus(params, body, req.user as PassportRequestInterface);
+
+      res.json({ code: 1, order });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public cancel = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+
+      const order = await this.orderService.cancel(params, req.user as PassportRequestInterface);
+
+      res.json({ code: 1, order });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
-      const body = req.body as CartItemInterface[];
-      await newOrderPositionValidation.serverValidator(body);
+      const { cart, promotional, deliveryPrice } = await newOrderPositionValidation.serverValidator(req.body) as { cart: CartItemInterface[]; deliveryPrice: number; promotional?: PromotionalEntity; };
 
-      const order = await this.orderService.createOne(body, id);
+      const order = await this.orderService.createOne(cart, deliveryPrice, req.user as PassportRequestInterface, promotional);
 
       res.json({ code: 1, order });
     } catch (e) {

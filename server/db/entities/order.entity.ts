@@ -10,6 +10,7 @@ import {
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 
 /** Заказ */
 @Entity({
@@ -48,6 +49,23 @@ export class OrderEntity extends BaseEntity {
     name: 'user_id',
   })
   public user: UserEntity;
+
+  /** Стоимость доставки */
+  @Column('int', {
+    name: 'delivery_price',
+  })
+  public deliveryPrice: number;
+
+  /** Промокод */
+  @ManyToOne(() => PromotionalEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'promotional_id',
+  })
+  public promotional?: PromotionalEntity;
 
   /** Позиции */
   @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)

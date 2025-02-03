@@ -1,17 +1,19 @@
+import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { DeleteOutlined } from '@ant-design/icons';
 import { CSS } from '@dnd-kit/utilities';
-import Image from 'next/image';
 import { Badge } from 'antd';
 import { useContext } from 'react';
+import type { UploadFile } from 'antd/lib';
 
-import type { ImageEntity } from '@server/db/entities/image.entity';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch } from '@/utilities/hooks';
 import { deleteItemImage } from '@/slices/appSlice';
+import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 
-export const SortableItem = ({ image, index, activeId, setImages }: { image: ImageEntity, index: number, activeId: number, setImages: React.Dispatch<React.SetStateAction<ImageEntity[]>> }) => {
+export const SortableItem = ({ image, index, activeId, setImages, setFileList }: { image: ImageEntity, index: number, activeId: number, setImages: React.Dispatch<React.SetStateAction<ImageEntity[]>>, setFileList: React.Dispatch<React.SetStateAction<UploadFile<ResponseFileInterface>[]>> }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.sortableItem' });
   const dispatch = useAppDispatch();
 
@@ -44,6 +46,7 @@ export const SortableItem = ({ image, index, activeId, setImages }: { image: Ima
     setIsSubmit(true);
     await dispatch(deleteItemImage(id));
     setImages((state) => state.filter((value) => value.id !== id));
+    setFileList((state) => state.filter((value) => value.response?.image.id !== id));
     setIsSubmit(false);
   };
 

@@ -2,9 +2,10 @@ import {
   Entity, Column, PrimaryGeneratedColumn, JoinColumn, ManyToOne, CreateDateColumn, UpdateDateColumn,
   BaseEntity,
   OneToMany,
-  DeleteDateColumn,
   ManyToMany,
   OneToOne,
+  Unique,
+  JoinTable,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
@@ -13,11 +14,14 @@ import { ImageEntity } from '@server/db/entities/image.entity';
 import { RatingEntity } from '@server/db/entities/rating.entity';
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
+import { CompositionEntity } from '@server/db/entities/composition.entity';
+import { MessageEntity } from '@server/db/entities/message.entity';
 
 /** Товар */
 @Entity({
   name: 'item',
 })
+@Unique(['name'])
 export class ItemEntity extends BaseEntity {
   /** Уникальный `id` товара */
   @PrimaryGeneratedColumn()
@@ -40,8 +44,10 @@ export class ItemEntity extends BaseEntity {
   public updated: Date;
 
   /** Дата удаления товара */
-  @DeleteDateColumn()
-  public deleted: Date;
+  @Column('timestamp with time zone', {
+    nullable: true,
+  })
+  public deleted: Date | null;
 
   /** Цена товара */
   @Column('int')
@@ -62,18 +68,6 @@ export class ItemEntity extends BaseEntity {
   /** Фотографии товара */
   @OneToMany(() => ImageEntity, image => image.item)
   public images: ImageEntity[];
-
-  /** Высота картинки товара */
-  @Column('int')
-  public height: number;
-
-  /** Ширирна картинки товара */
-  @Column('int')
-  public width: number;
-
-  /** Состав товара (в описании) */
-  @Column('character varying')
-  public composition: string;
 
   /** Длина товара (в описании) */
   @Column('character varying')
@@ -125,6 +119,21 @@ export class ItemEntity extends BaseEntity {
   })
   public collection?: ItemCollectionEntity;
 
+  /** Состав товара (в описании) */
+  @ManyToMany(() => CompositionEntity, composition => composition.items)
+  @JoinTable({
+    name: 'item_composition',
+    joinColumn: {
+      name: 'item_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'composition_id',
+      referencedColumnName: 'id',
+    },
+  })
+  public compositions: CompositionEntity[];
+
   /** Пользователи, добавившие товар в избранное */
   @ManyToMany(() => UserEntity, user => user.favorites)
   public users: UserEntity[];
@@ -136,4 +145,15 @@ export class ItemEntity extends BaseEntity {
   /** Оценки товара */
   @OneToMany(() => ItemGradeEntity, itemGrade => itemGrade.item)
   public grades: ItemGradeEntity[];
+
+  /** Сообщение о публикации товара в группу Telegram */
+  @ManyToOne(() => MessageEntity, {
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({
+    name: 'message_id',
+  })
+  public message?: MessageEntity;
 }

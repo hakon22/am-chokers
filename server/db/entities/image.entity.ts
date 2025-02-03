@@ -47,6 +47,13 @@ export class ImageEntity extends BaseEntity {
   })
   public order: number;
 
+  /** Порядок установки на главной странице */
+  @Column('int', {
+    nullable: true,
+    name: 'cover_order',
+  })
+  public coverOrder?: number;
+
   /** Товар изображения */
   @ManyToOne(() => ItemEntity, {
     nullable: true,

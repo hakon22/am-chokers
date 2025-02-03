@@ -8,7 +8,7 @@ import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
 
-export const CartControl = ({ id, name, className = 'fs-6', setCartList }: { id: number; name: string; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>, className?: string; }) => {
+export const CartControl = ({ id, className = 'fs-6', setCartList }: { id: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>, className?: string; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const dispatch = useAppDispatch();
 
@@ -22,7 +22,7 @@ export const CartControl = ({ id, name, className = 'fs-6', setCartList }: { id:
     setIsSubmit(true);
     const item: CartItemFormInterface = {
       count: 1,
-      item: { id, name } as CartItemFormInterface['item'],
+      item: { id } as CartItemFormInterface['item'],
     };
     await dispatch(addCartItem(item));
     setIsSubmit(false);

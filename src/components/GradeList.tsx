@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, List, Rate, Popconfirm } from 'antd';
+import { Button, Form, Input, List, Rate, Popconfirm, Tag } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Reply } from 'react-bootstrap-icons';
 import moment from 'moment';
 import Image from 'next/image';
-import type { UploadFile } from 'antd/lib';
+import Link from 'next/link';
+import type { FormInstance, UploadFile } from 'antd/lib';
 
 import { getItemGrades, createComment, removeGrade } from '@/slices/appSlice';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -13,10 +14,120 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { newCommentValidation } from '@/validations/validations';
 import { PreviewImage } from '@/components/PreviewImage';
 import { UploadImage, urlToBase64, getBase64 } from '@/components/UploadImage';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import type { PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ItemInterface } from '@/types/item/Item';
+import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
+import { routes } from '@/routes';
+
+interface GradeListTitleInterface {
+  grade: ItemGradeEntity;
+  withTags?: boolean;
+  withLinkToOrder?: boolean;
+}
+
+interface GradeListDescriptionInterface {
+  grade: ItemGradeEntity;
+  setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
+}
+
+interface GradeListReplyFormInterface {
+  reply: Partial<ReplyComment>;
+  onFinish: (values: ReplyComment) => Promise<void>;
+  form: FormInstance<any>;
+  fileList: UploadFile[];
+  setFileList: React.Dispatch<React.SetStateAction<UploadFile[]>>;
+  setCommentImages: React.Dispatch<React.SetStateAction<ItemInterface['images']>>;
+  setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTitleInterface) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList.tags' });
+
+  return (
+    <div className="d-flex flex-column gap-2 mb-3">
+      <div className="d-flex align-items-center gap-3">
+        <Rate disabled allowHalf value={grade.grade} />
+        {withLinkToOrder
+          ? <Link href={`${routes.allOrders}/${grade.position.order.id}`}>{grade.user.name}</Link>
+          : <span>{grade.user.name}</span>}
+        {withTags
+          ? grade.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan">{t('accepted')}</Tag> : null
+          : null}
+      </div>
+      <span className="text-muted">{moment(grade.created).format(DateFormatEnum.DD_MM_YYYY)}</span>
+    </div>
+  );
+};
+
+export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }: GradeListDescriptionInterface) => (
+  <div className="d-flex flex-column">
+    <span className="fs-5-5 font-oswald" style={{ color: 'black' }}>{grade.comment?.text}</span>
+    {grade?.comment?.images.length
+      ? (
+        <div className="d-flex gap-3 mt-3">
+          {grade?.comment?.images.map(({ id: imageId, src, name: imageName }) => (
+            <div key={imageId}>
+              <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+            </div>
+          ))}
+        </div>
+      )
+      : null}
+    {grade?.comment?.replies?.length ? (
+      <div className="d-flex gap-4 mt-4 ms-5">
+        <Reply className="fs-4" />
+        <div className="d-flex flex-column gap-4">
+          {grade.comment.replies.map((comment) => (
+            <div key={comment.id} className="d-flex flex-column">
+              <span className="fw-bold" style={{ color: 'black' }}>{comment.user.name}</span>
+              <span className="mb-3">{moment(comment.created).format(DateFormatEnum.DD_MM_YYYY)}</span>
+              <span className="fs-5-5 font-oswald" style={{ color: 'black' }}>{comment.text}</span>
+              {comment.images.length
+                ? (
+                  <div className="d-flex gap-3 mt-3">
+                    {comment.images.map(({ id: imageId, src, name: imageName }) => (
+                      <div key={imageId}>
+                        <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                      </div>
+                    ))}
+                  </div>
+                )
+                : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    ) : null}
+  </div>
+);
+
+export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileList, setCommentImages, setPreviewImage, setPreviewOpen }: GradeListReplyFormInterface) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.replyForm' });
+
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (inputRef?.current) {
+      inputRef.current.focus();
+    }
+  }, [reply.parentComment]);
+
+  return (
+    <Form name="replyComment" initialValues={reply} className="d-flex flex-column align-self-start mb-4 w-50" onFinish={onFinish} form={form}>
+      <Form.Item<ReplyComment> name="text" className="mb-4 large-input" rules={[newCommentValidation]}>
+        <Input.TextArea ref={inputRef} variant="borderless" size="large" placeholder={t('enterComment')} rows={1} />
+      </Form.Item>
+      <div className="d-flex justify-content-between align-items-center">
+        <Button className="button border-button py-2 fs-6" title={t('reply')} htmlType="submit">{t('reply')}</Button>
+        <UploadImage crop preview filelist={fileList} setFileList={setFileList} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
+      </div>
+    </Form>
+  );
+};
 
 export const GradeList = ({ item }: { item: ItemInterface }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList' });
@@ -25,8 +136,6 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
   const { pagination, loadingStatus } = useAppSelector((state) => state.app);
 
   const dispatch = useAppDispatch();
-
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const replyComment: Partial<ReplyComment> = {
     parentComment: undefined,
@@ -76,12 +185,6 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
     <Button className="button border-button py-2 fs-6 mt-4" title={t('loadingMore')} onClick={onLoadMore}>{t('loadingMore')}</Button>
   ) : null;
 
-  useEffect(() => {
-    if (inputRef?.current) {
-      inputRef.current.focus();
-    }
-  }, [reply.parentComment]);
-
   return (
     <div id="grades" className="d-flex flex-column align-items-end">
       <h3 className="col-11 mb-5 text-uppercase">{t('reviews')}</h3>
@@ -116,56 +219,20 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
           >
             <List.Item.Meta
               className="w-100 mb-5"
-              title={
-                <div className="d-flex flex-column gap-2 mb-3">
-                  <div className="d-flex align-items-center gap-3">
-                    <Rate disabled allowHalf value={value.grade} />
-                    <span>{value.user.name}</span>
-                  </div>
-                  <span className="text-muted">{moment(value.created).format(DateFormatEnum.DD_MM_YYYY)}</span>
-                </div>
-              }
-              description={value?.comment?.replies?.length
-                ? (
-                  <div className="d-flex flex-column">
-                    <span className="fs-5-5 font-oswald mb-4" style={{ color: 'black' }}>{value.comment?.text}</span>
-                    <div className="d-flex gap-4">
-                      <Reply className="ms-5 fs-4" />
-                      <div className="d-flex flex-column gap-4">
-                        {value.comment.replies.map((comment) => (
-                          <div key={comment.id} className="d-flex flex-column">
-                            <span className="fw-bold" style={{ color: 'black' }}>{comment.user.name}</span>
-                            <span className="mb-3">{moment(comment.created).format(DateFormatEnum.DD_MM_YYYY)}</span>
-                            <span className="fs-5-5 font-oswald" style={{ color: 'black' }}>{comment.text}</span>
-                            {comment.images.length
-                              ? (
-                                <div className="d-flex gap-3 mt-3">
-                                  {comment.images.map(({ id: imageId, src, name: imageName }) => (
-                                    <div key={imageId}>
-                                      <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                                    </div>
-                                  ))}
-                                </div>
-                              )
-                              : null}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )
-                : <span className="fs-5-5 font-oswald" style={{ color: 'black' }}>{value.comment?.text}</span>}
+              title={<GradeListTitle grade={value} />}
+              description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />}
             />
             {reply.parentComment && value.comment?.id === reply.parentComment.id ? (
-              <Form name="replyComment" initialValues={reply} className="d-flex flex-column align-self-start mb-4 w-50" onFinish={onFinish} form={form}>
-                <Form.Item<ReplyComment> name="text" className="mb-4 large-input" rules={[newCommentValidation]}>
-                  <Input.TextArea ref={inputRef} variant="borderless" size="large" placeholder={t('enterComment')} rows={1} />
-                </Form.Item>
-                <div className="d-flex justify-content-between align-items-center">
-                  <Button className="button border-button py-2 fs-6" title={t('reply')} htmlType="submit">{t('reply')}</Button>
-                  <UploadImage preview filelist={fileList} setFileList={setFileList} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
-                </div>
-              </Form>
+              <GradeListReplyForm
+                reply={reply}
+                onFinish={onFinish}
+                form={form}
+                fileList={fileList}
+                setFileList={setFileList}
+                setCommentImages={setCommentImages}
+                setPreviewImage={setPreviewImage}
+                setPreviewOpen={setPreviewOpen}
+              />
             ) : null}
           </List.Item>
         )}

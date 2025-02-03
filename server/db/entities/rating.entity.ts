@@ -9,6 +9,7 @@ const expression = `
   FROM "chokers"."grade"
     LEFT JOIN "chokers"."order_position" "orderPosition" ON "orderPosition"."id" = "grade"."position_id"
     LEFT JOIN "chokers"."item" "item" ON "orderPosition"."item_id" = "item"."id"
+    WHERE "grade"."checked" = TRUE
   GROUP BY "item"."id"
 `;
 

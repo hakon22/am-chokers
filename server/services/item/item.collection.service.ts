@@ -1,11 +1,11 @@
 import { Container, Singleton } from 'typescript-ioc';
 
 import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
-import type { ItemCollectionQueryInterface } from '@server/types/item/item.collection.query.interface';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import type { ItemCollectionQueryInterface } from '@server/types/item/item.collection.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class ItemCollectionService extends BaseService {
@@ -15,7 +15,6 @@ export class ItemCollectionService extends BaseService {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemCollectionEntity, 'itemCollection')
-      .cache(true)
       .select([
         'itemCollection.id',
         'itemCollection.name',

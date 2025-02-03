@@ -1,11 +1,11 @@
 import { Container, Singleton } from 'typescript-ioc';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
-import type { ItemGroupQueryInterface } from '@server/types/item/item.group.query.interface';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import type { ItemGroupQueryInterface } from '@server/types/item/item.group.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class ItemGroupService extends BaseService {
@@ -15,7 +15,6 @@ export class ItemGroupService extends BaseService {
     const manager = this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemGroupEntity, 'itemGroup')
-      .cache(true)
       .select([
         'itemGroup.id',
         'itemGroup.name',
@@ -94,7 +93,13 @@ export class ItemGroupService extends BaseService {
       const itemRepo = manager.getRepository(ItemEntity);
       const itemGroupRepo = manager.getRepository(ItemGroupEntity);
 
-      await itemRepo.softRemove(items);
+      const deleted = new Date();
+
+      items.forEach((value) => {
+        value.deleted = deleted;
+      });
+
+      await itemRepo.save(items);
       return itemGroupRepo.softRemove(itemGroup);
     });
 
@@ -110,7 +115,11 @@ export class ItemGroupService extends BaseService {
       const itemRepo = manager.getRepository(ItemEntity);
       const itemGroupRepo = manager.getRepository(ItemGroupEntity);
 
-      await itemRepo.recover(items);
+      items.forEach((value) => {
+        value.deleted = null;
+      });
+
+      await itemRepo.save(items);
       const recoverItemGroup = await itemGroupRepo.recover(deletedItemGroup);
   
       return recoverItemGroup;

@@ -1,10 +1,9 @@
-export interface OrderQueryInterface {
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+
+export interface OrderQueryInterface extends Partial<PaginationQueryInterface> {
   /** `id` заказа */
   id?: number;
-  /** `id` покупателя */
-  userId?: number;
-  /** С удалёнными */
-  withDeleted?: boolean;
-  /** Вместе с пользователем */
-  withUser?: boolean;
+  /** Статусы заказов */
+  statuses?: OrderStatusEnum[];
 }

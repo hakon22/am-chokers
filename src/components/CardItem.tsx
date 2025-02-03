@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Rate } from 'antd';
+import { Button, Popconfirm, Rate, Tag } from 'antd';
 import { LikeOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState } from 'react';
 import ImageGallery from 'react-image-gallery';
@@ -7,23 +7,30 @@ import Link from 'next/link';
 import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
+import moment from 'moment';
 
-import type { ItemInterface } from '@/types/item/Item';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { setItemGrades } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, publishItem, setItemGrades } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import CreateItem from '@/pages/admin/item/new';
+import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { Helmet } from '@/components/Helmet';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { toast } from '@/utilities/toast';
+import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
 export const CardItem = ({ item, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
-  const { id, images, name, description, price, composition, length, rating, grades } = item;
+  const { id, images, name, description, price, compositions, length, rating, grades } = item;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
+  const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
+
   const galleryRef = useRef<ImageGallery>(null);
 
   const dispatch = useAppDispatch();
@@ -41,6 +48,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
 
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
+  const [originalHeight, setOriginalHeight] = useState(400);
 
   const scrollToElement = (elementId: string, offset: number) => {
     const element = document.getElementById(elementId);
@@ -67,18 +75,30 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
 
   return isEdit ? <CreateItem oldItem={item} /> : (
     <div className="d-flex flex-column">
+      <Helmet title={name} description={description} image={images?.[0]?.src} />
       <div className="d-flex mb-5">
         <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
           <ImageGallery
             ref={galleryRef}
             additionalClass="w-100"
-            items={images.sort((a, b) => b.order - a.order).map((image) => ({ original: image.src, thumbnail: image.src }))}
+            showIndex
+            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight }))}
             infinite
             showNav
-            onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
+            onScreenChange={(fullscreen) => {
+              if (fullscreen) {
+                setOriginalHeight(1000);
+                document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
+                document.documentElement.style.setProperty('--galleryHeight', '100vh');
+              } else {
+                setOriginalHeight(400);
+                document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)');
+                document.documentElement.style.setProperty('--galleryHeight', '400px');
+              }
+            }}
             showPlayButton={false}
             thumbnailPosition="left"
-            onClick={galleryRef.current?.fullScreen}
+            onClick={() => galleryRef.current?.fullScreen()}
           />
           <div className="d-flex justify-content-end" style={{ width: '80%' }}>
             <div className="d-flex justify-content-between" style={{ width: 'calc(100% - 110px)' }}>
@@ -109,24 +129,50 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
                   : <span>{t('grades.gradeCount', { count: pagination.count })}</span>}
               </div>
             </div>
-            <div className="d-flex gap-5">
-              <p className="fs-5 mb-4">{t('price', { price })}</p>
-              {role === UserRoleEnum.ADMIN ? <Button type="text" className="edit-button" onClick={() => {
-                router.push({
-                  pathname: router.pathname,
-                  query: { ...router.query, edit: true },
-                }, undefined, { shallow: true });
-              }}>{t('edit')}</Button> : null}
+            <div className="d-flex gap-5 mb-4">
+              <p className="fs-5 m-0">{t('price', { price })}</p>
+              {role === UserRoleEnum.ADMIN
+                ? (
+                  <>
+                    <Button type="text" className="action-button edit" onClick={() => {
+                      router.push({
+                        pathname: router.pathname,
+                        query: { ...router.query, edit: true },
+                      }, undefined, { shallow: true });
+                    }}>{t('edit')}</Button>
+                    <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => {
+                      dispatch(deleteItem(id));
+                      router.back();
+                      toast(tToast('itemDeletedSuccess', { name }), 'success');
+                    }}>
+                      <Button type="text" className="action-button remove">{t('remove')}</Button>
+                    </Popconfirm>
+                    {!currentItem?.message?.created
+                      ? <Button
+                        type="text"
+                        className="action-button send-to-telegram"
+                        onClick={async () => {
+                          const { payload } = await dispatch(publishItem(id)) as { payload: ItemResponseInterface & { error: string; } };
+                          if (!payload?.error) {
+                            toast(tToast('itemPublishSuccess', { name }), 'success');
+                          }
+                        }}>
+                        {t('publishToTelegram')}
+                      </Button>
+                      : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
+                  </>
+                )
+                : null}
             </div>
             <div className="d-flex align-items-center gap-5 mb-3">
-              <CartControl id={id} name={name} className="fs-5" />
+              <CartControl id={id} className="fs-5" />
               <Favorites id={id} />
             </div>
             <p className="lh-lg" style={{ letterSpacing: '0.5px' }}>{description}</p>
             <div className="d-flex flex-column gap-3">
               <div className="d-flex flex-column gap-2">
                 <span>{t('composition')}</span>
-                <span>{composition}</span>
+                <span>{compositions.map((composition) => composition.name).join(', ')}</span>
               </div>
               <div className="d-flex flex-column gap-2">
                 <span>{t('length')}</span>
@@ -164,7 +210,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
               </div>
               <p className="my-4">
                 {t('warranty.11')}
-                <b>{t('warranty.12')}</b>
+                <b><Link href={routes.jewelryCarePage} title={t('warranty.12')}>{t('warranty.12')}</Link></b>
                 .
               </p>
               <div>
@@ -187,24 +233,24 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
             </div>
           ) : tab === 'delivery' && (
             <div className="delivery-fade">
-              <p key={1} className="mb-4 fs-5 fw-bold">{t('delivery.1')}</p>
-              <p key={2}>{t('delivery.2')}</p>
+              <p key={1} className="mb-4 fs-5 fw-bold">{tDelivery('1')}</p>
+              <p key={2}>{tDelivery('2')}</p>
               <div key={3} className="mb-4">
-                {t('delivery.3')}
+                {tDelivery('3')}
                 <br />
-                {t('delivery.4')}
+                {tDelivery('4')}
               </div>
               <div key={4}>
-                {t('delivery.5')}
+                {tDelivery('5')}
                 <br />
-                {t('delivery.6')}
+                {tDelivery('6')}
               </div>
-              <p key={5} className="my-4 fs-5 fw-bold">{t('delivery.7')}</p>
-              <p key={6} className="mb-4">{t('delivery.8')}</p>
+              <p key={5} className="my-4 fs-5 fw-bold">{tDelivery('7')}</p>
+              <p key={6} className="mb-4">{tDelivery('8')}</p>
               <div key={7}>
-                {t('delivery.9')}
+                {tDelivery('9')}
                 <br />
-                {t('delivery.10')}
+                {tDelivery('10')}
               </div>
             </div>
           )}

@@ -1,19 +1,23 @@
 import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
+import { Brackets } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
-import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
-import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
+import { TelegramService } from '@server/services/integration/telegram.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { GradeService } from '@server/services/rating/grade.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
+import type { ItemOptionsInterface } from '@server/types/item/item.options.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
+import type { FetchItemInterface } from '@/types/item/Item';
 
 @Singleton
 export class ItemService extends BaseService {
@@ -23,44 +27,79 @@ export class ItemService extends BaseService {
 
   private readonly uploadPathService = Container.get(UploadPathService);
 
-  private createQueryBuilder = (query?: ItemQueryInterface) => {
+  private readonly telegramService = Container.get(TelegramService);
+
+  private createQueryBuilder = (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
     const manager = this.databaseService.getManager();
 
-    const builder = manager.createQueryBuilder(ItemEntity, 'item')
-      .cache(true)
-      .select([
-        'item.id',
-        'item.name',
-        'item.description',
-        'item.deleted',
-        'item.price',
-        'item.discount',
-        'item.discountPrice',
-        'item.height',
-        'item.width',
-        'item.composition',
-        'item.length',
-        'item.className',
-        'item.new',
-        'item.bestseller',
-        'item.order',
-      ])
-      .leftJoin('item.images', 'images')
-      .addSelect([
-        'images.id',
-        'images.name',
-        'images.path',
-        'images.deleted',
-      ])
-      .leftJoin('item.rating', 'rating')
-      .addSelect([
-        'rating.rating',
-      ])
-      .leftJoinAndSelect('item.group', 'group')
-      .leftJoinAndSelect('item.collection', 'collection');
+    const builder = manager.createQueryBuilder(ItemEntity, 'item');
+
+    if (options?.onlyIds) {
+      builder
+        .select('item.id')
+        .orderBy('item.id', 'DESC');
+
+      if (query?.limit || query?.offset) {
+        builder
+          .limit(query.limit)
+          .offset(query.offset);
+      }
+
+      if (query?.search) {
+        builder
+          .setParameter('search', `%${query.search.trim()}%`)
+          .andWhere(new Brackets((qb) => {
+            qb
+              .andWhere('item.name ILIKE :search')
+              .orWhere('item.description ILIKE :search');
+          }));
+      }
+    } else {
+      builder
+        .select([
+          'item.id',
+          'item.name',
+          'item.description',
+          'item.deleted',
+          'item.price',
+          'item.discount',
+          'item.discountPrice',
+          'item.length',
+          'item.className',
+          'item.new',
+          'item.bestseller',
+          'item.order',
+        ])
+        .leftJoin('item.images', 'images')
+        .addSelect([
+          'images.id',
+          'images.name',
+          'images.path',
+          'images.order',
+          'images.deleted',
+        ])
+        .leftJoin('item.rating', 'rating')
+        .addSelect([
+          'rating.rating',
+        ])
+        .leftJoin('item.message', 'message')
+        .addSelect([
+          'message.id',
+          'message.created',
+        ])
+        .leftJoinAndSelect('item.group', 'group')
+        .leftJoinAndSelect('item.collection', 'collection')
+        .leftJoinAndSelect('item.compositions', 'compositions');
+    }
 
     if (query?.withDeleted) {
-      builder.withDeleted();
+      builder.andWhere(new Brackets((qb) => {
+        qb
+          .andWhere('item.deleted IS NOT NULL')
+          .orWhere('item.deleted IS NULL');
+      }));
+    } else {
+      builder.andWhere('item.deleted IS NULL');
     }
     if (query?.id) {
       builder.andWhere('item.id = :id', { id: query.id });
@@ -71,21 +110,28 @@ export class ItemService extends BaseService {
     if (query?.itemGroupId) {
       builder.andWhere('group.id = :itemGroupId', { itemGroupId: query.itemGroupId });
     }
+    if (options?.ids?.length) {
+      builder.andWhere('item.id IN(:...ids)', { ids: options.ids });
+    }
+    if (options?.withGrades) {
+      builder
+        .leftJoin('item.grades', 'grades', 'grades.checked = true')
+        .addSelect('grades.id');
+    }
 
     return builder;
   };
 
   public exist = async (query: ItemQueryInterface) => {
-    const builder = this.createQueryBuilder(query).withDeleted();
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true });
 
     const isExist = await builder.getExists();
 
     return isExist;
   };
 
-  public findOne = async (params: ParamsIdInterface, query?: ItemQueryInterface) => {
-    const builder = this.createQueryBuilder(query)
-      .andWhere('item.id = :id', { id: params.id });
+  public findOne = async (params: ParamsIdInterface, query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
+    const builder = this.createQueryBuilder({ ...query, id: params.id }, options);
 
     const item = await builder.getOne();
 
@@ -104,7 +150,52 @@ export class ItemService extends BaseService {
     return items;
   };
 
-  public createOne = async (body: ItemEntity, images: ImageEntity[]) => {
+  public search = async (query: Pick<ItemQueryInterface, 'search' | 'withDeleted'>) => {
+    const manager = this.databaseService.getManager();
+
+    const builder = manager.createQueryBuilder(ItemEntity, 'item')
+      .select('item.name');
+
+    if (query?.withDeleted) {
+      builder.andWhere(new Brackets((qb) => {
+        qb
+          .andWhere('item.deleted IS NOT NULL')
+          .orWhere('item.deleted IS NULL');
+      }));
+    } else {
+      builder.andWhere('item.deleted IS NULL');
+    }
+
+    if (query?.search) {
+      builder
+        .setParameter('search', `%${query.search.trim()}%`)
+        .andWhere(new Brackets((qb) => {
+          qb
+            .andWhere('item.name ILIKE :search')
+            .orWhere('item.description ILIKE :search');
+        }));
+    }
+
+    return builder.getMany();
+  };
+
+  public getList = async (query: FetchItemInterface): Promise<[ItemEntity[], number]> => {
+    const idsBuilder = this.createQueryBuilder(query, { ...query, onlyIds: true });
+
+    const [ids, count] = await idsBuilder.getManyAndCount();
+
+    let items: ItemEntity[] = [];
+
+    if (ids.length) {
+      const builder = this.createQueryBuilder(query, { withGrades: true, ids: ids.map(({ id }) => id) });
+
+      items = await builder.getMany();
+    }
+
+    return [items, count];
+  };
+
+  public createOne = async (body: ItemEntity & { sendToTelegram: boolean; }, images: ImageEntity[]) => {
 
     const isExist = await this.exist({ name: body.name });
 
@@ -128,6 +219,11 @@ export class ItemService extends BaseService {
 
     const item = await this.findOne({ id: createdItem.id });
 
+    if (body.sendToTelegram && images.length > 1) {
+      const { message } = await this.publishToTelegram({ id: item.id }, item);
+      item.message = message;
+    }
+
     return { code: 1, item, url };
   };
 
@@ -150,21 +246,82 @@ export class ItemService extends BaseService {
     return { item: updated, url };
   };
 
-  public deleteOne = async (params: ParamsIdInterface) => {
+  public partialUpdateOne = async (params: ParamsIdInterface, body: ItemEntity) => {
     const item = await this.findOne(params);
 
-    return item.softRemove();
+    const updated = await this.databaseService.getManager().transaction(async (manager) => {
+      const itemRepo = manager.getRepository(ItemEntity);
+
+      const newItem = { ...item, ...body } as ItemEntity;
+
+      await itemRepo.save(newItem);
+      await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, newItem.id, manager);
+
+      return newItem;
+    });
+
+    const url = this.getUrl(updated);
+
+    return { item: updated, url };
   };
 
-  public restoreOne = async (params: ParamsIdInterface) => {
-    const deletedItem = await this.findOne(params, { withDeleted: true });
+  public publishToTelegram = async (params: ParamsIdInterface, value?: ItemEntity) => {
+    const item = value || await this.findOne(params);
 
-    const item = await deletedItem.recover();
+    if (item.images.length < 2) {
+      throw new Error('Для публикации в группу Telegram товар должен иметь более одной фотографии');
+    }
+
+    const url = this.getUrl(item);
+
+    if (process.env.TELEGRAM_GROUP_ID) {
+      const text = [
+        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}!`,
+        '',
+        `<b>${item.name}</b>`,
+        '',
+        `${item.description}`,
+        '',
+        ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
+        `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
+        `Длина: <b>${item.length}</b>`,
+        `Цена: <b>${item.price} ₽</b>`,
+        '',
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
+      ];
+
+      const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
+
+      if (message?.history) {
+        await ItemEntity.update(item.id, { message: message.history });
+        item.message = message.history;
+      }
+    }
 
     return item;
   };
 
+  public deleteOne = async (params: ParamsIdInterface) => {
+    const item = await this.findOne(params, {}, { withGrades: true });
+
+    await ItemEntity.update(item.id, { deleted: new Date() });
+
+    item.deleted = new Date();
+
+    return item;
+  };
+
+  public restoreOne = async (params: ParamsIdInterface) => {
+    const deletedItem = await this.findOne(params, { withDeleted: true }, { withGrades: true });
+
+    await ItemEntity.update(deletedItem.id, { deleted: null });
+
+    deletedItem.deleted = null;
+
+    return deletedItem;
+  };
+
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
 
-  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name));
+  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name)).replaceAll('\\', '/');
 }

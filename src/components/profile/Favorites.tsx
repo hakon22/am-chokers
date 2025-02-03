@@ -7,13 +7,14 @@ import { ImageHover } from '@/components/ImageHover';
 import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { getHref } from '@/utilities/getHref';
-import { NotFoundContent } from '@/components/forms/NotFoundContent';
+import { NotFoundContent } from '@/components/NotFoundContent';
 
 export const Favorites = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   const { favorites } = useAppSelector((state) => state.user);
 
+  const width = 130;
   const height = 170;
 
   return (
@@ -24,12 +25,11 @@ export const Favorites = () => {
       }}
       className="d-flex flex-column align-items-between col-8 w-100"
       renderItem={(item) => (
-        <List.Item>
-          <div className="d-flex gap-4" style={{ width: height, height }}>
+        <List.Item className="ms-3">
+          <div className="d-flex gap-4" style={{ width, height }}>
             <ImageHover
-              className="ms-3"
               height={height}
-              width={height}
+              width={width}
               images={item.images ?? []}
             />
             <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
@@ -38,7 +38,7 @@ export const Favorites = () => {
                 <span>{tPrice('price', { price: item.price })}</span>
               </Link>
               <div className="d-flex gap-4">
-                <CartControl id={item.id} name={item.name} />
+                <CartControl id={item.id} />
                 <FavoritesButton id={item.id} className="fs-5" outlined={true} />
               </div>
             </div>

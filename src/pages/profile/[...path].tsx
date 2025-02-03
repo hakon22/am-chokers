@@ -16,6 +16,7 @@ import { Favorites } from '@/components/profile/Favorites';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NoAuthorization } from '@/components/NoAuthorization';
 import { Order } from '@/components/profile/Order';
+import { Reviews } from '@/components/profile/Reviews';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
@@ -37,6 +38,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
 
   const { logOut } = useContext(AuthContext);
 
+  const { pagination } = useAppSelector((state) => state.app);
   const { id, role, favorites } = useAppSelector((state) => state.user);
 
   const items: MenuItem[] = [
@@ -47,31 +49,39 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: routes.settings, label: <Link href={routes.settings}>{tMenu('menu.settings')}</Link> },
     role === UserRoleEnum.ADMIN
       ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
-        { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.newItem')}</Link> },
-        { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.itemGroups')}</Link> },
-        { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.itemCollections')}</Link> },
+        { key: 'items', label: tMenu('menu.admin.items.title'), children: [
+          { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Link> },
+          { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link> },
+          { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link> },
+          { key: routes.itemList, label: <Link href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Link> },
+        ] },
+        { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link> },
         { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
+        { key: routes.promotionalCodes, label: <Link href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },
+        { key: routes.compositionsControl, label: <Link href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Link> },
       ],
       } : null,
     { type: 'divider' },
     { key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
-  const titleProps = { id: path[1], ...(router.asPath === routes.favorites ? { count: favorites?.length } : {}) };
+  const titleProps = {
+    id: path[1],
+    ...(routes.favorites === router.asPath ? { count: favorites?.length } : {}),
+    ...(routes.myReviews === router.asPath ? { count: pagination.count } : {}),
+  };
 
   const pages: Record<string, JSX.Element> = {
     personal: <Personal t={t} />,
     orders: <OrderHistory t={t} />,
     favorites: <Favorites />,
+    reviews: <Reviews t={t} />,
     order: <Order orderId={+titleProps.id} t={t} />,
   };
 
   const getPage = () => {
     if (path[0] === 'orders') {
-      if (path.length === 1) {
-        return pages.orders;
-      }
-      return pages.order;
+      return path.length === 1 ? pages.orders : pages.order;
     }
     return pages[path[0]];
   };
@@ -82,7 +92,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       {id ? (
         <>
           <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
-          <div className="d-flex">
+          <div className="d-flex flex-column flex-md-row">
             <div className="col-4">
               <Menu
                 selectedKeys={[router.asPath]}
@@ -91,7 +101,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                 items={items}
               />
             </div>
-            <div className="col-8 d-flex justify-content-center">{getPage()}</div>
+            <div className="col-12 col-md-8 d-flex justify-content-center">{getPage()}</div>
           </div>
         </>
       ) : <NoAuthorization />}

@@ -2,4 +2,5 @@ import type { PaginationQueryInterface } from '@server/types/pagination.query.in
 
 export interface FetchGradeInterface extends PaginationQueryInterface {
   withDeleted?: boolean;
+  showAccepted?: boolean;
 }

@@ -3,7 +3,7 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 import { BaseService } from '@server/services/app/base.service';
-import { newItemCatalogValidation } from '@/validations/validations';
+import { newItemCollectionValidation } from '@/validations/validations';
 import { ItemCollectionService } from '@server/services/item/item.collection.service';
 import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
 
@@ -38,8 +38,7 @@ export class ItemCollectionController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const body = req.body as ItemCollectionEntity;
-      await newItemCatalogValidation.serverValidator({ ...body });
+      const body = await newItemCollectionValidation.serverValidator(req.body) as ItemCollectionEntity;
 
       const result = await this.itemCollectionService.createOne(body);
 
