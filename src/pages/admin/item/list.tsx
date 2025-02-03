@@ -53,7 +53,7 @@ const ItemList = () => {
         return;
       }
       setIsLoading(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList, {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: true }), {
         params,
       });
       if (code === 1) {

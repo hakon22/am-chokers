@@ -1,5 +1,7 @@
 import { createContext } from 'react';
 
+import type { ItemInterface } from '@/types/item/Item';
+
 export const AuthContext = createContext<{
   loggedIn: boolean,
   logIn:() => void,
@@ -35,3 +37,8 @@ export const ScrollContext = createContext<{
       scrollBar: 0,
       setMarginScroll: () => undefined,
     });
+
+export const ItemContext = createContext<{ item?: ItemInterface; setItem: React.Dispatch<React.SetStateAction<ItemInterface | undefined>>; }>({
+  item: undefined,
+  setItem: () => undefined,
+});

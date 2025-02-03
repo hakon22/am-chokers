@@ -8,6 +8,7 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
 import { isEqual } from 'lodash';
+import cn from 'classnames';
 import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
@@ -16,7 +17,7 @@ import { SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
+import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface, addSpecialItem } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -29,7 +30,17 @@ import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterfac
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 
-const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
+export const getServerSideProps = async () => {
+  const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }));
+
+  return {
+    props: {
+      itemCollections,
+    },
+  };
+};
+
+const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateItem: updateStateItem }: { oldItem?: ItemInterface; itemCollections?: ItemCollectionInterface[]; updateItem?: (value: ItemInterface) => void }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.createItem' });
   const { t: tCardItem } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -38,9 +49,10 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const router = useRouter();
 
   const { role, token } = useAppSelector((state) => state.user);
-  const { itemGroups, itemCollections, axiosAuth } = useAppSelector((state) => state.app);
+  const { itemGroups, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>((fetchedItemCollections || []));
 
   const props: UploadProps<ResponseFileInterface> = {
     name: 'file',
@@ -81,7 +93,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
 
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [item, setItem] = useState<Partial<ItemInterface & { sendToTelegram: boolean; }> | undefined>(oldItem);
+  const [item, setItem] = useState<Partial<ItemInterface & { publishToTelegram: boolean; }> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
@@ -89,7 +101,7 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
   const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
 
-  const [form] = Form.useForm<ItemInterface & { sendToTelegram: boolean; }>();
+  const [form] = Form.useForm<ItemInterface & { publishToTelegram: boolean; }>();
 
   const itemName: string = Form.useWatch('name', form);
 
@@ -118,24 +130,31 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
     values.images = images;
     values.group = itemGroup as ItemGroupInterface;
     values.collection = itemCollection as ItemCollectionInterface;
-    values.compositions = (itemCompositions ?? [])?.map((composition) => ({ id: composition as unknown as number } as CompositionEntity));
+    values.compositions = (itemCompositions ?? []).map((composition) => ({ id: typeof composition === 'number' ? composition : composition.id } as CompositionEntity));
 
     let code: number;
     if (oldItem) {
+      if (item?.compositions?.length) {
+        item.compositions = item.compositions.map((composition) => ({ id: composition.id } as  CompositionEntity));
+      }
       if (isEqual(oldItem, { ...item, ...values })) {
         setIsSubmit(false);
         return;
       }
       const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } })) as { payload: ItemWithUrlResponseInterface };
       code = payload.code;
-      if (code === 1) {
+      if (code === 1 && updateStateItem) {
+        updateStateItem(payload.item);
         toast(tToast('itemUpdatedSuccess', { name: oldItem.name }), 'success');
         router.push(payload.url);
       }
     } else {
-      const { payload } = await dispatch(addItem(values)) as { payload: ItemWithUrlResponseInterface };
+      const { payload } = await dispatch(addItem(values)) as { payload: ItemWithUrlResponseInterface; };
       code = payload.code;
       if (code === 1) {
+        if (payload.item.new || payload.item.collection || payload.item.bestseller) {
+          dispatch(addSpecialItem(payload.item));
+        }
         setItem(undefined);
         setItemGroup(undefined);
         setItemCollection(undefined);
@@ -190,6 +209,18 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
         });
     }
   }, [axiosAuth]);
+
+  useEffect(() => {
+    if (!fetchedItemCollections) {
+      axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }))
+        .then(({ data }) => {
+          setItemCollections(data.itemCollections);
+        })
+        .catch((e) => {
+          axiosErrorHandler(e, tToast);
+        });
+    }
+  }, [fetchedItemCollections]);
 
   return role === UserRoleEnum.ADMIN ? (
     <>
@@ -291,14 +322,17 @@ const CreateItem = ({ oldItem }: { oldItem?: ItemInterface }) => {
                   <Checkbox>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
-              <div className="d-flex flex-column flex-md-row justify-content-between">
-                <Form.Item<typeof item> name="price" className="mb-4 fs-2" rules={[newItemValidation]}>
+              <div className={cn('d-flex flex-column flex-md-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>
+                <Form.Item<typeof item> name="price" rules={[newItemValidation]} className="col-3">
                   <InputNumber size="large" variant="borderless" placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
+                </Form.Item>
+                <Form.Item<typeof item> name="discountPrice" rules={[newItemValidation]} className="col-3">
+                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
                 {!oldItem
                   ? (
-                    <Form.Item<typeof item> name="sendToTelegram" valuePropName="checked" className="large-input">
-                      <Checkbox>{t('sendToTelegram')}</Checkbox>
+                    <Form.Item<typeof item> name="publishToTelegram" valuePropName="checked" className="large-input">
+                      <Checkbox>{t('publishToTelegram')}</Checkbox>
                     </Form.Item>
                   )
                   : null}

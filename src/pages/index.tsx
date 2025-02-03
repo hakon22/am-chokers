@@ -22,11 +22,11 @@ const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  const { items, coverImages } = useAppSelector((state) => state.app);
+  const { specialItems, coverImages } = useAppSelector((state) => state.app);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const { bestsellers, collections, news } = items.reduce((acc, item) => {
+  const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
     if (item.new) {
       acc.news.push(item);
     }
@@ -39,13 +39,13 @@ const Index = () => {
     return acc;
   }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
 
-  const bestseller1 = bestsellers.find(({ order }) => order === 1);
-  const bestseller2 = bestsellers.find(({ order }) => order === 2);
-  const bestseller3 = bestsellers.find(({ order }) => order === 3);
+  const bestseller1 = bestsellers.find(({ deleted, order }) => order === 1 && !deleted);
+  const bestseller2 = bestsellers.find(({ deleted, order }) => order === 2 && !deleted);
+  const bestseller3 = bestsellers.find(({ deleted, order }) => order === 3 && !deleted);
 
-  const collection1 = collections.find(({ order }) => order === 4);
-  const collection2 = collections.find(({ order }) => order === 5);
-  const collection3 = collections.find(({ order }) => order === 6);
+  const collection1 = collections.find(({ deleted, order }) => order === 4 && !deleted);
+  const collection2 = collections.find(({ deleted, order }) => order === 5 && !deleted);
+  const collection3 = collections.find(({ deleted, order }) => order === 6 && !deleted);
 
   const coverImage1 = coverImages.find(({ coverOrder }) => coverOrder === 1);
   const coverImage2 = coverImages.find(({ coverOrder }) => coverOrder === 2);
@@ -196,7 +196,7 @@ const Index = () => {
                     className="h-100"
                     href={getHref(bestseller3)}
                     style={{ width: '100%', alignSelf: 'start' }}
-                    height="100%"
+                    height={642}
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.name}
                     description={tPrice('price', { price: bestseller3?.price })}

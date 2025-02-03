@@ -48,6 +48,7 @@ export class GradeService extends BaseService {
         .addSelect([
           'item.id',
           'item.name',
+          'item.translateName',
         ])
         .leftJoin('item.group', 'group')
         .addSelect([

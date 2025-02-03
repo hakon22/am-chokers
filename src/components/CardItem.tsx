@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Popconfirm, Rate, Tag } from 'antd';
 import { LikeOutlined } from '@ant-design/icons';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
 import cn from 'classnames';
@@ -12,7 +12,7 @@ import moment from 'moment';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { deleteItem, type ItemResponseInterface, publishItem, setItemGrades } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -21,11 +21,12 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { toast } from '@/utilities/toast';
+import { ItemContext, SubmitContext } from '@/components/Context';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
-export const CardItem = ({ item, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
-  const { id, images, name, description, price, compositions, length, rating, grades } = item;
+export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
+  const { id, images, name, description, price, discountPrice, compositions, length, rating } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -36,7 +37,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
   const dispatch = useAppDispatch();
 
   const { role } = useAppSelector((state) => state.user);
-  const { items, pagination } = useAppSelector((state) => state.app);
+  const { pagination } = useAppSelector((state) => state.app);
 
   const router = useRouter();
   const urlParams = useSearchParams();
@@ -44,11 +45,40 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
 
   const grade = rating?.rating ?? 0;
 
-  const currentItem = items.find(({ id: stateId }) => stateId === id);
-
+  const [item, setItem] = useState(fetchedItem);
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(400);
+
+  const { setItem: setContextItem } = useContext(ItemContext);
+  const { setIsSubmit } = useContext(SubmitContext);
+
+  const updateItem = (value: ItemInterface) => {
+    setItem(value);
+    setContextItem(value);
+    if ((item.new && !value.new) || (item.collection && !value.collection) || (item.bestseller && !value.bestseller)) {
+      dispatch(removeSpecialItem(value));
+    }
+  };
+
+  const deleteItemHandler = async () => {
+    setIsSubmit(true);
+    const { payload } = await dispatch(deleteItem(id)) as { payload: ItemResponseInterface };
+    if (payload.code === 1) {
+      setItem(payload.item);
+      toast(tToast('itemDeletedSuccess', { name }), 'success');
+    }
+    setIsSubmit(false);
+  };
+
+  const restoreItemHandler = async () => {
+    setIsSubmit(true);
+    const { payload } = await dispatch(restoreItem(id)) as { payload: ItemResponseInterface };
+    if (payload.code === 1) {
+      setItem(payload.item);
+    }
+    setIsSubmit(false);
+  };
 
   const scrollToElement = (elementId: string, offset: number) => {
     const element = document.getElementById(elementId);
@@ -70,10 +100,18 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
   }, [editParams, role]);
 
   useEffect(() => {
-    dispatch(setItemGrades({ id, items: grades, paginationParams, code: 1 }));
-  }, [items.length]);
+    dispatch(setPaginationParams(paginationParams));
+  }, [paginationParams]);
 
-  return isEdit ? <CreateItem oldItem={item} /> : (
+  useEffect(() => {
+    setContextItem(item);
+
+    return () => {
+      setContextItem(undefined);
+    };
+  }, []);
+
+  return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
     <div className="d-flex flex-column">
       <Helmet title={name} description={description} image={images?.[0]?.src} />
       <div className="d-flex mb-5">
@@ -130,7 +168,10 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
               </div>
             </div>
             <div className="d-flex gap-5 mb-4">
-              <p className="fs-5 m-0">{t('price', { price })}</p>
+              <div className="d-flex gap-3">
+                {discountPrice ? <p className="fs-5 m-0">{t('price', { price: price - discountPrice })}</p> : null}
+                <p className={cn('fs-5 m-0', { 'text-muted text-decoration-line-through fw-light': discountPrice })}>{t('price', { price })}</p>
+              </div>
               {role === UserRoleEnum.ADMIN
                 ? (
                   <>
@@ -140,20 +181,21 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
                         query: { ...router.query, edit: true },
                       }, undefined, { shallow: true });
                     }}>{t('edit')}</Button>
-                    <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => {
-                      dispatch(deleteItem(id));
-                      router.back();
-                      toast(tToast('itemDeletedSuccess', { name }), 'success');
-                    }}>
-                      <Button type="text" className="action-button remove">{t('remove')}</Button>
-                    </Popconfirm>
-                    {!currentItem?.message?.created
+                    {item.deleted
+                      ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
+                      : (
+                        <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
+                          <Button type="text" className="action-button remove">{t('remove')}</Button>
+                        </Popconfirm>
+                      )}
+                    {!item.message?.created
                       ? <Button
                         type="text"
                         className="action-button send-to-telegram"
                         onClick={async () => {
                           const { payload } = await dispatch(publishItem(id)) as { payload: ItemResponseInterface & { error: string; } };
                           if (!payload?.error) {
+                            setItem(payload.item);
                             toast(tToast('itemPublishSuccess', { name }), 'success');
                           }
                         }}>
@@ -165,7 +207,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
                 : null}
             </div>
             <div className="d-flex align-items-center gap-5 mb-3">
-              <CartControl id={id} className="fs-5" />
+              <CartControl id={id} deleted={item.deleted} className="fs-5" />
               <Favorites id={id} />
             </div>
             <p className="lh-lg" style={{ letterSpacing: '0.5px' }}>{description}</p>
@@ -256,7 +298,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
           )}
         </div>
       </div>
-      {currentItem && <GradeList item={currentItem} />}
+      <GradeList item={item} setItem={setItem} />
     </div>
   );
 };

@@ -261,6 +261,10 @@ a {
   height: 3rem !important;
 }
 
+.image-gallery-index {
+  z-index: unset;
+}
+
 .image-gallery-slide-wrapper.image-gallery-thumbnails-left {
   width: var(--galleryWidth);
   min-height: var(--galleryHeight);

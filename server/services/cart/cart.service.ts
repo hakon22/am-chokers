@@ -30,6 +30,8 @@ export class CartService extends BaseService {
           'item.price',
           'item.discount',
           'item.discountPrice',
+          'item.deleted',
+          'item.translateName',
         ])
         .leftJoin('item.images', 'images')
         .addSelect([
@@ -73,13 +75,13 @@ export class CartService extends BaseService {
   private findOne = async (userId: number | null, params: ParamsIdStringInterface) => {
     const builder = this.createQueryBuilder(userId, params);
 
-    const item = await builder.getOne();
+    const cartItem = await builder.getOne();
 
-    if (!item) {
+    if (!cartItem) {
       throw new Error(`Позиции корзины с номером #${params.id} не существует.`);
     }
 
-    return item;
+    return cartItem;
   };
 
   public findMany = async (userId: number | null, oldCart?: CartItemInterface[], query?: CartQueryInterface) => {
@@ -122,11 +124,11 @@ export class CartService extends BaseService {
   };
 
   public deleteOne = async (userId: number | null, params: ParamsIdStringInterface) => {
-    const item = await this.findOne(userId, params);
+    const cartItem = await this.findOne(userId, params);
   
-    await CartEntity.delete(item.id);
+    await CartEntity.delete(cartItem.id);
 
-    return item;
+    return cartItem;
   };
 
   public deleteMany = async (userId: number | null, ids?: string[]) => {

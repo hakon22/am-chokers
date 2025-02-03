@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
+import cn from 'classnames';
 import type { CheckboxProps, InputProps } from 'antd/lib';
 
 import { Helmet } from '@/components/Helmet';
@@ -54,8 +55,10 @@ const Cart = () => {
 
   const totalPrice = price + deliveryPrice;
 
-  const isFull = cartList.length === cart.length;
-  const indeterminate = cartList.length > 0 && cartList.length < cart.length;
+  const filteredCart = cart.filter(({ item }) => !item.deleted);
+
+  const isFull = cartList.length === filteredCart.length;
+  const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
 
   const width = 130;
   const height = 170;
@@ -67,7 +70,7 @@ const Cart = () => {
   };
 
   const onCheckAllChange: CheckboxProps['onChange'] = async ({ target }) => {
-    setCartList(target.checked ? cart : []);
+    setCartList(target.checked ? filteredCart : []);
   };
 
   const onPromotional: InputProps['onBlur'] = async ({ target }) => {
@@ -111,7 +114,7 @@ const Cart = () => {
   };
 
   useEffect(() => {
-    setCartList(cart);
+    setCartList(filteredCart);
   }, []);
 
   return (
@@ -133,7 +136,7 @@ const Cart = () => {
               renderItem={(item) => (
                 <List.Item>
                   <div className="d-flex gap-3" style={{ width, height }}>
-                    <Checkbox value={item}>
+                    <Checkbox className={cn({ 'opacity-50': item.item.deleted })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
                         height={height}
@@ -143,12 +146,12 @@ const Cart = () => {
                       />
                     </Checkbox>
                     <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-                      <Link href={getHref(item.item)} className="d-flex flex-column gap-3">
+                      <Link href={getHref(item.item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.item.deleted })}>
                         <span className="lh-1">{item.item.name}</span>
-                        <span>{tPrice('price', { price: item.item.price })}</span>
+                        <span>{tPrice('price', { price: (item.item.price - item.item.discountPrice) * item.count })}</span>
                       </Link>
                       <div className="d-flex gap-4">
-                        <CartControl id={item.item.id} setCartList={setCartList} />
+                        <CartControl id={item.item.id} deleted={item.item.deleted} setCartList={setCartList} />
                         <div className="d-flex gap-3">
                           <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
                             <DeleteOutlined className="icon fs-5" />
@@ -182,14 +185,14 @@ const Cart = () => {
                 <span>{t('promotionalDiscount', { discount: getDiscount(totalPrice, promotional) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">
-                <Input disabled={!cart.length} onSelect={() => setSelectPromotionField(true)} placeholder={t('promotional')} className="not-padding" size="large" onBlur={onPromotional} />
+                <Input disabled={!filteredCart.length} onSelect={() => setSelectPromotionField(true)} placeholder={t('promotional')} className="not-padding" size="large" onBlur={onPromotional} />
               </Form.Item>}
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 text-uppercase fw-bold">
             <span>{t('total')}</span>
             <span>{tPrice('price', { price: getPrice(totalPrice, promotional) })}</span>
           </div>
-          <Button disabled={selectPromotionField || !cart.length} className="button w-100" htmlType="submit">{t('submitPay')}</Button>
+          <Button disabled={selectPromotionField || !filteredCart.length} className="button w-100" htmlType="submit">{t('submitPay')}</Button>
         </div>
       </Form>
     </div>

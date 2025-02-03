@@ -128,10 +128,11 @@ const newItemSchema = yup.object().shape({
   new: booleanSchema,
   bestseller: booleanSchema,
   price: numberSchema,
+  discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).min(1).required(),
   length: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
-  sendToTelegram: booleanSchema,
+  publishToTelegram: booleanSchema,
 });
 
 const partialUpdateItemSchema = yup.object().shape({
@@ -142,6 +143,7 @@ const partialUpdateItemSchema = yup.object().shape({
   new: booleanSchema.optional(),
   bestseller: booleanSchema.optional(),
   price: numberSchema.optional(),
+  discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).optional(),
   length: stringSchema.optional(),
   order: yup.number().optional().nullable(),

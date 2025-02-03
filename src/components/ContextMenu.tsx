@@ -37,9 +37,9 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
   const router = useRouter();
 
   const { role, token } = useAppSelector((state) => state.user);
-  const { items } = useAppSelector((state) => state.app);
+  const { specialItems } = useAppSelector((state) => state.app);
 
-  const { bestsellers, collections } = items.reduce((acc, value) => {
+  const { bestsellers, collections } = specialItems.reduce((acc, value) => {
     if (value.order) return acc;
 
     if (value.bestseller) {
@@ -64,7 +64,7 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
 
   const handleDelete = async (target: ItemInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface };
+    const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface; };
     if (payloadCode === 1) {
       toast(tToast('itemDeletedSuccess', { name: deletedItem.name }), 'success');
     }

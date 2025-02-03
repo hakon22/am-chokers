@@ -76,6 +76,7 @@ export class OrderService extends BaseService {
         .addSelect([
           'item.id',
           'item.name',
+          'item.translateName',
         ])
         .leftJoin('item.group', 'group')
         .addSelect([
@@ -175,6 +176,12 @@ export class OrderService extends BaseService {
       const { user: createdUser } = await this.userService.createOne('Пользователь', '79151003951', manager);
 
       const cart = await this.cartService.findMany(null, undefined, { ids: cartIds });
+
+      const deletedItem = cart.find(({ item }) => item.deleted);
+
+      if (deletedItem) {
+        throw new Error(`Заказ не может быть оформлен: Товар ${deletedItem.item.name} закончился`);
+      }
 
       const preparedPositions = cart.map((value) => ({
         count: value.count,

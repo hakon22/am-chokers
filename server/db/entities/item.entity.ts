@@ -92,6 +92,13 @@ export class ItemEntity extends BaseEntity {
   })
   public className: string;
 
+  /** Имя товара в транслите */
+  @Column('character varying', {
+    name: 'translate_name',
+    nullable: true,
+  })
+  public translateName: string;
+
   /** Позиция на главной странице */
   @Column('int', {
     nullable: true,

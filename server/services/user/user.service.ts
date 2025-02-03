@@ -46,6 +46,8 @@ export class UserService extends BaseService {
         'favorites.id',
         'favorites.name',
         'favorites.price',
+        'favorites.discountPrice',
+        'favorites.deleted',
       ])
       .leftJoin('favorites.images', 'images')
       .addSelect([
@@ -330,7 +332,7 @@ export class UserService extends BaseService {
       const { ...user } = req.user as PassportRequestInterface;
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.itemService.findOne(params);
+      const item = await this.itemService.findOne(params, { withDeleted: true });
 
       await UserEntity.save({ ...user, favorites: [...user.favorites, item] });
 

@@ -66,12 +66,13 @@ const CreateItemCollection = () => {
   const withDeletedParams = urlParams.get('withDeleted');
 
   const { role } = useAppSelector((state) => state.user);
-  const { itemCollections } = useAppSelector((state) => state.app);
+  const { axiosAuth } = useAppSelector((state) => state.app);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
   const [form] = Form.useForm();
 
+  const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>([]);
   const [data, setData] = useState<ItemCollectionTableInterface[]>([]);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
@@ -153,13 +154,14 @@ const CreateItemCollection = () => {
 
     const exist = itemCollections.find((itemCollection) => itemCollection.id.toString() === key.toString());
     if (exist) {
-      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface };
+      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
       if (payloadCode === 1) {
         updateData(itemCollection, row);
       }
     } else {
-      const { payload: { code: payloadCode } } = await dispatch(addItemCollection({ name, description } as ItemCollectionInterface)) as { payload: { code: number; } };
+      const { payload: { code: payloadCode, itemCollection } } = await dispatch(addItemCollection({ name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
       if (payloadCode === 1) {
+        setItemCollections((state) => [...state, itemCollection]);
         setEditingKey('');
       } else if (payloadCode === 2) {
         form.setFields([{ name: 'code', errors: [tToast('itemCollectionExist', { name })] }]);
@@ -242,15 +244,16 @@ const CreateItemCollection = () => {
   });
 
   useEffect(() => {
-    if (withDeleted !== undefined) {
+    if ((withDeleted !== undefined || !itemCollections.length) && axiosAuth) {
       router.push(`?withDeleted=${withDeleted}`, undefined, { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, itemCollections: ItemCollectionInterface[] }>(routes.getItemCollections({ isServer: false }), {
+      axios.get<{ code: number, itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }), {
         params: { withDeleted },
       })
         .then(({ data: response }) => {
           if (response.code === 1) {
+            setItemCollections(response.itemCollections);
             const newItemCollections: ItemCollectionTableInterface[] = response.itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() }));
             setData(newItemCollections);
           }
@@ -260,7 +263,7 @@ const CreateItemCollection = () => {
           axiosErrorHandler(e, tToast, setIsSubmit);
         });
     }
-  }, [withDeleted]);
+  }, [withDeleted, axiosAuth]);
 
   useEffect(() => {
     setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));

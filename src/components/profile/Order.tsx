@@ -111,6 +111,10 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
                         </Tag>
                         : null}
                       <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                        <span>{tOrders('delivery')}</span>
+                        <span className="fw-bold">{tOrders('price', { price: order.deliveryPrice })}</span>
+                      </Tag>
+                      <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                         <span>{tOrders('payment')}</span>
                         <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>
                       </Tag>

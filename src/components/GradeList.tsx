@@ -7,7 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { FormInstance, UploadFile } from 'antd/lib';
 
-import { getItemGrades, createComment, removeGrade } from '@/slices/appSlice';
+import { getItemGrades, createComment, removeGrade, setPaginationParams, type CommentResponseInterface, type GradeResponseInterface } from '@/slices/appSlice';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -15,11 +15,11 @@ import { newCommentValidation } from '@/validations/validations';
 import { PreviewImage } from '@/components/PreviewImage';
 import { UploadImage, urlToBase64, getBase64 } from '@/components/UploadImage';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { routes } from '@/routes';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
-import type { PaginationSearchInterface } from '@/types/PaginationInterface';
+import type { PaginationEntityInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ItemInterface } from '@/types/item/Item';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
-import { routes } from '@/routes';
 
 interface GradeListTitleInterface {
   grade: ItemGradeEntity;
@@ -129,7 +129,7 @@ export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileLis
   );
 };
 
-export const GradeList = ({ item }: { item: ItemInterface }) => {
+export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: React.Dispatch<React.SetStateAction<ItemInterface>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList' });
 
   const { role } = useAppSelector((state) => state.user);
@@ -162,13 +162,29 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
 
   const onFinish = async (values: ReplyComment) => {
     values.images = commentImages;
-    const { payload: { code } } = await dispatch(createComment({ ...reply, ...values })) as { payload: { code: number; } };
+    const { payload: { code, comment } } = await dispatch(createComment({ ...reply, ...values })) as { payload: CommentResponseInterface; };
     if (code === 1) {
+      setItem((state) => {
+        const gradeIndex = state.grades.findIndex((grade) => grade.id === comment.parentComment.grade?.id);
+        const stateGrade = state.grades[gradeIndex];
+        if (gradeIndex !== -1 && stateGrade?.comment) {
+          stateGrade.comment.replies = [...(stateGrade.comment?.replies || []), comment];
+        }
+        return state;
+      });
       clearReplyComment();
     }
   };
 
-  const onGradeRemove = (gradeId: number) => dispatch(removeGrade(gradeId));
+  const onGradeRemove = async (gradeId: number) => {
+    const { payload } = await dispatch(removeGrade(gradeId)) as { payload: GradeResponseInterface; };
+    if (payload.code === 1) {
+      setItem((state) => {
+        state.grades.filter((grade) => grade.id !== payload.grade.id);
+        return state;
+      });
+    }
+  };
 
   const onLoadMore = async () => {
     if (loadingStatus !== 'loading' && item && pagination.count > item.grades.length) {
@@ -177,7 +193,13 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
         limit: pagination.limit,
         offset: pagination.offset + 10,
       };
-      await dispatch(getItemGrades(params));
+      const { payload } = await dispatch(getItemGrades(params)) as { payload: PaginationEntityInterface<ItemGradeEntity>; };
+      setItem((state) => {
+        const grades = payload.items.filter((grade) => !state.grades.some((stateGrade) => stateGrade.id === grade.id));
+        state.grades = [...(state.grades || []), ...grades];
+        return state;
+      });
+      dispatch(setPaginationParams(payload.paginationParams));
     }
   };
 

@@ -171,7 +171,8 @@ export class ImageService extends BaseService {
   public getCoverImages = async (req: Request, res: Response) => {
     try {
       const builder = this.createQueryBuilder()
-        .where('image.coverOrder IS NOT NULL');
+        .where('image.coverOrder IS NOT NULL')
+        .orderBy('image.coverOrder', 'ASC');
   
       const coverImages = await builder.getMany();
   

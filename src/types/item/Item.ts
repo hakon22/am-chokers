@@ -8,9 +8,8 @@ export type ItemGroupInterface = ItemInterface['group'];
 export type ItemCollectionInterface = Required<ItemInterface>['collection'];
 
 export interface AppDataInterface {
-  items: ItemInterface[];
   itemGroups: ItemGroupInterface[];
-  itemCollections: ItemCollectionInterface[];
+  specialItems: ItemInterface[];
   coverImages: ImageEntity[];
 }
 

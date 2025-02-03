@@ -140,6 +140,10 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
                       </Tag>
                       : null}
                     <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                      <span>{t('delivery')}</span>
+                      <span className="fw-bold">{t('price', { price: order.deliveryPrice })}</span>
+                    </Tag>
+                    <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                       <span>{t('payment')}</span>
                       <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
                     </Tag>

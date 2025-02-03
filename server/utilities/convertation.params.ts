@@ -99,3 +99,17 @@ export const querySearchParams = yup.object().shape({
   withDeleted: booleanSchema,
   search: yup.string(),
 });
+
+export const queryItemsParams = queryPaginationWithParams.concat(
+  yup.object().shape({
+    groupCode: yup.string().optional(),
+  }),
+);
+
+export const queryTranslateNameParams = yup.object().shape({
+  translateName: yup.string().required(),
+});
+
+export const queryCodeParams = yup.object().shape({
+  code: yup.string().required(),
+});
