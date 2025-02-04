@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Divider, List, Skeleton } from 'antd';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import type { TFunction } from 'i18next';
 
@@ -14,6 +14,7 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { GradeListTitle, GradeListDescription } from '@/components/GradeList';
 import { PreviewImage } from '@/components/PreviewImage';
+import { SubmitContext } from '@/components/Context';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
@@ -23,6 +24,7 @@ export const Reviews = ({ t }: { t: TFunction }) => {
 
   const dispatch = useAppDispatch();
 
+  const width = 115;
   const height = 150;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -30,6 +32,8 @@ export const Reviews = ({ t }: { t: TFunction }) => {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
+
+  const { setIsSubmit } = useContext(SubmitContext);
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
 
@@ -81,7 +85,7 @@ export const Reviews = ({ t }: { t: TFunction }) => {
           loading={isLoading}
           renderItem={(value, i) => (
             <div className="d-flex align-items-center gap-4 w-100 py-2" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
-              <ImageHover className="align-self-start" href={getHref(value?.item)} images={value?.item?.images} height={height} width={height} />
+              <ImageHover className="align-self-start" href={getHref(value?.item)} images={value?.item?.images} height={height} width={width} />
               <List.Item
                 className="d-flex flex-column w-100 p-0"
                 classNames={{ actions: 'ms-0 align-self-start' }}
@@ -90,7 +94,7 @@ export const Reviews = ({ t }: { t: TFunction }) => {
                 <List.Item.Meta
                   className="w-100 mb-5"
                   title={<GradeListTitle grade={value} withTags />}
-                  description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />}
+                  description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} setIsSubmit={setIsSubmit} />}
                 />
               </List.Item>
             </div>

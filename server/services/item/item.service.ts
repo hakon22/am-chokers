@@ -249,7 +249,9 @@ export class ItemService extends BaseService {
     const updated = await this.databaseService.getManager().transaction(async (manager) => {
       const itemRepo = manager.getRepository(ItemEntity);
 
-      const newItem = { ...item, ...body } as ItemEntity;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { grades, ...rest } = body;
+      const newItem = { ...item, ...rest } as ItemEntity;
 
       if (item.name !== body.name) {
         newItem.translateName = translate(body.name);

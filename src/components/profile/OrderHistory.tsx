@@ -23,6 +23,7 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
+import { getHref } from '@/utilities/getHref';
 import type { OrderInterface } from '@/types/order/Order';
 
 interface OrderHistoryInterface {
@@ -42,7 +43,7 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
 
   const extension = getExtension();
 
-  const width = 70;
+  const width = 77;
   const height = 100;
 
   const { setIsSubmit } = useContext(SubmitContext);
@@ -152,10 +153,10 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
                 <div className="d-flex flex-column col-12 col-md-8 gap-2">
                   {order.positions.map((position) =>
                     <Tooltip key={position.id} title={position.item.name} className="d-flex align-items-center justify-content-between justify-content-md-start gap-md-3" placement="left" color="#4d689e">
-                      <span className="col-5 col-md-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</span>
+                      <Link href={getHref(position.item)} className="col-5 col-md-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</Link>
                       <div className="d-flex col-md-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto
-                          ? <Image key={image.id} src={image.src} width={width} height={height} alt={position.item.name} />
+                          ? <Image key={image.id} src={image.src} width={width} height={height} alt={position.item.name} style={{ borderRadius: '5px' }} />
                           : index === maxPhoto && extension > 400
                             ? <div key={image.id} className="d-flex align-items-center fs-6">
                               <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>

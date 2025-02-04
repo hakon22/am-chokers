@@ -88,7 +88,7 @@ export const updateItem = createAsyncThunk(
 
 export const partialUpdateItem = createAsyncThunk(
   'app/partialUpdateItem',
-  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number, data: Partial<ItemInterface>; }, { rejectWithValue }) => {
     try {
       const response = await axios.patch<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
       return response.data;

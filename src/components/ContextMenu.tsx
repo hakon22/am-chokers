@@ -8,7 +8,7 @@ import type { MenuProps } from 'antd';
 
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, setCoverImage } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
@@ -66,6 +66,7 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
     setIsSubmit(true);
     const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface; };
     if (payloadCode === 1) {
+      dispatch(removeSpecialItem(deletedItem));
       toast(tToast('itemDeletedSuccess', { name: deletedItem.name }), 'success');
     }
     setIsSubmit(false);

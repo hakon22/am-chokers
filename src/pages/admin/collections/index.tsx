@@ -273,12 +273,16 @@ const CreateItemCollection = () => {
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
-      <div className="d-flex align-items-center gap-3 mb-3">
-        <Button onClick={handleAdd} className="button border-button">
-          {t('addItemCollection')}
-        </Button>
-        <BackButton />
-        <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+      <div className="d-flex flex-column justify-content-center">
+        <div className="mb-3">
+          <BackButton style={{}} />
+        </div>
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
+            {t('addItemCollection')}
+          </Button>
+          <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+        </div>
       </div>
       <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
         <Table<ItemCollectionTableInterface>

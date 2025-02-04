@@ -468,6 +468,7 @@ export default {
         removeDescription: 'Вы действительно хотите удалить товар?',
         cancel: 'Отменить',
         publish: 'Опубликовано {{ date }}',
+        collection: '{{ name }}',
         grades: {
           gradeCount_zero: 'Отзывов пока нет',
           gradeCount_one: '{{ count }} отзыв',

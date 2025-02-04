@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { Button, Form, Popconfirm, Checkbox, List, Skeleton, Divider } from 'antd';
@@ -21,6 +21,7 @@ import { GradeListTitle, GradeListDescription, GradeListReplyForm } from '@/comp
 import { toast } from '@/utilities/toast';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
+import { SubmitContext } from '@/components/Context';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface';
@@ -39,12 +40,15 @@ const Reviews = () => {
   const withDeletedParams = urlParams.get('withDeleted');
   const showAcceptedParams = urlParams.get('showAccepted');
 
+  const { setIsSubmit } = useContext(SubmitContext);
+
   const replyComment: Partial<ReplyComment> = {
     parentComment: undefined,
     text: undefined,
     images: undefined,
   };
 
+  const width = 115;
   const height = 150;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
@@ -162,7 +166,7 @@ const Reviews = () => {
   };
 
   useEffect(() => {
-    if ((withDeleted !== undefined || showAccepted !== undefined) && data.length) {
+    if ((withDeleted !== undefined || showAccepted !== undefined)) {
       router.push({
         query: { 
           ...router.query, 
@@ -222,7 +226,7 @@ const Reviews = () => {
           renderItem={(value, i) => (
             <div className="d-flex align-items-center justify-content-between mb-2" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
               <div className="d-flex align-items-center gap-4 w-100 py-2">
-                <ImageHover className="align-self-start" href={getHref(value?.item)} images={value?.item?.images} height={height} width={height} />
+                <ImageHover className="align-self-start" href={getHref(value?.item)} images={value?.item?.images} height={height} width={width} />
                 <List.Item
                   className="d-flex flex-column w-100 p-0"
                   classNames={{ actions: 'ms-0 align-self-start' }}
@@ -245,7 +249,7 @@ const Reviews = () => {
                   <List.Item.Meta
                     className="w-100 mb-5"
                     title={<GradeListTitle grade={value} withTags withLinkToOrder />}
-                    description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />}
+                    description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} setIsSubmit={setIsSubmit} />}
                   />
                   {reply.parentComment && value.comment?.id === reply.parentComment.id ? (
                     <GradeListReplyForm

@@ -95,7 +95,6 @@ export class ItemEntity extends BaseEntity {
   /** Имя товара в транслите */
   @Column('character varying', {
     name: 'translate_name',
-    nullable: true,
   })
   public translateName: string;
 

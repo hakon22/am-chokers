@@ -57,7 +57,7 @@ const Index = () => {
   const coverImage8 = coverImages.find(({ coverOrder }) => coverOrder === 8);
 
   const height = 300;
-  const width = 227;
+  const width = 230;
 
   const carouselRef = useRef<Carousel>(null);
 

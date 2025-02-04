@@ -65,6 +65,10 @@ const Orders = () => {
       };
       fetchOrders(params, true);
     }
+
+    return () => {
+      setPaginationParams({ limit: 0, offset: 0, count: 0 });
+    };
   }, [axiosAuth, statuses.length]);
 
   return role === UserRoleEnum.ADMIN ? (
@@ -78,7 +82,7 @@ const Orders = () => {
       <InfiniteScroll
         dataLength={data.length}
         next={() => fetchOrders({ limit: pagination.limit, offset: pagination.offset + 10, statuses })}
-        hasMore={data.length < pagination.count}
+        hasMore={!(data.length < 10) && data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         scrollableTarget="scrollableDiv"

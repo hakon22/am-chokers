@@ -234,11 +234,10 @@ export class GradeService extends BaseService {
   public deleteOne = async (params: ParamsIdInterface) => {
     const grade = await this.findOne(params);
 
-    const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
-
-    await gradeRepo.softDelete(grade.id);
+    await GradeEntity.update(grade.id, { checked: false, deleted: new Date() });
 
     grade.deleted = new Date();
+    grade.checked = false;
 
     return grade;
   };

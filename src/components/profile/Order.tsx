@@ -53,7 +53,7 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
   const { loadingStatus } = useAppSelector((state) => state.order);
   const order = useAppSelector((state) => selectors.selectById(state, orderId)) || orderParams;
 
-  const width = 70;
+  const width = 77;
   const height = 100;
 
   const gradeFormInit = (positionId: number) => setGrade({ ...newGrade, position: { id: positionId } });

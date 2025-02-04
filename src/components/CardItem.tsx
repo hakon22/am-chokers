@@ -26,7 +26,7 @@ import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
 export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
-  const { id, images, name, description, price, discountPrice, compositions, length, rating } = fetchedItem;
+  const { id, collection, images, name, description, price, discountPrice, compositions, length, rating } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -148,6 +148,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
         <div style={{ width: '55%' }}>
           <div className="d-flex flex-column">
             <h1 className="mb-4 fs-3">{name}</h1>
+            {collection
+              ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+              : null}
             <div className="d-flex align-items-center gap-4 mb-4">
               <div className="d-flex align-items-center gap-2" title={grade.toString()}>
                 <Rate disabled allowHalf value={grade} />

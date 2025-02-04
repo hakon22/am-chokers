@@ -10,6 +10,7 @@ const expression = `
     LEFT JOIN "chokers"."order_position" "orderPosition" ON "orderPosition"."id" = "grade"."position_id"
     LEFT JOIN "chokers"."item" "item" ON "orderPosition"."item_id" = "item"."id"
     WHERE "grade"."checked" = TRUE
+      AND "grade"."deleted" IS NULL
   GROUP BY "item"."id"
 `;
 
