@@ -14,7 +14,7 @@ type List = { name: string, image: string; }[];
 
 interface SearchPropsInterface {
   items?: ItemInterface[];
-  search: { value: string; onFetch: boolean; } | undefined;
+  search?: { value: string; onFetch: boolean; };
   withDeleted?: boolean;
   setSearch: React.Dispatch<React.SetStateAction<{ value: string; onFetch: boolean; } | undefined>>;
   fetch: () => Promise<void>;

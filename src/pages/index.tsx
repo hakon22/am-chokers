@@ -152,7 +152,7 @@ const Index = () => {
                     width={width}
                     images={item.images}
                     name={item.name}
-                    description={tPrice('price', { price: item.price })}
+                    description={tPrice('price', { price: item.price - item.discountPrice })}
                   />
                 ))}
               </Carousel>
@@ -173,7 +173,7 @@ const Index = () => {
                     href={getHref(bestseller1)}
                     images={bestseller1?.images ?? []}
                     name={bestseller1?.name}
-                    description={tPrice('price', { price: bestseller1?.price })}
+                    description={tPrice('price', { price: bestseller1 ? bestseller1.price - bestseller1?.discountPrice : 0 })}
                   />
                 </ContextMenu>
                 <ContextMenu item={bestseller2} order={2} className="col-6 d-flex align-self-end">
@@ -185,7 +185,7 @@ const Index = () => {
                     width={width}
                     images={bestseller2?.images ?? []}
                     name={bestseller2?.name}
-                    description={tPrice('price', { price: bestseller2?.price })}
+                    description={tPrice('price', { price: bestseller2 ? bestseller2.price - bestseller2.discountPrice : 0 })}
                   />
                 </ContextMenu>
               </div>
@@ -199,7 +199,7 @@ const Index = () => {
                     height={642}
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.name}
-                    description={tPrice('price', { price: bestseller3?.price })}
+                    description={tPrice('price', { price: bestseller3 ? bestseller3.price - bestseller3.discountPrice : 0 })}
                   />
                 </ContextMenu>
               </div>

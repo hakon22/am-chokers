@@ -17,4 +17,9 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   search?: string;
   /** Код группы товара */
   groupCode?: string;
+  groupIds?: number[],
+  collectionIds?: number[],
+  compositionIds?: number[],
+  from?: number,
+  to?: number,
 }

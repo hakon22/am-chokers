@@ -371,6 +371,19 @@ export default {
       catalog: {
         title: 'Каталог украшений',
         description: 'Тут вы можете подобрать себе украшения на любой вкус',
+        filters: {
+          type: 'Тип аксессуара',
+          materials: 'Материалы',
+          collections: 'Коллекция',
+          price: {
+            title: 'Цена',
+            from: 'От',
+            to: 'До',
+            suffix: '₽',
+          },
+          search: 'Поиск',
+          submitButton: 'Поиск',
+        },
       },
       itemList: {
         title: 'Реестр товаров ({{ count }})',

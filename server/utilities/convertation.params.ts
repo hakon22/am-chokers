@@ -103,6 +103,11 @@ export const querySearchParams = yup.object().shape({
 export const queryItemsParams = queryPaginationWithParams.concat(
   yup.object().shape({
     groupCode: yup.string().optional(),
+    groupIds: yup.array(yup.number().optional()),
+    collectionIds: yup.array(yup.number().optional()),
+    compositionIds: yup.array(yup.number().optional()),
+    from: yup.number().optional(),
+    to: yup.number().optional(),
   }),
 );
 

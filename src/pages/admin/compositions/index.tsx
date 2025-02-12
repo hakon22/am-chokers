@@ -262,7 +262,7 @@ const CreateComposition = () => {
       { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, compositions: CompositionInterface[] }>(routes.getCompositions, {
+      axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.getCompositions, {
         params: { withDeleted },
       })
         .then(({ data: response }) => {

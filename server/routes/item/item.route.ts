@@ -16,7 +16,6 @@ export class ItemRoute extends BaseRouter {
     router.get(this.routes.restoreItem(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     router.post(this.routes.createItem, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createOne);
     router.get(this.routes.searchItem, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.search);
-    router.get(this.routes.getItems({ isServer: true }), this.itemController.findMany);
     router.get(this.routes.getItemLinks({ isServer: true }), this.itemController.getLinks);
     router.get(this.routes.getItemByName({ isServer: true }), this.itemController.getByName);
     router.get(this.routes.getItemList({ isServer: true }), this.itemController.getList);

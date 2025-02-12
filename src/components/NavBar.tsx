@@ -32,8 +32,10 @@ export const NavBar = () => {
   const { favorites } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
+  const defaultHeight = 108;
+
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [navHeight, setNavHeight] = useState<string>('108px');
+  const [navHeight, setNavHeight] = useState<string>(`${defaultHeight}px`);
   const [isLoaded, setIsLoaded] = useState(false);
 
   const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
@@ -73,9 +75,9 @@ export const NavBar = () => {
 
   useEffect(() => {
     if (!submenu) {
-      setNavHeight('108px');
+      setNavHeight(`${defaultHeight}px`);
     } else if (submenu === 'catalog') {
-      setNavHeight('275px');
+      setNavHeight(`${itemGroups.length * 42 + defaultHeight}px`);
     }
   }, [submenu]);
 

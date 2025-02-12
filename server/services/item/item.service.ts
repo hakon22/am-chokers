@@ -38,7 +38,20 @@ export class ItemService extends BaseService {
     if (options?.onlyIds) {
       builder
         .select('item.id')
+        .distinct(true)
         .orderBy('item.id', 'DESC');
+
+      if (query?.collectionIds?.length) {
+        builder.leftJoin('item.collection', 'collection');
+      }
+
+      if (query?.compositionIds?.length) {
+        builder.leftJoin('item.compositions', 'compositions');
+      }
+
+      if (query?.groupIds?.length || query?.groupCode) {
+        builder.leftJoin('item.group', 'group');
+      }
 
       if (query?.limit || query?.offset) {
         builder
@@ -89,6 +102,7 @@ export class ItemService extends BaseService {
           'message.id',
           'message.created',
         ])
+        .leftJoinAndSelect('item.group', 'group')
         .leftJoinAndSelect('item.collection', 'collection')
         .leftJoinAndSelect('item.compositions', 'compositions')
         .orderBy('item.created', 'DESC')
@@ -116,13 +130,23 @@ export class ItemService extends BaseService {
     if (query?.itemGroupId) {
       builder.andWhere('group.id = :itemGroupId', { itemGroupId: query.itemGroupId });
     }
+    if (query?.collectionIds?.length) {
+      builder.andWhere('collection.id IN(:...collectionIds)', { collectionIds: query.collectionIds });
+    }
+    if (query?.compositionIds?.length) {
+      builder.andWhere('compositions.id IN(:...compositionIds)', { compositionIds: query.compositionIds });
+    }
+    if (query?.groupIds) {
+      builder.andWhere('group.id IN(:...groupIds)', { groupIds: query.groupIds });
+    }
+    if (query?.from) {
+      builder.andWhere('(item.price - item.discountPrice) >= :from', { from: query.from });
+    }
+    if (query?.to) {
+      builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
+    }
     if (query?.groupCode) {
-      builder
-        .leftJoinAndSelect('item.group', 'group')
-        .andWhere('group.code = :groupCode', { groupCode: query.groupCode });
-    } else {
-      builder
-        .leftJoinAndSelect('item.group', 'group');
+      builder.andWhere('group.code = :groupCode', { groupCode: query.groupCode });
     }
     if (options?.ids?.length) {
       builder.andWhere('item.id IN(:...ids)', { ids: options.ids });
@@ -311,7 +335,7 @@ export class ItemService extends BaseService {
         ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
         `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
         `Длина: <b>${item.length}</b>`,
-        `Цена: <b>${item.price} ₽</b>`,
+        `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
       ];
