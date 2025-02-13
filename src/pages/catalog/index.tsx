@@ -18,6 +18,7 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { getCatalogServerSideProps as getServerSideProps } from '@/pages/catalog/[...path]';
+import { scrollTop } from '@/utilities/scrollTop';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 
@@ -183,7 +184,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const fromParams = urlParams.get('from');
   const toParams = urlParams.get('to');
 
-  const preparedInitialValues = {
+  const preparedInitialValues: CatalogFiltersInterface = {
     itemGroups: typesParams,
     itemCollections: collectionsParams,
     compositions: compositionParams,
@@ -192,9 +193,9 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   };
 
   const [items, setItems] = useState<ItemInterface[]>(propsItems);
-  const [initialValues, setInitialValues] = useState<typeof preparedInitialValues>(preparedInitialValues);
+  const [initialValues, setInitialValues] = useState<CatalogFiltersInterface>(preparedInitialValues);
 
-  const onFilters = async (values?: CatalogFiltersInterface, paginationParams?: Pick<PaginationInterface, 'limit' | 'offset'>) => {
+  const onFilters = async (values: CatalogFiltersInterface, paginationParams?: Pick<PaginationInterface, 'limit' | 'offset'>) => {
     try {
       setIsSubmit(true);
 
@@ -214,6 +215,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       if (data.code === 1) {
         setItems(paginationParams ? (state) => [...state, ...data.items] : data.items);
         dispatch(setPaginationParams(data.paginationParams));
+        setInitialValues(values);
+        scrollTop();
       }
       setIsSubmit(false);
     } catch (e) {

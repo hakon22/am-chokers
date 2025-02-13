@@ -14,7 +14,7 @@ import type { CatalogFiltersInterface } from '@/pages/catalog';
 
 interface CatalogItemsPropsInterface {
   setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
-  onFilters: (values?: CatalogFiltersInterface) => Promise<void>;
+  onFilters: (values: CatalogFiltersInterface) => Promise<void>;
   initialValues: CatalogFiltersInterface;
   itemGroup?: ItemGroupInterface;
 }
@@ -53,7 +53,6 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
   };
 
   const onFinish = async (values: CatalogFiltersInterface) => {
-    console.log(values);
     onFilters({ ...initialValues, ...values });
   };
 
@@ -76,7 +75,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
   };
-  
+
   const filters: CollapseProps['items'] = [
     {
       key: '1',
@@ -126,7 +125,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('collections')}</span>
-          {initialValues?.compositions?.length ? <Badge count={initialValues.compositions.length} color="#69788e" /> : null}
+          {initialValues?.itemCollections?.length ? <Badge count={initialValues.itemCollections.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
