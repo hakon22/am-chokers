@@ -32,9 +32,27 @@ export interface CatalogFiltersInterface {
 
 export { getServerSideProps };
 
-const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: number; }) => {
+const RenderCatalogItem = ({ width, height, className, item }: { width: number; height: number; className?: string; item?: ItemInterface; }) => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
+  return item
+    ? (
+      <ImageHover
+        key={item.id}
+        href={getHref(item)}
+        className={className}
+        height={height}
+        width={width}
+        images={item.images}
+        name={item.name}
+        rating={{ rating: item.rating, grades: item.grades }}
+        description={tPrice('price', { price: item.price - item.discountPrice })}
+      />
+    ) 
+    : null;
+};
+
+const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: number; }) => {
   const isReverse = i % 2 !== 0;
 
   const width = 200;
@@ -47,117 +65,21 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
     <div className="d-flex flex-column gap-5 col-12">
       <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
         <div className={cn('d-flex col-6 gap-5', { 'flex-row-reverse': isReverse })}>
-          <ImageHover
-            key={chunkItems[0].id}
-            href={getHref(chunkItems[0])}
-            height={height}
-            width={width}
-            images={chunkItems[0].images}
-            name={chunkItems[0].name}
-            description={tPrice('price', { price: chunkItems[0].price - chunkItems[0].discountPrice })}
-          />
-          {chunkItems?.[1]
-            ? (
-              <ImageHover
-                key={chunkItems[1].id}
-                href={getHref(chunkItems[1])}
-                height={height}
-                width={width}
-                images={chunkItems[1].images}
-                name={chunkItems[1].name}
-                description={tPrice('price', { price: chunkItems[1].price - chunkItems[1].discountPrice })}
-              />
-            )
-            : null}
+          <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+          <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
         </div>
-        {chunkItems?.[2]
-          ? (
-            <ImageHover
-              key={chunkItems[2].id}
-              className={cn('col-3', { 'align-items-end': !isReverse })}
-              href={getHref(chunkItems[2])}
-              height={height}
-              width={width}
-              images={chunkItems[2].images}
-              name={chunkItems[2].name}
-              description={tPrice('price', { price: chunkItems[2].price - chunkItems[2].discountPrice })}
-            />
-          )
-          : null}
+        <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} />
       </div>
       <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
-        {chunkItems?.[3]
-          ? (
-            <ImageHover
-              key={chunkItems[3].id}
-              className={cn('col-3 align-self-end', { 'align-items-end': isReverse })}
-              href={getHref(chunkItems[3])}
-              height={height}
-              width={width}
-              images={chunkItems[3].images}
-              name={chunkItems[3].name}
-              description={tPrice('price', { price: chunkItems[3].price - chunkItems[3].discountPrice })}
-            />
-          )
-          : null}
+        <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} />
         <div className={cn('d-flex col-8 gap-5', { 'justify-content-end': !isReverse })}>
-          {chunkItems?.[4]
-            ? (
-              <ImageHover
-                key={chunkItems[4].id}
-                href={getHref(chunkItems[4])}
-                height={lagerHeight}
-                width={lagerWidth}
-                images={chunkItems[4].images}
-                name={chunkItems[4].name}
-                description={tPrice('price', { price: chunkItems[4].price - chunkItems[4].discountPrice })}
-              />
-            )
-            : null}
-          {chunkItems?.[5]
-            ? (
-              <ImageHover
-                key={chunkItems[5].id}
-                href={getHref(chunkItems[5])}
-                height={lagerHeight}
-                width={lagerWidth}
-                images={chunkItems[5].images}
-                name={chunkItems[5].name}
-                description={tPrice('price', { price: chunkItems[5].price - chunkItems[5].discountPrice })}
-              />
-            )
-            : null}
+          <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+          <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} />
         </div>
       </div>
       <div className={cn('d-flex justify-content-between gap-5', { 'flex-row-reverse': isReverse })}>
-        {chunkItems?.[6]
-          ? (
-            <ImageHover
-              key={chunkItems[6].id}
-              className={cn('col-6', { 'align-items-end': isReverse })}
-              href={getHref(chunkItems[6])}
-              height={lagerHeight}
-              width={lagerWidth}
-              images={chunkItems[6].images}
-              name={chunkItems[6].name}
-              description={tPrice('price', { price: chunkItems[6].price - chunkItems[6].discountPrice })}
-            />
-          )
-          : null}
-        {chunkItems?.[7]
-          ? (
-            <ImageHover
-              key={chunkItems[7].id}
-              className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })}
-              href={getHref(chunkItems[7])}
-              height={height}
-              width={width}
-              images={chunkItems[7].images}
-              name={chunkItems[7].name}
-              description={tPrice('price', { price: chunkItems[7].price - chunkItems[7].discountPrice })}
-            />
-          )
-          : null}
+        <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} />
+        <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
       </div>
     </div>
   );
@@ -216,7 +138,10 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         setItems(paginationParams ? (state) => [...state, ...data.items] : data.items);
         dispatch(setPaginationParams(data.paginationParams));
         setInitialValues(values);
-        scrollTop();
+
+        if (!paginationParams) {
+          scrollTop();
+        }
       }
       setIsSubmit(false);
     } catch (e) {

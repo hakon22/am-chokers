@@ -1,8 +1,10 @@
-import {
-  useState, useEffect, CSSProperties, HTMLAttributes,
-} from 'react';
+import { useState, useEffect, CSSProperties, HTMLAttributes } from 'react';
+import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Rate } from 'antd';
+import { LikeOutlined } from '@ant-design/icons';
+import cn from 'classnames';
 
 import image404 from '@/images/404.svg';
 import type { ItemInterface } from '@/types/item/Item';
@@ -14,6 +16,7 @@ interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterf
   name?: string;
   description?: string;
   marker?: boolean;
+  rating?: { rating?: ItemInterface['rating']; grades: ItemInterface['grades'] };
   style?: CSSProperties;
 }
 
@@ -26,11 +29,16 @@ export const ImageHover = ({
   description = '',
   marker = false,
   className = '',
+  rating,
   style = {},
   ...props
 }: ImageHoverType) => {
+  const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+
+  const grade = rating?.rating?.rating ?? 0;
 
   const changeImage = () => {
     setIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -82,7 +90,19 @@ export const ImageHover = ({
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
             {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
-            {name ? <div className="title lh-sm mb-3">{name}</div> : null}
+            {name ? <div className={cn('title lh-sm mb-2', { 'mb-3': !rating })}>{name}</div> : null}
+            {rating ? (
+              <div className="d-flex align-items-center gap-3 mb-3 text-muted">
+                <div className="d-flex align-items-center gap-2" title={grade.toString()}>
+                  <Rate disabled allowHalf count={1} value={grade} />
+                  <span>{grade}</span>
+                </div>
+                <div className="d-flex align-items-center gap-2">
+                  <LikeOutlined />
+                  <span>{tPrice('grades.gradeCount', { count: rating.grades.length })}</span>
+                </div>
+              </div>
+            ) : null}
             {description ? <div className="description">{description}</div> : null}
           </div>
         ) : null}

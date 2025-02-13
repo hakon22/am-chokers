@@ -152,6 +152,7 @@ const Index = () => {
                     width={width}
                     images={item.images}
                     name={item.name}
+                    rating={{ rating: item.rating, grades: item.grades }}
                     description={tPrice('price', { price: item.price - item.discountPrice })}
                   />
                 ))}
@@ -173,6 +174,7 @@ const Index = () => {
                     href={getHref(bestseller1)}
                     images={bestseller1?.images ?? []}
                     name={bestseller1?.name}
+                    rating={bestseller1 ? { rating: bestseller1.rating, grades: bestseller1.grades } : undefined}
                     description={tPrice('price', { price: bestseller1 ? bestseller1.price - bestseller1?.discountPrice : 0 })}
                   />
                 </ContextMenu>
@@ -185,6 +187,7 @@ const Index = () => {
                     width={width}
                     images={bestseller2?.images ?? []}
                     name={bestseller2?.name}
+                    rating={bestseller2 ? { rating: bestseller2.rating, grades: bestseller2.grades } : undefined}
                     description={tPrice('price', { price: bestseller2 ? bestseller2.price - bestseller2.discountPrice : 0 })}
                   />
                 </ContextMenu>
@@ -199,6 +202,7 @@ const Index = () => {
                     height={642}
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.name}
+                    rating={bestseller3 ? { rating: bestseller3.rating, grades: bestseller3.grades } : undefined}
                     description={tPrice('price', { price: bestseller3 ? bestseller3.price - bestseller3.discountPrice : 0 })}
                   />
                 </ContextMenu>
@@ -230,6 +234,9 @@ const Index = () => {
                     height={height}
                     width={width}
                     images={collection1?.images ?? []}
+                    name={collection1?.name}
+                    rating={collection1 ? { rating: collection1.rating, grades: collection1.grades } : undefined}
+                    description={tPrice('price', { price: collection1 ? collection1.price - collection1.discountPrice : 0 })}
                   />
                   <h2>{collection1?.collection?.name}</h2>
                 </div>
@@ -242,6 +249,9 @@ const Index = () => {
                     height={height}
                     width={width}
                     images={collection2?.images ?? []}
+                    name={collection2?.name}
+                    rating={collection2 ? { rating: collection2.rating, grades: collection2.grades } : undefined}
+                    description={tPrice('price', { price: collection2 ? collection2.price - collection2.discountPrice : 0 })}
                   />
                   <h2>{collection2?.collection?.name}</h2>
                 </div>
@@ -254,6 +264,9 @@ const Index = () => {
                     height={height}
                     width={width}
                     images={collection3?.images ?? []}
+                    name={collection3?.name}
+                    rating={collection3 ? { rating: collection3.rating, grades: collection3.grades } : undefined}
+                    description={tPrice('price', { price: collection3 ? collection3.price - collection3.discountPrice : 0 })}
                   />
                   <h2>{collection3?.collection?.name}</h2>
                 </div>

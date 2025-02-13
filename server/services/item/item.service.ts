@@ -287,6 +287,9 @@ export class ItemService extends BaseService {
       return newItem;
     });
 
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    updated.grades = grades;
+
     const url = this.getUrl(updated);
 
     return { item: updated, url };
@@ -309,6 +312,9 @@ export class ItemService extends BaseService {
 
       return newItem;
     });
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    updated.grades = grades;
 
     const url = this.getUrl(updated);
 
@@ -374,7 +380,7 @@ export class ItemService extends BaseService {
   };
 
   public getSpecials = async () => {
-    const builder = this.createQueryBuilder()
+    const builder = this.createQueryBuilder({}, { withGrades: true })
       .andWhere('item.new IS NOT NULL')
       .andWhere('item.bestseller IS NOT NULL')
       .andWhere('item.collection IS NOT NULL');
