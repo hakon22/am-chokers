@@ -18,6 +18,7 @@ interface GetServerSidePropsInterface {
     compositionIds?: number | number[];
     from?: number;
     to?: number;
+    search?: string;
   },
 }
 
@@ -44,6 +45,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
         ...(query?.compositionIds ? Array.isArray(query.compositionIds) ? { compositionIds: query.compositionIds } : { compositionIds: [query.compositionIds] } : {}),
         ...(query?.from ? { from: query.from } : {}),
         ...(query?.to ? { to: query.to } : {}),
+        ...(query?.search ? { search: query.search } : {}),
       },
     }),
     ...(groupCode ? [axios.get<ItemGroupResponseInterface>(routes.getItemGroupByCode({ isServer: false }), {

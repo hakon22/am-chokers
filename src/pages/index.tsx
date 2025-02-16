@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  useEffect, useRef, useState, WheelEvent,
-} from 'react';
+import { useEffect, useRef, useState, useContext, type WheelEvent } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
@@ -14,13 +12,16 @@ import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
-import type { ItemInterface } from '@/types/item/Item';
 import { ContextMenu } from '@/components/ContextMenu';
+import { SearchContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
+import type { ItemInterface } from '@/types/item/Item';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+
+  const { isSearch } = useContext(SearchContext);
 
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
 
@@ -105,10 +106,10 @@ const Index = () => {
       <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
       {isLoaded && (
         <>
-          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 3, height: '62vh', width: '55%' }}>
+          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch ? 1 : 3, height: '62vh', width: '55%' }}>
             <Image src={choker} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
           </div>
-          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: 2, height: '105vh', width: '60%' }}>
+          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch ? 0 : 2, height: '105vh', width: '60%' }}>
             <Image src={pendant} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
           </div>
         </>

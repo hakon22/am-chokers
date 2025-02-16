@@ -8,6 +8,7 @@ import { routes } from '@/routes';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { Spinner } from '@/components/Spinner';
+import { onFocus } from '@/utilities/onFocus';
 import type { ItemInterface } from '@/types/item/Item';
 
 type List = { name: string, image: string; }[];
@@ -27,11 +28,6 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
   const [list, setList] = useState<List>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState<NodeJS.Timeout | undefined>();
-
-  const onFocus = () => {
-    const target = document.body;
-    target.parentElement?.focus();
-  };
 
   const clearData = (hasFocus = true) => {
     setSearch(undefined);

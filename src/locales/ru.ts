@@ -384,6 +384,8 @@ export default {
           search: 'Поиск',
           submitButton: 'Поиск',
         },
+        notFound: 'Товары не найдены',
+        resetFilters: 'Сбросить фильтры',
       },
       itemList: {
         title: 'Реестр товаров ({{ count }})',

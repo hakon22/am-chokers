@@ -107,6 +107,12 @@ h2 {
     border: 0;
     outline: 0;
     background-color: transparent;
+    box-shadow: none;
+
+    &.not-hovered:hover {
+      background-color: unset !important;
+      background: unset !important;
+    }
   }
 }
 
@@ -372,6 +378,15 @@ a {
     width: 20px;
     height: 20px;
   }
+}
+
+.ant-select-outlined:hover .ant-select-selector,
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus,
+.ant-select-selector:active,
+.ant-select-open .ant-select-selector {
+  border-color: $dark-blue !important;
+  box-shadow: none !important;
 }
 
 .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {

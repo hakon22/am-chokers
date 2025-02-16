@@ -1,16 +1,20 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MouseEvent as ReactMouseEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { MouseEvent as ReactMouseEvent, useEffect, useState, useContext } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
-import { Badge, Menu, type MenuProps } from 'antd';
+import { AutoComplete, Badge, Button, Menu, type MenuProps } from 'antd';
+import { useSearchParams } from 'next/navigation';
 
 import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
 import { useAppSelector } from '@/utilities/hooks';
+import { onFocus } from '@/utilities/onFocus';
+import { SearchContext } from '@/components/Context';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -28,6 +32,13 @@ const LabelWithIcon = ({ label, href }: { label: string, href: string }) => (
 export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
+  const router = useRouter();
+  const urlParams = useSearchParams();
+
+  const { isSearch, setIsSearch } = useContext(SearchContext);
+
+  const searchParams = urlParams.get('search');
+
   const { itemGroups } = useAppSelector((state) => state.app);
   const { favorites } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
@@ -37,6 +48,7 @@ export const NavBar = () => {
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>(`${defaultHeight}px`);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [search, setSearch] = useState<string | null>('');
 
   const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
 
@@ -73,6 +85,29 @@ export const NavBar = () => {
     },
   ];
 
+  const onSearch = async ({ key }: { key: string; }) => {
+    if (key === 'Enter') {
+      if (!search) {
+        delete router.query.search;
+        setIsSearch({ value: false, needFetch: true });
+      }
+      if (router.query?.path) {
+        delete router.query.path;
+      }
+      router.push({ query: search ? { ...router.query, search } : router.query, pathname: routes.catalog });
+      onFocus();
+    }
+  };
+
+  const searchClick = () => {
+    setIsSearch({ value: !isSearch?.value, needFetch: isSearch?.value ? true : false });
+    if (isSearch?.value) {
+      setSearch('');
+      delete router.query.search;
+      router.push({ query: router.query }, undefined, { shallow: true });
+    }
+  };
+
   useEffect(() => {
     if (!submenu) {
       setNavHeight(`${defaultHeight}px`);
@@ -80,6 +115,10 @@ export const NavBar = () => {
       setNavHeight(`${itemGroups.length * 42 + defaultHeight}px`);
     }
   }, [submenu]);
+
+  useEffect(() => {
+    setSearch(searchParams);
+  }, [searchParams]);
 
   useEffect(() => {
     setTimeout(setIsLoaded, 1000, true);
@@ -90,28 +129,47 @@ export const NavBar = () => {
       {isLoaded && (
         <>
           <div className="nav-logo-container" data-aos="fade-down">
-            <Link href="/">
+            <Link href={routes.homePage}>
               <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
             </Link>
           </div>
-          <div className="nav-menu" data-aos="fade-down">
-            <Menu
-              items={items}
-              rootClassName="bg-transparent"
-              mode="horizontal"
-              style={{
-                zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
-              }}
-              onMouseLeave={() => setSubmenu(undefined)}
-              subMenuCloseDelay={0.0000000001}
-              subMenuOpenDelay={0.3}
-            />
-          </div>
+          {isSearch?.value
+            ? (
+              <div className="d-flex justify-content-center align-items-center" style={{ width: '60%' }}>
+                <AutoComplete
+                  className="custom-placeholder animate__animated animate__fadeInDown"
+                  style={{ width: '80%' }}
+                  placeholder={t('search')}
+                  size="large"
+                  allowClear
+                  value={search}
+                  suffixIcon={<SearchOutlined />}
+                  onClear={() => setSearch('')}
+                  onChange={setSearch}
+                  onInputKeyDown={onSearch} />
+              </div>
+            )
+            : (
+              <div className="nav-menu">
+                <Menu
+                  data-aos="fade-down"
+                  items={items}
+                  rootClassName="bg-transparent"
+                  mode="horizontal"
+                  style={{
+                    zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
+                  }}
+                  onMouseLeave={() => setSubmenu(undefined)}
+                  subMenuCloseDelay={0.0000000001}
+                  subMenuOpenDelay={0.3}
+                />
+              </div>
+            )}
           <div className="nav-icons" data-aos="fade-down">
-            <Link href="/" title={t('search')}>
+            <Button className="icon-button not-hovered" title={t('search')} onClick={searchClick}>
               <SearchOutlined className="icon" />
               <span className="visually-hidden">{t('search')}</span>
-            </Link>
+            </Button>
             <Link href={routes.favorites} title={t('favorites')}>
               <Badge count={favorites?.length} offset={[3, 23]}>
                 <HeartOutlined className="icon" />

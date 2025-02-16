@@ -4,14 +4,14 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
-import { Skeleton, FloatButton } from 'antd';
+import { Skeleton, FloatButton, Button } from 'antd';
 import cn from 'classnames';
 import { chunk } from 'lodash';
 
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { SearchContext, SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { CatalogItemsFilter } from '@/components/filters/catalog/CatalogItemsFilter';
 import { setPaginationParams } from '@/slices/appSlice';
@@ -19,6 +19,7 @@ import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { getCatalogServerSideProps as getServerSideProps } from '@/pages/catalog/[...path]';
 import { scrollTop } from '@/utilities/scrollTop';
+import { NotFoundContent } from '@/components/NotFoundContent';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 
@@ -28,6 +29,7 @@ export interface CatalogFiltersInterface {
   compositions?: string[];
   from?: string | null;
   to?: string | null;
+  search?: string | null;
 }
 
 export { getServerSideProps };
@@ -94,6 +96,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const { pagination } = useAppSelector((state) => state.app);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isSearch } = useContext(SearchContext);
   
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -105,6 +108,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const compositionParams = urlParams.getAll('compositionIds');
   const fromParams = urlParams.get('from');
   const toParams = urlParams.get('to');
+  const searchParams = urlParams.get('search');
 
   const preparedInitialValues: CatalogFiltersInterface = {
     itemGroups: typesParams,
@@ -112,6 +116,16 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     compositions: compositionParams,
     from: fromParams,
     to: toParams,
+    search: searchParams,
+  };
+
+  const defaultInitialValues: CatalogFiltersInterface = {
+    itemGroups: itemGroup ? [itemGroup.id.toString()] : [],
+    itemCollections: [],
+    compositions: [],
+    from: undefined,
+    to: undefined,
+    search: undefined,
   };
 
   const [items, setItems] = useState<ItemInterface[]>(propsItems);
@@ -127,6 +141,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.compositions?.length ? { compositionIds: values.compositions } : {}),
         ...(values?.from ? { from: values.from } : {}),
         ...(values?.to ? { to: values.to } : {}),
+        ...(values?.search ? { search: values.search } : {}),
       };
 
       router.push({ query: { ...params, ...(itemGroup ? { path: [itemGroup.code] } : {}) } }, undefined, { shallow: true });
@@ -149,16 +164,39 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     }
   };
 
+  const resetFilters = async () => {
+    setInitialValues(defaultInitialValues);
+    await onFilters(defaultInitialValues);
+  };
+
   useEffect(() => {
     dispatch(setPaginationParams(propsPaginationParams));
   }, [propsPaginationParams]);
 
   useEffect(() => {
-    if (itemGroup) {
-      setInitialValues((state) => ({ ...state, itemGroups: [itemGroup.id.toString()] }));
+    if (searchParams) {
+      setInitialValues((state) => ({ ...state, search: searchParams }));
       setItems(propsItems);
+    } else if (!isSearch?.value) {
+      setInitialValues((state) => ({ ...state, search: undefined }));
+      if (isSearch?.needFetch) {
+        onFilters({ ...initialValues, search: undefined });
+      } else {
+        setItems(propsItems);
+      }
     }
-  }, [itemGroup?.id]);
+  }, [searchParams, isSearch?.value]);
+
+  useEffect(() => {
+    setInitialValues(initialValues);
+  }, [JSON.stringify(initialValues)]);
+
+  useEffect(() => {
+    if (itemGroup) {
+      setInitialValues({ ...initialValues, itemGroups: [itemGroup.id.toString()] });
+      setItems(items);
+    }
+  }, [itemGroup?.id, JSON.stringify(initialValues)]);
   
   return (
     <div className="d-flex col-12 justify-content-between">
@@ -178,7 +216,15 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
             className="w-100"
           >
             <div className="d-flex flex-column gap-5">
-              {chunk(items, chunkNumber).map((chunkItems, i) => <CatalogItems chunkItems={chunkItems} i={i} key={i} />)}
+              {items.length
+                ? chunk(items, chunkNumber).map((chunkItems, i) => <CatalogItems chunkItems={chunkItems} i={i} key={i} />)
+                : (
+                  <>
+                    <NotFoundContent text={t('notFound')} />
+                    <Button className="button fs-6 mx-auto" onClick={resetFilters}>
+                      {t('resetFilters')}
+                    </Button>
+                  </>)}
             </div>
           </InfiniteScroll>
         </div>

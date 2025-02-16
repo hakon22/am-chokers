@@ -42,3 +42,8 @@ export const ItemContext = createContext<{ item?: ItemInterface; setItem: React.
   item: undefined,
   setItem: () => undefined,
 });
+
+export const SearchContext = createContext<{ isSearch?: { value: boolean; needFetch: boolean; }; setIsSearch: React.Dispatch<React.SetStateAction<{ value: boolean; needFetch: boolean; }>>; }>({
+  isSearch: undefined,
+  setIsSearch: () => undefined,
+});

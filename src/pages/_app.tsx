@@ -11,7 +11,7 @@ import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
 
-import { AuthContext, SubmitContext, NavbarContext, ItemContext } from '@/components/Context';
+import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { removeToken as removeUserToken } from '@/slices/userSlice';
 import { removeMany as removeManyCart } from '@/slices/cartSlice';
@@ -39,7 +39,8 @@ const Init = (props: AppProps & AppDataInterface) => {
   const [isSubmit, setIsSubmit] = useState(false); // submit spinner
   const [isActive, setIsActive] = useState(false); // navbar
   const [loggedIn, setLoggedIn] = useState(false); // auth service
-  const [item, setItem] = useState<ItemInterface | undefined>(undefined);
+  const [item, setItem] = useState<ItemInterface | undefined>(undefined); // item service
+  const [isSearch, setIsSearch] = useState({ value: false, needFetch: false }); // global search service
 
   const closeNavbar = () => setIsActive(false);
 
@@ -57,10 +58,11 @@ const Init = (props: AppProps & AppDataInterface) => {
     axios.defaults.headers.common.Authorization = null;
   }, [id]);
 
-  const authServices = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);
-  const submitServices = useMemo(() => ({ isSubmit, setIsSubmit }), [isSubmit]);
-  const navbarServices = useMemo(() => ({ isActive, setIsActive, closeNavbar }), [isActive]);
-  const itemServices = useMemo(() => ({ item, setItem }), [item]);
+  const authService = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);
+  const submitService = useMemo(() => ({ isSubmit, setIsSubmit }), [isSubmit]);
+  const navbarService = useMemo(() => ({ isActive, setIsActive, closeNavbar }), [isActive]);
+  const itemService = useMemo(() => ({ item, setItem }), [item]);
+  const searchService = useMemo(() => ({ isSearch, setIsSearch }), [isSearch]);
 
   useEffect(() => {
     AOS.init();
@@ -69,24 +71,26 @@ const Init = (props: AppProps & AppDataInterface) => {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <AuthContext.Provider value={authServices}>
-        <SubmitContext.Provider value={submitServices}>
-          <ItemContext.Provider value={itemServices}>
-            <NavbarContext.Provider value={navbarServices}>
-              <Provider store={store}>
-                <Head>
-                  <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
-                  <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
-                  <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
-                  <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
-                </Head>
-                <ToastContainer />
-                <App>
-                  <Component {...pageProps} />
-                </App>
-              </Provider>
-            </NavbarContext.Provider>
-          </ItemContext.Provider>
+      <AuthContext.Provider value={authService}>
+        <SubmitContext.Provider value={submitService}>
+          <SearchContext.Provider value={searchService}>
+            <ItemContext.Provider value={itemService}>
+              <NavbarContext.Provider value={navbarService}>
+                <Provider store={store}>
+                  <Head>
+                    <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
+                    <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
+                    <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
+                    <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
+                  </Head>
+                  <ToastContainer />
+                  <App>
+                    <Component {...pageProps} />
+                  </App>
+                </Provider>
+              </NavbarContext.Provider>
+            </ItemContext.Provider>
+          </SearchContext.Provider>
         </SubmitContext.Provider>
       </AuthContext.Provider>
     </I18nextProvider>

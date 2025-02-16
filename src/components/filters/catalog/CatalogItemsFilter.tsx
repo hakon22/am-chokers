@@ -8,6 +8,7 @@ import type { CollapseProps } from 'antd/lib';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { useAppSelector } from '@/utilities/hooks';
+import { onFocus } from '@/utilities/onFocus';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
@@ -37,14 +38,11 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
 
   const [form] = Form.useForm<CatalogFiltersInterface>();
 
-  const onFocus = () => {
-    const target = document.body;
-    target.parentElement?.focus();
-  };
-
   const onChange = (str: string) => {
     if (str) {
       setCompositions(fullCompositions.filter(({ name }) => name.toLowerCase().includes(str.toLowerCase())));
+    } else {
+      setCompositions(fullCompositions);
     }
   };
 
@@ -155,10 +153,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
   }, []);
 
   useEffect(() => {
-    if (itemGroup) {
-      form.setFieldsValue(initialValues);
-    }
-  }, [itemGroup?.id, initialValues]);
+    form.setFieldsValue(initialValues);
+  }, [JSON.stringify(initialValues)]);
 
   return (
     <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
