@@ -110,6 +110,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const toParams = urlParams.get('to');
   const searchParams = urlParams.get('search');
 
+  const [isFilters, setIsFilters] = useState(false);
+
   const preparedInitialValues: CatalogFiltersInterface = {
     itemGroups: typesParams,
     itemCollections: collectionsParams,
@@ -134,6 +136,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const onFilters = async (values: CatalogFiltersInterface, paginationParams?: Pick<PaginationInterface, 'limit' | 'offset'>) => {
     try {
       setIsSubmit(true);
+      setIsFilters(true);
 
       const params = {
         ...(values?.itemGroups?.length ? { groupIds: values.itemGroups } : {}),
@@ -181,6 +184,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       setInitialValues((state) => ({ ...state, search: undefined }));
       if (isSearch?.needFetch) {
         onFilters({ ...initialValues, search: undefined });
+      } else if (isFilters) {
+        setIsFilters(false);
       } else {
         setItems(propsItems);
       }
@@ -194,7 +199,11 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   useEffect(() => {
     if (itemGroup) {
       setInitialValues({ ...initialValues, itemGroups: [itemGroup.id.toString()] });
-      setItems(items);
+      if (isFilters) {
+        setIsFilters(false);
+      } else {
+        setItems(propsItems);
+      }
     }
   }, [itemGroup?.id, JSON.stringify(initialValues)]);
   
