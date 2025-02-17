@@ -193,10 +193,6 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, [searchParams, isSearch?.value]);
 
   useEffect(() => {
-    setInitialValues(initialValues);
-  }, [JSON.stringify(initialValues)]);
-
-  useEffect(() => {
     if (itemGroup) {
       setInitialValues({ ...initialValues, itemGroups: [itemGroup.id.toString()] });
       if (isFilters) {
@@ -212,7 +208,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
       <FloatButton.BackTop />
       <div className="d-flex col-2">
-        <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
+        <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setInitialValues={setInitialValues} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
       </div>
       <div className="d-flex col-9">
         <div className="w-100">

@@ -17,37 +17,43 @@ interface CatalogItemsPropsInterface {
   setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
   onFilters: (values: CatalogFiltersInterface) => Promise<void>;
   initialValues: CatalogFiltersInterface;
+  setInitialValues: React.Dispatch<React.SetStateAction<CatalogFiltersInterface>>;
   itemGroup?: ItemGroupInterface;
 }
 
 const mapping = ({ id, name }: { id: number; name: string; }) => ({ label: <span className="fs-6">{name}</span>, value: id.toString() });
 
-export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, itemGroup }: CatalogItemsPropsInterface) => {
+export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setInitialValues, itemGroup }: CatalogItemsPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog.filters' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
 
   const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>([]);
-  const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
   const [fullCompositions, setFullCompositions] = useState<CompositionInterface[]>([]);
+  const [optionCompositions, setOptionCompositions] = useState<CompositionInterface[]>([]);
 
   const itemGroupFilterOptions = itemGroups.map(mapping);
   const itemCollectionsFilterOptions = itemCollections.map(mapping);
-  const compositionsFilterOptions = compositions.map(mapping);
+  const compositionsFilterOptions = optionCompositions.map(mapping);
 
   const [form] = Form.useForm<CatalogFiltersInterface>();
 
   const onChange = (str: string) => {
     if (str) {
-      setCompositions(fullCompositions.filter(({ name }) => name.toLowerCase().includes(str.toLowerCase())));
+      setOptionCompositions(fullCompositions.filter(({ name }) => name.toLowerCase().includes(str.toLowerCase())));
     } else {
-      setCompositions(fullCompositions);
+      setOptionCompositions(fullCompositions);
     }
   };
 
+  const setValueCompositions = (values: string[]) => {
+    const otherValues = (initialValues.compositions ?? [])?.filter((value) => !optionCompositions.find((optionsValue) => optionsValue.id.toString() === value));
+    setInitialValues((state) => ({ ...state, compositions: [...values, ...otherValues] }));
+  };
+
   const onClear = () => {
-    setCompositions(fullCompositions);
+    setOptionCompositions(fullCompositions);
   };
 
   const onFinish = async (values: CatalogFiltersInterface) => {
@@ -65,7 +71,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
         setItemCollections(response1.itemCollections);
       }
       if (response2.code === 1) {
-        setCompositions(response2.compositions);
+        setOptionCompositions(response2.compositions);
         setFullCompositions(response2.compositions);
       }
       setIsSubmit(false);
@@ -81,7 +87,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('type')}</span>
-          {initialValues?.itemGroups?.length ? <Badge count={initialValues.itemGroups.length} color="#69788e" /> : null}
+          {initialValues.itemGroups?.length ? <Badge count={initialValues.itemGroups.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
@@ -95,7 +101,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('materials')}</span>
-          {initialValues?.compositions?.length ? <Badge count={initialValues.compositions.length} color="#69788e" /> : null}
+          {initialValues.compositions?.length ? <Badge count={initialValues.compositions.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
@@ -112,8 +118,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
                 onFocus();
               }
             }} />
-          <Form.Item<CatalogFiltersInterface> name="compositions">
-            <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" style={{ fontWeight: 300 }} options={compositionsFilterOptions} />
+          <Form.Item<CatalogFiltersInterface>>
+            <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" value={initialValues.compositions} onChange={setValueCompositions} style={{ fontWeight: 300 }} options={compositionsFilterOptions} />
           </Form.Item>
         </div>
       ),
@@ -123,7 +129,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, item
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('collections')}</span>
-          {initialValues?.itemCollections?.length ? <Badge count={initialValues.itemCollections.length} color="#69788e" /> : null}
+          {initialValues.itemCollections?.length ? <Badge count={initialValues.itemCollections.length} color="#69788e" /> : null}
         </div>
       ),
       children: (

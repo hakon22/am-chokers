@@ -41,8 +41,6 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
 
   const dispatch = useAppDispatch();
 
-  const extension = getExtension();
-
   const width = 77;
   const height = 100;
 
@@ -109,14 +107,23 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
   }, [stateOrders, data]);
 
   useEffect(() => {
-    if (extension < 400) {
-      setMaxPhoto(1);
-    } else if (extension < 1400) {
-      setMaxPhoto(2);
-    } else {
-      setMaxPhoto(3);
-    }
-  }, [extension]);
+    const handleResize = () => {
+      const extension = getExtension();
+      
+      if (extension < 400) {
+        setMaxPhoto(1);
+      } else if (extension < 1400) {
+        setMaxPhoto(2);
+      } else {
+        setMaxPhoto(3);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return orders.length
     ? (
@@ -157,7 +164,7 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
                       <div className="d-flex col-md-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto
                           ? <Image key={image.id} src={image.src} width={width} height={height} alt={position.item.name} style={{ borderRadius: '5px' }} />
-                          : index === maxPhoto && extension > 400
+                          : index === maxPhoto
                             ? <div key={image.id} className="d-flex align-items-center fs-6">
                               <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>
                             </div>

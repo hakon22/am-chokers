@@ -12,7 +12,7 @@ import moment from 'moment';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -37,7 +37,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const dispatch = useAppDispatch();
 
   const { role } = useAppSelector((state) => state.user);
-  const { pagination } = useAppSelector((state) => state.app);
+  const { specialItems, pagination } = useAppSelector((state) => state.app);
 
   const router = useRouter();
   const urlParams = useSearchParams();
@@ -56,8 +56,10 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const updateItem = (value: ItemInterface) => {
     setItem(value);
     setContextItem(value);
-    if ((item.new && !value.new) || (item.collection && !value.collection) || (item.bestseller && !value.bestseller)) {
+    if (!value.new && !value.collection && !value.bestseller) {
       dispatch(removeSpecialItem(value));
+    } else if ((value.new || value.collection || value.bestseller) && !specialItems.find((specialItem) => specialItem.id === value.id)) {
+      dispatch(addSpecialItem(value));
     }
   };
 

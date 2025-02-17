@@ -15,6 +15,7 @@ import { useAppSelector } from '@/utilities/hooks';
 import { ContextMenu } from '@/components/ContextMenu';
 import { SearchContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
+import { getExtension } from '@/utilities/screenExtension';
 import type { ItemInterface } from '@/types/item/Item';
 
 const Index = () => {
@@ -26,6 +27,7 @@ const Index = () => {
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
 
   const [isLoaded, setIsLoaded] = useState(false);
+  const [coverSize, setCoverSize] = useState<{ width: string | number; height: number; }>({ width: '100%', height: 200 });
 
   const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
     if (item.new) {
@@ -97,6 +99,18 @@ const Index = () => {
   }, 1000);
 
   useEffect(() => {
+    const handleResize = () => {
+      const extension = getExtension();
+      setCoverSize({ width: extension > 1400 ? '100%' : 352, height: extension > 1400 ? 200 : 160 });
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     setTimeout(setIsLoaded, 1000, true);
   }, []);
 
@@ -166,8 +180,8 @@ const Index = () => {
           </section>
           <section className="d-flex flex-column col-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <h2>{t('bestsellers')}</h2>
-            <div className="d-flex" style={{ gap: '10%' }}>
-              <div className="d-flex flex-column col-5 justify-content-between">
+            <div className="d-flex justify-content-between">
+              <div className="d-flex flex-column col-6 col-xxl-5 justify-content-between">
                 <ContextMenu item={bestseller1} order={1} className="col-6 align-self-start" style={{ width: '95%' }}>
                   <ImageHover
                     height={height}
@@ -183,7 +197,7 @@ const Index = () => {
                   <ImageHover
                     className="w-100"
                     href={getHref(bestseller2)}
-                    style={{ alignSelf: 'end', width: '95%' }}
+                    style={{ alignSelf: 'end' }}
                     height={height}
                     width={width}
                     images={bestseller2?.images ?? []}
@@ -193,14 +207,13 @@ const Index = () => {
                   />
                 </ContextMenu>
               </div>
-              <div className="col-1" />
-              <div className="d-flex col-5">
+              <div className="col-1 col-xxl-2" />
+              <div className="d-flex">
                 <ContextMenu item={bestseller3} order={3} className="w-100">
                   <ImageHover
-                    className="h-100"
                     href={getHref(bestseller3)}
-                    style={{ width: '100%', alignSelf: 'start' }}
-                    height={642}
+                    width={551}
+                    height={717}
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.name}
                     rating={bestseller3 ? { rating: bestseller3.rating, grades: bestseller3.grades } : undefined}
@@ -210,7 +223,7 @@ const Index = () => {
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '10rem' }}>
+          <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '2rem' }}>
             <h2 className="lh-base">
               {t('slogan.create')}
               <br />
@@ -278,16 +291,16 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ContextMenu className="col-4" image={coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage1 ? [coverImage1] : [])}
                 />
               </ContextMenu>
               <h2 className="col-4 text-center">{t('necklacesAndChokers')}</h2>
               <ContextMenu className="col-4" image={coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage2 ? [coverImage2] : [])}
                 />
               </ContextMenu>
@@ -295,16 +308,16 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ContextMenu className="col-4" image={coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage3 ? [coverImage3] : [])}
                 />
               </ContextMenu>
               <h2 className="col-4 text-center">{t('bracelets')}</h2>
               <ContextMenu className="col-4" image={coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage4 ? [coverImage4] : [])}
                 />
               </ContextMenu>
@@ -312,16 +325,16 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ContextMenu className="col-4" image={coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage5 ? [coverImage5] : [])}
                 />
               </ContextMenu>
               <h2 className="col-4 text-center">{t('glassesChains')}</h2>
               <ContextMenu className="col-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage6 ? [coverImage6] : [])}
                 />
               </ContextMenu>
@@ -329,16 +342,16 @@ const Index = () => {
             <div className="d-flex align-items-center">
               <ContextMenu className="col-4" image={coverImage7} cover={7} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage7 ? [coverImage7] : [])}
                 />
               </ContextMenu>
               <h2 className="col-4 text-center">{t('otherAccessories')}</h2>
               <ContextMenu className="col-4" image={coverImage8} cover={8} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
-                  height={200}
-                  width="100%"
+                  width={coverSize.width}
+                  height={coverSize.height}
                   images={(coverImage8 ? [coverImage8] : [])}
                 />
               </ContextMenu>

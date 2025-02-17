@@ -116,6 +116,15 @@ h2 {
   }
 }
 
+.ant-input-group-addon .ant-btn-variant-solid {
+  background: $dark-blue !important;
+
+  &:active, &:hover {
+    background: $button-background-active !important;
+    color: $light-font !important;
+  }
+}
+
 .hovered {
   &:active, &:hover {
     color: $ant-hover !important;
@@ -384,7 +393,9 @@ a {
 .ant-select-focused .ant-select-selector,
 .ant-select-selector:focus,
 .ant-select-selector:active,
-.ant-select-open .ant-select-selector {
+.ant-select-open .ant-select-selector,
+.ant-input-outlined:hover,
+.ant-input-outlined:focus-within {
   border-color: $dark-blue !important;
   box-shadow: none !important;
 }

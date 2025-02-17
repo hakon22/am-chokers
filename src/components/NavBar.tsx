@@ -6,7 +6,7 @@ import { MouseEvent as ReactMouseEvent, useEffect, useState, useContext } from '
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined,
 } from '@ant-design/icons';
-import { AutoComplete, Badge, Button, Menu, type MenuProps } from 'antd';
+import { AutoComplete, Badge, Button, Input, Menu, type MenuProps } from 'antd';
 import { useSearchParams } from 'next/navigation';
 
 import { catalogPath, routes } from '@/routes';
@@ -85,17 +85,21 @@ export const NavBar = () => {
     },
   ];
 
-  const onSearch = async ({ key }: { key: string; }) => {
+  const onSearch = async () => {
+    if (!search) {
+      delete router.query.search;
+      setIsSearch({ value: false, needFetch: true });
+    }
+    if (router.query?.path) {
+      delete router.query.path;
+    }
+    router.push({ query: search ? { ...router.query, search } : router.query, pathname: routes.catalog });
+    onFocus();
+  };
+
+  const onKeyboardSearch = ({ key }: { key: string; }) => {
     if (key === 'Enter') {
-      if (!search) {
-        delete router.query.search;
-        setIsSearch({ value: false, needFetch: true });
-      }
-      if (router.query?.path) {
-        delete router.query.path;
-      }
-      router.push({ query: search ? { ...router.query, search } : router.query, pathname: routes.catalog });
-      onFocus();
+      onSearch();
     }
   };
 
@@ -139,14 +143,12 @@ export const NavBar = () => {
                 <AutoComplete
                   className="custom-placeholder animate__animated animate__fadeInDown"
                   style={{ width: '80%' }}
-                  placeholder={t('search')}
-                  size="large"
-                  allowClear
                   value={search}
-                  suffixIcon={<SearchOutlined />}
-                  onClear={() => setSearch('')}
                   onChange={setSearch}
-                  onInputKeyDown={onSearch} />
+                  onInputKeyDown={onKeyboardSearch}
+                >
+                  <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
+                </AutoComplete>
               </div>
             )
             : (
