@@ -12,6 +12,7 @@ import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
 import { useRootStyle } from '@/utilities/useRootStyle';
+import { useMobileContext } from '@/utilities/useMobileContext';
 import { Spinner } from '@/components/Spinner';
 import { routes } from '@/routes';
 import { useAccessHandler } from '@/utilities/useAccessHandler';
@@ -33,6 +34,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
   useAuthHandler();
   useAccessHandler();
   useRootStyle();
+  useMobileContext();
 
   useEffect(() => {
     setTimeout(setIsLoaded, 1000, true);

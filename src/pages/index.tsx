@@ -13,7 +13,7 @@ import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
 import { ContextMenu } from '@/components/ContextMenu';
-import { SearchContext } from '@/components/Context';
+import { MobileContext, SearchContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
 import { getExtension } from '@/utilities/screenExtension';
 import type { ItemInterface } from '@/types/item/Item';
@@ -23,6 +23,7 @@ const Index = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   const { isSearch } = useContext(SearchContext);
+  const { isMobile } = useContext(MobileContext);
 
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
 
@@ -117,17 +118,22 @@ const Index = () => {
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
-      <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
-      {isLoaded && (
-        <>
-          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 1 : 3, height: '62vh', width: '55%' }}>
-            <Image src={choker} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-          </div>
-          <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 0 : 2, height: '105vh', width: '60%' }}>
-            <Image src={pendant} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-          </div>
-        </>
-      )}
+      {!isMobile
+        ? (
+          <>
+            <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
+            {isLoaded && (
+              <>
+                <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 1 : 3, height: '62vh', width: '55%' }}>
+                  <Image src={choker} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
+                </div>
+                <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 0 : 2, height: '105vh', width: '60%' }}>
+                  <Image src={pendant} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
+                </div>
+              </>
+            )}
+          </>
+        ) : null}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
           <section className="d-flex flex-column position-relative" data-aos="fade-right" data-aos-duration="1500">

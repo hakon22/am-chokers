@@ -95,3 +95,25 @@
     width: max-content !important;
   }
 }
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 1rem;
+
+    &-icons {
+      width: 70%;
+    }
+  }
+
+  .ant-menu-sub > .ant-menu-item-only-child {
+    font-size: 0.7rem !important;
+  
+    &.navbar-padding {
+      padding-left: 40px !important;
+    }
+  }
+
+  .ant-menu-light.ant-menu-root.ant-menu-inline {
+    border-inline-end: unset;
+  }
+}

@@ -47,3 +47,8 @@ export const SearchContext = createContext<{ isSearch?: { value: boolean; needFe
   isSearch: undefined,
   setIsSearch: () => undefined,
 });
+
+export const MobileContext = createContext<{ isMobile: boolean; setIsMobile: React.Dispatch<React.SetStateAction<boolean>>; }>({
+  isMobile: false,
+  setIsMobile: () => undefined,
+});

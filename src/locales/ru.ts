@@ -420,6 +420,7 @@ export default {
         loading: 'Проверка...',
       },
       navbar: {
+        title: 'Меню',
         logo: 'AM-CHOKERS',
         search: 'Поиск',
         favorites: 'Избранное',
@@ -428,6 +429,7 @@ export default {
         menu: {
           home: 'Главная',
           catalog: 'Каталог',
+          allItems: 'Все товары',
           aboutBrand: 'О бренде',
           delivery: 'Доставка',
           jewelryCaring: 'Уход за украшениями',

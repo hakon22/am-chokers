@@ -19,7 +19,7 @@
     text-transform: uppercase;
     color: $dark-blue;
     position: absolute;
-    right: calc(var(--ratio)* 4.2vw);
+    right: calc(var(--ratio) * -0.5vw);
     bottom: -10vw;
   }
 
@@ -41,8 +41,14 @@
   background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
 }
 
+@media (max-width: 1536px) {
+  .index-block-container .see-all {
+      right: calc(var(--ratio) * -1.5vw);
+    }
+}
+
 @media (max-width: 1367px) {
   .index-block-container .see-all {
-      right: calc(var(--ratio) * 1.85vw);
+      right: calc(var(--ratio) * -1vw);
     }
 }
