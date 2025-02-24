@@ -7,7 +7,8 @@
   margin-top: 60%;
 
   &-carousel {
-    top: 4.8vw;
+    top: 9.6vw;
+    margin-bottom: 2rem;
   }
 
   .see-all {
@@ -51,4 +52,31 @@
   .index-block-container .see-all {
       right: calc(var(--ratio) * -1vw);
     }
+}
+
+@media (max-width: 767px) {
+  .index-block-container {
+    margin-top: 30%;
+    margin-bottom: 70%;
+    row-gap: 6rem;
+
+    &-carousel {
+      margin-bottom: 3rem;
+
+      .react-multiple-carousel__arrow {
+        min-width: unset;
+        min-height: unset;
+        width: 25px;
+        height: 25px;
+
+        &::before {
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .see-all {
+      right: calc(var(--ratio) * 3vw);
+    }
+  }
 }

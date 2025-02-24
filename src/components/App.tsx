@@ -7,7 +7,7 @@ import cn from 'classnames';
 import { useAppSelector } from '@/utilities/hooks';
 import { useErrorHandler } from '@/utilities/useErrorHandler';
 import { useAuthHandler } from '@/utilities/useAuthHandler';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
@@ -29,6 +29,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
   const { error: cartError } = useAppSelector((state) => state.cart);
 
   const { isSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   useErrorHandler(userError, orderError, appError, cartError);
   useAuthHandler();
@@ -47,7 +48,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
         <Breadcrumb />
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: '25%' }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? '100%' : '25%' }}>
         <main className="container">
           {children}
         </main>

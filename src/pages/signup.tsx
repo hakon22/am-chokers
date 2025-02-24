@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { signupValidation } from '@/validations/validations';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { routes } from '@/routes';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
@@ -34,6 +34,7 @@ const Signup = () => {
   const [user, setUser] = useState<UserSignupInterface>();
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
 
@@ -65,14 +66,18 @@ const Signup = () => {
     <>
       <Helmet title={t('title')} description={t('description')} />
       <div className="col-12 d-flex gap-5">
-        <div className="col-5" style={{ marginTop: '12%' }}>
-          <Image src={loginImage} width={600} height={600} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
-        </div>
-        <div className="col-6 d-flex flex-column align-items-center" style={{ marginTop: '18%' }}>
+        {!isMobile
+          ? (
+            <div className="col-5" style={{ marginTop: '12%' }}>
+              <Image src={loginImage} width={600} height={600} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
+            </div>
+          )
+          : null}
+        <div className="col-12 col-md-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '38%' : '18%' }}>
           {isProcessConfirmed ? <ConfirmPhone setState={setIsConfirmed} /> : (
             <>
               <h1 className="mb-5">{t('title')}</h1>
-              <Form name="signup" className="col-8" form={form} onFinish={onFinish}>
+              <Form name="signup" className="col-12 col-md-8" form={form} onFinish={onFinish}>
                 <Form.Item<UserSignupInterface> name="name" rules={[signupValidation]} required>
                   <Input size="large" prefix={<UserOutlined />} placeholder={t('name')} />
                 </Form.Item>

@@ -15,7 +15,7 @@ import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
 import { useAppSelector } from '@/utilities/hooks';
 import { onFocus } from '@/utilities/onFocus';
-import { SearchContext, MobileContext, NavbarContext, AuthContext } from '@/components/Context';
+import { SearchContext, MobileContext, NavbarContext } from '@/components/Context';
 
 type NavigationKeys = {
   key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
@@ -78,8 +78,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, items }: MobileNavBarInterfac
 
   const container = useRef(null);
 
-  const { isActive, closeNavbar, setIsActive } = useContext(NavbarContext);
-  const { logOut } = useContext(AuthContext);
+  const { isActive, setIsActive } = useContext(NavbarContext);
 
   const navbarClassName = cn('menu-btn', { active: isActive });
 
@@ -91,12 +90,12 @@ const MobileNavBar = ({ searchClick, onOpenChange, items }: MobileNavBarInterfac
   return (
     <div className="w-100" ref={container}>
       <div className="d-flex justify-content-between align-items-center">
+        <NavBarIcons searchClick={searchClick} />
         <div className={navbarClassName} onClick={onChangeHandler} tabIndex={0} role="button" aria-label={t('title')} onKeyDown={() => undefined}>
           <span />
           <span />
           <span />
         </div>
-        <NavBarIcons searchClick={searchClick} />
       </div>
       <Drawer
         title={<div className="h1 text-center">{t('logo')}</div>}

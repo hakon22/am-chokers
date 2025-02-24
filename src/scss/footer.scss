@@ -24,3 +24,9 @@
     color: $grey-dark-font !important;
   }
 }
+
+@media (max-width: 767px) {
+  .footer {
+    padding: 2rem 0.5rem;
+  }
+}

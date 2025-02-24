@@ -102,7 +102,18 @@ const Index = () => {
   useEffect(() => {
     const handleResize = () => {
       const extension = getExtension();
-      setCoverSize({ width: extension > 1400 ? '100%' : 352, height: extension > 1400 ? 200 : 160 });
+      setCoverSize({
+        width: extension > 1400
+          ? '100%'
+          : extension < 768
+            ? 300
+            : 352,
+        height: extension > 1400
+          ? 200
+          : extension < 768
+            ? 136
+            : 160,
+      });
     };
 
     handleResize();
@@ -137,8 +148,8 @@ const Index = () => {
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
           <section className="d-flex flex-column position-relative" data-aos="fade-right" data-aos-duration="1500">
-            <div className="d-flex justify-content-between col-12">
-              <h2 className="d-flex align-items-end col-2">{t('newItems')}</h2>
+            <div className="d-flex flex-column flex-md-row justify-content-between col-12">
+              <h2 className="d-flex align-items-md-end justify-content-center justify-content-md-start col-12 col-md-2">{t('newItems')}</h2>
               <Carousel
                 autoPlaySpeed={3000}
                 centerMode={false}
@@ -147,7 +158,7 @@ const Index = () => {
                 focusOnSelect={false}
                 infinite
                 ref={carouselRef}
-                arrows={false}
+                arrows={isMobile}
                 minimumTouchDrag={80}
                 partialVisible={false}
                 renderArrowsWhenDisabled={false}
@@ -167,7 +178,7 @@ const Index = () => {
                 {news.map((item) => (
                   <ImageHover
                     key={item.id}
-                    className={item.className}
+                    className={isMobile ? 'align-items-center' : item.className}
                     href={getHref(item)}
                     height={height}
                     width={width}
@@ -184,11 +195,11 @@ const Index = () => {
               <ArrowRight />
             </Link>
           </section>
-          <section className="d-flex flex-column col-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
-            <h2>{t('bestsellers')}</h2>
-            <div className="d-flex justify-content-between">
-              <div className="d-flex flex-column col-6 col-xxl-5 justify-content-between">
-                <ContextMenu item={bestseller1} order={1} className="col-6 align-self-start" style={{ width: '95%' }}>
+          <section className="d-flex flex-column col-12 col-md-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
+            <h2 className="d-flex justify-content-center justify-content-md-start">{t('bestsellers')}</h2>
+            <div className="d-flex flex-column flex-md-row justify-content-between gap-4 gap-md-0">
+              <div className="d-flex flex-column col-12 col-md-6 col-xxl-5 justify-content-between gap-5 gap-md-0">
+                <ContextMenu item={bestseller1} order={1} className="col-12 col-md-6 align-self-start" style={{ width: '95%' }}>
                   <ImageHover
                     height={height}
                     width={width}
@@ -199,7 +210,7 @@ const Index = () => {
                     description={tPrice('price', { price: bestseller1 ? bestseller1.price - bestseller1?.discountPrice : 0 })}
                   />
                 </ContextMenu>
-                <ContextMenu item={bestseller2} order={2} className="col-6 d-flex align-self-end">
+                <ContextMenu item={bestseller2} order={2} className="col-12 col-md-6 d-flex align-self-end">
                   <ImageHover
                     className="w-100"
                     href={getHref(bestseller2)}
@@ -213,13 +224,14 @@ const Index = () => {
                   />
                 </ContextMenu>
               </div>
-              <div className="col-1 col-xxl-2" />
+              <div className="col-0 col-md-1 col-xxl-2" />
               <div className="d-flex">
                 <ContextMenu item={bestseller3} order={3} className="w-100">
                   <ImageHover
+                    style={{ alignSelf: 'center' }}
                     href={getHref(bestseller3)}
-                    width={551}
-                    height={717}
+                    width={isMobile ? 300 : 551}
+                    height={isMobile ? 390 : 717}
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.name}
                     rating={bestseller3 ? { rating: bestseller3.rating, grades: bestseller3.grades } : undefined}
@@ -244,12 +256,15 @@ const Index = () => {
             </div>
           </section>
           <section className="d-flex flex-column align-items-center">
-            <h2 className="col-10 text-start" style={{ marginBottom: '7%' }}>{t('collections')}</h2>
+            {!isMobile
+              ? <h2 className="col-10 text-center text-md-start" style={{ marginBottom: '7%' }}>{t('collections')}</h2>
+              : null}
             <div className="d-flex flex-column col-10" style={{ gap: '5rem' }}>
               <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
-                <div className="d-flex justify-content-between align-items-end">
+                <div className="d-flex flex-column flex-column-reverse flex-md-row justify-content-between align-items-center align-items-md-end gap-5 gap-md-0">
                   <ImageHover
-                    className="col-6"
+                    className="col-12 col-md-6"
+                    style={{ alignSelf: isMobile ? 'center' : 'start' }}
                     href={getHref(collection1)}
                     height={height}
                     width={width}
@@ -262,9 +277,10 @@ const Index = () => {
                 </div>
               </ContextMenu>
               <ContextMenu item={collection2} order={5} data-aos="fade-right" data-aos-duration="1500">
-                <div className="d-flex justify-content-between align-items-end flex-row-reverse">
+                <div className="d-flex flex-column flex-column-reverse flex-md-row justify-content-between align-items-center align-items-md-end gap-5 gap-md-0 flex-md-row-reverse">
                   <ImageHover
-                    className="col-6"
+                    className="col-12 col-md-6"
+                    style={{ alignSelf: isMobile ? 'center' : 'end' }}
                     href={getHref(collection2)}
                     height={height}
                     width={width}
@@ -277,9 +293,10 @@ const Index = () => {
                 </div>
               </ContextMenu>
               <ContextMenu item={collection3} order={6} data-aos="fade-right" data-aos-duration="1500">
-                <div className="d-flex justify-content-between align-items-end flex-row-reverse">
+                <div className="d-flex flex-column flex-column-reverse flex-md-row justify-content-between align-items-center align-items-md-end gap-5 gap-md-0 flex-md-row-reverse">
                   <ImageHover
-                    className="col-6"
+                    className="col-12 col-md-6"
+                    style={{ alignSelf: isMobile ? 'center' : 'end' }}
                     href={getHref(collection3)}
                     height={height}
                     width={width}
@@ -294,68 +311,76 @@ const Index = () => {
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
-            <div className="d-flex align-items-center">
-              <ContextMenu className="col-4" image={coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
+            <div className="d-flex flex-column flex-md-row align-items-center gap-5 gap-md-0">
+              <ContextMenu className="col-12 col-md-4" image={coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage1 ? [coverImage1] : [])}
                 />
               </ContextMenu>
-              <h2 className="col-4 text-center">{t('necklacesAndChokers')}</h2>
-              <ContextMenu className="col-4" image={coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
+              <h2 className="col-12 col-md-4 text-center">{t('necklacesAndChokers')}</h2>
+              <ContextMenu className="col-12 col-md-4" image={coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage2 ? [coverImage2] : [])}
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex align-items-center">
-              <ContextMenu className="col-4" image={coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
+            <div className="d-flex flex-column flex-md-row align-items-center gap-5 gap-md-0">
+              <ContextMenu className="col-12 col-md-4" image={coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage3 ? [coverImage3] : [])}
                 />
               </ContextMenu>
-              <h2 className="col-4 text-center">{t('bracelets')}</h2>
-              <ContextMenu className="col-4" image={coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
+              <h2 className="col-12 col-md-4 text-center">{t('bracelets')}</h2>
+              <ContextMenu className="col-12 col-md-4" image={coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage4 ? [coverImage4] : [])}
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex align-items-center">
-              <ContextMenu className="col-4" image={coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
+            <div className="d-flex flex-column flex-md-row align-items-center gap-5 gap-md-0">
+              <ContextMenu className="col-12 col-md-4" image={coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage5 ? [coverImage5] : [])}
                 />
               </ContextMenu>
-              <h2 className="col-4 text-center">{t('glassesChains')}</h2>
-              <ContextMenu className="col-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
+              <h2 className="col-12 col-md-4 text-center">{t('glassesChains')}</h2>
+              <ContextMenu className="col-12 col-md-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage6 ? [coverImage6] : [])}
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex align-items-center">
-              <ContextMenu className="col-4" image={coverImage7} cover={7} data-aos="fade-right" data-aos-duration="1500">
+            <div className="d-flex flex-column flex-md-row align-items-center gap-5 gap-md-0">
+              <ContextMenu className="col-12 col-md-4" image={coverImage7} cover={7} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage7 ? [coverImage7] : [])}
                 />
               </ContextMenu>
-              <h2 className="col-4 text-center">{t('otherAccessories')}</h2>
-              <ContextMenu className="col-4" image={coverImage8} cover={8} data-aos="fade-left" data-aos-duration="1500">
+              <h2 className="col-12 col-md-4 text-center">{t('otherAccessories')}</h2>
+              <ContextMenu className="col-12 col-md-4" image={coverImage8} cover={8} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
+                  className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.width}
                   height={coverSize.height}
                   images={(coverImage8 ? [coverImage8] : [])}
@@ -363,7 +388,7 @@ const Index = () => {
               </ContextMenu>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12" data-aos="fade-right" data-aos-duration="1500">
+          <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500">
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
             <p className="fw-light fs-5 mb-2">
               <span>{t('subscribe')}</span>
