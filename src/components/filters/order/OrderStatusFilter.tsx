@@ -29,7 +29,7 @@ export const OrderStatusFilter = ({ statuses, setStatuses }: { statuses: OrderSt
       key="select"
       mode="multiple"
       allowClear
-      className="col-6"
+      className="col-12 col-md-6"
       size="large"
       notFoundContent={<NotFoundContent />}
       optionFilterProp="label"

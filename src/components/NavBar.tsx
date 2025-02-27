@@ -18,7 +18,7 @@ import { onFocus } from '@/utilities/onFocus';
 import { SearchContext, MobileContext, NavbarContext } from '@/components/Context';
 
 type NavigationKeys = {
-  key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts';
+  key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts' | 'home';
 };
 
 type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
@@ -147,6 +147,10 @@ export const NavBar = () => {
   };
 
   const items: MenuItem[] = [
+    ...(isMobile ? [{
+      label: <Link href={routes.homePage}>{t('menu.home')}</Link>,
+      key: 'home',
+    } as MenuItem] : []),
     {
       label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={isOpen} />,
       key: 'catalog',

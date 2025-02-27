@@ -84,7 +84,7 @@ export const Reviews = ({ t }: { t: TFunction }) => {
           }}
           loading={isLoading}
           renderItem={(value, i) => (
-            <div className="d-flex align-items-center gap-4 w-100 py-2" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
+            <div className="d-flex flex-column flex-md-row align-items-center gap-4 w-100 py-2" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
               <ImageHover className="align-self-start" href={getHref(value?.item)} images={value?.item?.images} height={height} width={width} />
               <List.Item
                 className="d-flex flex-column w-100 p-0"
