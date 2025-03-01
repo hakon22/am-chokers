@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useContext } from 'react';
-import { Button, Collapse, Divider, Menu } from 'antd';
+import { Collapse, Divider, Menu } from 'antd';
 import type { InferGetServerSidePropsType } from 'next';
 import type { CollapseProps, MenuProps } from 'antd/lib';
 
@@ -81,11 +81,11 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const defaultActiveKey = [...(path[0] === 'orders' ? path.length === 1 ? ['orders'] : ['order'] : path)];
 
   const mobileItems: CollapseItem[] = [
-    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center' } }, children: getPage() },
-    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center' } }, children: getPage() },
-    { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center' } }, children: getPage() },
-    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center' } }, children: getPage() },
-    { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center' } }, children: getPage() },
+    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center' } }, children: <Personal t={t} /> },
+    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center' } }, children: <OrderHistory t={t} /> },
+    { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center' } }, children: <Favorites /> },
+    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center' } }, children: <Reviews t={t} /> },
+    { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center' } }, children: <div /> },
     ...(role === UserRoleEnum.ADMIN
       ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center' }, body: { paddingTop: 0 } }, children: <Collapse
         className="fs-6 font-oswald"
@@ -96,16 +96,16 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
             accordion
             ghost
             items={[
-              { key: routes.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemList, label: <Link href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
-          { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.compositionsControl, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.promotionalCodes, label: <Link href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.compositionsControl, label: <Link href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Link>, showArrow: false, collapsible: 'disabled' },
         ]}
       /> }]
       : []),
@@ -153,14 +153,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                     accordion
                     ghost
                     onChange={onCollapse}
-                    items={mobileItems.reduce((acc, item) => {
-                      if (defaultActiveKey.includes(item.key as string)) {
-                        acc.unshift(item);
-                      } else {
-                        acc.push(item);
-                      }
-                      return acc;
-                    }, [] as CollapseItem[])}
+                    items={mobileItems}
                   />
                   <Divider className="my-0" /> 
                   <Collapse ghost className="fs-5 ms-4 font-oswald" items={[{ key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button>, collapsible: 'disabled', showArrow: false }]} />
