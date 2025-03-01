@@ -1,15 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, Form, Input, Rate, Tag } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import moment from 'moment';
-import type { TFunction } from 'i18next';
 import type { UploadFile } from 'antd/lib';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { createGrade, selectors } from '@/slices/orderSlice';
 import { routes } from '@/routes';
+import { MobileContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice';
@@ -22,7 +22,8 @@ import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
 
-export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: TFunction, order?: OrderInterface }) => {
+export const Order = ({ orderId, order: orderParams }: { orderId: number; order?: OrderInterface }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.orders.order' });
   const { t: tOrders } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -31,6 +32,8 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
   const router = useRouter();
 
   const dispatch = useAppDispatch();
+
+  const { isMobile } = useContext(MobileContext);
   
   const newGrade: Partial<GradeFormInterface> = {
     grade: undefined,
@@ -95,15 +98,15 @@ export const Order = ({ orderId, t, order: orderParams }: { orderId: number; t: 
 
   return order
     ? (
-      <div className="d-flex flex-column gap-4" style={{ width: '90%' }}>
+      <div className="d-flex flex-column gap-4" style={{ ...(isMobile ? {} : { width: '90%' }) }}>
         <Badge.Ribbon text={tOrders(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
           <Card>
-            <div className="d-flex col-12" style={{ lineHeight: 0.5 }}>
+            <div className="d-flex col-12" style={{ ...(isMobile ? {} : { lineHeight: 0.5 }) }}>
               <div className="d-flex flex-column justify-content-between col-12">
                 <div className="d-flex flex-column font-oswald">
-                  <div className="d-flex mb-5 justify-content-between align-items-center">
-                    <span className="fs-5 fw-bold">{t('orderDate', { date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
-                    <div className="d-flex flex-column gap-2">
+                  <div className="d-flex flex-column flex-md-row mb-4 mb-md-5 justify-content-between align-items-center">
+                    <span className="fs-5 fw-bold">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
+                    <div className="d-flex flex-column gap-2" style={{ ...(isMobile ? { alignSelf: 'start', marginTop: '1rem' } : {}) }}>
                       {order.promotional
                         ? <Tag color="#e3dcfa" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{tOrders('promotional')}</span>

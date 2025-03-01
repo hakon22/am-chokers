@@ -1,4 +1,3 @@
-import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { Alert, Badge, Card, Tag, Tooltip } from 'antd';
@@ -20,19 +19,19 @@ import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
 import { getHref } from '@/utilities/getHref';
 import type { OrderInterface } from '@/types/order/Order';
 
 interface OrderHistoryInterface {
-  t: TFunction;
   data?: OrderInterface[];
   setData?: React.Dispatch<React.SetStateAction<OrderInterface[]>>;
 }
 
-export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
+export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const urlParams = useSearchParams();
@@ -45,6 +44,7 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
   const height = 100;
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [maxPhoto, setMaxPhoto] = useState(3);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
@@ -159,7 +159,7 @@ export const OrderHistory = ({ t, data, setData }: OrderHistoryInterface) => {
                 </Link>
                 <div className="d-flex flex-column col-12 col-md-8 gap-2">
                   {order.positions.map((position) =>
-                    <Tooltip key={position.id} title={position.item.name} className="d-flex align-items-center justify-content-between justify-content-md-start gap-md-3" placement="left" color="#4d689e">
+                    <Tooltip key={position.id} title={isMobile ? '' : position.item.name} className="d-flex align-items-center justify-content-between justify-content-md-start gap-md-3" placement="left" color="#4d689e">
                       <Link href={getHref(position.item)} className="col-5 col-md-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</Link>
                       <div className="d-flex col-md-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto

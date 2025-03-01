@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useContext } from 'react';
-import { Collapse, Divider, Menu } from 'antd';
+import { useContext, useEffect, useState } from 'react';
+import { Button, Collapse, Divider, Menu, Skeleton } from 'antd';
 import type { InferGetServerSidePropsType } from 'next';
 import type { CollapseProps, MenuProps } from 'antd/lib';
 
@@ -40,6 +40,8 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const { logOut } = useContext(AuthContext);
   const { isMobile } = useContext(MobileContext);
 
+  const [activeKey, setActiveKey] = useState(path);
+
   const { pagination } = useAppSelector((state) => state.app);
   const { id, role, favorites } = useAppSelector((state) => state.user);
 
@@ -50,22 +52,24 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   };
 
   const pages: Record<string, JSX.Element> = {
-    personal: <Personal t={t} />,
-    orders: <OrderHistory t={t} />,
+    personal: <Personal />,
+    orders: <OrderHistory />,
     favorites: <Favorites />,
-    reviews: <Reviews t={t} />,
-    order: <Order orderId={+titleProps.id} t={t} />,
+    reviews: <Reviews />,
+    order: <Order orderId={+titleProps.id} />,
   };
 
   const getPage = () => {
     if (path[0] === 'orders') {
       return path.length === 1 ? pages.orders : pages.order;
     }
-    return pages[path[0]];
+    return isMobile ? <Skeleton active /> : pages[path[0]];
   };
 
   const onCollapse = (keys: string[]) => {
-    if (keys.includes('personal')) {
+    if (!keys.length) {
+      setActiveKey(keys);
+    } else if (keys.includes('personal')) {
       router.push(routes.personalData);
     } else if (keys.includes('orders')) {
       router.push(routes.orderHistory);
@@ -78,13 +82,11 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     }
   };
 
-  const defaultActiveKey = [...(path[0] === 'orders' ? path.length === 1 ? ['orders'] : ['order'] : path)];
-
   const mobileItems: CollapseItem[] = [
-    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center' } }, children: <Personal t={t} /> },
-    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center' } }, children: <OrderHistory t={t} /> },
+    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center' } }, children: <Personal /> },
+    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center' } }, children: getPage() },
     { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center' } }, children: <Favorites /> },
-    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center' } }, children: <Reviews t={t} /> },
+    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center' } }, children: <Reviews /> },
     { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center' } }, children: <div /> },
     ...(role === UserRoleEnum.ADMIN
       ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center' }, body: { paddingTop: 0 } }, children: <Collapse
@@ -96,16 +98,16 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
             accordion
             ghost
             items={[
-              { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemList, label: <Link href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Link>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
-          { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.promotionalCodes, label: <Link href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.compositionsControl, label: <Link href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Link>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.compositionsControl, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
         ]}
       /> }]
       : []),
@@ -135,6 +137,12 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
+  useEffect(() => {
+    if (isMobile) {
+      setActiveKey(path[1] ? ['orders'] : path);
+    }
+  }, [path[0], path[1]]);
+  
   return (
     <>
       <Helmet title={t('title', titleProps)} description={t('description')} />
@@ -148,7 +156,8 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
               ? (
                 <>
                   <Collapse
-                    defaultActiveKey={defaultActiveKey}
+                    defaultActiveKey={path[1] ? ['orders'] : path}
+                    activeKey={activeKey}
                     className="mb-3 fs-5 font-oswald"
                     accordion
                     ghost
@@ -163,7 +172,6 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                 <>
                   <div className="col-4">
                     <Menu
-                      selectedKeys={[router.asPath]}
                       mode="inline"
                       className="fs-5 font-oswald"
                       items={items}

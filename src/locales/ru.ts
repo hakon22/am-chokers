@@ -98,7 +98,7 @@ export default {
           order: {
             title: 'Заказ №{{ id }}',
             description: 'Заказ №{{ id }}',
-            orderDate: 'Заказ от {{ date }}',
+            orderDate: 'Заказ №{{ number }} от {{ date }}',
             delivery: 'Доставка {{ delivery }}',
             deliveryDate: 'Дата доставки {{ date }}',
             countPrice: '{{ count }} шт - {{ price }} ₽',

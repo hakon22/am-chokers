@@ -3,7 +3,6 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Divider, List, Skeleton } from 'antd';
 import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
-import type { TFunction } from 'i18next';
 
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { ImageHover } from '@/components/ImageHover';
@@ -19,7 +18,8 @@ import type { PaginationQueryInterface } from '@server/types/pagination.query.in
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
-export const Reviews = ({ t }: { t: TFunction }) => {
+export const Reviews = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.reviews' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const dispatch = useAppDispatch();
