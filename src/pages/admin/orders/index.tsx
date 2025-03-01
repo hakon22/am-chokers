@@ -88,7 +88,7 @@ const Orders = () => {
         scrollableTarget="scrollableDiv"
         style={{ overflow: 'unset' }}
       >
-        <OrderHistory t={tOrders} data={data} setData={setData} />
+        <OrderHistory data={data} setData={setData} />
       </InfiniteScroll>
     </div>
   ) : null;
