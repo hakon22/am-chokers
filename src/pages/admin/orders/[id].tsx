@@ -70,7 +70,7 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
       <div className="d-flex align-items-center gap-3 mb-5">
         <BackButton style={{}} />
       </div>
-      {order && <OrderComponent order={order} t={tOrder} orderId={order.id} />}
+      {order && <OrderComponent order={order} orderId={order.id} />}
     </div>
   ) : <Navigate to={routes.homePage} replace />;
 };
