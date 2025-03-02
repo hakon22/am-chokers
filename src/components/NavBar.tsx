@@ -18,7 +18,7 @@ import { onFocus } from '@/utilities/onFocus';
 import { SearchContext, MobileContext, NavbarContext } from '@/components/Context';
 
 type NavigationKeys = {
-  key: 'catalog' | 'aboutBrand' | 'delivery' | 'jewelryCaring' | 'contacts' | 'home';
+  key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home';
 };
 
 type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
@@ -26,6 +26,7 @@ type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
 interface MobileNavBarInterface {
   searchClick: () => void;
   onOpenChange: (value: string[]) => void;
+  onChangeHandler: () => void;
   items: MenuItem[];
 }
 
@@ -73,19 +74,14 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
   );
 };
 
-const MobileNavBar = ({ searchClick, onOpenChange, items }: MobileNavBarInterface) => {
+const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: MobileNavBarInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const container = useRef(null);
 
-  const { isActive, setIsActive } = useContext(NavbarContext);
+  const { isActive } = useContext(NavbarContext);
 
   const navbarClassName = cn('menu-btn', { active: isActive });
-
-  const onChangeHandler = () => {
-    document.body.style.overflowY = !isActive ? 'hidden' : 'scroll';
-    setIsActive(!isActive);
-  };
 
   return (
     <div className="w-100" ref={container}>
@@ -124,6 +120,7 @@ export const NavBar = () => {
 
   const { isSearch, setIsSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
+  const { isActive, setIsActive } = useContext(NavbarContext);
 
   const searchParams = urlParams.get('search');
 
@@ -146,32 +143,43 @@ export const NavBar = () => {
     }
   };
 
+  const onChangeHandler = () => {
+    document.body.style.overflowY = !isActive ? 'hidden' : 'scroll';
+    setIsActive(!isActive);
+  };
+
   const items: MenuItem[] = [
     ...(isMobile ? [{
       label: <Link href={routes.homePage}>{t('menu.home')}</Link>,
       key: 'home',
+      onClick: onChangeHandler,
     } as MenuItem] : []),
     {
       label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={isOpen} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
-      children: [...(isMobile ? [{ code: '', name: t('menu.allItems') }, ...itemGroups] : itemGroups)].map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
+      ...(isMobile ? { onClick: onChangeHandler } : {}),
+      children: [...(isMobile ? [{ code: '', name: <span className="fw-bold">{t('menu.allItems')}</span> }, ...itemGroups] : itemGroups)].map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
     },
     {
       label: <Link href={routes.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,
-      key: 'aboutBrand',
+      ...(isMobile ? { onClick: onChangeHandler } : {}),
+      key: 'about-brand',
     },
     {
       label: <Link href={routes.deliveryPage}>{t('menu.delivery')}</Link>,
+      ...(isMobile ? { onClick: onChangeHandler } : {}),
       key: 'delivery',
     },
     {
       label: <Link href={routes.jewelryCarePage}>{t('menu.jewelryCaring')}</Link>,
-      key: 'jewelryCaring',
+      ...(isMobile ? { onClick: onChangeHandler } : {}),
+      key: 'jewelry-care',
     },
     {
       label: <Link href={routes.contactsPage}>{t('menu.contacts')}</Link>,
+      ...(isMobile ? { onClick: onChangeHandler } : {}),
       key: 'contacts',
     },
   ];
@@ -231,7 +239,7 @@ export const NavBar = () => {
         ? isMobile
           ? (
             <>
-              <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} items={items} />
+              <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
               {isSearch?.value
                 ? (
                   <div className="mt-4 d-flex justify-content-center align-items-center w-100">
@@ -274,6 +282,7 @@ export const NavBar = () => {
                     <Menu
                       data-aos="fade-down"
                       items={items}
+                      selectedKeys={[router.asPath.split('/')[1]]}
                       rootClassName="bg-transparent"
                       mode="horizontal"
                       onOpenChange={onOpenChange}

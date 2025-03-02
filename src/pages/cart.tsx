@@ -10,7 +10,7 @@ import type { CheckboxProps, InputProps } from 'antd/lib';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
@@ -25,6 +25,25 @@ import { getPrice, getDiscount } from '@/utilities/order/getOrderPrice';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
+const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
+
+  const dispatch = useAppDispatch();
+
+  return (
+    <div className="d-flex gap-4" style={isMobile ? { marginLeft: '2.77rem' } : {}}>
+      <CartControl id={item.item.id} deleted={item.item.deleted} width={width} setCartList={setCartList} />
+      <div className="d-flex gap-3">
+        <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
+          <DeleteOutlined className="icon fs-5" />
+          <span className="visually-hidden">{t('delete')}</span>
+        </button>
+        <Favorites id={item.item.id} className="fs-5" outlined={true} />
+      </div>
+    </div>
+  );
+};
+
 const Cart = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -37,6 +56,7 @@ const Cart = () => {
   const { cart } = useAppSelector((state) => state.cart);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [cartList, setCartList] = useState<CartItemInterface[]>([]);
   const [selectPromotionField, setSelectPromotionField] = useState(false);
@@ -60,8 +80,10 @@ const Cart = () => {
   const isFull = cartList.length === filteredCart.length;
   const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
 
+  const coefficient = 1.3;
+
   const width = 130;
-  const height = 170;
+  const height = width * coefficient;
 
   const [form] = Form.useForm();
 
@@ -118,11 +140,11 @@ const Cart = () => {
   }, []);
 
   return (
-    <div className="d-flex flex-column" style={{ marginTop: '12%' }}>
+    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '30%' : '12%' }}>
       <Helmet title={t('title', { count: countCart })} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
-      <Form name="cart" className="d-flex col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form}>
-        <div className="d-flex flex-column justify-content-center align-items-between col-8">
+      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form}>
+        <div className="d-flex flex-column justify-content-center align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className="mb-4" indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
           </Checkbox>
@@ -134,8 +156,8 @@ const Cart = () => {
                 emptyText: <NotFoundContent text={t('notFoundContent')} />,
               }}
               renderItem={(item) => (
-                <List.Item>
-                  <div className="d-flex gap-3" style={{ width, height }}>
+                <List.Item className={cn({ 'd-flex flex-column align-items-start gap-3': isMobile })}>
+                  <div className="d-flex gap-3" style={{ height }}>
                     <Checkbox className={cn({ 'opacity-50': item.item.deleted })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
@@ -150,24 +172,16 @@ const Cart = () => {
                         <span className="lh-1">{item.item.name}</span>
                         <span>{tPrice('price', { price: (item.item.price - item.item.discountPrice) * item.count })}</span>
                       </Link>
-                      <div className="d-flex gap-4">
-                        <CartControl id={item.item.id} deleted={item.item.deleted} setCartList={setCartList} />
-                        <div className="d-flex gap-3">
-                          <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
-                            <DeleteOutlined className="icon fs-5" />
-                            <span className="visually-hidden">{t('delete')}</span>
-                          </button>
-                          <Favorites id={item.item.id} className="fs-5" outlined={true} />
-                        </div>
-                      </div>
+                      {!isMobile ? <ControlButtons item={item} setCartList={setCartList} /> : null}
                     </div>
                   </div>
+                  {isMobile ? <ControlButtons item={item} isMobile={isMobile} width={width} setCartList={setCartList} /> : null}
                 </List.Item>
               )}
             />
           </Checkbox.Group>
         </div>
-        <div className="col-4">
+        <div className="col-12 col-xl-4">
           <h3 className="mb-5 text-uppercase">{t('deliveryType')}</h3>
           <div className="d-flex justify-content-between fs-5 mb-2" style={{ fontWeight: 300 }}>
             <span>{t('itemCount', { count })}</span>

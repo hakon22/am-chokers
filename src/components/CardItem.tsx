@@ -21,7 +21,7 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { toast } from '@/utilities/toast';
-import { ItemContext, SubmitContext } from '@/components/Context';
+import { ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
@@ -52,6 +52,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const { setItem: setContextItem } = useContext(ItemContext);
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const updateItem = (value: ItemInterface) => {
     setItem(value);
@@ -114,7 +115,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   }, []);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
-    <div className="d-flex flex-column">
+    <div className="d-flex flex-column" style={isMobile ? { marginTop: '12%' } : {}}>
       <Helmet title={name} description={description} image={images?.[0]?.src} />
       <div className="d-flex mb-5">
         <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>

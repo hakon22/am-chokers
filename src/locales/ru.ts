@@ -372,6 +372,7 @@ export default {
         title: 'Каталог украшений',
         description: 'Тут вы можете подобрать себе украшения на любой вкус',
         filters: {
+          title: 'Фильтры',
           type: 'Тип аксессуара',
           materials: 'Материалы',
           collections: 'Коллекция',
@@ -487,7 +488,7 @@ export default {
         publish: 'Опубликовано {{ date }}',
         collection: '{{ name }}',
         grades: {
-          gradeCount_zero: 'Отзывов пока нет',
+          gradeCount_zero: 'Отзывов нет',
           gradeCount_one: '{{ count }} отзыв',
           gradeCount_few: '{{ count }} отзыва',
           gradeCount_many: '{{ count }} отзывов',

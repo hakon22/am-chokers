@@ -40,8 +40,10 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   const dispatch = useAppDispatch();
 
+  const coefficient = 1.3;
+
   const width = 77;
-  const height = 100;
+  const height = width * coefficient;
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -127,15 +129,15 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   return orders.length
     ? (
-      <div className={cn('d-flex flex-column gap-4 w-100', { 'ms-md-3': !setData })}>
+      <div className={cn('d-flex flex-column gap-4 w-100', { 'ms-xl-3': !setData })}>
         {!setData && <OrderStatusFilter statuses={statuses} setStatuses={setStatuses} />}
         {orders.sort((a, b) => b.id - a.id).filter((order) => !statuses.length || statuses.includes(order.status)).map((order) => (
           <Badge.Ribbon key={order.id} text={t(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
             <Card
               actions={getActions(order.status, order.id)}
             >
-              <div className="d-flex flex-column flex-md-row col-12 gap-3 gap-md-0">
-                <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="d-flex flex-column justify-content-between col-12 gap-3 gap-md-0 col-md-4">
+              <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">
+                <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="d-flex flex-column justify-content-between col-12 gap-3 gap-xl-0 col-xl-4">
                   <div className="d-flex flex-column" style={{ minHeight: 100 }}>
                     <span className="fs-6 mb-3">{t('orderNumber', { id: order.id })}</span>
                     <span className="text-muted">{moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>
@@ -157,11 +159,11 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                     </Tag>
                   </div>
                 </Link>
-                <div className="d-flex flex-column col-12 col-md-8 gap-2">
+                <div className="d-flex flex-column col-12 col-xl-8 gap-2">
                   {order.positions.map((position) =>
-                    <Tooltip key={position.id} title={isMobile ? '' : position.item.name} className="d-flex align-items-center justify-content-between justify-content-md-start gap-md-3" placement="left" color="#4d689e">
-                      <Link href={getHref(position.item)} className="col-5 col-md-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</Link>
-                      <div className="d-flex col-md-10 gap-2">{position.item.images.map((image, index) =>
+                    <Tooltip key={position.id} title={isMobile ? '' : position.item.name} className="d-flex align-items-center justify-content-between justify-content-xl-start gap-xl-3" placement="left" color="#4d689e">
+                      <Link href={getHref(position.item)} className="col-5 col-xl-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</Link>
+                      <div className="d-flex col-xl-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto
                           ? <Image key={image.id} src={image.src} width={width} height={height} alt={position.item.name} style={{ borderRadius: '5px' }} />
                           : index === maxPhoto

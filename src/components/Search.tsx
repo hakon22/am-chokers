@@ -86,7 +86,7 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
   return (
     <AutoComplete
       value={search?.value}
-      className="d-flex col-md-4"
+      className="d-flex col-xl-4"
       placeholder={t('title')}
       notFoundContent={search && !isLoading ? <NotFoundContent /> : search && <Spinner isLoaded />}
       allowClear

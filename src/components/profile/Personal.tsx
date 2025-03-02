@@ -128,7 +128,7 @@ export const Personal = () => {
   const password = Form.useWatch('password', form);
 
   return phoneConfirm && !isConfirmed ? <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} /> : (
-    <Form name="user-profile" form={form} initialValues={initialValues} className="col-12 col-md-8" onFinish={onFinish}>
+    <Form name="user-profile" form={form} initialValues={initialValues} className="col-12 col-xl-8" onFinish={onFinish}>
       <label htmlFor="user-profile_phone" className="label">{t('phone')}</label>
       <Form.Item<UserProfileType> name="phone" rules={[profileValidation]} className="mb-3">
         <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />

@@ -96,7 +96,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1199px) {
   .nav {
     padding: 1rem;
 
@@ -110,6 +110,7 @@
   
     &.navbar-padding {
       padding-left: 40px !important;
+      width: 100% !important;
     }
   }
 

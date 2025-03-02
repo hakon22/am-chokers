@@ -8,7 +8,7 @@ import { RightOutlined } from '@ant-design/icons';
 
 import { routes, catalogPath } from '@/routes';
 import { useAppSelector } from '@/utilities/hooks';
-import { ItemContext } from '@/components/Context';
+import { ItemContext, MobileContext } from '@/components/Context';
 
 type BreadcrumbState = {
   title: JSX.Element | string;
@@ -21,6 +21,7 @@ export const Breadcrumb = () => {
   const { itemGroups } = useAppSelector((state) => state.app);
 
   const { item } = useContext(ItemContext);
+  const { isMobile } = useContext(MobileContext);
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -49,6 +50,6 @@ export const Breadcrumb = () => {
   }, [pathname, itemGroups.length, item?.name]);
 
   return router.pathname.includes(catalogPath)
-    ? <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '9%' }} />
+    ? <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: isMobile ? '25%' : '9%' }} />
     : null;
 };

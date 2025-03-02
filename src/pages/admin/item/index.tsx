@@ -322,7 +322,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                   <Checkbox>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
-              <div className={cn('d-flex flex-column flex-md-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>
+              <div className={cn('d-flex flex-column flex-xl-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>
                 <Form.Item<typeof item> name="price" rules={[newItemValidation]} className="col-3">
                   <InputNumber size="large" variant="borderless" placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>

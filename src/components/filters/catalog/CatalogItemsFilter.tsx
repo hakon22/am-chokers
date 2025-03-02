@@ -1,14 +1,16 @@
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
-import { AutoComplete, Badge, Button, Checkbox, Collapse, Form, InputNumber } from 'antd';
+import { useContext, useEffect, useState } from 'react';
+import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
+import { Funnel } from 'react-bootstrap-icons';
 import type { CollapseProps } from 'antd/lib';
 
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { useAppSelector } from '@/utilities/hooks';
 import { onFocus } from '@/utilities/onFocus';
+import { MobileContext } from '@/components/Context';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
@@ -18,16 +20,20 @@ interface CatalogItemsPropsInterface {
   onFilters: (values: CatalogFiltersInterface) => Promise<void>;
   initialValues: CatalogFiltersInterface;
   setInitialValues: React.Dispatch<React.SetStateAction<CatalogFiltersInterface>>;
+  showDrawer: boolean;
+  setShowDrawer: React.Dispatch<React.SetStateAction<boolean>>;
   itemGroup?: ItemGroupInterface;
 }
 
 const mapping = ({ id, name }: { id: number; name: string; }) => ({ label: <span className="fs-6">{name}</span>, value: id.toString() });
 
-export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setInitialValues, itemGroup }: CatalogItemsPropsInterface) => {
+export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup }: CatalogItemsPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog.filters' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
+
+  const { isMobile } = useContext(MobileContext);
 
   const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>([]);
   const [fullCompositions, setFullCompositions] = useState<CompositionInterface[]>([]);
@@ -80,6 +86,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     }
   };
 
+  const filtersCount = () => (initialValues.itemGroups?.length ?? 0) + (initialValues.compositions?.length ?? 0) + (initialValues.itemCollections?.length ?? 0) + (initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0);
+
   const filters: CollapseProps['items'] = [
     {
       key: '1',
@@ -92,7 +100,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="itemGroups">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" style={{ fontWeight: 300 }} options={itemGroup ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" style={{ fontWeight: 300 }} options={itemGroup && !isMobile ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
         </Form.Item>
       ),
     },
@@ -147,7 +155,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
             <InputNumber className="w-100" size="small" placeholder={t('price.from')} suffix={t('price.suffix')} min={1} keyboard />
           </Form.Item>
           <Form.Item<CatalogFiltersInterface> name="to" className="custom-placeholder">
-            <InputNumber className="w-100" size="small" placeholder={t('price.to')} suffix={t('price.suffix')}  min={1} keyboard />
+            <InputNumber className="w-100" size="small" placeholder={t('price.to')} suffix={t('price.suffix')} min={1} keyboard />
           </Form.Item>
         </>
       ),
@@ -162,12 +170,45 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     form.setFieldsValue(initialValues);
   }, [JSON.stringify(initialValues)]);
 
-  return (
-    <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-      <Collapse defaultActiveKey={['1', '4']} ghost items={filters} expandIconPosition="end" className="mb-4" />
-      <Button htmlType="submit" className="button fs-6 mx-auto">
-        {t('submitButton')}
-      </Button>
-    </Form>
-  );
+  useEffect(() => {
+    if (itemGroup) {
+      form.setFieldValue('itemGroups', [itemGroup.id.toString()]);
+      // form.setFieldsValue({ ...initialValues, itemGroups: [...(initialValues.itemGroups || []), itemGroup.id.toString()] });
+    }
+  }, [itemGroup?.id]);
+
+  return isMobile
+    ? (
+      <>
+        <FloatButton
+          style={{ left: '6.5%', top: '5rem', zIndex: 1 }}
+          badge={{ count: filtersCount() }}
+          icon={<Funnel />}
+          onClick={() => setShowDrawer(true)}
+        />
+        <Drawer
+          placement="left"
+          title={t('title')}
+          onClose={() => setShowDrawer(false)}
+          open={showDrawer}
+        >
+          <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
+            <Collapse defaultActiveKey={['1', '4']} ghost items={filters} expandIconPosition="end" className="mb-4" />
+            <Button htmlType="submit" className="button fs-6 mx-auto">
+              {t('submitButton')}
+            </Button>
+          </Form>
+        </Drawer>
+      </>
+    )
+    : (
+      <div className="d-flex col-2">
+        <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
+          <Collapse defaultActiveKey={['1', '4']} ghost items={filters} expandIconPosition="end" className="mb-4" />
+          <Button htmlType="submit" className="button fs-6 mx-auto">
+            {t('submitButton')}
+          </Button>
+        </Form>
+      </div>
+    );
 };

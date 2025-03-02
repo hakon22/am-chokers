@@ -28,8 +28,10 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
 
   const { name: title, description } = items?.[0]?.group ?? { name: tCatalog('title'), description: tCatalog('description') };
 
+  const coefficient = 1.3;
+
   const width = 230;
-  const height = 300;
+  const height = width * coefficient;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [data, setData] = useState<ItemInterface[]>(items);

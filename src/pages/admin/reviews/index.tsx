@@ -48,8 +48,10 @@ const Reviews = () => {
     images: undefined,
   };
 
+  const coefficient = 1.3;
+
   const width = 115;
-  const height = 150;
+  const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { role } = useAppSelector((state) => state.user);

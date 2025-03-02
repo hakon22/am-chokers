@@ -67,9 +67,8 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   };
 
   const onCollapse = (keys: string[]) => {
-    if (!keys.length) {
-      setActiveKey(keys);
-    } else if (keys.includes('personal')) {
+    setActiveKey(keys);
+    if (keys.includes('personal')) {
       router.push(routes.personalData);
     } else if (keys.includes('orders')) {
       router.push(routes.orderHistory);
@@ -138,9 +137,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   ];
 
   useEffect(() => {
-    if (isMobile) {
-      setActiveKey(path[1] ? ['orders'] : path);
-    }
+    setActiveKey(path[1] ? ['orders'] : path);
   }, [path[0], path[1]]);
   
   return (
@@ -151,7 +148,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           {!isMobile
             ? <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
             : null}
-          <div className="d-flex flex-column flex-md-row" style={isMobile ? { marginTop: '30%' } : {}}>
+          <div className="d-flex flex-column flex-xl-row" style={isMobile ? { marginTop: '30%' } : {}}>
             {isMobile
               ? (
                 <>
@@ -174,10 +171,11 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                     <Menu
                       mode="inline"
                       className="fs-5 font-oswald"
+                      selectedKeys={activeKey}
                       items={items}
                     />
                   </div>
-                  <div className="col-12 col-md-8 d-flex justify-content-center">{getPage()}</div>
+                  <div className="col-12 col-xl-8 d-flex justify-content-center">{getPage()}</div>
                 </>
               )}
           </div>

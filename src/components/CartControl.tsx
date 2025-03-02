@@ -8,7 +8,7 @@ import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
 
-export const CartControl = ({ id, deleted, className = 'fs-6', setCartList }: { id: number; deleted?: Date | null, setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>, className?: string; }) => {
+export const CartControl = ({ id, deleted, className = 'fs-6', width, setCartList }: { id: number; deleted?: Date | null; width?: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; className?: string; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
 
@@ -69,7 +69,7 @@ export const CartControl = ({ id, deleted, className = 'fs-6', setCartList }: { 
   return deleted
     ? <Tag color="volcano" className="py-1 px-2">{tCart('deleted')}</Tag>
     : inCart ? (
-      <div className="d-flex gap-3 justify-content-center align-items-center cart-control">
+      <div className="d-flex gap-3 justify-content-center align-items-center cart-control" style={width ? { width } : {}}>
         <Button onClick={decrement}><MinusOutlined className="fs-6" title={t('remove')} /></Button>
         <span className={className}>{inCart.count}</span>
         <Button onClick={increment}><PlusOutlined className="fs-6" title={t('add')} /></Button>

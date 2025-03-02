@@ -5,4 +5,4 @@ export const getWidth = () => window.innerWidth;
 export const getRatio = () => window.devicePixelRatio;
 
 /** Получить итоговое расширение экрана */
-export const getExtension = () => getWidth() + getRatio();
+export const getExtension = () => getWidth() * getRatio();

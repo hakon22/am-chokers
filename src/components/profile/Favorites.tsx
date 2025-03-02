@@ -15,8 +15,10 @@ export const Favorites = () => {
 
   const { favorites } = useAppSelector((state) => state.user);
 
+  const coefficient = 1.3;
+
   const width = 130;
-  const height = 170;
+  const height = width * coefficient;
 
   return (
     <List

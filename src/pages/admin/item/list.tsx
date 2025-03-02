@@ -34,8 +34,10 @@ const ItemList = () => {
   const withDeletedParams = urlParams.get('withDeleted');
   const searchParams = urlParams.get('search');
 
+  const coefficient = 1.3;
+
   const width = 200;
-  const height = 260;
+  const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { role } = useAppSelector((state) => state.user);

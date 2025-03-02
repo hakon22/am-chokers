@@ -46,7 +46,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
       {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
       <header>
         <NavBar />
-        <Breadcrumb />
+        {isMobile ? null : <Breadcrumb />}
       </header>
       <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? '100%' : '25%' }}>
         <main className="container">

@@ -51,9 +51,9 @@ const Login = () => {
             </div>
           )
           : null}
-        <div className="col-12 col-md-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '30%' : '22%' }}>
+        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '30%' : '22%' }}>
           <h1 className="mb-5">{t('title')}</h1>
-          <Form name="login" className="col-12 col-md-8" form={form} onFinish={onFinish}>
+          <Form name="login" className="col-12 col-xl-8" form={form} onFinish={onFinish}>
             <Form.Item<UserLoginInterface> name="phone" rules={[loginValidation]}>
               <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
             </Form.Item>

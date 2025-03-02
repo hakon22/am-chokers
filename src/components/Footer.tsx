@@ -19,7 +19,7 @@ export const Footer = () => {
 
   return (
     <div className="container d-flex col-12">
-      <div className="d-flex flex=column flex-md-row justify-content-between col-12 col-md-6">
+      <div className="d-flex flex=column flex-xl-row justify-content-between col-12 col-xl-6">
         <div className="col-6">
           <h6 className="mb-4">{t('jewelryCatalog')}</h6>
           <ul>

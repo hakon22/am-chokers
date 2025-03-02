@@ -11,7 +11,7 @@ import { chunk } from 'lodash';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SearchContext, SubmitContext } from '@/components/Context';
+import { MobileContext, SearchContext, SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { CatalogItemsFilter } from '@/components/filters/catalog/CatalogItemsFilter';
 import { setPaginationParams } from '@/slices/appSlice';
@@ -20,6 +20,7 @@ import { getHref } from '@/utilities/getHref';
 import { getCatalogServerSideProps as getServerSideProps } from '@/pages/catalog/[...path]';
 import { scrollTop } from '@/utilities/scrollTop';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { getWidth } from '@/utilities/screenExtension';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 
@@ -55,36 +56,130 @@ const RenderCatalogItem = ({ width, height, className, item }: { width: number; 
 };
 
 const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: number; }) => {
+  const { isMobile } = useContext(MobileContext);
+
   const isReverse = i % 2 !== 0;
 
-  const width = 200;
-  const height = 260;
+  const coefficient = 1.3;
 
-  const lagerWidth = 260;
-  const lagerHeight = 338;
+  const defaultWidth = 200;
+  const defaultHeight = defaultWidth * coefficient;
 
-  return (
-    <div className="d-flex flex-column gap-5 col-12">
-      <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
-        <div className={cn('d-flex col-6 gap-5', { 'flex-row-reverse': isReverse })}>
-          <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-          <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+  const defaultLagerWidth = 260;
+  const defaultLagerHeight = defaultLagerWidth * coefficient;
+
+  const [width, setWidth] = useState(defaultWidth);
+  const [lagerWidth, setLagerWidth] = useState(defaultLagerWidth);
+
+  const [height, setHeight] = useState(defaultHeight);
+  const [lagerHeight, setLagerHeight] = useState(defaultLagerHeight);
+
+  const [extensionValue, setExtensionValue] = useState(0);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const extension = getWidth();
+      setExtensionValue(extension);
+
+      if (extension < 576) {
+        const value = extension * 0.43;
+
+        setWidth(value);
+        setHeight(value * coefficient);
+        setLagerWidth(extension - 25);
+        setLagerHeight((extension - 25) * coefficient);
+      } else if (extension < 768) {
+        const value = 240;
+
+        setWidth(value);
+        setHeight(value * coefficient);
+        setLagerWidth(516);
+        setLagerHeight(516 * coefficient);
+      } else if (extension < 1200) {
+        const value = 210;
+
+        setWidth(value);
+        setHeight(value * coefficient);
+        setLagerWidth(330);
+        setLagerHeight(330 * coefficient);
+      } else {
+        setWidth(defaultWidth);
+        setHeight(defaultHeight);
+        setLagerWidth(defaultLagerWidth);
+        setLagerHeight(defaultLagerHeight);
+      }
+    };
+  
+    handleResize();
+    window.addEventListener('resize', handleResize);
+  
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile
+    ? extensionValue < 768
+      ? (
+        <div className="d-flex flex-column gap-5 col-12">
+          <div className="d-flex justify-content-between">
+            <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+          </div>
+          <div className="d-flex justify-content-center">
+            <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[2]} />
+          </div>
+          <div className="d-flex justify-content-between">
+            <RenderCatalogItem width={width} height={height} item={chunkItems[3]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[4]} />
+          </div>
+          <div className="d-flex justify-content-center">
+            <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[5]} />
+          </div>
+          <div className="d-flex justify-content-between">
+            <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+          </div>
         </div>
-        <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} />
-      </div>
-      <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
-        <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} />
-        <div className={cn('d-flex col-8 gap-5', { 'justify-content-end': !isReverse })}>
-          <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
-          <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} />
+      )
+      : (
+        <div className="d-flex flex-column gap-5 col-12">
+          <div className="d-flex justify-content-between">
+            <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[2]} />
+          </div>
+          <div className="d-flex justify-content-between">
+            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[3]} />
+            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+          </div>
+          <div className="d-flex justify-content-between">
+            <RenderCatalogItem width={width} height={height} item={chunkItems[5]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+          </div>
+        </div>
+      )
+    : (
+      <div className="d-flex flex-column gap-5 col-12">
+        <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
+          <div className={cn('d-flex col-6 gap-5', { 'flex-row-reverse': isReverse })}>
+            <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+            <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+          </div>
+          <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} />
+        </div>
+        <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
+          <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} />
+          <div className={cn('d-flex col-8 gap-5', { 'justify-content-end': !isReverse })}>
+            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} />
+          </div>
+        </div>
+        <div className={cn('d-flex justify-content-between gap-5', { 'flex-row-reverse': isReverse })}>
+          <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} />
+          <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
         </div>
       </div>
-      <div className={cn('d-flex justify-content-between gap-5', { 'flex-row-reverse': isReverse })}>
-        <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} />
-        <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
-      </div>
-    </div>
-  );
+    );
 };
 
 const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, itemGroup }: { items: ItemInterface[]; paginationParams: PaginationInterface; itemGroup?: ItemGroupInterface; }) => {
@@ -97,6 +192,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isSearch } = useContext(SearchContext);
+  const { isMobile } = useContext(MobileContext);
   
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -111,6 +207,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const searchParams = urlParams.get('search');
 
   const [isFilters, setIsFilters] = useState(false);
+  const [showDrawer, setShowDrawer] = useState(false);
 
   const preparedInitialValues: CatalogFiltersInterface = {
     itemGroups: typesParams,
@@ -161,6 +258,9 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
           scrollTop();
         }
       }
+      if (showDrawer) {
+        setShowDrawer(false);
+      }
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
@@ -193,24 +293,22 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, [searchParams, isSearch?.value]);
 
   useEffect(() => {
-    if (itemGroup) {
-      setInitialValues({ ...initialValues, itemGroups: [itemGroup.id.toString()] });
+    if (itemGroup?.id) {
+      setInitialValues((state) => ({ ...state, itemGroups: [...(isMobile ? [...((state.itemGroups || []), itemGroup.id.toString())] : [itemGroup.id.toString()])] }));
       if (isFilters) {
         setIsFilters(false);
       } else {
         setItems(propsItems);
       }
     }
-  }, [itemGroup?.id, JSON.stringify(initialValues)]);
+  }, [itemGroup?.id]);
   
   return (
-    <div className="d-flex col-12 justify-content-between">
+    <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '30%' } : {}}>
       <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
       <FloatButton.BackTop />
-      <div className="d-flex col-2">
-        <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setInitialValues={setInitialValues} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
-      </div>
-      <div className="d-flex col-9">
+      <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
+      <div className="d-flex col-12 col-xl-9">
         <div className="w-100">
           <InfiniteScroll
             dataLength={items.length}
