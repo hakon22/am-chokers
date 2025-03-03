@@ -48,7 +48,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [item, setItem] = useState(fetchedItem);
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
-  const [originalHeight, setOriginalHeight] = useState(400);
+  const [originalHeight, setOriginalHeight] = useState(416);
 
   const { setItem: setContextItem } = useContext(ItemContext);
   const { setIsSubmit } = useContext(SubmitContext);
@@ -76,7 +76,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const restoreItemHandler = async () => {
     setIsSubmit(true);
-    const { payload } = await dispatch(restoreItem(id)) as { payload: ItemResponseInterface };
+    const { payload } = await dispatch(restoreItem(id)) as { payload: ItemResponseInterface; };
     if (payload.code === 1) {
       setItem(payload.item);
     }
@@ -115,15 +115,25 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   }, []);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
-    <div className="d-flex flex-column" style={isMobile ? { marginTop: '12%' } : {}}>
+    <div className="d-flex flex-column" style={isMobile ? { marginTop: '30%' } : {}}>
       <Helmet title={name} description={description} image={images?.[0]?.src} />
-      <div className="d-flex mb-5">
-        <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
+      <div className="d-flex flex-column flex-xl-row gap-xl-5 mb-5">
+        {isMobile
+          ? (
+            <>
+              <h1 className="mb-4 fs-3">{name}</h1>
+              {collection
+                ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                : null}
+            </>
+          )
+          : null}
+        <div className="d-flex flex-column justify-content-center align-items-center w-100 gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass="w-100"
+            additionalClass={isMobile ? 'w-75' : 'w-100'}
             showIndex
-            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight }))}
+            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile ? undefined : originalHeight }))}
             infinite
             showNav
             onScreenChange={(fullscreen) => {
@@ -132,27 +142,31 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
                 document.documentElement.style.setProperty('--galleryHeight', '100vh');
               } else {
-                setOriginalHeight(400);
-                document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)');
-                document.documentElement.style.setProperty('--galleryHeight', '400px');
+                setOriginalHeight(403);
+                document.documentElement.style.setProperty('--galleryWidth', '320px');
+                document.documentElement.style.setProperty('--galleryHeight', '416px');
               }
             }}
             showPlayButton={false}
-            thumbnailPosition="left"
+            thumbnailPosition={isMobile ? 'right' : 'left'}
             onClick={() => galleryRef.current?.fullScreen()}
           />
-          <div className="d-flex justify-content-end" style={{ width: '80%' }}>
-            <div className="d-flex justify-content-between" style={{ width: 'calc(100% - 110px)' }}>
-              <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-4', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
-              <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-4', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
+          <div className="d-flex justify-content-center" style={{ width: '320px', alignSelf: 'end' }}>
+            <div className="d-flex justify-content-between w-100">
+              <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
+              <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
             </div>
           </div>
         </div>
-        <div style={{ width: '55%' }}>
+        <div style={{ width: isMobile ? '100%' : '55%' }}>
           <div className="d-flex flex-column">
-            <h1 className="mb-4 fs-3">{name}</h1>
-            {collection
-              ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+            {!isMobile
+              ? (
+                <><h1 className="mb-4 fs-3">{name}</h1>
+                  {collection
+                    ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                    : null}
+                </>)
               : null}
             <div className="d-flex align-items-center gap-4 mb-4">
               <div className="d-flex align-items-center gap-2" title={grade.toString()}>

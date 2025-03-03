@@ -17,7 +17,7 @@ const Page404 = () => {
         title={t('title')}
         subTitle={t('description')}
         style={{ marginTop: '10%' }}
-        extra={<BackButton className="button col-4 col-lg-2 mx-auto" propsFullReplace />}
+        extra={<BackButton className="button col-4 col-xl-2 mx-auto" propsFullReplace />}
       />
     </>
   );
