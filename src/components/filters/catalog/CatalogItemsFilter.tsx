@@ -86,7 +86,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     }
   };
 
-  const filtersCount = () => (initialValues.itemGroups?.length ?? 0) + (initialValues.compositions?.length ?? 0) + (initialValues.itemCollections?.length ?? 0) + (initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0);
+  const filtersCount = () => (initialValues.itemGroups?.length ?? 0) + (initialValues.itemCollections?.length ?? 0) + (initialValues.compositions?.length ?? 0) + (initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0);
 
   const filters: CollapseProps['items'] = [
     {
@@ -167,13 +167,10 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
   }, []);
 
   useEffect(() => {
-    form.setFieldsValue(initialValues);
-  }, [JSON.stringify(initialValues)]);
-
-  useEffect(() => {
     if (itemGroup) {
-      form.setFieldValue('itemGroups', [itemGroup.id.toString()]);
-      // form.setFieldsValue({ ...initialValues, itemGroups: [...(initialValues.itemGroups || []), itemGroup.id.toString()] });
+      form.setFieldsValue({ ...initialValues, itemGroups: isMobile ? [...(initialValues.itemGroups || []), itemGroup.id.toString()] : [itemGroup.id.toString()] });
+    } else {
+      form.setFieldsValue(initialValues);
     }
   }, [itemGroup?.id]);
 

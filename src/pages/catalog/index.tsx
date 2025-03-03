@@ -252,6 +252,11 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       if (data.code === 1) {
         setItems(paginationParams ? (state) => [...state, ...data.items] : data.items);
         dispatch(setPaginationParams(data.paginationParams));
+
+        if (itemGroup) {
+          values.itemGroups = [...new Set([...(values.itemGroups || []), itemGroup.id.toString()])];
+        }
+
         setInitialValues(values);
 
         if (!paginationParams) {
@@ -294,13 +299,28 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   useEffect(() => {
     if (itemGroup?.id) {
-      setInitialValues((state) => ({ ...state, itemGroups: [...(isMobile ? [...((state.itemGroups || []), itemGroup.id.toString())] : [itemGroup.id.toString()])] }));
       if (isFilters) {
         setIsFilters(false);
       } else {
         setItems(propsItems);
       }
     }
+    setInitialValues((state) => {
+      let itemGroups = state.itemGroups || [];
+
+      if (isMobile) {
+        if (itemGroup) {
+          itemGroups.push(itemGroup.id.toString());
+        }
+        itemGroups = [...new Set(itemGroups)];
+      } else {
+        if (itemGroup) {
+          itemGroups = [itemGroup.id.toString()];
+        }
+      }
+
+      return { ...state, itemGroups };
+    });
   }, [itemGroup?.id]);
   
   return (
