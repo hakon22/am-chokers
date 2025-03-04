@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useContext, type WheelEvent } from 'react'
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
+import { FloatButton } from 'antd';
 
 import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
@@ -131,6 +132,7 @@ const Index = () => {
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
+      <FloatButton.BackTop />
       {!isMobile
         ? (
           <>

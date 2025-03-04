@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useContext } from 'react';
+import cn from 'classnames';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Tag } from 'antd';
 
@@ -8,7 +9,7 @@ import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
 
-export const CartControl = ({ id, deleted, className = 'fs-6', width, setCartList }: { id: number; deleted?: Date | null; width?: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; className?: string; }) => {
+export const CartControl = ({ id, deleted, className = 'fs-6', classNameButton, width, setCartList }: { id: number; deleted?: Date | null; width?: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; className?: string; classNameButton?: string; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
 
@@ -75,6 +76,6 @@ export const CartControl = ({ id, deleted, className = 'fs-6', width, setCartLis
         <Button onClick={increment}><PlusOutlined className="fs-6" title={t('add')} /></Button>
       </div>
     ) : (
-      <Button className="button border-button fs-5" title={t('addToCart')} onClick={add}>{t('addToCart')}</Button>
+      <Button className={cn('button border-button fs-5', classNameButton ? { [classNameButton]: classNameButton } : {})} title={t('addToCart')} onClick={add}>{t('addToCart')}</Button>
     );
 };
