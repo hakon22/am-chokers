@@ -83,7 +83,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       ? (
         <FloatButton.Group
           trigger="click"
-          style={{ insetInlineEnd: 24, top: 0, bottom: 0 }}
+          style={{ insetInlineEnd: 24, top: '50%', height: 'min-content' }}
           icon={<EllipsisOutlined />}
         >
           {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<SignatureOutlined />} />}
@@ -133,7 +133,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
-  const [showThumbnails, setShowThumbnails] = useState(isMobile);
+  const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
 
   const updateItem = (value: ItemInterface) => {
     setItem(value);
@@ -205,6 +205,11 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
                 document.documentElement.style.setProperty('--galleryHeight', '100vh');
                 if (isMobile) {
+                  const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                  if (div) {
+                    div.style.transition = '0.25s all';
+                    div.style.width = 'calc(100% - 30px)';
+                  }
                   document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
                   setShowThumbnails(false);
                 }
@@ -213,6 +218,11 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 document.documentElement.style.setProperty('--galleryWidth', '320px');
                 document.documentElement.style.setProperty('--galleryHeight', '416px');
                 if (isMobile) {
+                  const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                  if (div) {
+                    div.style.width = '';
+                    div.style.transition = '';
+                  }
                   document.documentElement.style.setProperty('--galleryWidth', '320px');
                   setShowThumbnails(true);
                 }

@@ -99,6 +99,7 @@
 @media (max-width: 1199px) {
   .nav {
     padding: 1rem;
+    z-index: 10000;
 
     &-icons {
       width: 70%;

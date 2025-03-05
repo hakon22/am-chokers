@@ -69,7 +69,7 @@ export const Reviews = () => {
   }, [axiosAuth]);
 
   return (
-    <div className="w-100 ms-3">
+    <div className="w-100 ms-xl-3">
       <PreviewImage previewImage={previewImage} previewOpen={previewOpen} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
       <InfiniteScroll
         dataLength={data.length}

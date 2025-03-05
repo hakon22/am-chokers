@@ -41,13 +41,8 @@ $base-delay: 0.2s; // Базовая задержка
     text-align: center;
     
     & > .image-gallery-slide-wrapper.image-gallery-thumbnails-right {
-      width: calc(100% - 30px);
+      transition: 1s all;
     }
-  }
-
-  .ant-float-btn-group-top > .ant-float-btn-group-wrap {
-    top: 22%;
-    bottom: unset;
   }
 }
 

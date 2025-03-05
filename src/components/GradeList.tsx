@@ -209,7 +209,7 @@ export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: Rea
   ) : null;
 
   return (
-    <div id="grades" className="d-flex flex-column align-items-end">
+    <div id="grades" className="d-flex flex-column align-items-start align-items-xl-end">
       <h3 className="col-11 mb-5 text-uppercase">{t('reviews')}</h3>
       <PreviewImage previewImage={previewImage} previewOpen={previewOpen} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
       <List
