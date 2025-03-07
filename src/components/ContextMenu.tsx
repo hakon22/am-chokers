@@ -1,4 +1,4 @@
-import { Button, Dropdown, Form, message, Popconfirm, Select, Upload } from 'antd';
+import { Button, Dropdown, Form, Popconfirm, Select, Upload } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/router';
@@ -212,10 +212,10 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
                   onChange={(info) => {
                     const { status, response } = info.file;
                     if (status === 'done' && response) {
-                      message.success(tUpload('success', { fileName: info.file.name }));
+                      toast(tUpload('success', { fileName: info.file.name }), 'success');
                       setUploadedImage(response?.image);
                     } else if (status === 'error') {
-                      message.error(response?.message);
+                      toast(response?.message ?? '', 'error');
                     }
                   }}
                 >

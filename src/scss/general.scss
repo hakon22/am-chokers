@@ -440,4 +440,23 @@ a {
   .ant-table-content {
     overflow-x: scroll;
   }
+
+  .ant-upload-wrapper .ant-upload-list .ant-upload-list-item .ant-upload-list-item-actions .ant-upload-list-item-action {
+    opacity: 1;
+  }
+
+  .upload-button-center > .ant-upload.ant-upload-select {
+    display: flex;
+    justify-content: center;
+  }
+
+  .large-input {
+    input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper {
+      padding: 0.5rem !important;
+    }
+
+    .ant-input-number-prefix {
+      padding: 0 0 0 0.5rem;
+    }
+  }
 }

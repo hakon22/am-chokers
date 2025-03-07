@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 import { newItemCollectionValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -69,6 +69,7 @@ const CreateItemCollection = () => {
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
 
@@ -270,7 +271,7 @@ const CreateItemCollection = () => {
   }, [itemCollections.length]);
 
   return role === UserRoleEnum.ADMIN ? (
-    <div className="d-flex flex-column mb-5 justify-content-center">
+    <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '15%' } : {}}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
       <div className="d-flex flex-column justify-content-center">

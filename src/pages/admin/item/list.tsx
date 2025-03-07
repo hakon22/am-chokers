@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { LikeOutlined } from '@ant-design/icons';
@@ -19,6 +19,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
+import { MobileContext } from '@/components/Context';
 import type { FetchItemInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
@@ -41,6 +42,8 @@ const ItemList = () => {
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { role } = useAppSelector((state) => state.user);
+
+  const { isMobile } = useContext(MobileContext);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [data, setData] = useState<ItemInterface[]>([]);
@@ -135,10 +138,10 @@ const ItemList = () => {
   }, [axiosAuth]);
 
   return role === UserRoleEnum.ADMIN ? (
-    <div className="d-flex flex-column mb-5 justify-content-center">
+    <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '15%' } : {}}>
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
-      <div className="d-flex align-items-center justify-content-between mb-5">
+      <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-4 gap-xl-0 mb-5">
         <div className="d-flex align-items-center gap-3">
           <BackButton style={{}} />
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
@@ -161,7 +164,7 @@ const ItemList = () => {
           loading={isLoading}
           renderItem={(item, i) => (
             <div className="d-flex align-items-center" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
-              <div className="d-flex gap-4 w-100 py-2">
+              <div className="d-flex flex-column flex-xl-row gap-4 w-100 py-2">
                 <ImageHover
                   height={height}
                   width={width}
@@ -180,7 +183,7 @@ const ItemList = () => {
                       </Popconfirm>]
                   }>
                   <List.Item.Meta
-                    className="w-100 mb-5"
+                    className="w-100 mb-3 mb-xl-5"
                     title={
                       <div className="d-flex flex-column gap-3 mb-3 font-oswald" style={{ fontWeight: 400 }}>
                         <div className="d-flex align-items-center gap-3">

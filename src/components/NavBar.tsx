@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { MouseEvent as ReactMouseEvent, useEffect, useState, useContext, useRef } from 'react';
 import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined, UpOutlined,
+  CloseOutlined,
 } from '@ant-design/icons';
 import { AutoComplete, Badge, Button, Drawer, Input, Menu, type MenuProps } from 'antd';
 import { useSearchParams } from 'next/navigation';
@@ -242,9 +243,10 @@ export const NavBar = () => {
               <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
               {isSearch?.value
                 ? (
-                  <div className="mt-4 d-flex justify-content-center align-items-center w-100">
+                  <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">
+                    <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
                     <AutoComplete
-                      className="custom-placeholder animate__animated animate__fadeInDown w-100"
+                      className="custom-placeholder w-100"
                       style={{ height: 'auto' }}
                       value={search}
                       onChange={setSearch}

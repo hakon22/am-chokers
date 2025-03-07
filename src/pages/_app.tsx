@@ -91,7 +91,7 @@ const Init = (props: InitPropsInterface) => {
                       <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
                       <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
                     </Head>
-                    <ToastContainer />
+                    <ToastContainer style={{ zIndex: 999999 }} />
                     <App>
                       <Component {...pageProps} />
                     </App>

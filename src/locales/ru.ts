@@ -166,6 +166,7 @@ export default {
         catalog: 'Каталог',
         uploadText: 'Нажмите или перетащите файл в эту область',
         uploadHint: 'Поддержка одиночной и массовой загрузки',
+        uploadMobileText: 'Нажмите для загрузки',
         onSortImage: 'Режим сортировки',
         unSortImage: 'Режим просмотра',
         new: 'Новинка',

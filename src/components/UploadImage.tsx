@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, message, Upload } from 'antd';
+import { Button, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import type { GetProp, UploadFile, UploadProps } from 'antd/lib';
@@ -9,6 +9,7 @@ import { useAppSelector } from '@/utilities/hooks';
 import { PreviewImage } from '@/components/PreviewImage';
 import { CropImage } from '@/components/CropImage';
 import type { ItemInterface } from '@/types/item/Item';
+import { toast } from '@/utilities/toast';
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
@@ -68,10 +69,10 @@ export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist
               setFileList(info.fileList);
               const { status, response } = info.file;
               if (status === 'done' && response) {
-                message.success(t('success', { fileName: info.file.name }));
+                toast(t('success', { fileName: info.file.name }), 'success');
                 setCommentImages((state) => [...state, response.image]);
               } else if (status === 'error') {
-                message.error(response?.message);
+                toast(response?.message ?? '', 'error');
               }
             }}
             onRemove={(file) => {
@@ -107,10 +108,10 @@ export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist
             setFileList(info.fileList);
             const { status, response } = info.file;
             if (status === 'done' && response) {
-              message.success(t('success', { fileName: info.file.name }));
+              toast(t('success', { fileName: info.file.name }), 'success');
               setCommentImages((state) => [...state, response.image]);
             } else if (status === 'error') {
-              message.error(response?.message);
+              toast(response?.message ?? '', 'error');
             }
           }}
           onRemove={(file) => {

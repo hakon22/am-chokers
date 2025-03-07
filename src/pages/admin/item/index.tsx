@@ -1,19 +1,19 @@
 import ImageGallery from 'react-image-gallery';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
-import { RightOutlined, InboxOutlined } from '@ant-design/icons';
+import { RightOutlined, InboxOutlined, UploadOutlined } from '@ant-design/icons';
 import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Breadcrumb, Button, Form, Input, InputNumber, Select, message, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
+import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
 import { isEqual } from 'lodash';
 import cn from 'classnames';
 import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -66,10 +66,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       setFileList(info.fileList);
       const { status, response } = info.file;
       if (status === 'done' && response) {
-        message.success(t('success', { fileName: info.file.name }));
+        toast(t('success', { fileName: info.file.name }), 'success');
         setImages((state) => [...state, response.image]);
       } else if (status === 'error') {
-        message.error(response?.message);
+        toast(response?.message ?? '', 'error');
       }
     },
     onRemove(file) {
@@ -90,6 +90,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   ]);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const galleryRef = useRef<ImageGallery>(null);
 
@@ -100,6 +101,9 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
   const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
+
+  const [originalHeight, setOriginalHeight] = useState(416);
+  const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
 
   const [form] = Form.useForm<ItemInterface & { publishToTelegram: boolean; }>();
 
@@ -225,9 +229,15 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   return role === UserRoleEnum.ADMIN ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
-      {oldItem ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
-      <div className="d-flex mb-5 justify-content-between">
-        <div className="d-flex flex-column gap-3" style={{ width: '40%' }}>
+      {oldItem ? null : isMobile ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
+      <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '25%' } : {}}>
+        {isMobile ? (
+          <div className="d-flex align-items-center justify-content-between mb-4">
+            {oldItem && <BackButton style={{}} className="px-2 py-0" />}
+            <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
+          </div>
+        ) : null}
+        <div className="d-flex flex-column gap-3" style={{ width: isMobile ? '100%' : '40%' }}>
           {images.length
             ? isSortImage ? (
               <DndContext
@@ -236,7 +246,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 modifiers={[restrictToWindowEdges]}
               >
                 <SortableContext items={images} strategy={rectSortingStrategy}>
-                  <div className="d-flex flex-wrap gap-3">
+                  <div className="d-flex flex-wrap gap-3 mb-5 mb-xl-0">
                     {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} setImages={setImages} setFileList={setFileList} />)}
                   </div>
                 </SortableContext>
@@ -244,34 +254,72 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
             ) : (
               <ImageGallery
                 ref={galleryRef}
-                items={images.map(({ src }) => ({ original: src, thumbnail: src }))}
+                additionalClass="w-100 mb-5 mb-xl-0"
+                showIndex
+                items={images.map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== 1000 ? undefined : originalHeight, originalWidth: isMobile && originalHeight === 1000 ? originalHeight / 1.3 : undefined }))}
                 infinite
-                showNav
-                onScreenChange={(fullscreen) => (fullscreen ? document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)') : document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)'))}
+                showBullets={isMobile}
+                showNav={!isMobile}
+                onScreenChange={(fullscreen) => {
+                  if (fullscreen) {
+                    setOriginalHeight(1000);
+                    document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
+                    document.documentElement.style.setProperty('--galleryHeight', '100vh');
+                    if (isMobile) {
+                      const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                      if (div) {
+                        div.style.transition = '0.25s all';
+                        div.style.width = 'calc(100% - 30px)';
+                      }
+                      document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
+                      setShowThumbnails(false);
+                    }
+                  } else {
+                    setOriginalHeight(403);
+                    document.documentElement.style.setProperty('--galleryWidth', '320px');
+                    document.documentElement.style.setProperty('--galleryHeight', '416px');
+                    if (isMobile) {
+                      const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                      if (div) {
+                        div.style.width = '';
+                        div.style.transition = '';
+                      }
+                      document.documentElement.style.setProperty('--galleryWidth', '320px');
+                      setShowThumbnails(true);
+                    }
+                  }
+                }}
+                showThumbnails={showThumbnails}
                 showPlayButton={false}
-                thumbnailPosition="left"
+                thumbnailPosition={isMobile ? 'right' : 'left'}
                 onClick={() => galleryRef.current?.fullScreen()}
               />
             )
             : null}
           <CropImage>
-            <Upload.Dragger {...props}>
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined />
-              </p>
-              <p className="ant-upload-text">{t('uploadText')}</p>
-              <p className="ant-upload-hint">{t('uploadHint')}</p>
-            </Upload.Dragger>
+            {isMobile ? (
+              <Upload className="w-100 mb-5 upload-button-center" {...props}>
+                <Button className="button border-button mx-auto fs-5" icon={<UploadOutlined />}>{t('uploadMobileText')}</Button>
+              </Upload>
+            ) : (
+              <Upload.Dragger {...props}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">{t('uploadText')}</p>
+                <p className="ant-upload-hint">{t('uploadHint')}</p>
+              </Upload.Dragger>
+            )}
           </CropImage>
         </div>
-        <div style={{ width: '55%' }}>
+        <div style={{ width: isMobile ? '100%' : '55%' }}>
           <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
               <Form.Item<typeof item> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
-                <Input variant="borderless" size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
+                <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
               </Form.Item>
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <Form.Item<typeof item> name="group" className="large-input" rules={[newItemValidation]}>
+              <div className="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center mb-4">
+                <Form.Item<typeof item> name="group" className="large-input mb-4 mb-xl-0" rules={[newItemValidation]}>
                   <Select
                     showSearch
                     allowClear
@@ -279,7 +327,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                     style={{ width: 200 }}
                     size="large"
                     placeholder={t('placeholders.group')}
-                    variant="borderless"
+                    variant={isMobile ? 'outlined' : 'borderless'}
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -293,7 +341,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                     options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<typeof item> name="collection" className="large-input">
+                <Form.Item<typeof item> name="collection" className="large-input mb-4 mb-xl-0">
                   <Select
                     showSearch
                     allowClear
@@ -301,7 +349,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                     style={{ width: 200 }}
                     size="large"
                     placeholder={t('placeholders.collection')}
-                    variant="borderless"
+                    variant={isMobile ? 'outlined' : 'borderless'}
                     optionFilterProp="label"
                     filterSort={(optionA, optionB) =>
                       (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -315,19 +363,19 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                     options={itemCollections.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input">
+                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input mb-1 mb-xl-0">
                   <Checkbox>{t('new')}</Checkbox>
                 </Form.Item>
-                <Form.Item<typeof item> name="bestseller" valuePropName="checked" className="large-input">
+                <Form.Item<typeof item> name="bestseller" valuePropName="checked" className="large-input mb-1 mb-xl-0">
                   <Checkbox>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
               <div className={cn('d-flex flex-column flex-xl-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>
-                <Form.Item<typeof item> name="price" rules={[newItemValidation]} className="col-3">
-                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
+                <Form.Item<typeof item> name="price" rules={[newItemValidation]} className="col-6 col-xl-3">
+                  <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                <Form.Item<typeof item> name="discountPrice" rules={[newItemValidation]} className="col-3">
-                  <InputNumber size="large" variant="borderless" placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
+                <Form.Item<typeof item> name="discountPrice" rules={[newItemValidation]} className="col-6 col-xl-3">
+                  <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
                 {!oldItem
                   ? (
@@ -337,13 +385,13 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                   )
                   : null}
               </div>
-              <div className="d-flex align-items-center gap-5 mb-4 position-relative">
+              {!isMobile && (<div className="d-flex align-items-center gap-5 mb-4 position-relative">
                 {oldItem && <BackButton style={{ position: 'absolute', left: '60%' }} />}
                 <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
-              </div>
+              </div>)}
               <Form.Item<typeof item> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
-                <Input.TextArea variant="borderless" size="large" rows={2} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
+                <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} size="large" rows={2} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
               </Form.Item>
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
@@ -356,7 +404,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       size="large"
                       notFoundContent={<NotFoundContent />}
                       placeholder={t('placeholders.composition')}
-                      variant="borderless"
+                      variant={isMobile ? 'outlined' : 'borderless'}
                       optionFilterProp="label"
                       filterSort={(optionA, optionB) =>
                         (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
@@ -370,9 +418,14 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('length')}</span>
                   <Form.Item<typeof item> name="length" className="large-input" rules={[newItemValidation]}>
-                    <Input variant="borderless" size="large" placeholder={t('placeholders.length')} />
+                    <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.length')} />
                   </Form.Item>
                 </div>
+                {isMobile && (
+                  <div className="d-flex justify-content-center">
+                    <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
+                  </div>
+                )}
               </div>
             </div>
           </Form>
