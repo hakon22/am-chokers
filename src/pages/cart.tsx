@@ -145,7 +145,7 @@ const Cart = () => {
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form}>
         <div className="d-flex flex-column justify-content-center align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
-          <Checkbox className="mb-4" indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
+          <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
           </Checkbox>
           <Checkbox.Group value={cartList} onChange={onChange}>
@@ -157,8 +157,8 @@ const Cart = () => {
               }}
               renderItem={(item) => (
                 <List.Item className={cn({ 'd-flex flex-column align-items-start gap-3': isMobile })}>
-                  <div className="d-flex gap-3" style={{ height }}>
-                    <Checkbox className={cn({ 'opacity-50': item.item.deleted })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
+                  <div className="d-flex gap-3" style={isMobile ? {} : { height }}>
+                    <Checkbox className={cn({ 'opacity-50': item.item.deleted, 'not-padding': isMobile })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
                         height={height}

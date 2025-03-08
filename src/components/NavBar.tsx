@@ -95,7 +95,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
         </div>
       </div>
       <Drawer
-        title={<div className="h1 text-center">{t('logo')}</div>}
+        title={<div className="text-center"><Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} /></div>}
         getContainer={container?.current || false}
         closeIcon={null}
         width="100%"
@@ -267,9 +267,10 @@ export const NavBar = () => {
               </div>
               {isSearch?.value
                 ? (
-                  <div className="d-flex justify-content-center align-items-center" style={{ width: '60%' }}>
+                  <div className="d-flex justify-content-center align-items-center animate__animated animate__fadeInDown gap-3" style={{ width: '60%' }}>
+                    <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
                     <AutoComplete
-                      className="custom-placeholder animate__animated animate__fadeInDown"
+                      className="custom-placeholder"
                       style={{ width: '80%', height: 'auto' }}
                       value={search}
                       onChange={setSearch}

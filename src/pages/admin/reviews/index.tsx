@@ -21,7 +21,7 @@ import { GradeListTitle, GradeListDescription, GradeListReplyForm } from '@/comp
 import { toast } from '@/utilities/toast';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface';
@@ -41,6 +41,7 @@ const Reviews = () => {
   const showAcceptedParams = urlParams.get('showAccepted');
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const replyComment: Partial<ReplyComment> = {
     parentComment: undefined,
@@ -168,7 +169,7 @@ const Reviews = () => {
   };
 
   useEffect(() => {
-    if ((withDeleted !== undefined || showAccepted !== undefined)) {
+    if ((withDeleted !== undefined || showAccepted !== undefined) && axiosAuth) {
       router.push({
         query: { 
           ...router.query, 
@@ -187,26 +188,14 @@ const Reviews = () => {
       };
       fetchGrades(params, true);
     }
-  }, [withDeleted, showAccepted]);
-
-  useEffect(() => {
-    if (axiosAuth) {
-      const params: FetchGradeInterface = {
-        limit: 10,
-        offset: 0,
-        withDeleted,
-        showAccepted,
-      };
-      fetchGrades(params);
-    }
-  }, [axiosAuth]);
+  }, [withDeleted, showAccepted, axiosAuth]);
 
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
-      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
+      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>
       <PreviewImage previewImage={previewImage} previewOpen={previewOpen} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
-      <div className="d-flex align-items-center gap-3 mb-5">
+      <div className="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 mb-3 mb-xl-5">
         <BackButton style={{}} />
         <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
         <Checkbox checked={showAccepted} onChange={showAcceptedHandler}>{t('showAccepted')}</Checkbox>
@@ -249,7 +238,7 @@ const Reviews = () => {
                     </Popconfirm>)]]}
                 >
                   <List.Item.Meta
-                    className="w-100 mb-5"
+                    className="w-100 mb-4"
                     title={<GradeListTitle grade={value} withTags withLinkToOrder />}
                     description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} setIsSubmit={setIsSubmit} />}
                   />

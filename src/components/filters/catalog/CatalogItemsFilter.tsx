@@ -188,6 +188,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
           title={t('title')}
           onClose={() => setShowDrawer(false)}
           open={showDrawer}
+          zIndex={10001}
         >
           <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
             <Collapse defaultActiveKey={['1', '4']} ghost items={filters} expandIconPosition="end" className="mb-4" />

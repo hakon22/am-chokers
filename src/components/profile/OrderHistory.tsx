@@ -14,7 +14,7 @@ import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from
 import { routes } from '@/routes';
 import { truncateText } from '@/utilities/truncateText';
 import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice';
-import { getExtension } from '@/utilities/screenExtension';
+import { getWidth } from '@/utilities/screenExtension';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -110,7 +110,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   useEffect(() => {
     const handleResize = () => {
-      const extension = getExtension();
+      const extension = getWidth();
       
       if (extension < 400) {
         setMaxPhoto(1);

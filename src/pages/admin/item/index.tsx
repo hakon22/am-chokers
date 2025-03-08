@@ -363,11 +363,11 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                     options={itemCollections.map(({ id, name }) => ({ value: id, label: name }))}
                   />
                 </Form.Item>
-                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input mb-1 mb-xl-0">
-                  <Checkbox>{t('new')}</Checkbox>
+                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input mb-3 mb-xl-0">
+                  <Checkbox className={cn({ 'not-padding': isMobile })}>{t('new')}</Checkbox>
                 </Form.Item>
                 <Form.Item<typeof item> name="bestseller" valuePropName="checked" className="large-input mb-1 mb-xl-0">
-                  <Checkbox>{t('bestseller')}</Checkbox>
+                  <Checkbox className={cn({ 'not-padding': isMobile })}>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
               <div className={cn('d-flex flex-column flex-xl-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>

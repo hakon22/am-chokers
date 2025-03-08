@@ -133,15 +133,15 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                 <div className="d-flex flex-column gap-3">
                   {order.positions.map((orderPosition) => (
                     <div key={orderPosition.id} className="d-flex flex-column">
-                      <div className="d-flex justify-content-between align-items-center gap-3" style={{ height }}>
-                        <div className="d-flex align-items-center gap-3 h-100">
+                      <div className="d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3">
+                        <div className="d-flex align-items-center gap-3">
                           <ImageHover
                             height={height}
                             width={width}
                             href={getHref(orderPosition.item)}
                             images={orderPosition.item.images}
                           />
-                          <div className="d-flex flex-column justify-content-between fs-6 h-100">
+                          <div className="d-flex flex-column justify-content-between fs-6" style={{ height }}>
                             <span className="font-oswald fs-5-5 lh-1" style={{ fontWeight: 500 }}>{orderPosition.item.name}</span>
                             <span className="lh-1">{t('countPrice', { count: orderPosition.count, price: (orderPosition.price - orderPosition.discountPrice) * orderPosition.count })}</span>
                           </div>
@@ -155,7 +155,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                       {grade.position && orderPosition.id === grade.position.id ? (
                         <Form name="createGrade" initialValues={grade} className="d-flex flex-column align-self-start my-4 w-100 border p-4" style={{ borderRadius: '7px' }} onFinish={onFinish} form={form}>
                           <Form.Item<GradeFormInterface> id="grade" name="grade" className="mb-4 large-input" rules={[newGradeValidation]}>
-                            <div className="d-flex align-items-center gap-3">
+                            <div className="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3">
                               <label htmlFor="grade" className="font-oswald text-muted fs-5">{t('rate')}</label>
                               <Rate value={grade.grade} onChange={setRate} />
                             </div>
@@ -163,7 +163,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                           <Form.Item<GradeFormInterface> name={['comment', 'text']} className="mb-4 large-input" rules={[newGradeValidation]}>
                             <Input.TextArea ref={inputRef} variant="borderless" size="large" placeholder={t('enterComment')} rows={2} />
                           </Form.Item>
-                          <div className="d-flex justify-content-between align-items-center">
+                          <div className="d-flex flex-column flex-xl-row gap-3 gap-xl-0 flex-column-reverse justify-content-between align-items-center">
                             <Button className="button border-button py-2 fs-6" title={t('rateSubmit')} htmlType="submit">{t('rateSubmit')}</Button>
                             <UploadImage crop preview filelist={fileList} setFileList={setFileList} previewImage={previewImage} previewOpen={previewOpen} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
                           </div>

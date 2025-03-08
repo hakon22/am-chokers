@@ -20,8 +20,8 @@
     text-transform: uppercase;
     color: $dark-blue;
     position: absolute;
-    right: calc(var(--ratio) * -0.5vw);
-    bottom: -10vw;
+    right: calc(var(--ratio) * -0.7vw);
+    bottom: -13vw;
   }
 
   .guide {
@@ -44,7 +44,7 @@
 
 @media (max-width: 1536px) {
   .index-block-container .see-all {
-      right: calc(var(--ratio) * -1.5vw);
+      right: calc(var(--ratio) * -1.4vw);
     }
 }
 

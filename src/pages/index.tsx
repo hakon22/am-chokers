@@ -151,7 +151,7 @@ const Index = () => {
         ) : null}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
-          <section className="d-flex flex-column position-relative" data-aos="fade-right" data-aos-duration="1500">
+          <section className="d-flex flex-column position-relative mb-5" data-aos="fade-right" data-aos-duration="1500">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <h2 className="d-flex align-items-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">{t('newItems')}</h2>
               <Carousel

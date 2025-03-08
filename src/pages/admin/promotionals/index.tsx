@@ -12,7 +12,7 @@ import type { ValidationError } from 'yup';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { newPromotionalValidation, periodSchema, discountAndDiscountPercentSchema } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { routes } from '@/routes';
@@ -118,6 +118,7 @@ const CreatePromotional = () => {
   const { role } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
 
@@ -417,12 +418,12 @@ const CreatePromotional = () => {
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
-      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
+      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title')}</h1>
       <div className="d-flex flex-column justify-content-center">
         <div className="mb-3">
           <BackButton style={{}} />
         </div>
-        <div className="d-flex align-items-center gap-3 mb-3">
+        <div className="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 mb-3">
           <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
             {t('addPromotional')}
           </Button>
