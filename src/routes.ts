@@ -55,6 +55,7 @@ export const routes = {
 
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
+  yookassa: [apiPath, 'payment', 'check'].join('/'),
 
   // order
   crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),

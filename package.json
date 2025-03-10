@@ -43,6 +43,7 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@a2seven/yoo-checkout": "^1.1.4",
     "@stylistic/eslint-plugin-ts": "^2.10.1",
     "@types/aos": "^3.0.7",
     "@types/bcryptjs": "^2.4.6",

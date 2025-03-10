@@ -36,7 +36,7 @@ export class OrderEntity extends BaseEntity {
   /** Статус заказа */
   @Column('enum', {
     enum: OrderStatusEnum,
-    default: OrderStatusEnum.NEW,
+    default: OrderStatusEnum.NOT_PAID,
   })
   public status: OrderStatusEnum;
 

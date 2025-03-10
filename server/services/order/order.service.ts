@@ -7,13 +7,16 @@ import { SmsService } from '@server/services/integration/sms.service';
 import { UserService } from '@server/services/user/user.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { PromotionalService } from '@server/services/promotional/promotional.service';
+import { AcquiringService } from '@server/services/acquiring/acquiring.service';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { CartService } from '@server/services/cart/cart.service';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { routes } from '@/routes';
+import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
@@ -33,6 +36,8 @@ export class OrderService extends BaseService {
   private readonly userService = Container.get(UserService);
 
   private readonly promotionalService = Container.get(PromotionalService);
+
+  private readonly acquiringService = Container.get(AcquiringService);
 
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -169,7 +174,7 @@ export class OrderService extends BaseService {
       }
     }
 
-    const created = await this.databaseService.getManager().transaction(async (manager) => {
+    const created: OrderEntity = await this.databaseService.getManager().transaction(async (manager) => {
       const orderRepo = manager.getRepository(OrderEntity);
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
 
@@ -194,7 +199,7 @@ export class OrderService extends BaseService {
       const positions = await orderPositionRepo.save(preparedPositions);
       await this.cartService.deleteMany(null, cartIds);
 
-      return orderRepo.save({ status: OrderStatusEnum.NEW, user: { id: user.id || createdUser?.id }, deliveryPrice, positions, promotional });
+      return orderRepo.save({ status: OrderStatusEnum.NOT_PAID, user: { id: user.id || createdUser?.id }, deliveryPrice, positions, promotional });
     });
 
     if (user?.telegramId) {
@@ -205,7 +210,21 @@ export class OrderService extends BaseService {
       await this.telegramService.sendMessage(text, user.telegramId);
     }
 
-    return this.findOne({ id: created.id });
+    if (process.env.TELEGRAM_CHAT_ID) {
+      const adminText = [
+        `Создан заказ <b>№${created.id}</b>`,
+        '',
+        `Сумма: <b>${getOrderPrice({ ...created, promotional } as OrderEntity)} ₽</b>`,
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${created.id}`,
+      ];
+      await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+    }
+
+    const order = await this.findOne({ id: created.id });
+
+    // const paymentUrl = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
+
+    return { order };
   };
 
   public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface, user: PassportRequestInterface) => {
@@ -244,6 +263,16 @@ export class OrderService extends BaseService {
     }
 
     order.status = status;
+
+    if (process.env.TELEGRAM_CHAT_ID && user.role !== UserRoleEnum.ADMIN) {
+      const adminText = [
+        `Отмена заказа <b>№${order.id}</b>`,
+        '',
+        `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+      ];
+      await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+    }
   
     return order;
   };
