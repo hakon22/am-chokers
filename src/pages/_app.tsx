@@ -2,6 +2,7 @@ import 'dayjs/locale/ru';
 import type { AppProps, AppContext } from 'next/app';
 import AppNext from 'next/app';
 import Head from 'next/head';
+import Script from 'next/script';
 import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
@@ -91,6 +92,17 @@ const Init = (props: InitPropsInterface) => {
                       <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
                       <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
                     </Head>
+                    <Script 
+                      id="yandex-widget"
+                      src="https://ndd-widget.landpro.site/widget.js"
+                      strategy="lazyOnload"
+                      onLoad={() => {
+                        console.log('Yandex widget script loaded');
+                      }}
+                      onError={(e) => {
+                        console.error('Error loading Yandex widget script', e);
+                      }}
+                    />
                     <ToastContainer style={{ zIndex: 999999 }} />
                     <App>
                       <Component {...pageProps} />

@@ -87,6 +87,7 @@ export default {
             change: 'Перевести в статус {{ status }}',
           },
           statuses: {
+            NOT_PAID: 'НЕ ОПЛАЧЕН',
             NEW: 'НОВЫЙ',
             ASSEMBLY: 'СБОРКА',
             ASSEMBLED: 'СОБРАН',
@@ -284,6 +285,12 @@ export default {
         checkAll: 'Выбрать всё',
         deliveryType: 'Способ доставки',
         delivery: 'Доставка',
+        selectPVZ: 'Выбрать ПВЗ',
+        resetPVZ: 'Сбросить ПВЗ',
+        selectedPVZ: {
+          title: 'Выбранный ПВЗ:',
+          address: '{{ address }}',
+        },
         total: 'Итого:',
         submitPay: 'Оплатить заказ',
         delete: 'Удалить',

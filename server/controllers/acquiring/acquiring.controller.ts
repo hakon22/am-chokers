@@ -5,7 +5,7 @@ import { BaseService } from '@server/services/app/base.service';
 import { AcquiringService } from '@server/services/acquiring/acquiring.service';
 
 @Singleton
-export class PromotionalController extends BaseService {
+export class AcquiringController extends BaseService {
   private readonly acquiringService = Container.get(AcquiringService);
 
   public checkYookassaOrder = async (req: Request, res: Response) => {

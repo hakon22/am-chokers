@@ -203,6 +203,8 @@ export class GradeService extends BaseService {
       const gradeRepo = manager.getRepository(GradeEntity);
       const commentRepo = manager.getRepository(CommentEntity);
 
+      const grade = { ...body, user: { id: userId } };
+
       if (comment?.text || comment?.images.length) {
         const { images, ...rest } = comment;
         const createdComment = await commentRepo.save(rest);
@@ -210,10 +212,10 @@ export class GradeService extends BaseService {
           this.uploadPathService.checkFolder(UploadPathEnum.COMMENT, createdComment.id);
           await this.imageService.processingImages(images, UploadPathEnum.COMMENT, createdComment.id, manager);
         }
-        return gradeRepo.save({ ...body, comment: createdComment, user: { id: userId } });
+        grade.comment = createdComment;
       }
 
-      return gradeRepo.save({ ...body, user: { id: userId } });
+      return gradeRepo.save(grade);
     });
 
     return this.findOne({ id: created.id });

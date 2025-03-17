@@ -4,10 +4,11 @@ import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type IChe
 import { Container } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
+import { DeliveryService } from '@server/services/delivery/delivery.service';
 import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.error.translate';
-import { PaymentTransactionEntity } from '@server/db/entities/payment.transaction.entity';
-import { PaymentLoginEntity } from '@server/db/entities/payment.login.entity';
+import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
+import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
@@ -31,13 +32,15 @@ export class AcquiringService extends BaseService {
 
   private readonly telegramService = Container.get(TelegramService);
 
+  private readonly deliveryService = Container.get(DeliveryService);
+
   private TAG = 'AcquiringService';
 
   public checkYookassaOrder = async (payment: Payment) => {
     try {
       this.loggerService.info(this.TAG, `Обработка уведомления от YooKassa со статусом ${payment.status} для платежа id: ${payment.id}`);
 
-      const transaction = await PaymentTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional'] });
+      const transaction = await AcquiringTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional', 'order.delivery'] });
 
       if (!transaction || transaction.status !== TransactionStatusEnum.CREATE) {
         return;
@@ -50,7 +53,7 @@ export class AcquiringService extends BaseService {
       } else if (payment.status === 'canceled') {
         const { reason, party } = payment.cancellation_details;
 
-        await PaymentTransactionEntity.update(transaction.id, {
+        await AcquiringTransactionEntity.update(transaction.id, {
           status: TransactionStatusEnum.REJECTED,
           reason: `[${party}]: ${YookassaErrorTranslate[reason]}`,
         });
@@ -62,13 +65,13 @@ export class AcquiringService extends BaseService {
 
   public createOrder = async (order: OrderEntity, type: AcquiringTypeEnum) => {
 
-    const paymentLogin = await PaymentLoginEntity.findOne({ where: { issuer: type } });
+    const credential = await AcquiringCredentialsEntity.findOne({ where: { issuer: type, isDevelopment: process.env.NODE_ENV === 'development' } });
 
-    if (!paymentLogin || paymentLogin?.deleted) {
+    if (!credential || credential?.deleted) {
       throw new Error('Недоступна онлайн оплата для данного заказа');
     }
 
-    const transactions = await PaymentTransactionEntity.find({
+    const transactions = await AcquiringTransactionEntity.find({
       where: {
         status: In([TransactionStatusEnum.REJECTED, TransactionStatusEnum.PAID]),
         order: { id: order.id },
@@ -79,10 +82,10 @@ export class AcquiringService extends BaseService {
     const amount = getOrderPrice(order);
 
     const data: Data = {
-      userName: paymentLogin.login,
-      password: paymentLogin.password,
+      userName: credential.login,
+      password: credential.password,
       orderNumber: orderId,
-      amount,
+      amount: +amount,
       description: `Оплата по заказу №${order.id}`,
       returnUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.profilePage}/payment/success`,
       failUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.profilePage}payment/error`,
@@ -94,7 +97,7 @@ export class AcquiringService extends BaseService {
 
     const { phone, name } = order.user;
 
-    if (!data.email && !phone && !name) {
+    if (!phone && !name) {
       throw new Error('В профиле не указаны имя пользователя или номер телефона');
     }
 
@@ -142,16 +145,16 @@ export class AcquiringService extends BaseService {
 
     try {
       const payment = await checkout.createPayment(createPayload, idempotenceKey);
-      this.loggerService.info(this.TAG, `Создание заявки на платёж в ${paymentLogin.issuer} для заказа №${order.id}. Параметры: ${JSON.stringify(data)}`);
+      this.loggerService.info(this.TAG, `Создание заявки на платёж в ${credential.issuer} для заказа №${order.id}. Параметры: ${JSON.stringify(data)}`);
       this.loggerService.info(this.TAG, `Заявка на платёж ${payment.id} зарегистрирована.`);
 
-      await PaymentTransactionEntity.save({
+      await AcquiringTransactionEntity.save({
         order: { id: order.id },
-        amount,
+        amount: +amount,
         transactionId: payment.id,
         url: payment.confirmation.confirmation_url,
-        type: paymentLogin.issuer,
-      } as PaymentTransactionEntity);
+        type: credential.issuer,
+      } as AcquiringTransactionEntity);
   
       return payment.confirmation.confirmation_url;
 
@@ -159,9 +162,9 @@ export class AcquiringService extends BaseService {
       const error = e as ICreateError;
       this.loggerService.error(error.id);
       if (error.description === 'Idempotence key duplicated') {
-        this.loggerService.info(this.TAG, `Заявка на платёж ${orderId} уже зарегистрирована в ${paymentLogin.issuer}. Поиск в базе.`);
+        this.loggerService.info(this.TAG, `Заявка на платёж ${orderId} уже зарегистрирована в ${credential.issuer}. Поиск в базе.`);
 
-        const transaction = await PaymentTransactionEntity.findOne({
+        const transaction = await AcquiringTransactionEntity.findOne({
           where: {
             order: { id: order.id },
             status: TransactionStatusEnum.CREATE,
@@ -178,13 +181,16 @@ export class AcquiringService extends BaseService {
     }
   };
 
-  private successfulPayment = async (transaction: PaymentTransactionEntity) => {
+  private successfulPayment = async (transaction: AcquiringTransactionEntity) => {
     try {
       const { order } = transaction;
 
-      await PaymentTransactionEntity.update(transaction.id, {
-        status: TransactionStatusEnum.PAID,
-      });
+      await AcquiringTransactionEntity.update(transaction.id, { status: TransactionStatusEnum.PAID });
+      await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
+
+      if (order.user.telegramId) {
+        await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW)}</b>.`, order.user.telegramId);
+      }
 
       if (process.env.TELEGRAM_CHAT_ID) {
         const adminText = [
@@ -196,12 +202,7 @@ export class AcquiringService extends BaseService {
         await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
       }
 
-      await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
-
-      if (order.user.telegramId) {
-        await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW)}</b>.`, order.user.telegramId);
-      }
-
+      await this.deliveryService.createOrder(order);
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);
     }

@@ -7,8 +7,7 @@ import { paramsIdSchema, queryOrderParams } from '@server/utilities/convertation
 import { newOrderPositionValidation, orderChangeStatusValidation } from '@/validations/validations';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
-import type { OrderInterface } from '@/types/order/Order';
-import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
+import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 
 @Singleton
 export class OrderController extends BaseService {
@@ -83,9 +82,9 @@ export class OrderController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { cart, promotional, deliveryPrice } = await newOrderPositionValidation.serverValidator(req.body) as { cart: CartItemInterface[]; deliveryPrice: number; promotional?: PromotionalEntity; };
+      const { cart, promotional, delivery } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
 
-      const order = await this.orderService.createOne(cart, deliveryPrice, req.user as PassportRequestInterface, promotional);
+      const order = await this.orderService.createOne(cart, req.user as PassportRequestInterface, delivery, promotional);
 
       res.json({ code: 1, order });
     } catch (e) {

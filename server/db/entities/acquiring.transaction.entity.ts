@@ -6,9 +6,9 @@ import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.
 
 /** Транзакции эквайринга */
 @Entity({
-  name: 'payment_transaction',
+  name: 'acquiring_transaction',
 })
-export class PaymentTransactionEntity extends BaseEntity {
+export class AcquiringTransactionEntity extends BaseEntity {
   /** Уникальный `id` транзакции (внутренний) */
   @PrimaryGeneratedColumn()
   public id: number;
@@ -24,20 +24,15 @@ export class PaymentTransactionEntity extends BaseEntity {
   /** Уникальный `id` транзакции (внешний) */
   @Column('character varying', {
     name: 'transaction_id',
-    nullable: false,
   })
   public transactionId: string;
 
   /** Уникальная ссылка на оплату заказа */
-  @Column('character varying', {
-    nullable: false,
-  })
+  @Column('character varying')
   public url: string;
 
   /** Сумма оплаты */
-  @Column('float', {
-    nullable: false,
-  })
+  @Column('float')
   public amount: number;
 
   /** Статус транзакции */
@@ -45,7 +40,6 @@ export class PaymentTransactionEntity extends BaseEntity {
     type: 'enum',
     enum: TransactionStatusEnum,
     default: TransactionStatusEnum.CREATE,
-    nullable: false,
   })
   public status: TransactionStatusEnum;
 
@@ -53,7 +47,6 @@ export class PaymentTransactionEntity extends BaseEntity {
   @Column({
     type: 'enum',
     enum: AcquiringTypeEnum,
-    nullable: false,
   })
   public type: AcquiringTypeEnum;
 
@@ -61,7 +54,6 @@ export class PaymentTransactionEntity extends BaseEntity {
   @ManyToOne(() => OrderEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
-    nullable: false,
   })
   @JoinColumn({
     name: 'order_id',

@@ -1,12 +1,13 @@
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 
 /** Доступ к эквайрингу */
 @Entity({
-  name: 'payment_login',
+  name: 'acquiring_credentials',
 })
-export class PaymentLoginEntity extends BaseEntity {
+@Unique(['issuer', 'isDevelopment'])
+export class AcquiringCredentialsEntity extends BaseEntity {
   /** Уникальный `id` доступа */
   @PrimaryGeneratedColumn()
   public id: number;
@@ -24,22 +25,24 @@ export class PaymentLoginEntity extends BaseEntity {
   public deleted: Date;
 
   /** Логин доступа */
-  @Column('character varying', {
-    nullable: false,
-  })
+  @Column('character varying')
   public login: string;
 
   /** Пароль доступа */
-  @Column('character varying', {
-    nullable: false,
-  })
+  @Column('character varying')
   public password: string;
+
+  /** Тестовая учётная запись */
+  @Column('boolean', {
+    default: false,
+    name: 'is_development',
+  })
+  public isDevelopment: boolean;
 
   /** Эмитент */
   @Column({
     type: 'enum',
     enum: AcquiringTypeEnum,
-    nullable: false,
   })
   public issuer: AcquiringTypeEnum;
 }

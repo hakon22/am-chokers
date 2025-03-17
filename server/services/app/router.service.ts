@@ -14,6 +14,7 @@ import { PromotionalRoute } from '@server/routes/promotional/promotional.control
 import { GradeRoute } from '@server/routes/rating/grade.controller';
 import { StorageRoute } from '@server/routes/storage/storage.route';
 import { CompositionRoute } from '@server/routes/composition/composition.route';
+import { DeliveryRoute } from '@server/routes/delivery/delivery.route';
 
 @Singleton
 export class RouterService extends BaseRouter {
@@ -29,6 +30,7 @@ export class RouterService extends BaseRouter {
   private readonly gradeRoute = Container.get(GradeRoute);
   private readonly storageRoute = Container.get(StorageRoute);
   private readonly compositionRoute = Container.get(CompositionRoute);
+  private readonly deliveryRoute = Container.get(DeliveryRoute);
 
   private router = express.Router();
 
@@ -45,6 +47,7 @@ export class RouterService extends BaseRouter {
     this.gradeRoute,
     this.storageRoute,
     this.compositionRoute,
+    this.deliveryRoute,
   ];
 
   public set = () => this.routesArray.forEach((route) => route.set(this.router));

@@ -383,7 +383,7 @@ a {
     padding-left: 0.3rem !important;
   }
 
-  .ant-checkbox .ant-checkbox-inner {
+  .ant-checkbox .ant-checkbox-inner, .ant-radio-wrapper .ant-radio-inner {
     width: 20px;
     height: 20px;
   }
@@ -421,8 +421,26 @@ a {
   }
 }
 
-.ant-checkbox-indeterminate .ant-checkbox-inner::after {
+.ant-checkbox-indeterminate .ant-checkbox-inner::after, .ant-radio-wrapper .ant-radio-checked::after {
   background-color: #2b3c5f !important;
+}
+
+.ant-radio-wrapper {
+  font-family: Oswald, sans-serif;
+  font-size: 1rem;
+
+  .ant-radio-checked .ant-radio-inner {
+    background-color: #f7f9fc !important;
+    border-color: #ced3dd !important;
+  }
+
+  .ant-radio-inner::after {
+    width: 30px !important;
+    height: 30px !important;
+    background-color: #2b3c5f !important;
+    inset-inline-start: 11% !important;
+    inset-block-start: 11% !important;
+  }
 }
 
 @keyframes show {

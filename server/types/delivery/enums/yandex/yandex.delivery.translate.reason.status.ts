@@ -1,0 +1,27 @@
+import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.reason.status.enum';
+
+export const yandexDeliveryTranslateReasonStatus: Record<YandexDeliveryReasonStatusEnum, string> = {
+  [YandexDeliveryReasonStatusEnum.SHOP_CANCELLED]: 'Отправитель отменил заказ',
+  [YandexDeliveryReasonStatusEnum.USER_CHANGED_MIND]: 'Покупатель передумал',
+  [YandexDeliveryReasonStatusEnum.DELIVERY_PROBLEMS]: 'Проблемы с доставкой',
+  [YandexDeliveryReasonStatusEnum.DIMENSIONS_EXCEEDED]: 'Посылка слишком большая для способа доставки',
+  [YandexDeliveryReasonStatusEnum.DIMENSIONS_EXCEEDED_LOCKER]: 'Превышены допустимые габариты постамата',
+  [YandexDeliveryReasonStatusEnum.NO_PASSPORT]: 'Нет паспорта',
+  [YandexDeliveryReasonStatusEnum.ORDER_IS_DAMAGED]: 'Заказ поврежден',
+  [YandexDeliveryReasonStatusEnum.EXTRA_RESCHEDULING]: 'Заказ отменен из-за частых переносов',
+  [YandexDeliveryReasonStatusEnum.BROKEN_ITEM]: 'Товар оказался бракованным',
+  [YandexDeliveryReasonStatusEnum.ORDER_ITEMS_QUANTITY_MISMATCH]: 'Не совпадает количество товаров',
+  [YandexDeliveryReasonStatusEnum.ORDER_WAS_LOST]: 'Заказ утерян',
+  [YandexDeliveryReasonStatusEnum.LATE_CONTACT]: 'С пользователем связались слишком поздно',
+  [YandexDeliveryReasonStatusEnum.PICKUP_EXPIRED]: 'Срок хранения в пункте выдачи истек',
+  [YandexDeliveryReasonStatusEnum.UNKNOWN]: 'Не определён',
+  [YandexDeliveryReasonStatusEnum.OTHER]: 'Другая проблема',
+  [YandexDeliveryReasonStatusEnum.CLIENT_REQUEST]: 'По просьбе клиента',
+  [YandexDeliveryReasonStatusEnum.COURIER_COULD_NOT_CONTACT_RECIPIENT]: 'Курьер не смог дозвониться',
+  [YandexDeliveryReasonStatusEnum.DELIVERY_DATE_UPDATED_BY_DELIVERY]: 'Задержка обработки заказа партнёром',
+  [YandexDeliveryReasonStatusEnum.DELIVERY_DATE_UPDATED_BY_RECIPIENT]: 'По запросу от пользователя',
+  [YandexDeliveryReasonStatusEnum.DELIVERY_DATE_UPDATED_BY_SHOP]: 'По запросу от магазина',
+  [YandexDeliveryReasonStatusEnum.LAST_MILE_CHANGED_BY_USER]: 'Последняя миля изменена по инициативе пользователя',
+  [YandexDeliveryReasonStatusEnum.LOCKER_FULL]: 'Нет свободных ячеек подходящего размера',
+  [YandexDeliveryReasonStatusEnum.PICKUPPOINT_TECHNICAL_ISSUES]: 'Технические проблемы в ПВЗ',
+};

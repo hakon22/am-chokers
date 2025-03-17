@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import { DeliveryEntity } from '@server/db/entities/delivery.entity';
 import { SmsService } from '@server/services/integration/sms.service';
 import { UserService } from '@server/services/user/user.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
@@ -12,18 +13,19 @@ import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { CartService } from '@server/services/cart/cart.service';
+import { DeliveryService } from '@server/services/delivery/delivery.service';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
-import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
-import type { FetchOrdersInterface, OrderInterface } from '@/types/order/Order';
+import type { FetchOrdersInterface, OrderInterface, CreateDeliveryInterface } from '@/types/order/Order';
+import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 
 @Singleton
 export class OrderService extends BaseService {
@@ -39,8 +41,10 @@ export class OrderService extends BaseService {
 
   private readonly acquiringService = Container.get(AcquiringService);
 
+  private readonly deliveryService = Container.get(DeliveryService);
+
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
-    const manager = this.databaseService.getManager();
+    const manager = options?.manager || this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(OrderEntity, 'order');
 
@@ -88,6 +92,13 @@ export class OrderService extends BaseService {
           'group.code',
         ])
         .leftJoin('order.promotional', 'promotional')
+        .addSelect([
+          'promotional.id',
+          'promotional.name',
+          'promotional.discount',
+          'promotional.discountPercent',
+        ])
+        .leftJoinAndSelect('order.delivery', 'delivery')
         .addSelect([
           'promotional.id',
           'promotional.name',
@@ -163,7 +174,7 @@ export class OrderService extends BaseService {
     return [orders, count];
   };
 
-  public createOne = async (body: CartItemInterface[], deliveryPrice: number, user: PassportRequestInterface, promotional?: PromotionalEntity) => {
+  public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, promotional?: PromotionalInterface) => {
     const cartIds = body.map(({ id }) => id);
 
     if (promotional) {
@@ -174,13 +185,14 @@ export class OrderService extends BaseService {
       }
     }
 
-    const created: OrderEntity = await this.databaseService.getManager().transaction(async (manager) => {
+    const order: OrderEntity = await this.databaseService.getManager().transaction(async (manager) => {
       const orderRepo = manager.getRepository(OrderEntity);
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
+      const deliveryRepo = manager.getRepository(DeliveryEntity);
 
       const { user: createdUser } = await this.userService.createOne('Пользователь', '79151003951', manager);
 
-      const cart = await this.cartService.findMany(null, undefined, { ids: cartIds });
+      const cart = await this.cartService.findMany(null, undefined, { ids: cartIds }, { manager });
 
       const deletedItem = cart.find(({ item }) => item.deleted);
 
@@ -197,14 +209,30 @@ export class OrderService extends BaseService {
       }));
 
       const positions = await orderPositionRepo.save(preparedPositions);
-      await this.cartService.deleteMany(null, cartIds);
+      await this.cartService.deleteMany(null, cartIds, { manager });
 
-      return orderRepo.save({ status: OrderStatusEnum.NOT_PAID, user: { id: user.id || createdUser?.id }, deliveryPrice, positions, promotional });
+      const credential = await this.deliveryService.findOneByType(delivery.type, process.env.NODE_ENV === 'development', { manager });
+
+      const created = await orderRepo.save({
+        status: OrderStatusEnum.NOT_PAID,
+        user: { id: user.id || createdUser?.id },
+        deliveryPrice: delivery.price,
+        positions,
+        promotional,
+        delivery: await deliveryRepo.create({
+          platformStationFrom: credential.password,
+          platformStationTo: delivery.platformStationTo,
+          address: delivery.address,
+          type: delivery.type,
+        }).save(),
+      } as OrderEntity);
+
+      return this.findOne({ id: created.id }, {}, { manager, withUser: true });
     });
 
     if (user?.telegramId) {
       const text = [
-        `Создан заказ <b>№${created.id}</b>.`,
+        `Создан заказ <b>№${order.id}</b>.`,
         `Следите за статусами в личном кабинете: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.orderHistory}`,
       ];
       await this.telegramService.sendMessage(text, user.telegramId);
@@ -212,19 +240,19 @@ export class OrderService extends BaseService {
 
     if (process.env.TELEGRAM_CHAT_ID) {
       const adminText = [
-        `Создан заказ <b>№${created.id}</b>`,
+        `Создан заказ <b>№${order.id}</b>`,
         '',
-        `Сумма: <b>${getOrderPrice({ ...created, promotional } as OrderEntity)} ₽</b>`,
-        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${created.id}`,
+        `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderEntity)} ₽</b>`,
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
       await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
     }
 
-    const order = await this.findOne({ id: created.id });
-
     // const paymentUrl = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
+    /** Это тут временно */
+    await this.deliveryService.createOrder(order);
 
-    return { order };
+    return order;
   };
 
   public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface, user: PassportRequestInterface) => {
