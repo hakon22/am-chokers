@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import type { TFunction } from 'i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
@@ -11,14 +10,15 @@ import { MaskedInput } from '@/components/forms/MaskedInput';
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import type { UserProfileType } from '@/types/user/User';
 import { routes } from '@/routes';
 import { toast } from '@/utilities/toast';
 import { fetchConfirmCode, removeTelegramId, userProfileUpdate } from '@/slices/userSlice';
 import { profileValidation } from '@/validations/validations';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
+import type { UserProfileType } from '@/types/user/User';
 
-export const Personal = ({ t }: { t: TFunction }) => {
+export const Personal = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.personal' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
 
@@ -128,7 +128,7 @@ export const Personal = ({ t }: { t: TFunction }) => {
   const password = Form.useWatch('password', form);
 
   return phoneConfirm && !isConfirmed ? <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} /> : (
-    <Form name="user-profile" form={form} initialValues={initialValues} className="col-8" onFinish={onFinish}>
+    <Form name="user-profile" form={form} initialValues={initialValues} className="col-12 col-xl-8" onFinish={onFinish}>
       <label htmlFor="user-profile_phone" className="label">{t('phone')}</label>
       <Form.Item<UserProfileType> name="phone" rules={[profileValidation]} className="mb-3">
         <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />

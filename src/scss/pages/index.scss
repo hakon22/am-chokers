@@ -7,7 +7,8 @@
   margin-top: 60%;
 
   &-carousel {
-    top: 4.8vw;
+    top: 9.6vw;
+    margin-bottom: 2rem;
   }
 
   .see-all {
@@ -19,14 +20,14 @@
     text-transform: uppercase;
     color: $dark-blue;
     position: absolute;
-    right: calc(var(--ratio)* 4.2vw);
-    bottom: -10vw;
+    right: calc(var(--ratio) * -0.7vw);
+    bottom: -13vw;
   }
 
   .guide {
     position: relative;
     background-color: #888DA3;
-    height: 600px;
+    height: 500px;
 
     &-text {
       position: absolute;
@@ -41,8 +42,41 @@
   background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
 }
 
+@media (max-width: 1536px) {
+  .index-block-container .see-all {
+      right: calc(var(--ratio) * -1.4vw);
+    }
+}
+
 @media (max-width: 1367px) {
   .index-block-container .see-all {
-      right: calc(var(--ratio) * 1.85vw);
+      right: calc(var(--ratio) * -1vw);
     }
+}
+
+@media (max-width: 1199px) {
+  .index-block-container {
+    margin-top: 30%;
+    margin-bottom: 70%;
+    row-gap: 6rem;
+
+    &-carousel {
+      margin-bottom: 3rem;
+
+      .react-multiple-carousel__arrow {
+        min-width: unset;
+        min-height: unset;
+        width: 25px;
+        height: 25px;
+
+        &::before {
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .see-all {
+      right: calc(var(--ratio) * 3vw);
+    }
+  }
 }

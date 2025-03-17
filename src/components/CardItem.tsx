@@ -1,18 +1,21 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Popconfirm, Rate, Tag } from 'antd';
-import { LikeOutlined } from '@ant-design/icons';
-import { useEffect, useRef, useState } from 'react';
+import { Button, FloatButton, Popconfirm, Rate, Tag } from 'antd';
+import { DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
+import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
 import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
 import moment from 'moment';
+import Image from 'next/image';
+import { Telegram } from 'react-bootstrap-icons';
 
+import telegramIcon from '@/images/icons/telegram.svg';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { deleteItem, type ItemResponseInterface, publishItem, setItemGrades } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -21,14 +24,94 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { toast } from '@/utilities/toast';
+import { ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
-export const CardItem = ({ item, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface }) => {
-  const { id, images, name, description, price, compositions, length, rating, grades } = item;
+interface AdminControlGroupInterface {
+  item: ItemInterface;
+  setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
+}
 
+const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
+
+  const router = useRouter();
+
+  const dispatch = useAppDispatch();
+
+  const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
+
+  const { role } = useAppSelector((state) => state.user);
+
+  const restoreItemHandler = async () => {
+    setIsSubmit(true);
+    const { payload } = await dispatch(restoreItem(item.id)) as { payload: ItemResponseInterface; };
+    if (payload.code === 1) {
+      setItem(payload.item);
+    }
+    setIsSubmit(false);
+  };
+
+  const deleteItemHandler = async () => {
+    setIsSubmit(true);
+    const { payload } = await dispatch(deleteItem(item.id)) as { payload: ItemResponseInterface };
+    if (payload.code === 1) {
+      setItem(payload.item);
+      toast(tToast('itemDeletedSuccess', { name: item.name }), 'success');
+    }
+    setIsSubmit(false);
+  };
+
+  const onEdit = () => router.push({
+    pathname: router.pathname,
+    query: { ...router.query, edit: true },
+  }, undefined, { shallow: true });
+
+  const onPublish = async () => {
+    const { payload } = await dispatch(publishItem(item.id)) as { payload: ItemResponseInterface & { error: string; } };
+    if (!payload?.error) {
+      setItem(payload.item);
+      toast(tToast('itemPublishSuccess', { name }), 'success');
+    }
+  };
+
+  return role === UserRoleEnum.ADMIN
+    ? isMobile
+      ? (
+        <FloatButton.Group
+          trigger="click"
+          style={{ insetInlineEnd: 24, top: '50%', height: 'min-content' }}
+          icon={<EllipsisOutlined />}
+        >
+          {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<SignatureOutlined />} />}
+          <FloatButton icon={<DeleteOutlined />} />
+          {!item.message ? <FloatButton onClick={onPublish} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
+        </FloatButton.Group>
+      )
+      : (
+        <>
+          <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
+          {item.deleted
+            ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
+            : (
+              <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
+                <Button type="text" className="action-button remove">{t('remove')}</Button>
+              </Popconfirm>
+            )}
+          {!item.message?.created
+            ? <Button type="text" className="action-button send-to-telegram" onClick={onPublish}>{t('publishToTelegram')}</Button>
+            : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
+        </>
+      ) : null;
+};
+
+export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface; }) => {
+  const { id, collection, images, name, description, price, discountPrice, compositions, length, rating } = fetchedItem;
+
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
 
   const galleryRef = useRef<ImageGallery>(null);
@@ -36,19 +119,31 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
   const dispatch = useAppDispatch();
 
   const { role } = useAppSelector((state) => state.user);
-  const { items, pagination } = useAppSelector((state) => state.app);
+  const { specialItems, pagination } = useAppSelector((state) => state.app);
 
-  const router = useRouter();
   const urlParams = useSearchParams();
   const editParams = urlParams.get('edit');
 
   const grade = rating?.rating ?? 0;
 
-  const currentItem = items.find(({ id: stateId }) => stateId === id);
+  const { setItem: setContextItem } = useContext(ItemContext);
+  const { isMobile } = useContext(MobileContext);
 
+  const [item, setItem] = useState(fetchedItem);
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
-  const [originalHeight, setOriginalHeight] = useState(400);
+  const [originalHeight, setOriginalHeight] = useState(416);
+  const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
+
+  const updateItem = (value: ItemInterface) => {
+    setItem(value);
+    setContextItem(value);
+    if (!value.new && !value.collection && !value.bestseller) {
+      dispatch(removeSpecialItem(value));
+    } else if ((value.new || value.collection || value.bestseller) && !specialItems.find((specialItem) => specialItem.id === value.id)) {
+      dispatch(addSpecialItem(value));
+    }
+  };
 
   const scrollToElement = (elementId: string, offset: number) => {
     const element = document.getElementById(elementId);
@@ -70,47 +165,95 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
   }, [editParams, role]);
 
   useEffect(() => {
-    dispatch(setItemGrades({ id, items: grades, paginationParams, code: 1 }));
-  }, [items.length]);
+    dispatch(setPaginationParams(paginationParams));
+  }, [paginationParams]);
 
-  return isEdit ? <CreateItem oldItem={item} /> : (
-    <div className="d-flex flex-column">
+  useEffect(() => {
+    setContextItem(item);
+
+    return () => {
+      setContextItem(undefined);
+    };
+  }, []);
+
+  return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
+    <div className="d-flex flex-column" style={isMobile ? { marginTop: '30%' } : {}}>
       <Helmet title={name} description={description} image={images?.[0]?.src} />
-      <div className="d-flex mb-5">
-        <div className="d-flex flex-column gap-3" style={{ width: '45%' }}>
+      <div className="d-flex flex-column flex-xl-row gap-xl-5 mb-5">
+        {isMobile
+          ? (
+            <>
+              <h1 className="mb-4 fs-3">{name}</h1>
+              {collection
+                ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                : null}
+            </>
+          )
+          : null}
+        <div className="d-flex flex-column justify-content-center align-items-center gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass="w-100"
+            additionalClass="w-100 mb-5 mb-xl-0"
             showIndex
-            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight }))}
+            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== 1000 ? undefined : originalHeight, originalWidth: isMobile && originalHeight === 1000 ? originalHeight / 1.3 : undefined }))}
             infinite
-            showNav
+            showBullets={isMobile}
+            showNav={!isMobile}
             onScreenChange={(fullscreen) => {
               if (fullscreen) {
                 setOriginalHeight(1000);
                 document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
                 document.documentElement.style.setProperty('--galleryHeight', '100vh');
+                if (isMobile) {
+                  const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                  if (div) {
+                    div.style.transition = '0.25s all';
+                    div.style.width = 'calc(100% - 30px)';
+                  }
+                  document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
+                  setShowThumbnails(false);
+                }
               } else {
-                setOriginalHeight(400);
-                document.documentElement.style.setProperty('--galleryWidth', 'calc(80% - 110px)');
-                document.documentElement.style.setProperty('--galleryHeight', '400px');
+                setOriginalHeight(403);
+                document.documentElement.style.setProperty('--galleryWidth', '320px');
+                document.documentElement.style.setProperty('--galleryHeight', '416px');
+                if (isMobile) {
+                  const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                  if (div) {
+                    div.style.width = '';
+                    div.style.transition = '';
+                  }
+                  document.documentElement.style.setProperty('--galleryWidth', '320px');
+                  setShowThumbnails(true);
+                }
               }
             }}
+            showThumbnails={showThumbnails}
             showPlayButton={false}
-            thumbnailPosition="left"
+            thumbnailPosition={isMobile ? 'right' : 'left'}
             onClick={() => galleryRef.current?.fullScreen()}
           />
-          <div className="d-flex justify-content-end" style={{ width: '80%' }}>
-            <div className="d-flex justify-content-between" style={{ width: 'calc(100% - 110px)' }}>
-              <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-4', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
-              <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-4', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
-            </div>
-          </div>
+          {!isMobile
+            ? (
+              <div className="d-flex justify-content-center" style={{ width: '320px', alignSelf: 'end' }}>
+                <div className="d-flex justify-content-between w-100">
+                  <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
+                  <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
+                </div>
+              </div>
+            ) : null}
         </div>
-        <div style={{ width: '55%' }}>
+        <div style={{ width: isMobile ? '100%' : '55%' }}>
           <div className="d-flex flex-column">
-            <h1 className="mb-4 fs-3">{name}</h1>
-            <div className="d-flex align-items-center gap-4 mb-4">
+            {!isMobile
+              ? (
+                <><h1 className="mb-4 fs-3">{name}</h1>
+                  {collection
+                    ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                    : null}
+                </>)
+              : null}
+            <div className={cn('d-flex align-items-center gap-4 mb-4', { 'order-1': isMobile })}>
               <div className="d-flex align-items-center gap-2" title={grade.toString()}>
                 <Rate disabled allowHalf value={grade} />
                 <span>{grade}</span>
@@ -129,47 +272,28 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
                   : <span>{t('grades.gradeCount', { count: pagination.count })}</span>}
               </div>
             </div>
-            <div className="d-flex gap-5 mb-4">
-              <p className="fs-5 m-0">{t('price', { price })}</p>
-              {role === UserRoleEnum.ADMIN
-                ? (
-                  <>
-                    <Button type="text" className="action-button edit" onClick={() => {
-                      router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, edit: true },
-                      }, undefined, { shallow: true });
-                    }}>{t('edit')}</Button>
-                    <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => {
-                      dispatch(deleteItem(id));
-                      router.back();
-                      toast(tToast('itemDeletedSuccess', { name }), 'success');
-                    }}>
-                      <Button type="text" className="action-button remove">{t('remove')}</Button>
-                    </Popconfirm>
-                    {!currentItem?.message?.created
-                      ? <Button
-                        type="text"
-                        className="action-button send-to-telegram"
-                        onClick={async () => {
-                          const { payload } = await dispatch(publishItem(id)) as { payload: ItemResponseInterface & { error: string; } };
-                          if (!payload?.error) {
-                            toast(tToast('itemPublishSuccess', { name }), 'success');
-                          }
-                        }}>
-                        {t('publishToTelegram')}
-                      </Button>
-                      : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
-                  </>
-                )
-                : null}
+            <div className={cn('d-flex gap-5 mb-4', { 'order-0': isMobile })}>
+              <div className="d-flex gap-3">
+                {discountPrice ? <p className="fs-5 m-0">{t('price', { price: price - discountPrice })}</p> : null}
+                <p className={cn('fs-5 m-0', { 'text-muted text-decoration-line-through fw-light': discountPrice })}>{t('price', { price })}</p>
+              </div>
+              {isMobile ? <Favorites id={id} /> : null}
+              <AdminControlGroup item={item} setItem={setItem} />
             </div>
-            <div className="d-flex align-items-center gap-5 mb-3">
-              <CartControl id={id} className="fs-5" />
-              <Favorites id={id} />
-            </div>
-            <p className="lh-lg" style={{ letterSpacing: '0.5px' }}>{description}</p>
-            <div className="d-flex flex-column gap-3">
+            {isMobile
+              ? (
+                <div className="float-control-cart d-flex align-items-center justify-content-center gap-5">
+                  <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
+                </div>
+              )
+              : (
+                <div className="d-flex align-items-center gap-5 mb-3">
+                  <CartControl id={id} deleted={item.deleted} className="fs-5" />
+                  <Favorites id={id} />
+                </div>
+              )}
+            <p className={cn('lh-lg', { 'order-2': isMobile })} style={{ letterSpacing: '0.5px' }}>{description}</p>
+            <div className={cn('d-flex flex-column gap-3', { 'order-3': isMobile })}>
               <div className="d-flex flex-column gap-2">
                 <span>{t('composition')}</span>
                 <span>{compositions.map((composition) => composition.name).join(', ')}</span>
@@ -182,7 +306,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
           </div>
         </div>
       </div>
-      <div className="d-flex justify-content-end mb-5">
+      <div className="d-flex justify-content-end mb-3 mb-xl-5">
         <div className="col-11 d-flex flex-column justify-content-end">
           {tab === 'warranty' ? (
             <div className="warranty-fade">
@@ -256,7 +380,7 @@ export const CardItem = ({ item, paginationParams }: { item: ItemInterface; pagi
           )}
         </div>
       </div>
-      {currentItem && <GradeList item={currentItem} />}
+      <GradeList item={item} setItem={setItem} />
     </div>
   );
 };

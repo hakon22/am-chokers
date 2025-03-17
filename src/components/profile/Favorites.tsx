@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { List } from 'antd';
 import Link from 'next/link';
+import cn from 'classnames';
 
 import { useAppSelector } from '@/utilities/hooks';
 import { ImageHover } from '@/components/ImageHover';
@@ -14,31 +15,38 @@ export const Favorites = () => {
 
   const { favorites } = useAppSelector((state) => state.user);
 
+  const coefficient = 1.3;
+
   const width = 130;
-  const height = 170;
+  const height = width * coefficient;
 
   return (
     <List
-      dataSource={favorites}
+      dataSource={[...(favorites || [])]?.sort((a, b) => {
+        const aDeleted = a.deleted ? 1 : 0; // Если deleted true, присваиваем 1, иначе 0
+        const bDeleted = b.deleted ? 1 : 0; // Аналогично для b
+        return aDeleted - bDeleted; // Возвращаем разницу, чтобы отсортировать
+      })}
       locale={{
         emptyText: <NotFoundContent />,
       }}
       className="d-flex flex-column align-items-between col-8 w-100"
       renderItem={(item) => (
-        <List.Item className="ms-3">
+        <List.Item className="ms-xl-3">
           <div className="d-flex gap-4" style={{ width, height }}>
             <ImageHover
               height={height}
               width={width}
               images={item.images ?? []}
+              className={cn({ 'opacity-50': item.deleted })}
             />
             <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-              <Link href={getHref(item)} className="d-flex flex-column gap-3">
+              <Link href={getHref(item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.deleted })}>
                 <span className="lh-1">{item.name}</span>
-                <span>{tPrice('price', { price: item.price })}</span>
+                <span>{tPrice('price', { price: item.price - item.discountPrice })}</span>
               </Link>
-              <div className="d-flex gap-4">
-                <CartControl id={item.id} />
+              <div className="d-flex align-items-center gap-4">
+                <CartControl id={item.id} deleted={item.deleted} />
                 <FavoritesButton id={item.id} className="fs-5" outlined={true} />
               </div>
             </div>

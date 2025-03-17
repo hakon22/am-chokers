@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, List, Rate, Popconfirm, Tag } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Reply } from 'react-bootstrap-icons';
 import moment from 'moment';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { FormInstance, UploadFile } from 'antd/lib';
 
-import { getItemGrades, createComment, removeGrade } from '@/slices/appSlice';
+import { getItemGrades, createComment, removeGrade, setPaginationParams, type CommentResponseInterface, type GradeResponseInterface } from '@/slices/appSlice';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -15,11 +15,12 @@ import { newCommentValidation } from '@/validations/validations';
 import { PreviewImage } from '@/components/PreviewImage';
 import { UploadImage, urlToBase64, getBase64 } from '@/components/UploadImage';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { SubmitContext } from '@/components/Context';
+import { routes } from '@/routes';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
-import type { PaginationSearchInterface } from '@/types/PaginationInterface';
+import type { PaginationEntityInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ItemInterface } from '@/types/item/Item';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
-import { routes } from '@/routes';
 
 interface GradeListTitleInterface {
   grade: ItemGradeEntity;
@@ -31,6 +32,7 @@ interface GradeListDescriptionInterface {
   grade: ItemGradeEntity;
   setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
+  setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface GradeListReplyFormInterface {
@@ -63,7 +65,7 @@ export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTi
   );
 };
 
-export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }: GradeListDescriptionInterface) => (
+export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen, setIsSubmit }: GradeListDescriptionInterface) => (
   <div className="d-flex flex-column">
     <span className="fs-5-5 font-oswald" style={{ color: 'black' }}>{grade.comment?.text}</span>
     {grade?.comment?.images.length
@@ -71,7 +73,7 @@ export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }:
         <div className="d-flex gap-3 mt-3">
           {grade?.comment?.images.map(({ id: imageId, src, name: imageName }) => (
             <div key={imageId}>
-              <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+              <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
           ))}
         </div>
@@ -91,7 +93,7 @@ export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen }:
                   <div className="d-flex gap-3 mt-3">
                     {comment.images.map(({ id: imageId, src, name: imageName }) => (
                       <div key={imageId}>
-                        <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                        <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                       </div>
                     ))}
                   </div>
@@ -129,13 +131,15 @@ export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileLis
   );
 };
 
-export const GradeList = ({ item }: { item: ItemInterface }) => {
+export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: React.Dispatch<React.SetStateAction<ItemInterface>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList' });
 
   const { role } = useAppSelector((state) => state.user);
   const { pagination, loadingStatus } = useAppSelector((state) => state.app);
 
   const dispatch = useAppDispatch();
+
+  const { setIsSubmit } = useContext(SubmitContext);
 
   const replyComment: Partial<ReplyComment> = {
     parentComment: undefined,
@@ -162,13 +166,26 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
 
   const onFinish = async (values: ReplyComment) => {
     values.images = commentImages;
-    const { payload: { code } } = await dispatch(createComment({ ...reply, ...values })) as { payload: { code: number; } };
+    const { payload: { code, comment } } = await dispatch(createComment({ ...reply, ...values })) as { payload: CommentResponseInterface; };
     if (code === 1) {
+      setItem((state) => {
+        const gradeIndex = state.grades.findIndex((grade) => grade.id === comment.parentComment.grade?.id);
+        const stateGrade = state.grades[gradeIndex];
+        if (gradeIndex !== -1 && stateGrade?.comment) {
+          stateGrade.comment.replies = [...(stateGrade.comment?.replies || []), comment];
+        }
+        return state;
+      });
       clearReplyComment();
     }
   };
 
-  const onGradeRemove = (gradeId: number) => dispatch(removeGrade(gradeId));
+  const onGradeRemove = async (gradeId: number) => {
+    const { payload } = await dispatch(removeGrade(gradeId)) as { payload: GradeResponseInterface; };
+    if (payload.code === 1) {
+      setItem({ ...item, grades: item.grades.filter((grade) => grade.id !== payload.grade.id) });
+    }
+  };
 
   const onLoadMore = async () => {
     if (loadingStatus !== 'loading' && item && pagination.count > item.grades.length) {
@@ -177,7 +194,13 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
         limit: pagination.limit,
         offset: pagination.offset + 10,
       };
-      await dispatch(getItemGrades(params));
+      const { payload } = await dispatch(getItemGrades(params)) as { payload: PaginationEntityInterface<ItemGradeEntity>; };
+      setItem((state) => {
+        const grades = payload.items.filter((grade) => !state.grades.some((stateGrade) => stateGrade.id === grade.id));
+        state.grades = [...(state.grades || []), ...grades];
+        return state;
+      });
+      dispatch(setPaginationParams(payload.paginationParams));
     }
   };
 
@@ -186,7 +209,7 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
   ) : null;
 
   return (
-    <div id="grades" className="d-flex flex-column align-items-end">
+    <div id="grades" className="d-flex flex-column align-items-start align-items-xl-end">
       <h3 className="col-11 mb-5 text-uppercase">{t('reviews')}</h3>
       <PreviewImage previewImage={previewImage} previewOpen={previewOpen} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
       <List
@@ -220,7 +243,7 @@ export const GradeList = ({ item }: { item: ItemInterface }) => {
             <List.Item.Meta
               className="w-100 mb-5"
               title={<GradeListTitle grade={value} />}
-              description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />}
+              description={<GradeListDescription grade={value} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} setIsSubmit={setIsSubmit} />}
             />
             {reply.parentComment && value.comment?.id === reply.parentComment.id ? (
               <GradeListReplyForm

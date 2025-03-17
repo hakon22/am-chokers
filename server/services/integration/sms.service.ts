@@ -46,7 +46,7 @@ export class SmsService {
     }
   };
 
-  public sendPass = async (phone: string) => {
+  public sendPass = async (phone: string): Promise<string> => {
     try {
       const password = passGen.generate({
         length: 7,

@@ -1,4 +1,4 @@
-import { Button, Dropdown, Form, message, Popconfirm, Select, Upload } from 'antd';
+import { Button, Dropdown, Form, Popconfirm, Select, Upload } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/router';
@@ -8,7 +8,7 @@ import type { MenuProps } from 'antd';
 
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, setCoverImage } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
@@ -37,9 +37,9 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
   const router = useRouter();
 
   const { role, token } = useAppSelector((state) => state.user);
-  const { items } = useAppSelector((state) => state.app);
+  const { specialItems } = useAppSelector((state) => state.app);
 
-  const { bestsellers, collections } = items.reduce((acc, value) => {
+  const { bestsellers, collections } = specialItems.reduce((acc, value) => {
     if (value.order) return acc;
 
     if (value.bestseller) {
@@ -64,8 +64,9 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
 
   const handleDelete = async (target: ItemInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface };
+    const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface; };
     if (payloadCode === 1) {
+      dispatch(removeSpecialItem(deletedItem));
       toast(tToast('itemDeletedSuccess', { name: deletedItem.name }), 'success');
     }
     setIsSubmit(false);
@@ -211,10 +212,10 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
                   onChange={(info) => {
                     const { status, response } = info.file;
                     if (status === 'done' && response) {
-                      message.success(tUpload('success', { fileName: info.file.name }));
+                      toast(tUpload('success', { fileName: info.file.name }), 'success');
                       setUploadedImage(response?.image);
                     } else if (status === 'error') {
-                      message.error(response?.message);
+                      toast(response?.message ?? '', 'error');
                     }
                   }}
                 >

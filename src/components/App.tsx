@@ -7,11 +7,12 @@ import cn from 'classnames';
 import { useAppSelector } from '@/utilities/hooks';
 import { useErrorHandler } from '@/utilities/useErrorHandler';
 import { useAuthHandler } from '@/utilities/useAuthHandler';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
 import { useRootStyle } from '@/utilities/useRootStyle';
+import { useMobileContext } from '@/utilities/useMobileContext';
 import { Spinner } from '@/components/Spinner';
 import { routes } from '@/routes';
 import { useAccessHandler } from '@/utilities/useAccessHandler';
@@ -28,11 +29,13 @@ export const App = ({ children }: { children: JSX.Element }) => {
   const { error: cartError } = useAppSelector((state) => state.cart);
 
   const { isSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   useErrorHandler(userError, orderError, appError, cartError);
   useAuthHandler();
   useAccessHandler();
   useRootStyle();
+  useMobileContext();
 
   useEffect(() => {
     setTimeout(setIsLoaded, 1000, true);
@@ -43,9 +46,9 @@ export const App = ({ children }: { children: JSX.Element }) => {
       {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
       <header>
         <NavBar />
-        <Breadcrumb />
+        {isMobile ? null : <Breadcrumb />}
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: '25%' }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? '100%' : '25%' }}>
         <main className="container">
           {children}
         </main>

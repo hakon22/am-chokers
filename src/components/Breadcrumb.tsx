@@ -1,5 +1,5 @@
  
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,8 +7,8 @@ import { Breadcrumb as BreadcrumbAntd } from 'antd';
 import { RightOutlined } from '@ant-design/icons';
 
 import { routes, catalogPath } from '@/routes';
-import { translate } from '@/utilities/translate';
 import { useAppSelector } from '@/utilities/hooks';
+import { ItemContext, MobileContext } from '@/components/Context';
 
 type BreadcrumbState = {
   title: JSX.Element | string;
@@ -18,7 +18,10 @@ export const Breadcrumb = () => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { items, itemGroups } = useAppSelector((state) => state.app);
+  const { itemGroups } = useAppSelector((state) => state.app);
+
+  const { item } = useContext(ItemContext);
+  const { isMobile } = useContext(MobileContext);
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -35,7 +38,6 @@ export const Breadcrumb = () => {
         };
       }
       linkArray.push(folder);
-      const item = items.find((itm) => translate(itm.name) === folder);
       const itemGroup = itemGroups.find((group) => group.code === folder);
       const link = linkArray.reduce((acc, fold) => `${acc}/${fold}`, '');
       const page = folder === 'catalog'
@@ -45,11 +47,9 @@ export const Breadcrumb = () => {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
       };
     }));
-  }, [pathname, items]);
+  }, [pathname, itemGroups.length, item?.name]);
 
-  return router.pathname.includes(catalogPath) ? (
-    <>
-      <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '9%' }} />
-    </>
-  ) : null;
+  return router.pathname.includes(catalogPath)
+    ? <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: isMobile ? '25%' : '9%' }} />
+    : null;
 };

@@ -2,14 +2,12 @@ import axios from 'axios';
 import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit';
 
 import { routes } from '@/routes';
-import type { OrderInterface } from '@/types/order/Order';
+import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 import type { InitialState } from '@/types/InitialState';
 import type { RootState } from '@/slices';
-import type { CartItemInterface } from '@/types/cart/Cart';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
-import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 
 export interface OrderResponseInterface {
   code: number;
@@ -32,9 +30,9 @@ export const fetchOrders = createAsyncThunk(
 
 export const createOrder = createAsyncThunk(
   'order/createOrder',
-  async ({ cart, promotional, deliveryPrice }: { cart: CartItemInterface[]; promotional?: PromotionalInterface; deliveryPrice: number; }, { rejectWithValue }) => {
+  async ({ cart, promotional, delivery }: CreateOrderInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<OrderResponseInterface>(routes.createOrder, { cart, promotional, deliveryPrice });
+      const response = await axios.post<OrderResponseInterface>(routes.createOrder, { cart, promotional, delivery });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

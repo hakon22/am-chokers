@@ -4,6 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { Brackets } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
@@ -37,7 +38,20 @@ export class ItemService extends BaseService {
     if (options?.onlyIds) {
       builder
         .select('item.id')
+        .distinct(true)
         .orderBy('item.id', 'DESC');
+
+      if (query?.collectionIds?.length) {
+        builder.leftJoin('item.collection', 'collection');
+      }
+
+      if (query?.compositionIds?.length) {
+        builder.leftJoin('item.compositions', 'compositions');
+      }
+
+      if (query?.groupIds?.length || query?.groupCode) {
+        builder.leftJoin('item.group', 'group');
+      }
 
       if (query?.limit || query?.offset) {
         builder
@@ -69,6 +83,7 @@ export class ItemService extends BaseService {
           'item.new',
           'item.bestseller',
           'item.order',
+          'item.translateName',
         ])
         .leftJoin('item.images', 'images')
         .addSelect([
@@ -89,7 +104,9 @@ export class ItemService extends BaseService {
         ])
         .leftJoinAndSelect('item.group', 'group')
         .leftJoinAndSelect('item.collection', 'collection')
-        .leftJoinAndSelect('item.compositions', 'compositions');
+        .leftJoinAndSelect('item.compositions', 'compositions')
+        .orderBy('item.created', 'DESC')
+        .addOrderBy('item.deleted IS NOT NULL', 'ASC');
     }
 
     if (query?.withDeleted) {
@@ -107,8 +124,29 @@ export class ItemService extends BaseService {
     if (query?.name) {
       builder.andWhere('item.name = :name', { name: query.name });
     }
+    if (query?.translateName) {
+      builder.andWhere('item.translateName = :translateName', { translateName: query.translateName });
+    }
     if (query?.itemGroupId) {
       builder.andWhere('group.id = :itemGroupId', { itemGroupId: query.itemGroupId });
+    }
+    if (query?.collectionIds?.length) {
+      builder.andWhere('collection.id IN(:...collectionIds)', { collectionIds: query.collectionIds });
+    }
+    if (query?.compositionIds?.length) {
+      builder.andWhere('compositions.id IN(:...compositionIds)', { compositionIds: query.compositionIds });
+    }
+    if (query?.groupIds) {
+      builder.andWhere('group.id IN(:...groupIds)', { groupIds: query.groupIds });
+    }
+    if (query?.from) {
+      builder.andWhere('(item.price - item.discountPrice) >= :from', { from: query.from });
+    }
+    if (query?.to) {
+      builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
+    }
+    if (query?.groupCode) {
+      builder.andWhere('group.code = :groupCode', { groupCode: query.groupCode });
     }
     if (options?.ids?.length) {
       builder.andWhere('item.id IN(:...ids)', { ids: options.ids });
@@ -143,7 +181,7 @@ export class ItemService extends BaseService {
   };
 
   public findMany = async (query?: ItemQueryInterface) => {
-    const builder = this.createQueryBuilder(query);
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true });
 
     const items = await builder.getMany();
 
@@ -195,7 +233,7 @@ export class ItemService extends BaseService {
     return [items, count];
   };
 
-  public createOne = async (body: ItemEntity & { sendToTelegram: boolean; }, images: ImageEntity[]) => {
+  public createOne = async (body: ItemEntity & { publishToTelegram: boolean; }, images: ImageEntity[]) => {
 
     const isExist = await this.exist({ name: body.name });
 
@@ -205,6 +243,8 @@ export class ItemService extends BaseService {
 
     const createdItem = await this.databaseService.getManager().transaction(async (manager) => {
       const itemRepo = manager.getRepository(ItemEntity);
+
+      body.translateName = translate(body.name);
 
       const created = await itemRepo.save(body);
 
@@ -219,7 +259,7 @@ export class ItemService extends BaseService {
 
     const item = await this.findOne({ id: createdItem.id });
 
-    if (body.sendToTelegram && images.length > 1) {
+    if (body.publishToTelegram && images.length > 1) {
       const { message } = await this.publishToTelegram({ id: item.id }, item);
       item.message = message;
     }
@@ -228,18 +268,27 @@ export class ItemService extends BaseService {
   };
 
   public updateOne = async (params: ParamsIdInterface, body: ItemEntity) => {
-    const item = await this.findOne(params);
+    const item = await this.findOne(params, { withDeleted: true });
 
     const updated = await this.databaseService.getManager().transaction(async (manager) => {
       const itemRepo = manager.getRepository(ItemEntity);
 
-      const newItem = { ...item, ...body } as ItemEntity;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { grades, ...rest } = body;
+      const newItem = { ...item, ...rest } as ItemEntity;
+
+      if (item.name !== body.name) {
+        newItem.translateName = translate(body.name);
+      }
 
       await itemRepo.save(newItem);
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, newItem.id, manager);
 
       return newItem;
     });
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    updated.grades = grades;
 
     const url = this.getUrl(updated);
 
@@ -254,11 +303,18 @@ export class ItemService extends BaseService {
 
       const newItem = { ...item, ...body } as ItemEntity;
 
+      if (body?.name && item.name !== body.name) {
+        newItem.translateName = translate(body.name);
+      }
+
       await itemRepo.save(newItem);
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, newItem.id, manager);
 
       return newItem;
     });
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    updated.grades = grades;
 
     const url = this.getUrl(updated);
 
@@ -285,7 +341,7 @@ export class ItemService extends BaseService {
         ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
         `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
         `Длина: <b>${item.length}</b>`,
-        `Цена: <b>${item.price} ₽</b>`,
+        `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
       ];
@@ -296,6 +352,49 @@ export class ItemService extends BaseService {
         await ItemEntity.update(item.id, { message: message.history });
         item.message = message.history;
       }
+    }
+
+    return item;
+  };
+
+  public getLinks = async () => {
+    const manager = this.databaseService.getManager();
+
+    const itemBuilder = manager.createQueryBuilder(ItemEntity, 'item')
+      .select('item.translateName');
+
+    const itemGroupBuilder = manager.createQueryBuilder(ItemGroupEntity, 'itemGroup')
+      .select('itemGroup.code');
+
+    const [items, itemGroups] = await Promise.all([
+      itemBuilder.getMany(),
+      itemGroupBuilder.getMany(),
+    ]);
+
+    const links = new Set<string>();
+
+    items.forEach(({ translateName }) => links.add(translateName));
+    itemGroups.forEach(({ code }) => links.add(code));
+
+    return [...links];
+  };
+
+  public getSpecials = async () => {
+    const builder = this.createQueryBuilder({}, { withGrades: true })
+      .andWhere('item.new IS NOT NULL')
+      .andWhere('item.bestseller IS NOT NULL')
+      .andWhere('item.collection IS NOT NULL');
+
+    return builder.getMany();
+  };
+
+  public getByName = async (query: ItemQueryInterface) => {
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true });
+
+    const item = await builder.getOne();
+
+    if (!item) {
+      throw new Error(`Товара с именем ${query.translateName} не существует.`);
     }
 
     return item;
@@ -323,5 +422,5 @@ export class ItemService extends BaseService {
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
 
-  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, translate(item.name)).replaceAll('\\', '/');
+  private getUrl = (item: ItemEntity) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');
 }

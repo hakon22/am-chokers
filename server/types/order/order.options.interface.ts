@@ -1,3 +1,5 @@
+import type { EntityManager } from 'typeorm';
+
 export interface OrderOptionsInterface {
   /** Только `id` заказов */
   onlyIds?: boolean;
@@ -9,4 +11,6 @@ export interface OrderOptionsInterface {
   withUser?: boolean;
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Менеджер typeorm */
+  manager?: EntityManager;
 }

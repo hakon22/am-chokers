@@ -6,6 +6,7 @@ import _ from 'lodash';
 import i18n from '@/locales';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 
 const { t } = i18n;
 
@@ -38,8 +39,10 @@ const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T
   },
 });
 
+export const uuidStringSchema = yup.string().uuid().required();
+
 export const uuidSchema = yup.object().shape({
-  id: yup.string().uuid().required(),
+  id: uuidStringSchema,
 });
 
 export const uuidArraySchema = yup.array(yup.string().uuid().required()).required();
@@ -128,10 +131,11 @@ const newItemSchema = yup.object().shape({
   new: booleanSchema,
   bestseller: booleanSchema,
   price: numberSchema,
+  discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).min(1).required(),
   length: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
-  sendToTelegram: booleanSchema,
+  publishToTelegram: booleanSchema,
 });
 
 const partialUpdateItemSchema = yup.object().shape({
@@ -142,6 +146,7 @@ const partialUpdateItemSchema = yup.object().shape({
   new: booleanSchema.optional(),
   bestseller: booleanSchema.optional(),
   price: numberSchema.optional(),
+  discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).optional(),
   length: stringSchema.optional(),
   order: yup.number().optional().nullable(),
@@ -170,10 +175,15 @@ const cartItemsSchema = yup.array(newCartItemSchema.concat(uuidSchema));
 
 const newOrderPositionSchema = yup.object().shape({
   cart: yup.array(newCartItemSchema.concat(uuidSchema)).min(1),
-  deliveryPrice: numberSchema,
   promotion: yup.object().shape({
     id: yup.number(),
   }).optional(),
+  delivery: yup.object().shape({
+    price: numberSchema,
+    platformStationTo: stringSchema,
+    address: stringSchema,
+    type: yup.string().oneOf(Object.values(DeliveryTypeEnum)),
+  }),
 });
 
 const orderChangeStatusSchema = yup.object().shape({

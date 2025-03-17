@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 import { newItemCollectionValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -66,12 +66,14 @@ const CreateItemCollection = () => {
   const withDeletedParams = urlParams.get('withDeleted');
 
   const { role } = useAppSelector((state) => state.user);
-  const { itemCollections } = useAppSelector((state) => state.app);
+  const { axiosAuth } = useAppSelector((state) => state.app);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
 
+  const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>([]);
   const [data, setData] = useState<ItemCollectionTableInterface[]>([]);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
@@ -153,13 +155,14 @@ const CreateItemCollection = () => {
 
     const exist = itemCollections.find((itemCollection) => itemCollection.id.toString() === key.toString());
     if (exist) {
-      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface };
+      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
       if (payloadCode === 1) {
         updateData(itemCollection, row);
       }
     } else {
-      const { payload: { code: payloadCode } } = await dispatch(addItemCollection({ name, description } as ItemCollectionInterface)) as { payload: { code: number; } };
+      const { payload: { code: payloadCode, itemCollection } } = await dispatch(addItemCollection({ name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
       if (payloadCode === 1) {
+        setItemCollections((state) => [...state, itemCollection]);
         setEditingKey('');
       } else if (payloadCode === 2) {
         form.setFields([{ name: 'code', errors: [tToast('itemCollectionExist', { name })] }]);
@@ -242,15 +245,16 @@ const CreateItemCollection = () => {
   });
 
   useEffect(() => {
-    if (withDeleted !== undefined) {
+    if ((withDeleted !== undefined || !itemCollections.length) && axiosAuth) {
       router.push(`?withDeleted=${withDeleted}`, undefined, { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, itemCollections: ItemCollectionInterface[] }>(routes.getItemCollections({ isServer: false }), {
+      axios.get<{ code: number, itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }), {
         params: { withDeleted },
       })
         .then(({ data: response }) => {
           if (response.code === 1) {
+            setItemCollections(response.itemCollections);
             const newItemCollections: ItemCollectionTableInterface[] = response.itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() }));
             setData(newItemCollections);
           }
@@ -260,22 +264,26 @@ const CreateItemCollection = () => {
           axiosErrorHandler(e, tToast, setIsSubmit);
         });
     }
-  }, [withDeleted]);
+  }, [withDeleted, axiosAuth]);
 
   useEffect(() => {
     setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));
   }, [itemCollections.length]);
 
   return role === UserRoleEnum.ADMIN ? (
-    <div className="d-flex flex-column mb-5 justify-content-center">
+    <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '15%' } : {}}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
-      <div className="d-flex align-items-center gap-3 mb-3">
-        <Button onClick={handleAdd} className="button border-button">
-          {t('addItemCollection')}
-        </Button>
-        <BackButton />
-        <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+      <div className="d-flex flex-column justify-content-center">
+        <div className="mb-3">
+          <BackButton style={{}} />
+        </div>
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
+            {t('addItemCollection')}
+          </Button>
+          <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+        </div>
       </div>
       <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
         <Table<ItemCollectionTableInterface>

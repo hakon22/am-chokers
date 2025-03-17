@@ -74,6 +74,18 @@ export class ItemGroupService extends BaseService {
     return itemGroups;
   };
 
+  public getByCode = async (query: ItemGroupQueryInterface) => {
+    const builder = this.createQueryBuilder(query);
+  
+    const itemGroup = await builder.getOne();
+  
+    if (!itemGroup) {
+      throw new Error(`Группы товаров с кодом ${query.code} не существует.`);
+    }
+  
+    return itemGroup;
+  };
+
   public updateOne = async (params: ParamsIdInterface, body: ItemGroupEntity) => {
     const itemGroup = await this.findOne(params);
 

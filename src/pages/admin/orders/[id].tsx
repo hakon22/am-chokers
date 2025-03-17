@@ -8,7 +8,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
 import { Order as OrderComponent } from '@/components/profile/Order';
 import { useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { paramsIdSchema } from '@server/utilities/convertation.params';
 import type { OrderInterface } from '@/types/order/Order';
@@ -41,6 +41,7 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
   const { role } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [order, setOrder] = useState<OrderInterface | undefined>();
 
@@ -66,11 +67,11 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={tOrder('title', { id })} description={tOrder('description')} />
-      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{tOrder('title', { id })}</h1>
+      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{tOrder('title', { id })}</h1>
       <div className="d-flex align-items-center gap-3 mb-5">
         <BackButton style={{}} />
       </div>
-      {order && <OrderComponent order={order} t={tOrder} orderId={order.id} />}
+      {order && <OrderComponent order={order} orderId={order.id} />}
     </div>
   ) : <Navigate to={routes.homePage} replace />;
 };

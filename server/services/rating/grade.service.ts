@@ -48,6 +48,7 @@ export class GradeService extends BaseService {
         .addSelect([
           'item.id',
           'item.name',
+          'item.translateName',
         ])
         .leftJoin('item.group', 'group')
         .addSelect([
@@ -202,6 +203,8 @@ export class GradeService extends BaseService {
       const gradeRepo = manager.getRepository(GradeEntity);
       const commentRepo = manager.getRepository(CommentEntity);
 
+      const grade = { ...body, user: { id: userId } };
+
       if (comment?.text || comment?.images.length) {
         const { images, ...rest } = comment;
         const createdComment = await commentRepo.save(rest);
@@ -209,10 +212,10 @@ export class GradeService extends BaseService {
           this.uploadPathService.checkFolder(UploadPathEnum.COMMENT, createdComment.id);
           await this.imageService.processingImages(images, UploadPathEnum.COMMENT, createdComment.id, manager);
         }
-        return gradeRepo.save({ ...body, comment: createdComment, user: { id: userId } });
+        grade.comment = createdComment;
       }
 
-      return gradeRepo.save({ ...body, user: { id: userId } });
+      return gradeRepo.save(grade);
     });
 
     return this.findOne({ id: created.id });
@@ -233,11 +236,10 @@ export class GradeService extends BaseService {
   public deleteOne = async (params: ParamsIdInterface) => {
     const grade = await this.findOne(params);
 
-    const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
-
-    await gradeRepo.softDelete(grade.id);
+    await GradeEntity.update(grade.id, { checked: false, deleted: new Date() });
 
     grade.deleted = new Date();
+    grade.checked = false;
 
     return grade;
   };

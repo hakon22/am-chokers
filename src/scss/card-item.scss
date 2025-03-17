@@ -15,6 +15,37 @@ $base-delay: 0.2s; // Базовая задержка
   @include apply-animation(10);
 }
 
+.float-control-cart {
+  position: fixed;
+  height: 60px;
+  bottom: 5%;
+  border-radius: 7px;
+  width: calc(100% - 24px);
+  left: 12px;
+  background-color: $dark-blue;
+  z-index: 1000;
+}
+
+.float-custom-icon {
+  .ant-float-btn-body .ant-float-btn-content {
+    overflow: unset;
+    
+    .ant-float-btn-icon {
+      width: unset;
+    }
+  }
+}
+
+@media (max-width: 1199px) {
+  .image-gallery-content.image-gallery-thumbnails-right.fullscreen {
+    text-align: center;
+    
+    & > .image-gallery-slide-wrapper.image-gallery-thumbnails-right {
+      transition: 1s all;
+    }
+  }
+}
+
 @keyframes fadeInUp {
   to {
     opacity: 1; /* Делаем строки видимыми */

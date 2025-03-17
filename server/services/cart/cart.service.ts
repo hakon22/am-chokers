@@ -12,8 +12,8 @@ import type { UserEntity } from '@server/db/entities/user.entity';
 @Singleton
 export class CartService extends BaseService {
 
-  private createQueryBuilder = (userId: number | null, query?: CartQueryInterface, options?: CartOptionsInterface, entityManager?: EntityManager) => {
-    const manager = entityManager || this.databaseService.getManager();
+  private createQueryBuilder = (userId: number | null, query?: CartQueryInterface, options?: CartOptionsInterface) => {
+    const manager = options?.manager || this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(CartEntity, 'cart')
       .select([
@@ -30,6 +30,8 @@ export class CartService extends BaseService {
           'item.price',
           'item.discount',
           'item.discountPrice',
+          'item.deleted',
+          'item.translateName',
         ])
         .leftJoin('item.images', 'images')
         .addSelect([
@@ -73,17 +75,17 @@ export class CartService extends BaseService {
   private findOne = async (userId: number | null, params: ParamsIdStringInterface) => {
     const builder = this.createQueryBuilder(userId, params);
 
-    const item = await builder.getOne();
+    const cartItem = await builder.getOne();
 
-    if (!item) {
+    if (!cartItem) {
       throw new Error(`Позиции корзины с номером #${params.id} не существует.`);
     }
 
-    return item;
+    return cartItem;
   };
 
-  public findMany = async (userId: number | null, oldCart?: CartItemInterface[], query?: CartQueryInterface) => {
-    const builder = this.createQueryBuilder(userId, query);
+  public findMany = async (userId: number | null, oldCart?: CartItemInterface[], query?: CartQueryInterface, options?: CartOptionsInterface) => {
+    const builder = this.createQueryBuilder(userId, query, options);
 
     const cart = await builder.getMany();
 
@@ -114,7 +116,7 @@ export class CartService extends BaseService {
     const cartRepo = manager.getRepository(CartEntity);
     const created = await cartRepo.save(body);
 
-    const builder = this.createQueryBuilder(userId, { ids: created.map(({ id }) => id) }, {}, manager);
+    const builder = this.createQueryBuilder(userId, { ids: created.map(({ id }) => id) }, { manager });
 
     const cartItems = await builder.getMany();
 
@@ -122,17 +124,20 @@ export class CartService extends BaseService {
   };
 
   public deleteOne = async (userId: number | null, params: ParamsIdStringInterface) => {
-    const item = await this.findOne(userId, params);
+    const cartItem = await this.findOne(userId, params);
   
-    await CartEntity.delete(item.id);
+    await CartEntity.delete(cartItem.id);
 
-    return item;
+    return cartItem;
   };
 
-  public deleteMany = async (userId: number | null, ids?: string[]) => {
-    const cart = await this.findMany(userId, undefined, { ids });
+  public deleteMany = async (userId: number | null, ids?: string[], options?: CartOptionsInterface) => {
+    const cart = await this.findMany(userId, undefined, { ids }, options);
 
-    await CartEntity.delete(cart.map(({ id }) => id));
+    const manager = options?.manager || this.databaseService.getManager();
+    const cartRepo = manager.getRepository(CartEntity);
+
+    await cartRepo.delete(cart.map(({ id }) => id));
   };
 
   private saveCartItems = async (cart: CartEntity[], oldCart: CartItemInterface[], userId: number) => {

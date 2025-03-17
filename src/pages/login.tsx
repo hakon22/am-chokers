@@ -14,6 +14,7 @@ import { routes } from '@/routes';
 import { fetchLogin } from '@/slices/userSlice';
 import { SubmitContext } from '@/components/Context';
 import loginImage from '@/images/login.image.jpg';
+import { MobileContext } from '@/components/Context';
 import type { UserLoginInterface } from '@/types/user/User';
 
 const Login = () => {
@@ -24,6 +25,7 @@ const Login = () => {
   const dispatch = useAppDispatch();
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
 
@@ -42,12 +44,16 @@ const Login = () => {
     <>
       <Helmet title={t('title')} description={t('description')} />
       <div className="col-12 d-flex gap-5">
-        <div className="col-5" style={{ marginTop: '12%' }}>
-          <Image src={loginImage} width={600} height={600} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
-        </div>
-        <div className="col-6 d-flex flex-column align-items-center" style={{ marginTop: '22%' }}>
+        {!isMobile
+          ? (
+            <div className="col-5" style={{ marginTop: '12%' }}>
+              <Image src={loginImage} width={600} height={600} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
+            </div>
+          )
+          : null}
+        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '30%' : '22%' }}>
           <h1 className="mb-5">{t('title')}</h1>
-          <Form name="login" className="col-8" form={form} onFinish={onFinish}>
+          <Form name="login" className="col-12 col-xl-8" form={form} onFinish={onFinish}>
             <Form.Item<UserLoginInterface> name="phone" rules={[loginValidation]}>
               <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
             </Form.Item>

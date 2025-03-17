@@ -7,7 +7,7 @@ import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import type { ItemGroupInterface } from '@/types/item/Item';
 import { newItemGroupValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -70,6 +70,7 @@ const CreateItemGroup = () => {
   const { role } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
 
@@ -275,15 +276,19 @@ const CreateItemGroup = () => {
   }, [itemGroups.length]);
 
   return role === UserRoleEnum.ADMIN ? (
-    <div className="d-flex flex-column mb-5 justify-content-center">
+    <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '15%' } : {}}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>
-      <div className="d-flex align-items-center gap-3 mb-3">
-        <Button onClick={handleAdd} className="button border-button">
-          {t('addItemGroup')}
-        </Button>
-        <BackButton />
-        <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+      <div className="d-flex flex-column justify-content-center">
+        <div className="mb-3">
+          <BackButton style={{}} />
+        </div>
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
+            {t('addItemGroup')}
+          </Button>
+          <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
+        </div>
       </div>
       <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
         <Table<ItemGroupTableInterface>

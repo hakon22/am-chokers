@@ -55,6 +55,7 @@ export const routes = {
 
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
+  yookassa: [apiPath, 'payment', 'check'].join('/'),
 
   // order
   crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),
@@ -65,6 +66,7 @@ export const routes = {
 
   // itemGroup
   getItemGroups: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'groups'].join('/'),
+  getItemGroupByCode: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-by-code'].join('/'),
   crudItemGroup: (id?: number | React.Key) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
   createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
 
@@ -81,8 +83,10 @@ export const routes = {
   getCoverImages: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'getAll'].join('/'),
 
   // item
-  getItems: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'items'].join('/'),
-  getItemList: [apiPath, 'item', 'list'].join('/'),
+  getItemList: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'list'].join('/'),
+  getItemLinks: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'links'].join('/'),
+  getItemByName: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-by-name'].join('/'),
+  getItemSpecials: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-special'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   searchItem: [apiPath, 'item', 'search'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
@@ -127,4 +131,9 @@ export const routes = {
   restoreGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'restore'].join('/'),
   acceptGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'accept'].join('/'),
   getUnchekedGrades: [apiPath, 'grade', 'getAll'].join('/'),
+
+  // Доставка
+  delivery: {
+    findMany: [apiPath, 'delivery', 'findMany'].join('/'),
+  },
 } as const;

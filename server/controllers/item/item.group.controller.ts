@@ -5,7 +5,7 @@ import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { newItemGroupValidation } from '@/validations/validations';
 import { ItemGroupService } from '@server/services/item/item.group.service';
-import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryCodeParams, queryOptionalSchema } from '@server/utilities/convertation.params';
 
 @Singleton
 export class ItemGroupController extends BaseService {
@@ -31,6 +31,18 @@ export class ItemGroupController extends BaseService {
       const itemGroups = await this.itemGroupService.findMany(query);
 
       res.json({ code: 1, itemGroups });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getByCode = async (req: Request, res: Response) => {
+    try {
+      const query = await queryCodeParams.validate(req.query);
+  
+      const itemGroup = await this.itemGroupService.getByCode(query);
+  
+      res.json({ code: 1, itemGroup });
     } catch (e) {
       this.errorHandler(e, res);
     }

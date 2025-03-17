@@ -1,4 +1,6 @@
 export enum OrderStatusEnum {
+  /** Не оплачен */
+  NOT_PAID = 'NOT_PAID',
   /** Новый */
   NEW = 'NEW',
   /** Сборка */

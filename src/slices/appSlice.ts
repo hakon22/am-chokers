@@ -16,9 +16,8 @@ const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
   error: null,
   axiosAuth: false,
-  items: [],
   itemGroups: [],
-  itemCollections: [],
+  specialItems: [],
   coverImages: [],
   pagination: {
     count: 0,
@@ -89,7 +88,7 @@ export const updateItem = createAsyncThunk(
 
 export const partialUpdateItem = createAsyncThunk(
   'app/partialUpdateItem',
-  async ({ id, data }: { id: number, data: Partial<ItemInterface> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number, data: Partial<ItemInterface>; }, { rejectWithValue }) => {
     try {
       const response = await axios.patch<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
       return response.data;
@@ -313,10 +312,15 @@ const appSlice = createSlice({
   initialState,
   reducers: {
     setAppData: (state, { payload }: PayloadAction<AppDataInterface>) => {
-      state.items = payload.items;
       state.itemGroups = payload.itemGroups;
-      state.itemCollections = payload.itemCollections;
+      state.specialItems = payload.specialItems;
       state.coverImages = payload.coverImages;
+    },
+    addSpecialItem: (state, { payload }: PayloadAction<ItemInterface>) => {
+      state.specialItems = [...state.specialItems, payload];
+    },
+    removeSpecialItem: (state, { payload }: PayloadAction<ItemInterface>) => {
+      state.specialItems = state.specialItems.filter((item) => item.id !== payload.id);
     },
     setPaginationParams: (state, { payload }: PayloadAction<PaginationInterface>) => {
       state.pagination = payload;
@@ -324,116 +328,9 @@ const appSlice = createSlice({
     setAxiosAuth: (state, { payload }: PayloadAction<boolean>) => {
       state.axiosAuth = payload;
     },
-    setItemGrades: (state, { payload }: PayloadAction<PaginationEntityInterface<ItemGradeEntity>>) => {
-      const itemIndex = state.items.findIndex((item) => item.id === payload.id);
-      if (itemIndex !== -1) {
-        const grades = payload.items.filter((item) => !(state.items[itemIndex]?.grades ?? []).some((stateItem) => stateItem.id === item.id));
-        state.items[itemIndex].grades = [...(state.items[itemIndex].grades || []), ...grades];
-        state.pagination = payload.paginationParams;
-      }
-    },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(addItem.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(addItem.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          state.items = [...state.items, payload.item];
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(addItem.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(updateItem.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(updateItem.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
-          if (itemIndex !== -1) {
-            state.items[itemIndex] = payload.item;
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(updateItem.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(publishItem.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(publishItem.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
-          if (itemIndex !== -1) {
-            state.items[itemIndex] = payload.item;
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(publishItem.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(partialUpdateItem.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(partialUpdateItem.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.item.id);
-          if (itemIndex !== -1) {
-            state.items[itemIndex] = payload.item;
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(partialUpdateItem.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(deleteItem.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(deleteItem.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          state.items = state.items.filter((item) => item.id !== payload.item.id);
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(deleteItem.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(restoreItem.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(restoreItem.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          state.items = [...state.items, payload.item];
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(restoreItem.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
       .addCase(addItemGroup.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
@@ -473,7 +370,6 @@ const appSlice = createSlice({
       })
       .addCase(deleteItemGroup.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.items = state.items.filter((item) => item.group.id !== payload.itemGroup.id);
           state.itemGroups = state.itemGroups.filter((itemGroup) => itemGroup.id !== payload.itemGroup.id);
         }
         state.loadingStatus = 'finish';
@@ -498,153 +394,21 @@ const appSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
-      .addCase(addItemCollection.pending, (state) => {
+      .addCase(partialUpdateItem.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(addItemCollection.fulfilled, (state, { payload }) => {
+      .addCase(partialUpdateItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.itemCollections = [...state.itemCollections, payload.itemCollection];
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(addItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(updateItemCollection.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(updateItemCollection.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemCollectionIndex = state.itemGroups.findIndex((itemCollection) => itemCollection.id === payload.itemCollection.id);
-          if (itemCollectionIndex !== -1) {
-            state.itemCollections[itemCollectionIndex] = payload.itemCollection;
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(updateItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(deleteItemCollection.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(deleteItemCollection.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          state.items = state.items
-            .map((item) => {
-              if (item.collection && item.collection.id === payload.itemCollection.id) {
-                return { ...item, collection: null } as unknown as ItemInterface;
-              }
-              return item;
-            });
-          state.itemCollections = state.itemCollections.filter((itemCollection) => itemCollection.id !== payload.itemCollection.id);
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(deleteItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(restoreItemCollection.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(restoreItemCollection.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          state.itemCollections = [...state.itemCollections, payload.itemCollection];
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(restoreItemCollection.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(deleteItemImage.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(deleteItemImage.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const index = state.items.findIndex((item) => item.images.find(({ id }) => id === payload.image.id));
-          if (index !== -1) {
-            state.items[index].images = state.items[index].images.filter(({ id }) => id !== payload.image.id);
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(deleteItemImage.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(getItemGrades.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(getItemGrades.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.id);
+          const itemIndex = state.specialItems.findIndex((item) => item.id === payload.item.id);
           if (itemIndex !== -1) {
-            const stateGrades = state.items[itemIndex].grades;
-            const grades = payload.items.filter((grade) => !stateGrades.some((stateGrade) => stateGrade.id === grade.id));
-            state.items[itemIndex].grades = [...(stateGrades || []), ...grades];
-            state.pagination = payload.paginationParams;
+            state.specialItems[itemIndex] = payload.item;
           }
         }
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(getItemGrades.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(createComment.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(createComment.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.comment.parentComment.grade?.position.item.id);
-          if (itemIndex !== -1) {
-            const stateGrades = state.items[itemIndex].grades;
-            const gradeIndex = stateGrades.findIndex((grade) => grade.id === payload.comment.parentComment.grade?.id);
-            const stateGrade = state.items[itemIndex].grades[gradeIndex];
-            if (gradeIndex !== -1 && stateGrade?.comment) {
-              stateGrade.comment.replies = [...(stateGrade.comment?.replies || []), payload.comment];
-            }
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(createComment.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-      })
-      .addCase(removeGrade.pending, (state) => {
-        state.loadingStatus = 'loading';
-        state.error = null;
-      })
-      .addCase(removeGrade.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
-          const itemIndex = state.items.findIndex((item) => item.id === payload.grade.item.id);
-          if (itemIndex !== -1) {
-            state.items[itemIndex].grades = state.items[itemIndex].grades.filter((grade) => grade.id !== payload.grade.id);
-          }
-        }
-        state.loadingStatus = 'finish';
-        state.error = null;
-      })
-      .addCase(removeGrade.rejected, (state, { payload }: PayloadAction<any>) => {
+      .addCase(partialUpdateItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
@@ -681,6 +445,6 @@ const appSlice = createSlice({
   },
 });
 
-export const { setAppData, setAxiosAuth, setPaginationParams, setItemGrades } = appSlice.actions;
+export const { setAppData, setAxiosAuth, addSpecialItem, removeSpecialItem, setPaginationParams } = appSlice.actions;
 
 export default appSlice.reducer;

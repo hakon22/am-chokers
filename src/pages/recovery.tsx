@@ -25,6 +25,7 @@ const Recovery = () => {
   const router = useRouter();
 
   const [form] = Form.useForm();
+
   const { setIsSubmit } = useContext(SubmitContext);
   const { loggedIn } = useContext(AuthContext);
 
@@ -54,13 +55,13 @@ const Recovery = () => {
           title={t('resultTitle')}
           subTitle={t('resultSubTitle')}
           style={{ marginTop: '15%' }}
-          extra={<Button className="button col-2 mx-auto" onClick={() => router.push(routes.loginPage)}>{t('home')}</Button>}
+          extra={<Button className="button col-xl-2 mx-auto" onClick={() => router.push(routes.loginPage)}>{t('home')}</Button>}
         />
       ) : (
         <div className="d-flex justify-content-center" style={{ marginTop: '15%' }}>
           <div className="my-5 col-12 d-flex flex-column align-items-center gap-5">
             <h1 className="mb-5">{t('title')}</h1>
-            <div className="col-6">
+            <div className="col-12 col-xl-6">
               <Form name="recovery" form={form} onFinish={onFinish}>
                 <Form.Item<RecoveryType> name="phone" rules={[loginValidation]}>
                   <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
@@ -71,7 +72,7 @@ const Recovery = () => {
                   </Alert.Link>
                 </div>
                 <div className="d-flex justify-content-center col-12">
-                  <Button htmlType="submit" className="w-50 button fs-5">
+                  <Button htmlType="submit" className="button fs-5">
                     {t('submitButton')}
                   </Button>
                 </div>

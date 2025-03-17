@@ -4,7 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { BaseService } from '@server/services/app/base.service';
 import { newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryPaginationWithParams, querySearchParams } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 
 @Singleton
@@ -38,7 +38,7 @@ export class ItemController extends BaseService {
 
   public getList = async (req: Request, res: Response) => {
     try {
-      const query = await queryPaginationWithParams.validate(req.query);
+      const query = await queryItemsParams.validate(req.query);
 
       const [items, count] = await this.itemService.getList(query);
 
@@ -49,6 +49,38 @@ export class ItemController extends BaseService {
       };
 
       res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getLinks = async (req: Request, res: Response) => {
+    try {
+      const links = await this.itemService.getLinks();
+
+      res.json({ code: 1, links });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getSpecials = async (req: Request, res: Response) => {
+    try {
+      const specialItems = await this.itemService.getSpecials();
+
+      res.json({ code: 1, specialItems });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getByName = async (req: Request, res: Response) => {
+    try {
+      const query = await queryTranslateNameParams.validate(req.query);
+
+      const item = await this.itemService.getByName(query);
+
+      res.json({ code: 1, item });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -73,7 +105,7 @@ export class ItemController extends BaseService {
       const { images, ...rest } = body;
 
 
-      const result = await this.itemService.createOne(rest as ItemEntity & { sendToTelegram: boolean; }, images);
+      const result = await this.itemService.createOne(rest as ItemEntity & { publishToTelegram: boolean; }, images);
 
       res.json(result);
     } catch (e) {
