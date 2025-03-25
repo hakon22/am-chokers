@@ -37,12 +37,14 @@ export class DeliveryEntity extends BaseEntity {
   /** Уникальный номер станции отправки заказа (склад) */
   @Column('character varying', {
     name: 'platform_station_from',
+    nullable: true,
   })
   public platformStationFrom: string;
 
   /** Уникальный номер станции доставки заказа (ПВЗ клиента) */
   @Column('character varying', {
     name: 'platform_station_to',
+    nullable: true,
   })
   public platformStationTo: string;
 

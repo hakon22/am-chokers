@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'next/navigation';
-import { Alert, Badge, Card, Tag, Tooltip } from 'antd';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Alert, Badge, Button, Card, Tag, Tooltip } from 'antd';
 import { useContext, useEffect, useState } from 'react';
 import moment from 'moment';
 import Image from 'next/image';
 import { StopOutlined, ForwardOutlined, BackwardOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
+import axios from 'axios';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -23,6 +24,7 @@ import { MobileContext, SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
 import { getHref } from '@/utilities/getHref';
+import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import type { OrderInterface } from '@/types/order/Order';
 
 interface OrderHistoryInterface {
@@ -33,6 +35,8 @@ interface OrderHistoryInterface {
 export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
+
+  const router = useRouter();
 
   const urlParams = useSearchParams();
   
@@ -102,6 +106,19 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
       : status === OrderStatusEnum.NEW ? [<StopOutlined key="stop" onClick={() => cancelOrderHandler(orderId)} title={t('actions.stop')} />] : [];
   };
 
+  const onPay = async (id: number) => {
+    try {
+      setIsSubmit(true);
+      const response = await axios.get<{ code: number; url: string; }>(routes.payOrder(id));
+      if (response.data.code === 1) {
+        router.push(response.data.url);
+      }
+      setIsSubmit(false);
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    }
+  };
+
   useEffect(() => {
     if (stateOrders.length || data?.length) {
       setOrders(isAdmin && data ? data : stateOrders);
@@ -153,10 +170,17 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <span>{t('delivery')}</span>
                       <span className="fw-bold">{t('price', { price: order.deliveryPrice })}</span>
                     </Tag>
-                    <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                      <span>{t('payment')}</span>
-                      <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
-                    </Tag>
+                    {order.status === OrderStatusEnum.NOT_PAID
+                      ? isAdmin ? (
+                        <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                          <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
+                        </Tag>
+                      ) : <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button>
+                      : (
+                        <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                          <span>{t('payment')}</span>
+                          <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
+                        </Tag>)}
                   </div>
                 </Link>
                 <div className="d-flex flex-column col-12 col-xl-8 gap-2">

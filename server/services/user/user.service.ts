@@ -119,9 +119,6 @@ export class UserService extends BaseService {
     try {
       const body = await signupValidation.serverValidator(req.body) as UserFormInterface;
 
-      body.phone = phoneTransform(req.body.phone);
-      body.name = upperCase(req.body.name);
-
       const candidate = await this.findOne({ phone: body.phone }, { withDeleted: true });
 
       if (candidate) {
@@ -362,7 +359,12 @@ export class UserService extends BaseService {
   };
 
   public createOne = async (name: string, phone: string, manager: EntityManager, password?: string) => {
-    const candidate = await this.findOne({ phone }, { withDeleted: true });
+    const user = {
+      name: upperCase(name),
+      phone: phoneTransform(phone),
+    };
+
+    const candidate = await this.findOne({ phone: user.phone }, { withDeleted: true });
 
     if (candidate && password) {
       return { code: 2 };
@@ -372,11 +374,10 @@ export class UserService extends BaseService {
 
     const userRepo = manager.getRepository(UserEntity);
 
-    const userPassword = password || await this.smsService.sendPass(phone);
+    const userPassword = password || await this.smsService.sendPass(user.phone);
 
     const createdUser = await userRepo.save({
-      name,
-      phone,
+      ...user,
       password: bcrypt.hashSync(userPassword, 10),
     });
 

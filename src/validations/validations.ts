@@ -180,9 +180,12 @@ const newOrderPositionSchema = yup.object().shape({
   }).optional(),
   delivery: yup.object().shape({
     price: numberSchema,
-    platformStationTo: stringSchema,
     address: stringSchema,
     type: yup.string().oneOf(Object.values(DeliveryTypeEnum)),
+  }),
+  user: yup.object().shape({
+    name: stringSchema,
+    phone: phoneSchema,
   }),
 });
 

@@ -87,8 +87,8 @@ export class AcquiringService extends BaseService {
       orderNumber: orderId,
       amount: +amount,
       description: `Оплата по заказу №${order.id}`,
-      returnUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.profilePage}/payment/success`,
-      failUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.profilePage}payment/error`,
+      returnUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}/payment/success`,
+      failUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}/payment/error`,
     };
 
     const checkout = new YooCheckout({ shopId: data.userName, secretKey: data.password });
@@ -144,8 +144,8 @@ export class AcquiringService extends BaseService {
     };
 
     try {
-      const payment = await checkout.createPayment(createPayload, idempotenceKey);
       this.loggerService.info(this.TAG, `Создание заявки на платёж в ${credential.issuer} для заказа №${order.id}. Параметры: ${JSON.stringify(data)}`);
+      const payment = await checkout.createPayment(createPayload, idempotenceKey);
       this.loggerService.info(this.TAG, `Заявка на платёж ${payment.id} зарегистрирована.`);
 
       await AcquiringTransactionEntity.save({
@@ -201,8 +201,6 @@ export class AcquiringService extends BaseService {
         ];
         await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
       }
-
-      await this.deliveryService.createOrder(order);
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);
     }

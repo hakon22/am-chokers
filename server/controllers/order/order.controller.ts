@@ -5,7 +5,6 @@ import { BaseService } from '@server/services/app/base.service';
 import { OrderService } from '@server/services/order/order.service';
 import { paramsIdSchema, queryOrderParams } from '@server/utilities/convertation.params';
 import { newOrderPositionValidation, orderChangeStatusValidation } from '@/validations/validations';
-import type { CartItemInterface } from '@/types/cart/Cart';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 
@@ -80,13 +79,25 @@ export class OrderController extends BaseService {
     }
   };
 
+  public pay = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+
+      const url = await this.orderService.pay(params);
+
+      res.json({ code: 1, url });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { cart, promotional, delivery } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
+      const { cart, promotional, delivery, user } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
 
-      const order = await this.orderService.createOne(cart, req.user as PassportRequestInterface, delivery, promotional);
+      const { order, url } = await this.orderService.createOne(cart, req.user as PassportRequestInterface || user, delivery, promotional);
 
-      res.json({ code: 1, order });
+      res.json({ code: 1, order, url });
     } catch (e) {
       this.errorHandler(e, res);
     }

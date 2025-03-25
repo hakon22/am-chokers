@@ -482,4 +482,13 @@ a {
     font-size: 1rem;
     padding: 0.5rem 1rem;
   }
+
+  .ymaps-2-1-79-controls__control {
+    inset: 202px 16px auto auto !important;
+  }
+
+  .ymaps_maps-button.ymaps__icon_only {
+    top: 100px !important;
+    right: -5px !important;
+  }
 }

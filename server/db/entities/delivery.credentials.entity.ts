@@ -52,7 +52,6 @@ export class DeliveryCredentialsEntity extends BaseEntity {
   public type: DeliveryTypeEnum;
 
   /** Ссылка на базовый API */
-  @Column('character varying', {
-  })
+  @Column('character varying')
   public url: string;
 }

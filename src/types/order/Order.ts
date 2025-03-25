@@ -6,6 +6,7 @@ import type { OmitBase } from '@/types/OmitBase';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
+import type { UserSignupInterface } from '@/types/user/User';
 
 export type OrderInterface = OmitBase<OrderEntity> & InitialState;
 
@@ -16,12 +17,7 @@ export interface FetchOrdersInterface extends PaginationQueryInterface {
 
 export interface CreateDeliveryInterface {
   price: number;
-  locality: string;
-  street: string;
-  house: string;
   address: string;
-  platformStationFrom: string;
-  platformStationTo: string;
   type?: DeliveryTypeEnum;
 }
 
@@ -29,5 +25,6 @@ export interface CreateOrderInterface {
   cart: CartItemInterface[];
   promotional?: PromotionalInterface;
   delivery: CreateDeliveryInterface;
+  user: Pick<UserSignupInterface, 'name' | 'phone'>;
 }
 

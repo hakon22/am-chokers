@@ -60,6 +60,7 @@ export const routes = {
   // order
   crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),
   cancelOrder: (id?: number) => [apiPath, 'order', id ?? ':id', 'cancel'].join('/'),
+  payOrder: (id?: number) => [apiPath, 'order', id ?? ':id', 'pay'].join('/'),
   createOrder: [apiPath, 'order', 'new'].join('/'),
   getAllOrders: [apiPath, 'order', 'getAll'].join('/'),
   getOrder:  ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'order', id ?? ':id'].join('/'),
