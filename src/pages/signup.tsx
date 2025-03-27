@@ -73,7 +73,7 @@ const Signup = () => {
             </div>
           )
           : null}
-        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '38%' : '18%' }}>
+        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '100px' : '18%' }}>
           {isProcessConfirmed ? <ConfirmPhone setState={setIsConfirmed} /> : (
             <>
               <h1 className="mb-5">{t('title')}</h1>

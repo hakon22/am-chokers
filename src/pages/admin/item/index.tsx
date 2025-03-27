@@ -230,7 +230,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
       {oldItem ? null : isMobile ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
-      <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '25%' } : {}}>
+      <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '100px' } : {}}>
         {isMobile ? (
           <div className="d-flex align-items-center justify-content-between mb-4">
             {oldItem && <BackButton style={{}} className="px-2 py-0" />}

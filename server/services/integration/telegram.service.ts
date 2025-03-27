@@ -11,6 +11,20 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { phoneTransform } from '@server/utilities/phone.transform';
 import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
 
+interface OptionsTelegramMessageInterface {
+  reply_markup?: {
+    keyboard: {
+      text: string;
+      request_contact?: boolean;
+    }[][];
+    resize_keyboard?: boolean;
+    one_time_keyboard?: boolean;
+    remove_keyboard?: boolean;
+  },
+  caption?: string;
+  parse_mode?: 'HTML' | 'Markdown';
+}
+
 @Singleton
 export class TelegramService {
   private TAG = 'TelegramBotService';
@@ -30,7 +44,7 @@ export class TelegramService {
         const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
         if (user) {
           await UserEntity.update(user.id, { telegramId: id });
-          await this.sendMessage('Вы успешно подписались на уведомления.', id as string);
+          await this.sendMessage('Вы успешно подписались на уведомления.', id as string, { reply_markup: { keyboard: [], remove_keyboard: true } });
         } else {
           await this.sendMessage('Номер телефона не найден в базе данных.', id as string);
         }
@@ -63,7 +77,7 @@ export class TelegramService {
     await this.sendMessage('Пожалуйста, предоставьте ваш номер телефона:', telegramId, { reply_markup: replyMarkup });
   };
 
-  public sendMessage = async (message: string | string[], telegramId: string, options?: object) => {
+  public sendMessage = async (message: string | string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {
     const text = this.serializeText(message);
 
     const history = await MessageEntity.create({ text, type: MessageTypeEnum.TELEGRAM, telegramId }).save();
@@ -87,7 +101,7 @@ export class TelegramService {
     }
   };
 
-  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, options?: any) => {
+  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {
     const text = this.serializeText(message);
 
     const media: InputMediaPhoto[] = images.map((image, i) => ({

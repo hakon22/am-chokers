@@ -324,7 +324,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, [itemGroup?.id]);
   
   return (
-    <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '30%' } : {}}>
+    <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
       <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
       <FloatButton.BackTop />
       <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />

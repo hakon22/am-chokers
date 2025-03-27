@@ -177,7 +177,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   }, []);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
-    <div className="d-flex flex-column" style={isMobile ? { marginTop: '30%' } : {}}>
+    <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>
       <Helmet title={name} description={description} image={images?.[0]?.src} />
       <div className="d-flex flex-column flex-xl-row gap-xl-5 mb-5">
         {isMobile

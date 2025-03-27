@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { LikeOutlined } from '@ant-design/icons';
-import { Popconfirm, Checkbox, List, Skeleton, Divider, Rate, Tag } from 'antd';
+import { Popconfirm, Checkbox, List, Skeleton, Divider, Rate, Tag, FloatButton } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -138,8 +138,9 @@ const ItemList = () => {
   }, [axiosAuth]);
 
   return role === UserRoleEnum.ADMIN ? (
-    <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '15%' } : {}}>
+    <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
+      <FloatButton.BackTop />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
       <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-4 gap-xl-0 mb-5">
         <div className="d-flex align-items-center gap-3">

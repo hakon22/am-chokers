@@ -51,7 +51,7 @@ const Login = () => {
             </div>
           )
           : null}
-        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '30%' : '22%' }}>
+        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '100px' : '22%' }}>
           <h1 className="mb-5">{t('title')}</h1>
           <Form name="login" className="col-12 col-xl-8" form={form} onFinish={onFinish}>
             <Form.Item<UserLoginInterface> name="phone" rules={[loginValidation]}>
