@@ -1,4 +1,4 @@
-name: Deploy to VPS [chokers.am-projects.ru]
+name: Deploy to VPS [amchokers.ru]
 
 on:
   push:
@@ -19,10 +19,10 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
 
-    - name: Deploy to VPS [chokers.am-projects.ru]
+    - name: Deploy to VPS [amchokers.ru]
       run: |
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
-          cd /var/www/chokers.am-projects.ru
+          cd /var/www/amchokers.ru
           git pull origin production
           make install
           make build
