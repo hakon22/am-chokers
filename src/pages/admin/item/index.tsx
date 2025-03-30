@@ -226,6 +226,14 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     }
   }, [fetchedItemCollections]);
 
+  useEffect(() => {
+    if (isSortImage) {
+      document.body.style.overflowY = 'hidden';
+    } else {
+      document.body.style.overflowY = '';
+    }
+  }, [isSortImage]);
+
   return role === UserRoleEnum.ADMIN ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />

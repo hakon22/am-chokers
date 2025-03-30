@@ -281,11 +281,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               <AdminControlGroup item={item} setItem={setItem} />
             </div>
             {isMobile
-              ? (
-                <div className="float-control-cart d-flex align-items-center justify-content-center gap-5">
-                  <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
-                </div>
-              )
+              ? showThumbnails
+                ? (
+                  <div className="float-control-cart d-flex align-items-center justify-content-center gap-5">
+                    <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
+                  </div>
+                ) : null
               : (
                 <div className="d-flex align-items-center gap-5 mb-3">
                   <CartControl id={id} deleted={item.deleted} className="fs-5" />
