@@ -19,7 +19,7 @@ export default {
         glassesChains: 'Цепочки для очков',
         otherAccessories: 'Другие аксессуары',
         iEmphasizeYourIndividuality: 'Подчёркиваю Вашу индивидуальность',
-        subscribe: 'Подпишитесь на канал в Telegram',
+        subscribe: 'Подпишитесь на канал в Telegram:',
         getUpdates: 'чтобы первыми узнавать об акциях и новинках',
         slogan: {
           create: 'Создай своё',
@@ -472,6 +472,7 @@ export default {
         instagram: 'Инстаграм',
         privacyPolicy: 'Политика конфиденциальности',
         offerAgreement: 'Договор аферты',
+        info: 'Информация',
       },
       gradeList: {
         reviews: 'Отзывы',

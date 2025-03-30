@@ -129,7 +129,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
     const handleResize = () => {
       const extension = getWidth();
       
-      if (extension < 400) {
+      if (isMobile) {
         setMaxPhoto(1);
       } else if (extension < 1400) {
         setMaxPhoto(2);

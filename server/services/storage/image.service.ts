@@ -109,8 +109,19 @@ export class ImageService extends BaseService {
         return;
       }
 
+      const maxWidth = 800; // максимальная ширина
+      const maxHeight = 1040; // максимальная высота
+
       // Используем sharp для обработки изображения
-      const data = await sharp(file.buffer).toFormat('jpeg').toBuffer();
+      const data = await sharp(file.buffer)
+        .resize({
+          width: maxWidth,
+          height: maxHeight,
+          fit: sharp.fit.inside, // сохраняет пропорции
+          withoutEnlargement: true, // не увеличивает изображение
+        })
+        .toFormat('jpeg')
+        .toBuffer();
 
       const name = `${uuid()}.jpeg`;
       // Сохранение обработанного изображения

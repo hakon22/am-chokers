@@ -63,15 +63,14 @@
     &-carousel {
       margin-bottom: 3rem;
 
-      .react-multiple-carousel__arrow {
-        min-width: unset;
-        min-height: unset;
-        width: 25px;
-        height: 25px;
+      .react-multiple-carousel__arrow--left {
+        left: calc(10% + 1px);
+        top: 38%;
+      }
 
-        &::before {
-          font-size: 0.7rem;
-        }
+      .react-multiple-carousel__arrow--right {
+        right: calc(10% + 1px);
+        top: 38%;
       }
     }
 

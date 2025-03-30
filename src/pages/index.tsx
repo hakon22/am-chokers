@@ -184,8 +184,8 @@ const Index = () => {
                     key={item.id}
                     className={isMobile ? 'align-items-center' : item.className}
                     href={getHref(item)}
-                    height={height}
-                    width={width}
+                    height={isMobile ? 300 * coefficient : height}
+                    width={isMobile ? 300 : width}
                     images={item.images}
                     name={item.name}
                     rating={{ rating: item.rating, grades: item.grades }}
@@ -394,9 +394,9 @@ const Index = () => {
           </section>
           <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500">
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
-            <p className="fw-light fs-5 mb-2">
+            <p className="d-flex flex-column fw-light fs-5 mb-2">
               <span>{t('subscribe')}</span>
-              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
+              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">{process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage}</Link>
             </p>
             <p className="fw-light fs-5">{t('getUpdates')}</p>
           </section>

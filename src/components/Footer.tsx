@@ -25,9 +25,9 @@ export const Footer = () => {
         <div className="col-12 col-xl-6">
           <h6 className="mb-4">{t('contacts')}</h6>
           <ul>
-            <li className="text-muted"><Link href="mailto:support@amchokers.ru">support@amchokers.ru</Link></li>
-            <li className="text-muted">Каледкин Алексей Леонидович</li>
-            <li className="text-muted">ИНН 772481458341</li>
+            <li className="text-muted"><Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`}>{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link></li>
+            <li className="text-muted">{process.env.NEXT_PUBLIC_FIO}</li>
+            <li className="text-muted">{process.env.NEXT_PUBLIC_INN}</li>
           </ul>
           <ul>
             <li className="d-flex gap-3"><Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} title={t('telegram')} target="_blank">
@@ -39,7 +39,7 @@ export const Footer = () => {
           </ul>
         </div>
         <div className="col-12 col-xl-6">
-          <h6 className="mb-4">Информация</h6>
+          <h6 className="mb-4">{t('info')}</h6>
           <ul>
             <li className="text-muted"><Link href="/">{t('privacyPolicy')}</Link></li>
             <li className="text-muted"><Link href="/">{t('offerAgreement')}</Link></li>

@@ -21,7 +21,7 @@ export const NoAuthorization = () => {
   }, [router.asPath]);
 
   return (
-    <div className="d-flex flex-column flex-xl-row justify-content-center align-items-center fs-5" style={{ letterSpacing: '0.5px', marginTop: isMobile ? '110px' : '22%' }}>
+    <div className="d-flex flex-column flex-xl-row justify-content-center align-items-center fs-5" style={{ letterSpacing: '0.5px', marginTop: isMobile ? '140px' : '22%' }}>
       {t('entrace1')}
       <Link href={routes.loginPage} className="px-2 text-monospace text-decoration-underline">{t('entrace')}</Link>
       {t('entrace2')}

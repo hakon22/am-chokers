@@ -407,6 +407,9 @@ export class ItemService extends BaseService {
 
     item.deleted = new Date();
 
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    item.grades = grades;
+
     return item;
   };
 
@@ -416,6 +419,9 @@ export class ItemService extends BaseService {
     await ItemEntity.update(deletedItem.id, { deleted: null });
 
     deletedItem.deleted = null;
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    deletedItem.grades = grades;
 
     return deletedItem;
   };

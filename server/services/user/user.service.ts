@@ -1,7 +1,7 @@
-import type { Request, Response } from 'express';
-import type { EntityManager } from 'typeorm';
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
+import type { Request, Response } from 'express';
+import type { EntityManager } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
@@ -48,6 +48,7 @@ export class UserService extends BaseService {
         'favorites.price',
         'favorites.discountPrice',
         'favorites.deleted',
+        'favorites.translateName',
       ])
       .leftJoin('favorites.images', 'images')
       .addSelect([

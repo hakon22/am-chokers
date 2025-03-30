@@ -83,11 +83,11 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       ? (
         <FloatButton.Group
           trigger="click"
-          style={{ insetInlineEnd: 24, top: '50%', height: 'min-content' }}
+          style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
           icon={<EllipsisOutlined />}
         >
-          {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<SignatureOutlined />} />}
-          <FloatButton icon={<DeleteOutlined />} />
+          <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
+          {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
           {!item.message ? <FloatButton onClick={onPublish} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
         </FloatButton.Group>
       )
