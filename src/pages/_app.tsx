@@ -92,34 +92,37 @@ const Init = (props: InitPropsInterface) => {
                       <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
                       <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
                     </Head>
-                    <Script 
-                      id="google-analytics"
-                      src="https://www.googletagmanager.com/gtag/js?id=G-P50BP1JPGM"
-                      async
-                      onLoad={() => {
-                        console.log('Google analytics script loaded');
-                      }}
-                      onError={(e) => {
-                        console.error('Error loading Google metrics script', e);
-                      }}
-                    />
-                    <Script
-                      id="gtag-init"
-                      strategy="afterInteractive"
-                      dangerouslySetInnerHTML={{
-                        __html: `
+                    {process.env.NODE_ENV === 'production'
+                      ? (
+                        <>
+                          <Script 
+                            id="google-analytics"
+                            src="https://www.googletagmanager.com/gtag/js?id=G-P50BP1JPGM"
+                            async
+                            onLoad={() => {
+                              console.log('Google analytics script loaded');
+                            }}
+                            onError={(e) => {
+                              console.error('Error loading Google metrics script', e);
+                            }}
+                          />
+                          <Script
+                            id="gtag-init"
+                            strategy="afterInteractive"
+                            dangerouslySetInnerHTML={{
+                              __html: `
                         window.dataLayer = window.dataLayer || [];
                         function gtag(){dataLayer.push(arguments);}
                         gtag('js', new Date());
                         gtag('config', 'G-P50BP1JPGM');
                     `,
-                      }}
-                    />
-                    <Script
-                      id="yandex-metrika"
-                      strategy="afterInteractive"
-                      dangerouslySetInnerHTML={{
-                        __html: `
+                            }}
+                          />
+                          <Script
+                            id="yandex-metrika"
+                            strategy="afterInteractive"
+                            dangerouslySetInnerHTML={{
+                              __html: `
                         (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
                         m[i].l=1*new Date();
                         for (var j = 0; j < document.scripts.length; j++) {
@@ -134,8 +137,10 @@ const Init = (props: InitPropsInterface) => {
                             accurateTrackBounce:true
                         });
                     `,
-                      }}
-                    />
+                            }}
+                          />
+                        </>
+                      ) : null}
                     <Script 
                       id="yandex-widget"
                       src="https://ndd-widget.landpro.site/widget.js"

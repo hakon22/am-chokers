@@ -249,7 +249,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               ? (
                 <><h1 className="mb-4 fs-3">{name}</h1>
                   {collection
-                    ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                    ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.name })}</Tag></div>
                     : null}
                 </>)
               : null}
