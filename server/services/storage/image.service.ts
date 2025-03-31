@@ -109,8 +109,15 @@ export class ImageService extends BaseService {
         return;
       }
 
-      const maxWidth = 800; // максимальная ширина
-      const maxHeight = 1040; // максимальная высота
+      const metadata = await sharp(file.buffer).metadata();
+
+      let maxWidth = 800; // максимальная ширина
+      let maxHeight = Math.round(maxWidth * 1.3); // максимальная высота
+
+      if (metadata.width && metadata.height && metadata.width > metadata.height) {
+        maxHeight = 460;
+        maxWidth = Math.round(maxHeight * 2.2);
+      }
 
       // Используем sharp для обработки изображения
       const data = await sharp(file.buffer)
