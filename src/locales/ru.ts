@@ -614,6 +614,11 @@ export default {
       cancelOrderStatusSuccess: 'Заказ успешно отменён',
       addPromotionalSuccess: 'Промокод {{ name }} успешно применён!',
     },
+    cookieConsent: {
+      contentText: 'Этот сайт использует cookie для улучшения вашего опыта. Если вы продолжите использовать этот сайт, вы соглашаетесь с этим. ',
+      contentLink: 'Политика конфиденциальности',
+      buttonText: 'Согласен',
+    },
     spinner: {
       loading: 'Загрузка...',
     },

@@ -6,11 +6,13 @@ import Script from 'next/script';
 import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
+import Link from 'next/link';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
+import CookieConsent from 'react-cookie-consent';
 
 import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext, MobileContext } from '@/components/Context';
 import { routes } from '@/routes';
@@ -152,7 +154,29 @@ const Init = (props: InitPropsInterface) => {
                         console.error('Error loading Yandex widget script', e);
                       }}
                     />
+                    <Script 
+                      id="russian-post-widget"
+                      src="https://widget.pochta.ru/map/widget/widget.js"
+                      strategy="lazyOnload"
+                      onLoad={() => {
+                        console.log('Russian Post widget script loaded');
+                      }}
+                      onError={(e) => {
+                        console.error('Error loading Russian Post widget script', e);
+                      }}
+                    />
                     <ToastContainer style={{ zIndex: 999999 }} />
+                    <CookieConsent
+                      containerClasses="justify-content-center text-center"
+                      style={{ zIndex: 1001, backgroundColor: '#2b3c5f' }}
+                      buttonStyle={{ backgroundColor: '#eaeef6', borderRadius: '7px', padding: '10px 20px' }}
+                      buttonText={i18n.t('cookieConsent.buttonText')}
+                    >
+                      <>
+                        {i18n.t('cookieConsent.contentText')}
+                        <Link className="text-decoration-underline" href={routes.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
+                      </>
+                    </CookieConsent>
                     <App>
                       <Component {...pageProps} />
                     </App>

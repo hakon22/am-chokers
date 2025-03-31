@@ -185,7 +185,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             <>
               <h1 className="mb-4 fs-3">{name}</h1>
               {collection
-                ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
                 : null}
             </>
           )
@@ -341,7 +341,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               <div>
                 {t('warranty.13')}
                 {' '}
-                <Link href="mailto:amchokers@gmail.com" target="_blank" className="fw-bold">amchokers@gmail.com</Link>
+                <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
                 {' '}
                 {t('warranty.14')}
                 {' '}

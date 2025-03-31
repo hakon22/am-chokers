@@ -41,8 +41,8 @@ export const Footer = () => {
         <div className="col-12 col-xl-6">
           <h6 className="mb-4">{t('info')}</h6>
           <ul>
-            <li className="text-muted"><Link href="/">{t('privacyPolicy')}</Link></li>
-            <li className="text-muted"><Link href="/">{t('offerAgreement')}</Link></li>
+            <li className="text-muted"><Link href={routes.privacyPolicy}>{t('privacyPolicy')}</Link></li>
+            <li className="text-muted"><Link href={routes.offerAgreement}>{t('offerAgreement')}</Link></li>
           </ul>
         </div>
       </div>

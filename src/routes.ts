@@ -21,6 +21,8 @@ export const routes = {
   contactsPage: '/contacts',
   deliveryPage: '/delivery',
   cartPage: '/cart',
+  privacyPolicy: '/privacy-policy',
+  offerAgreement: '/offer-agreement',
   notFoundPage: '*',
   catalog: catalogPath,
 

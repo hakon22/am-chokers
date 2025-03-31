@@ -188,6 +188,16 @@ const Cart = () => {
     });
   };
 
+  const openRussianPostDeliveryWidget = () => {
+    window.ecomStartWidget({
+      id: 55091,
+      weight: 300,
+      sumoc: 200000,
+      callbackFunction: (result: any) => console.log(result),
+      containerId: 'ecom-widget',
+    });
+  };
+
   const resetPVZ = () => {
     setDeliveryButton(false);
     setDelivery(defaultDelivery);
@@ -241,7 +251,7 @@ const Cart = () => {
     const handlePointSelected = (data: any) => {
       const detail = data.detail as YandexDeliveryDataInterface;
       setDelivery({
-        price: 300,
+        price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : 300,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });
@@ -258,9 +268,16 @@ const Cart = () => {
 
   useEffect(() => {
     if (isOpenDeliveryWidget) {
-      openYanderDeliveryWidget(cartList);
+      switch (deliveryType) {
+      case DeliveryTypeEnum.YANDEX_DELIVERY:
+        openYanderDeliveryWidget(cartList);
+        break;
+      case DeliveryTypeEnum.RUSSIAN_POST:
+        openRussianPostDeliveryWidget();
+        break;
+      }
     }
-  }, [isOpenDeliveryWidget]);
+  }, [isOpenDeliveryWidget, deliveryType]);
 
   useEffect(() => {
     setDeliveryButton(!!deliveryType);
@@ -301,7 +318,7 @@ const Cart = () => {
           setIsOpenDeliveryWidget(false);
         }}
       >
-        <div id="delivery-widget" />
+        <div id={deliveryType === DeliveryTypeEnum.YANDEX_DELIVERY ? 'delivery-widget' : 'ecom-widget'} />
       </Modal>
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={user}>
