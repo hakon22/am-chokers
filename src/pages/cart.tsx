@@ -177,7 +177,7 @@ const Cart = () => {
     window.ecomStartWidget({
       id: 55091,
       weight: items.length * 200,
-      sumoc: getPrice(totalPrice, promotional),
+      sumoc: +getPrice(totalPrice, promotional),
       callbackFunction: (result: RussianPostDeliveryDataInterface) => {
         setDelivery({
           price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : result.cashOfDelivery,

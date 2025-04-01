@@ -83,6 +83,7 @@ export class DeliveryEntity extends BaseEntity {
   /** Выбранный тип доставки (только для Почты России) */
   @Column('character varying', {
     nullable: true,
+    name: 'mail_type',
   })
   public mailType?: string;
 
