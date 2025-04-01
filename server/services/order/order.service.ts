@@ -217,6 +217,8 @@ export class OrderService extends BaseService {
         delivery: await deliveryRepo.create({
           address: delivery.address,
           type: delivery.type,
+          index: delivery.indexTo,
+          mailType: delivery.mailType,
         }).save(),
       } as OrderEntity);
 

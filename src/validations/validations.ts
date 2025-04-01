@@ -182,6 +182,8 @@ const newOrderPositionSchema = yup.object().shape({
     price: numberSchema,
     address: stringSchema,
     type: yup.string().oneOf(Object.values(DeliveryTypeEnum)),
+    indexTo: yup.string().optional(),
+    mailType: yup.string().optional(),
   }),
   user: yup.object().shape({
     name: stringSchema,

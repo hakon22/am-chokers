@@ -74,6 +74,18 @@ export class DeliveryEntity extends BaseEntity {
   })
   public status: YandexDeliveryStatusEnum;
 
+  /** Индекс почтового отделения (только для Почты России) */
+  @Column('character varying', {
+    nullable: true,
+  })
+  public index?: string;
+
+  /** Выбранный тип доставки (только для Почты России) */
+  @Column('character varying', {
+    nullable: true,
+  })
+  public mailType?: string;
+
   /** Тип доставки */
   @Column('enum', {
     enum: DeliveryTypeEnum,

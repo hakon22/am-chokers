@@ -33,25 +33,8 @@ import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import type { CreateOrderInterface } from '@/types/order/Order';
 import type { UserSignupInterface } from '@/types/user/User';
-
-interface YandexDeliveryDataInterface {
-  id: string;
-  address: {
-    geoId: number;
-    country: string;
-    region: string;
-    subRegion: string;
-    locality: string;
-    street: string;
-    house: string;
-    housing: string;
-    apartment: string;
-    building: string;
-    comment: string;
-    full_address: string;
-    postal_code: string;
-  };
-}
+import type { YandexDeliveryDataInterface } from '@/types/delivery/yandex.delivery.interface';
+import type { RussianPostDeliveryDataInterface } from '@/types/delivery/russian.post.delivery.interface';
 
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -91,6 +74,8 @@ const Cart = () => {
     price: 0,
     address: '',
     type: undefined,
+    indexTo: undefined,
+    mailType: undefined,
   };
 
   const [cartList, setCartList] = useState<CartItemInterface[]>([]);
@@ -166,7 +151,7 @@ const Cart = () => {
 
   const openYanderDeliveryWidget = (items: CartItemInterface[]) => {
     window.YaDelivery.createWidget({
-      containerId: 'delivery-widget',
+      containerId: 'yandex-widget',
       params: {
         city: 'Москва',
         size: {
@@ -188,12 +173,21 @@ const Cart = () => {
     });
   };
 
-  const openRussianPostDeliveryWidget = () => {
+  const openRussianPostDeliveryWidget = (items: CartItemInterface[]) => {
     window.ecomStartWidget({
       id: 55091,
-      weight: 300,
-      sumoc: 200000,
-      callbackFunction: (result: any) => console.log(result),
+      weight: items.length * 200,
+      sumoc: getPrice(totalPrice, promotional),
+      callbackFunction: (result: RussianPostDeliveryDataInterface) => {
+        setDelivery({
+          price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : result.cashOfDelivery,
+          address: `${result.cityTo}, ${result.addressTo}`,
+          type: deliveryType,
+          indexTo: result.indexTo,
+          mailType: result.mailType,
+        });
+        setIsOpenDeliveryWidget(false);
+      },
       containerId: 'ecom-widget',
     });
   };
@@ -273,7 +267,7 @@ const Cart = () => {
         openYanderDeliveryWidget(cartList);
         break;
       case DeliveryTypeEnum.RUSSIAN_POST:
-        openRussianPostDeliveryWidget();
+        openRussianPostDeliveryWidget(cartList);
         break;
       }
     }
@@ -318,7 +312,10 @@ const Cart = () => {
           setIsOpenDeliveryWidget(false);
         }}
       >
-        <div id={deliveryType === DeliveryTypeEnum.YANDEX_DELIVERY ? 'delivery-widget' : 'ecom-widget'} />
+        <>
+          <div id="yandex-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
+          <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+        </>
       </Modal>
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={user}>

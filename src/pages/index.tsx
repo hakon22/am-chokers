@@ -74,7 +74,7 @@ const Index = () => {
         max: 3000,
         min: 1024,
       },
-      items: 4,
+      items: 5,
     },
     mobile: {
       breakpoint: {
@@ -151,9 +151,15 @@ const Index = () => {
         ) : null}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
-          <section className="d-flex flex-column position-relative mb-5" data-aos="fade-right" data-aos-duration="1500">
+          <section className="mb-5" data-aos="fade-right" data-aos-duration="1500">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
-              <h2 className="d-flex align-items-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">{t('newItems')}</h2>
+              <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
+                <h2>{t('newItems')}</h2>
+                <Link href={`${routes.catalog}?groupIds=${news[0]?.group.id}`} className="see-all color-dark-blue icon-button">
+                  <span>{t('seeAll')}</span>
+                  <ArrowRight />
+                </Link>
+              </div>
               <Carousel
                 autoPlaySpeed={3000}
                 centerMode={false}
@@ -194,13 +200,15 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <Link href={routes.catalog} className="see-all color-dark-blue icon-button">
-              <span>{t('seeAll')}</span>
-              <ArrowRight />
-            </Link>
           </section>
           <section className="d-flex flex-column col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
-            <h2 className="d-flex justify-content-center justify-content-xl-start">{t('bestsellers')}</h2>
+            <div className="d-flex flex-column justify-content-center justify-content-xl-start">
+              <h2>{t('bestsellers')}</h2>
+              <Link href={`${routes.catalog}?groupIds=${bestseller1?.group.id}`} className="see-all color-dark-blue icon-button">
+                <span>{t('seeAll')}</span>
+                <ArrowRight />
+              </Link>
+            </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between gap-4 gap-xl-0">
               <div className="d-flex flex-column col-12 col-xl-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
                 <ContextMenu item={bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
