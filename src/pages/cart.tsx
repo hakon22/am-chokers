@@ -151,7 +151,7 @@ const Cart = () => {
 
   const openYanderDeliveryWidget = (items: CartItemInterface[]) => {
     window.YaDelivery.createWidget({
-      containerId: 'yandex-widget',
+      containerId: 'delivery-widget',
       params: {
         city: 'Москва',
         size: {
@@ -180,7 +180,7 @@ const Cart = () => {
       sumoc: +getPrice(totalPrice, promotional),
       callbackFunction: (result: RussianPostDeliveryDataInterface) => {
         setDelivery({
-          price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : result.cashOfDelivery,
+          price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : result.cashOfDelivery / 100,
           address: `${result.cityTo}, ${result.addressTo}`,
           type: deliveryType,
           indexTo: result.indexTo,
@@ -313,7 +313,7 @@ const Cart = () => {
         }}
       >
         <>
-          <div id="yandex-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
+          <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
           <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
         </>
       </Modal>
