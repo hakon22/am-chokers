@@ -9,6 +9,7 @@ import { FloatButton } from 'antd';
 
 import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
+import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
@@ -136,7 +137,7 @@ const Index = () => {
       {!isMobile
         ? (
           <>
-            <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
+            <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
             {isLoaded && (
               <>
                 <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 1 : 3, height: '62vh', width: '55%' }}>
@@ -254,17 +255,33 @@ const Index = () => {
             </div>
           </section>
           <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '2rem' }}>
-            <h2 className="lh-base">
+            <h2 className="col-12 col-xl-10 lh-base">
               {t('slogan.create')}
               <br />
               {t('slogan.uniqueDecoration')}
             </h2>
-            <div className="guide col-10">
-              <span className="guide-text lh-base fs-2">
-                {t('text.part1')}
-                <br />
-                {t('text.part2')}
-              </span>
+            <div className="guide col-12 col-xl-10">
+              <div className="d-flex lh-base">
+                {!isMobile && <Image src={uniqueDecoration} className="col-5" unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('slogan.uniqueDecoration')} priority />}
+                <div className="guide-text w-100 d-flex flex-column">
+                  <h3 className="mb-4 text-center text-xl-start">{t('slogan.title')}</h3>
+                  <p className="fs-5 mb-4">{t('slogan.paragraph')}</p>
+                  <ul className="d-flex flex-column gap-2 mb-4">
+                    <li>
+                      {t('slogan.1')}
+                      <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} target="_blank" className="fw-bold">{t('slogan.1.1')}</Link>
+                      {t('slogan.1.2')}
+                    </li>
+                    <li>{t('slogan.2')}</li>
+                    <li>{t('slogan.3')}</li>
+                    <li>{t('slogan.4')}</li>
+                    <li>{t('slogan.5')}</li>
+                  </ul>
+                  <div className="d-flex justify-content-center">
+                    <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} target="_blank" title={t('slogan.wantButton')} className="button border-button" style={{ borderRadius: '7px', padding: '0.5rem 0.7rem' }}>{t('slogan.wantButton')}</Link>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
           <section className="d-flex flex-column align-items-center">

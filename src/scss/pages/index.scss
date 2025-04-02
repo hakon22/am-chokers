@@ -12,15 +12,29 @@
   }
 
   .guide {
-    position: relative;
-    background-color: #888DA3;
-    height: 500px;
+    background-color: $dark-blue;
+    height: 550px;
+    border-radius: 40px;
+    padding: 30px;
+
+    img {
+      border-top-left-radius: 40px;
+      border-bottom-left-radius: 40px;
+      width: calc(490px / 1.246);
+      height: 490px;
+    }
 
     &-text {
-      position: absolute;
-      text-transform: uppercase;
-      bottom: 10%;
-      left: 10%;
+      background-color: $white;
+      border-top-right-radius: 40px;
+      border-bottom-right-radius: 40px;
+      padding: 35px;
+
+      ul {
+        padding-left: 15px;
+        margin-bottom: 0;
+        list-style-type: decimal;
+      }
     }
   }
 
@@ -63,6 +77,17 @@
       position: absolute;
       bottom: -13vw;
       right: calc(var(--ratio) * 3vw);
+    }
+
+    .guide {
+      height: unset;
+
+      &-text {
+        padding: 25px;
+        background-color: $white;
+        border-top-left-radius: 40px;
+        border-bottom-left-radius: 40px;
+      }
     }
   }
 }

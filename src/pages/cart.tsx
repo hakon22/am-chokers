@@ -314,7 +314,7 @@ const Cart = () => {
       >
         <>
           <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
-          <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+          <div id="ecom-widget" style={{ height: 500, width: '90vw', ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
         </>
       </Modal>
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>

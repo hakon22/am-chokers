@@ -3,6 +3,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, U
 import { YandexDeliveryStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.status.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.reason.status.enum';
+import { RussianPostMailTypeEnum } from '@/types/delivery/russian.post.delivery.interface';
 
 /** Доставка */
 @Entity({
@@ -81,11 +82,12 @@ export class DeliveryEntity extends BaseEntity {
   public index?: string;
 
   /** Выбранный тип доставки (только для Почты России) */
-  @Column('character varying', {
+  @Column({
+    type: 'enum',
+    enum: RussianPostMailTypeEnum,
     nullable: true,
-    name: 'mail_type',
   })
-  public mailType?: string;
+  public mailType?: RussianPostMailTypeEnum;
 
   /** Тип доставки */
   @Column('enum', {
