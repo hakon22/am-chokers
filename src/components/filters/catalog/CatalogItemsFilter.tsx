@@ -86,7 +86,14 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     }
   };
 
-  const filtersCount = () => (initialValues.itemGroups?.length ?? 0) + (initialValues.itemCollections?.length ?? 0) + (initialValues.compositions?.length ?? 0) + (initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0);
+  const filtersCount = () => (
+    initialValues.itemGroups?.length ?? 0) +
+    (initialValues.itemCollections?.length ?? 0) +
+    (initialValues.compositions?.length ?? 0) +
+    (initialValues.from ? 1 : 0) +
+    (initialValues.to ? 1 : 0) +
+    (initialValues.new ? 1 : 0) +
+    (initialValues.bestseller ? 1 : 0);
 
   const filters: CollapseProps['items'] = [
     {
@@ -148,7 +155,12 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     },
     {
       key: '4',
-      label: <span className="font-oswald text-uppercase">{t('price.title')}</span>,
+      label: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('price.title')}</span>
+          {initialValues.from || initialValues.to ? <Badge count={(initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0)} color="#69788e" /> : null}
+        </div>
+      ),
       children: (
         <>
           <Form.Item<CatalogFiltersInterface> name="from" className="custom-placeholder">
@@ -156,6 +168,25 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
           </Form.Item>
           <Form.Item<CatalogFiltersInterface> name="to" className="custom-placeholder">
             <InputNumber className="w-100" size="small" placeholder={t('price.to')} suffix={t('price.suffix')} min={1} keyboard />
+          </Form.Item>
+        </>
+      ),
+    },
+    {
+      key: '5',
+      label: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('additionally.title')}</span>
+          {initialValues.new || initialValues.bestseller ? <Badge count={(initialValues.new ? 1 : 0) + (initialValues.bestseller ? 1 : 0)} color="#69788e" /> : null}
+        </div>
+      ),
+      children: (
+        <>
+          <Form.Item<CatalogFiltersInterface> name="new" className="mb-2" valuePropName="checked">
+            <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.new')}</Checkbox>
+          </Form.Item>
+          <Form.Item<CatalogFiltersInterface> name="bestseller" valuePropName="checked">
+            <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.bestseller')}</Checkbox>
           </Form.Item>
         </>
       ),

@@ -367,10 +367,20 @@ a {
     align-items: center !important;
   }
 
-  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper {
+  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper:not(.custom-size) {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
+  }
+
+  .ant-checkbox-wrapper.custom-size {
+    font-size: 1rem !important;
+    padding: 0 1rem 0 0;
+    font-family: Oswald, sans-serif !important;
+
+    .ant-checkbox + span {
+      padding-inline: unset !important;
+    }
   }
 
   .custom-placeholder > .ant-select-selector, .custom-placeholder ~ .ant-input-number {

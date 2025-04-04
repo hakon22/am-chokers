@@ -108,6 +108,8 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     compositionIds: yup.array(yup.number().optional()),
     from: yup.number().optional(),
     to: yup.number().optional(),
+    new: booleanSchema,
+    bestseller: booleanSchema,
   }),
 );
 

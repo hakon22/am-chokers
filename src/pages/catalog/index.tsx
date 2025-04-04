@@ -31,6 +31,8 @@ export interface CatalogFiltersInterface {
   from?: string | null;
   to?: string | null;
   search?: string | null;
+  new?: string | null;
+  bestseller?: string | null;
 }
 
 export { getServerSideProps };
@@ -205,6 +207,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const fromParams = urlParams.get('from');
   const toParams = urlParams.get('to');
   const searchParams = urlParams.get('search');
+  const newParams = urlParams.get('new');
+  const bestsellerParams = urlParams.get('bestseller');
 
   const [isFilters, setIsFilters] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -216,6 +220,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     from: fromParams,
     to: toParams,
     search: searchParams,
+    new: newParams,
+    bestseller: bestsellerParams,
   };
 
   const defaultInitialValues: CatalogFiltersInterface = {
@@ -225,6 +231,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     from: undefined,
     to: undefined,
     search: undefined,
+    new: undefined,
+    bestseller: undefined,
   };
 
   const [items, setItems] = useState<ItemInterface[]>(propsItems);
@@ -242,6 +250,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.from ? { from: values.from } : {}),
         ...(values?.to ? { to: values.to } : {}),
         ...(values?.search ? { search: values.search } : {}),
+        ...(values?.new ? { new: values.new } : {}),
+        ...(values?.bestseller ? { bestseller: values.bestseller } : {}),
       };
 
       router.push({ query: { ...params, ...(itemGroup ? { path: [itemGroup.code] } : {}) } }, undefined, { shallow: true });

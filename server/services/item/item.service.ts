@@ -145,6 +145,12 @@ export class ItemService extends BaseService {
     if (query?.to) {
       builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
     }
+    if (query?.new) {
+      builder.andWhere('item.new = TRUE');
+    }
+    if (query?.bestseller) {
+      builder.andWhere('item.bestseller = TRUE');
+    }
     if (query?.groupCode) {
       builder.andWhere('group.code = :groupCode', { groupCode: query.groupCode });
     }
@@ -257,6 +263,8 @@ export class ItemService extends BaseService {
 
     const url = this.getUrl(createdItem);
 
+    this.uploadPathService.createSitemap(url);
+
     const item = await this.findOne({ id: createdItem.id });
 
     if (body.publishToTelegram && images.length > 1) {
@@ -291,6 +299,9 @@ export class ItemService extends BaseService {
     updated.grades = grades;
 
     const url = this.getUrl(updated);
+    const oldUrl = this.getUrl(item);
+
+    this.uploadPathService.updateSitemap(oldUrl, url);
 
     return { item: updated, url };
   };
@@ -317,6 +328,9 @@ export class ItemService extends BaseService {
     updated.grades = grades;
 
     const url = this.getUrl(updated);
+    const oldUrl = this.getUrl(item);
+
+    this.uploadPathService.updateSitemap(oldUrl, url);
 
     return { item: updated, url };
   };

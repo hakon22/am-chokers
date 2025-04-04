@@ -156,7 +156,7 @@ const Index = () => {
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
                 <h2>{t('newItems')}</h2>
-                <Link href={`${routes.catalog}?groupIds=${news[0]?.group.id}`} className="see-all color-dark-blue icon-button">
+                <Link href={`${routes.catalog}?new=true`} className="see-all color-dark-blue icon-button">
                   <span>{t('seeAll')}</span>
                   <ArrowRight />
                 </Link>
@@ -205,7 +205,7 @@ const Index = () => {
           <section className="d-flex flex-column col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <div className="d-flex flex-column justify-content-center justify-content-xl-start">
               <h2>{t('bestsellers')}</h2>
-              <Link href={`${routes.catalog}?groupIds=${bestseller1?.group.id}`} className="see-all color-dark-blue icon-button">
+              <Link href={`${routes.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
                 <span>{t('seeAll')}</span>
                 <ArrowRight />
               </Link>
