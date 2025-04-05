@@ -16,6 +16,7 @@ export default {
         bestsellers: 'Бестселлеры',
         necklacesAndChokers: 'Колье и чокеры',
         bracelets: 'Браслеты',
+        earrings: 'Серьги',
         glassesChains: 'Цепочки для очков',
         otherAccessories: 'Другие аксессуары',
         iEmphasizeYourIndividuality: 'Подчёркиваю Вашу индивидуальность',

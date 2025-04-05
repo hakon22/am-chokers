@@ -387,7 +387,7 @@ const Index = () => {
                   images={(coverImage5 ? [coverImage5] : [])}
                 />
               </ContextMenu>
-              <h2 className="col-12 col-xl-4 text-center">{t('glassesChains')}</h2>
+              <h2 className="col-12 col-xl-4 text-center">{t('earrings')}</h2>
               <ContextMenu className="col-12 col-xl-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
@@ -397,7 +397,7 @@ const Index = () => {
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
+            {/*<div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
               <ContextMenu className="col-12 col-xl-4" image={coverImage7} cover={7} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
@@ -415,7 +415,7 @@ const Index = () => {
                   images={(coverImage8 ? [coverImage8] : [])}
                 />
               </ContextMenu>
-            </div>
+            </div>*/}
           </section>
           <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500">
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
