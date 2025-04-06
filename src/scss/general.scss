@@ -461,6 +461,10 @@ a {
   }
 }
 
+.ant-float-btn-content .ant-float-btn-icon {
+  color: $dark-blue !important;
+}
+
 @keyframes show {
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -508,5 +512,12 @@ a {
   .ymaps_maps-button.ymaps__icon_only {
     top: 100px !important;
     right: -5px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-right: 20px !important;
+    padding-left: 20px !important;
   }
 }

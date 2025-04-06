@@ -123,7 +123,7 @@ export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileLis
   }, [reply.parentComment]);
 
   return (
-    <Form name="replyComment" initialValues={reply} className="d-flex flex-column align-self-start mb-4 w-50" onFinish={onFinish} form={form}>
+    <Form name="replyComment" initialValues={reply} className="d-flex flex-column align-self-start mb-4 col-12 col-xl-6" onFinish={onFinish} form={form}>
       <Form.Item<ReplyComment> name="text" className="mb-4 large-input" rules={[newCommentValidation]}>
         <Input.TextArea ref={inputRef} variant="borderless" size="large" placeholder={t('enterComment')} rows={1} />
       </Form.Item>

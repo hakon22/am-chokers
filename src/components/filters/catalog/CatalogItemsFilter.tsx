@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { Funnel } from 'react-bootstrap-icons';
+import { FunnelFill } from 'react-bootstrap-icons';
 import type { CollapseProps } from 'antd/lib';
 
 import { routes } from '@/routes';
@@ -211,7 +211,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
         <FloatButton
           style={{ left: '6.5%', top: '5rem', zIndex: 1 }}
           badge={{ count: filtersCount() }}
-          icon={<Funnel />}
+          icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />
         <Drawer

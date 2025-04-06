@@ -18,7 +18,7 @@ const AboutBrand = () => {
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title')}</h1>
-      <div className="d-flex flex-column text-center text-xl-start">
+      <div className="d-flex flex-column">
         <p>{t('1')}<span className="fw-bold">{t('2')}</span>{t('3')}<span className="fw-bold">{process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}</span>{t('4')}</p>
         <p>{t('5')}</p>
         <p className="mb-5">{t('6')}</p>

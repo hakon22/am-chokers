@@ -331,8 +331,8 @@ const Cart = () => {
                 emptyText: <NotFoundContent text={t('notFoundContent')} />,
               }}
               renderItem={(item) => (
-                <List.Item className={cn({ 'd-flex flex-column align-items-start gap-3': isMobile })}>
-                  <div className="d-flex gap-3" style={isMobile ? {} : { height }}>
+                <List.Item className={cn({ 'd-flex flex-column align-items-start gap-1': isMobile })}>
+                  <div className="d-flex gap-xl-3" style={isMobile ? {} : { height }}>
                     <Checkbox className={cn({ 'opacity-50': item.item.deleted, 'not-padding': isMobile })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"

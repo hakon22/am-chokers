@@ -88,15 +88,15 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
 
         setWidth(value);
         setHeight(value * coefficient);
-        setLagerWidth(extension - 25);
-        setLagerHeight((extension - 25) * coefficient);
+        setLagerWidth(extension - 40);
+        setLagerHeight((extension - 40) * coefficient);
       } else if (extension < 768) {
         const value = 240;
 
         setWidth(value);
         setHeight(value * coefficient);
-        setLagerWidth(516);
-        setLagerHeight(516 * coefficient);
+        setLagerWidth(500);
+        setLagerHeight(500 * coefficient);
       } else if (extension < 1200) {
         const value = 210;
 

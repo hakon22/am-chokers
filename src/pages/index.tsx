@@ -159,7 +159,7 @@ const Index = () => {
           <section className="mb-5" data-aos="fade-right" data-aos-duration="1500">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
-                <h2>{t('newItems')}</h2>
+                <h2 className="text-center text-xl-start">{t('newItems')}</h2>
                 <Link href={`${routes.catalog}?new=true`} className="see-all color-dark-blue icon-button">
                   <span>{t('seeAll')}</span>
                   <ArrowRight />
@@ -461,7 +461,7 @@ const Index = () => {
               </ContextMenu>
             </div>*/}
           </section>
-          <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500">
+          <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500" style={isMobile ? { marginBottom: '-200px' } : {}}>
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
             <p className="d-flex flex-column fw-light fs-5 mb-1">
               <span className="mb-1">{t('subscribe')}</span>

@@ -1,7 +1,7 @@
 .footer {
   background-color: $dark-blue;
   color: $light-font;
-  padding: 3rem;
+  padding: 3rem 0;
   font-weight: 300;
   letter-spacing: 1px;
   position: absolute;
@@ -22,11 +22,5 @@
 
   .text-muted {
     color: $grey-dark-font !important;
-  }
-}
-
-@media (max-width: 1199px) {
-  .footer {
-    padding: 2rem 0.5rem;
   }
 }

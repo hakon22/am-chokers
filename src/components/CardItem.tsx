@@ -119,6 +119,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const dispatch = useAppDispatch();
 
   const { role } = useAppSelector((state) => state.user);
+  const { cart } = useAppSelector((state) => state.cart);
   const { specialItems, pagination } = useAppSelector((state) => state.app);
 
   const urlParams = useSearchParams();
@@ -134,6 +135,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
+
+  const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
 
   const updateItem = (value: ItemInterface) => {
     setItem(value);
@@ -283,7 +286,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             {isMobile
               ? showThumbnails
                 ? (
-                  <div className="float-control-cart d-flex align-items-center justify-content-center gap-5">
+                  <div className="float-control-cart d-flex align-items-center justify-content-center gap-5" style={{ backgroundColor: inCart ? '#eaeef6' : '#2b3c5f', ...(inCart ? { border: '1px solid #c8c8c8' } : {}) }}>
                     <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
                   </div>
                 ) : null
