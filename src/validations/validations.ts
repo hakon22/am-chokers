@@ -259,7 +259,7 @@ const newPromotionalSchema = yup.object().shape({
 }).concat(periodSchema).concat(discountAndDiscountPercentSchema);
 
 const setCoverImageSchema = yup.object().shape({
-  coverOrder: numberSchema.max(8),
+  coverOrder: numberSchema,
 }).concat(requiredIdSchema);
 
 export const confirmCodeValidation = validate(confirmCodeSchema);

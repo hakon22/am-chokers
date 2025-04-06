@@ -100,6 +100,11 @@ export const querySearchParams = yup.object().shape({
   search: yup.string(),
 });
 
+export const queryUploadImageParams = yup.object().shape({
+  cover: booleanSchema,
+  coverCollection: booleanSchema,
+});
+
 export const queryItemsParams = queryPaginationWithParams.concat(
   yup.object().shape({
     groupCode: yup.string().optional(),

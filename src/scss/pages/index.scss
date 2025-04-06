@@ -47,6 +47,33 @@
     color: $dark-blue;
     margin-top: 1rem;
   }
+
+  .text-with-arrow {
+    position: relative;
+    padding-bottom: 30px;
+
+    &::before, &::after {
+      content: '';
+      position: absolute;
+    }
+
+    &::before {
+      top: 53px;
+      width: 100%;
+      height: 2px;
+      background: $grey-dark-font;
+    }
+
+    &::after {
+      top: 46.3px;
+      right: -3px;
+      background-image: url('../../images/arrow.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 11px;
+      height: 15px;
+    }
+  }
 }
 
 .index-bg {
