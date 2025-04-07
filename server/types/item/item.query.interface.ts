@@ -22,4 +22,6 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   compositionIds?: number[],
   from?: number,
   to?: number,
+  new?: boolean;
+  bestseller?: boolean;
 }

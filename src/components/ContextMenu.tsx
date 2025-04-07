@@ -25,11 +25,12 @@ interface CardContextMenuProps extends React.HTMLAttributes<HTMLElement> {
   children: ReactNode;
   order?: number;
   cover?: number;
+  isCoverCollection?: boolean;
   item?: ItemInterface;
   image?: ImageEntity;
 }
 
-export const ContextMenu = ({ children, order, cover, item, image, ...props }: CardContextMenuProps) => {
+export const ContextMenu = ({ children, order, cover, isCoverCollection, item, image, ...props }: CardContextMenuProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.contextMenu' });
   const { t: tUpload } = useTranslation('translation', { keyPrefix: 'modules.uploadImage' });
   const { t: tCrop } = useTranslation('translation', { keyPrefix: 'modules.imageCrop' });
@@ -93,6 +94,8 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
     await dispatch(removeCoverImage(target.id));
     setIsSubmit(false);
   };
+
+  const getAction = (type?: 'cover' | 'coverCollection') => `${routes.imageUpload({ isServer: false })}?${type}=true`;
 
   const menu: MenuProps['items'] = order
     ? [
@@ -199,7 +202,7 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
               <ImgCrop
                 rotationSlider
                 showReset
-                aspect={2.2/1}
+                aspect={(isCoverCollection ? 1.505 : 2.2)/1}
                 modalCancel={tCrop('modalCancel')}
                 modalTitle={tCrop('modalTitle')}
                 resetText={tCrop('resetText')}
@@ -207,7 +210,7 @@ export const ContextMenu = ({ children, order, cover, item, image, ...props }: C
                 <Upload
                   name="file"
                   accept="image/png,image/jpg,image/jpeg"
-                  action={routes.imageUpload({ isServer: false })}
+                  action={getAction(isCoverCollection ? 'coverCollection' : 'cover')}
                   headers={{ Authorization: `Bearer ${token}` }}
                   onChange={(info) => {
                     const { status, response } = info.file;

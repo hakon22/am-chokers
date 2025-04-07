@@ -50,15 +50,19 @@ export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTi
   const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList.tags' });
 
   return (
-    <div className="d-flex flex-column gap-2 mb-3">
-      <div className="d-flex align-items-center gap-3">
-        <Rate disabled allowHalf value={grade.grade} />
-        {withLinkToOrder
-          ? <Link href={`${routes.allOrders}/${grade.position.order.id}`}>{grade.user.name}</Link>
-          : <span>{grade.user.name}</span>}
-        {withTags
-          ? grade.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan">{t('accepted')}</Tag> : null
-          : null}
+    <div className="d-flex flex-column gap-3 mb-3">
+      <div className="d-flex flex-column flex-xl-row align-items-xl-center gap-3">
+        <div className="d-flex gap-3">
+          <Rate disabled allowHalf value={grade.grade} />
+          {withLinkToOrder
+            ? <Link href={`${routes.allOrders}/${grade.position.order.id}`}>{grade.user.name}</Link>
+            : <span>{grade.user.name}</span>}
+        </div>
+        <div>
+          {withTags
+            ? grade.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan">{t('accepted')}</Tag> : null
+            : null}
+        </div>
       </div>
       <span className="text-muted">{moment(grade.created).format(DateFormatEnum.DD_MM_YYYY)}</span>
     </div>
@@ -119,7 +123,7 @@ export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileLis
   }, [reply.parentComment]);
 
   return (
-    <Form name="replyComment" initialValues={reply} className="d-flex flex-column align-self-start mb-4 w-50" onFinish={onFinish} form={form}>
+    <Form name="replyComment" initialValues={reply} className="d-flex flex-column align-self-start mb-4 col-12 col-xl-6" onFinish={onFinish} form={form}>
       <Form.Item<ReplyComment> name="text" className="mb-4 large-input" rules={[newCommentValidation]}>
         <Input.TextArea ref={inputRef} variant="borderless" size="large" placeholder={t('enterComment')} rows={1} />
       </Form.Item>

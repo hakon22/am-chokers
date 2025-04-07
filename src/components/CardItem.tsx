@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, FloatButton, Popconfirm, Rate, Tag } from 'antd';
+import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag } from 'antd';
 import { DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
@@ -33,6 +33,26 @@ interface AdminControlGroupInterface {
   setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
 }
 
+const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+
+  return (
+    <Modal
+      title={t('enterDescription')}
+      centered
+      zIndex={10000}
+      open={isPublish}
+      onOk={onPublish}
+      okText={t('publishToTelegram')}
+      cancelText={t('cancel')}
+      onClose={() => setIsPublish(false)}
+      onCancel={() => setIsPublish(false)}
+    >
+      <Input.TextArea value={description} onChange={(({ target }) => setDescription(target.value))} rows={6} placeholder={t('enterDescription')} />
+    </Modal>
+  );
+};
+
 const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -40,6 +60,9 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const router = useRouter();
 
   const dispatch = useAppDispatch();
+
+  const [isPublish, setIsPublish] = useState(false);
+  const [description, setDescription] = useState(item.description);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -71,28 +94,35 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   }, undefined, { shallow: true });
 
   const onPublish = async () => {
-    const { payload } = await dispatch(publishItem(item.id)) as { payload: ItemResponseInterface & { error: string; } };
+    setIsSubmit(true);
+    const { payload } = await dispatch(publishItem({ id: item.id, description })) as { payload: ItemResponseInterface & { error: string; } };
     if (!payload?.error) {
       setItem(payload.item);
+      setIsPublish(false);
       toast(tToast('itemPublishSuccess', { name }), 'success');
     }
+    setIsSubmit(false);
   };
 
   return role === UserRoleEnum.ADMIN
     ? isMobile
       ? (
-        <FloatButton.Group
-          trigger="click"
-          style={{ insetInlineEnd: 24, top: '50%', height: 'min-content' }}
-          icon={<EllipsisOutlined />}
-        >
-          {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<SignatureOutlined />} />}
-          <FloatButton icon={<DeleteOutlined />} />
-          {!item.message ? <FloatButton onClick={onPublish} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
-        </FloatButton.Group>
+        <>
+          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} />
+          <FloatButton.Group
+            trigger="click"
+            style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
+            icon={<EllipsisOutlined />}
+          >
+            <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
+            {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
+            {!item.message ? <FloatButton onClick={() => setIsPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
+          </FloatButton.Group>
+        </>
       )
       : (
         <>
+          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} />
           <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
           {item.deleted
             ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
@@ -102,7 +132,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
               </Popconfirm>
             )}
           {!item.message?.created
-            ? <Button type="text" className="action-button send-to-telegram" onClick={onPublish}>{t('publishToTelegram')}</Button>
+            ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsPublish(true)}>{t('publishToTelegram')}</Button>
             : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
         </>
       ) : null;
@@ -119,6 +149,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const dispatch = useAppDispatch();
 
   const { role } = useAppSelector((state) => state.user);
+  const { cart } = useAppSelector((state) => state.cart);
   const { specialItems, pagination } = useAppSelector((state) => state.app);
 
   const urlParams = useSearchParams();
@@ -134,6 +165,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
+
+  const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
 
   const updateItem = (value: ItemInterface) => {
     setItem(value);
@@ -177,7 +210,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   }, []);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
-    <div className="d-flex flex-column" style={isMobile ? { marginTop: '30%' } : {}}>
+    <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>
       <Helmet title={name} description={description} image={images?.[0]?.src} />
       <div className="d-flex flex-column flex-xl-row gap-xl-5 mb-5">
         {isMobile
@@ -185,7 +218,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             <>
               <h1 className="mb-4 fs-3">{name}</h1>
               {collection
-                ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.name })}</Tag></div>
                 : null}
             </>
           )
@@ -249,7 +282,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               ? (
                 <><h1 className="mb-4 fs-3">{name}</h1>
                   {collection
-                    ? <div><Tag color="gold" className="mb-4 py-1 px-2 fs-6">{t('collection', { name: collection.name })}</Tag></div>
+                    ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.name })}</Tag></div>
                     : null}
                 </>)
               : null}
@@ -281,11 +314,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               <AdminControlGroup item={item} setItem={setItem} />
             </div>
             {isMobile
-              ? (
-                <div className="float-control-cart d-flex align-items-center justify-content-center gap-5">
-                  <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
-                </div>
-              )
+              ? showThumbnails
+                ? (
+                  <div className="float-control-cart d-flex align-items-center justify-content-center gap-5" style={{ backgroundColor: inCart ? '#eaeef6' : '#2b3c5f', ...(inCart ? { border: '1px solid #c8c8c8' } : {}) }}>
+                    <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
+                  </div>
+                ) : null
               : (
                 <div className="d-flex align-items-center gap-5 mb-3">
                   <CartControl id={id} deleted={item.deleted} className="fs-5" />
@@ -340,7 +374,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               <div>
                 {t('warranty.13')}
                 {' '}
-                <Link href="mailto:amchokers@gmail.com" target="_blank" className="fw-bold">amchokers@gmail.com</Link>
+                <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
                 {' '}
                 {t('warranty.14')}
                 {' '}

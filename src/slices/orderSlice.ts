@@ -30,9 +30,9 @@ export const fetchOrders = createAsyncThunk(
 
 export const createOrder = createAsyncThunk(
   'order/createOrder',
-  async ({ cart, promotional, delivery }: CreateOrderInterface, { rejectWithValue }) => {
+  async ({ cart, promotional, delivery, user }: CreateOrderInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<OrderResponseInterface>(routes.createOrder, { cart, promotional, delivery });
+      const response = await axios.post<OrderResponseInterface>(routes.createOrder, { cart, promotional, delivery, user });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

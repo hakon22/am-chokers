@@ -31,6 +31,8 @@ export interface CatalogFiltersInterface {
   from?: string | null;
   to?: string | null;
   search?: string | null;
+  new?: string | null;
+  bestseller?: string | null;
 }
 
 export { getServerSideProps };
@@ -86,15 +88,15 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
 
         setWidth(value);
         setHeight(value * coefficient);
-        setLagerWidth(extension - 25);
-        setLagerHeight((extension - 25) * coefficient);
+        setLagerWidth(extension - 40);
+        setLagerHeight((extension - 40) * coefficient);
       } else if (extension < 768) {
         const value = 240;
 
         setWidth(value);
         setHeight(value * coefficient);
-        setLagerWidth(516);
-        setLagerHeight(516 * coefficient);
+        setLagerWidth(500);
+        setLagerHeight(500 * coefficient);
       } else if (extension < 1200) {
         const value = 210;
 
@@ -205,6 +207,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const fromParams = urlParams.get('from');
   const toParams = urlParams.get('to');
   const searchParams = urlParams.get('search');
+  const newParams = urlParams.get('new');
+  const bestsellerParams = urlParams.get('bestseller');
 
   const [isFilters, setIsFilters] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -216,6 +220,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     from: fromParams,
     to: toParams,
     search: searchParams,
+    new: newParams,
+    bestseller: bestsellerParams,
   };
 
   const defaultInitialValues: CatalogFiltersInterface = {
@@ -225,6 +231,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     from: undefined,
     to: undefined,
     search: undefined,
+    new: undefined,
+    bestseller: undefined,
   };
 
   const [items, setItems] = useState<ItemInterface[]>(propsItems);
@@ -242,6 +250,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.from ? { from: values.from } : {}),
         ...(values?.to ? { to: values.to } : {}),
         ...(values?.search ? { search: values.search } : {}),
+        ...(values?.new ? { new: values.new } : {}),
+        ...(values?.bestseller ? { bestseller: values.bestseller } : {}),
       };
 
       router.push({ query: { ...params, ...(itemGroup ? { path: [itemGroup.code] } : {}) } }, undefined, { shallow: true });
@@ -324,7 +334,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, [itemGroup?.id]);
   
   return (
-    <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '30%' } : {}}>
+    <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
       <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
       <FloatButton.BackTop />
       <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />

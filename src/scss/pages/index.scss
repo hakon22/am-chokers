@@ -11,47 +11,73 @@
     margin-bottom: 2rem;
   }
 
+  .guide {
+    background-color: $dark-blue;
+    height: 550px;
+    border-radius: 40px;
+    padding: 30px;
+
+    img {
+      border-top-left-radius: 40px;
+      border-bottom-left-radius: 40px;
+      width: calc(490px / 1.246);
+      height: 490px;
+    }
+
+    &-text {
+      background-color: $white;
+      border-top-right-radius: 40px;
+      border-bottom-right-radius: 40px;
+      padding: 35px;
+
+      ul {
+        padding-left: 15px;
+        margin-bottom: 0;
+        list-style-type: decimal;
+      }
+    }
+  }
+
   .see-all {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     column-gap: 0.5rem;
-    font-size: 1.2rem;
+    font-size: 1rem;
     text-transform: uppercase;
     color: $dark-blue;
-    position: absolute;
-    right: calc(var(--ratio) * -0.7vw);
-    bottom: -13vw;
+    margin-top: 1rem;
   }
 
-  .guide {
+  .text-with-arrow {
     position: relative;
-    background-color: #888DA3;
-    height: 500px;
+    padding-bottom: 30px;
 
-    &-text {
+    &::before, &::after {
+      content: '';
       position: absolute;
-      text-transform: uppercase;
-      bottom: 10%;
-      left: 10%;
+    }
+
+    &::before {
+      top: 53px;
+      width: 100%;
+      height: 2px;
+      background: $grey-dark-font;
+    }
+
+    &::after {
+      top: 46.3px;
+      right: -3px;
+      background-image: url('../../images/arrow.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 11px;
+      height: 15px;
     }
   }
 }
 
 .index-bg {
-  background: radial-gradient(circle at top, #f7f1f2 37%, #f6eff1 45%, #c4b7af 100%);
-}
-
-@media (max-width: 1536px) {
-  .index-block-container .see-all {
-      right: calc(var(--ratio) * -1.4vw);
-    }
-}
-
-@media (max-width: 1367px) {
-  .index-block-container .see-all {
-      right: calc(var(--ratio) * -1vw);
-    }
+  background: $white;
 }
 
 @media (max-width: 1199px) {
@@ -63,20 +89,33 @@
     &-carousel {
       margin-bottom: 3rem;
 
-      .react-multiple-carousel__arrow {
-        min-width: unset;
-        min-height: unset;
-        width: 25px;
-        height: 25px;
+      .react-multiple-carousel__arrow--left {
+        left: calc(10% + 1px);
+        top: 38%;
+      }
 
-        &::before {
-          font-size: 0.7rem;
-        }
+      .react-multiple-carousel__arrow--right {
+        right: calc(10% + 1px);
+        top: 38%;
       }
     }
 
     .see-all {
+      position: absolute;
+      bottom: -13vw;
       right: calc(var(--ratio) * 3vw);
+    }
+
+    .guide {
+      height: unset;
+      padding: 10px;
+
+      &-text {
+        padding: 25px;
+        background-color: $white;
+        border-top-left-radius: 40px;
+        border-bottom-left-radius: 40px;
+      }
     }
   }
 }

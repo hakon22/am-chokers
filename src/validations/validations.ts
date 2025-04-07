@@ -50,6 +50,10 @@ export const uuidArraySchema = yup.array(yup.string().uuid().required()).require
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
 
+export const descriptionSchema = yup.object().shape({
+  description: stringSchema.optional(),
+});
+
 const requiredIdSchema = yup.object().shape({ id: numberSchema });
 
 const phoneSchema = yup.string().trim().required().transform((value) => value.replace(/[^\d]/g, ''))
@@ -135,7 +139,6 @@ const newItemSchema = yup.object().shape({
   compositions: yup.array(idSchema).min(1).required(),
   length: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
-  publishToTelegram: booleanSchema,
 });
 
 const partialUpdateItemSchema = yup.object().shape({
@@ -180,9 +183,14 @@ const newOrderPositionSchema = yup.object().shape({
   }).optional(),
   delivery: yup.object().shape({
     price: numberSchema,
-    platformStationTo: stringSchema,
     address: stringSchema,
     type: yup.string().oneOf(Object.values(DeliveryTypeEnum)),
+    indexTo: yup.string().optional(),
+    mailType: yup.string().optional(),
+  }),
+  user: yup.object().shape({
+    name: stringSchema,
+    phone: phoneSchema,
   }),
 });
 
@@ -254,7 +262,7 @@ const newPromotionalSchema = yup.object().shape({
 }).concat(periodSchema).concat(discountAndDiscountPercentSchema);
 
 const setCoverImageSchema = yup.object().shape({
-  coverOrder: numberSchema.max(8),
+  coverOrder: numberSchema,
 }).concat(requiredIdSchema);
 
 export const confirmCodeValidation = validate(confirmCodeSchema);

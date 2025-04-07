@@ -6,11 +6,13 @@ import Script from 'next/script';
 import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
+import Link from 'next/link';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
+import CookieConsent from 'react-cookie-consent';
 
 import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext, MobileContext } from '@/components/Context';
 import { routes } from '@/routes';
@@ -92,6 +94,55 @@ const Init = (props: InitPropsInterface) => {
                       <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
                       <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
                     </Head>
+                    {process.env.NODE_ENV === 'production'
+                      ? (
+                        <>
+                          <Script 
+                            id="google-analytics"
+                            src="https://www.googletagmanager.com/gtag/js?id=G-P50BP1JPGM"
+                            async
+                            onLoad={() => {
+                              console.log('Google analytics script loaded');
+                            }}
+                            onError={(e) => {
+                              console.error('Error loading Google metrics script', e);
+                            }}
+                          />
+                          <Script
+                            id="gtag-init"
+                            strategy="afterInteractive"
+                            dangerouslySetInnerHTML={{
+                              __html: `
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+                        gtag('config', 'G-P50BP1JPGM');
+                    `,
+                            }}
+                          />
+                          <Script
+                            id="yandex-metrika"
+                            strategy="afterInteractive"
+                            dangerouslySetInnerHTML={{
+                              __html: `
+                        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+                        m[i].l=1*new Date();
+                        for (var j = 0; j < document.scripts.length; j++) {
+                            if (document.scripts[j].src === r) { return; }
+                        }
+                        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+                        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+                        ym(100705426, "init", {
+                            clickmap:true,
+                            trackLinks:true,
+                            accurateTrackBounce:true
+                        });
+                    `,
+                            }}
+                          />
+                        </>
+                      ) : null}
                     <Script 
                       id="yandex-widget"
                       src="https://ndd-widget.landpro.site/widget.js"
@@ -103,7 +154,29 @@ const Init = (props: InitPropsInterface) => {
                         console.error('Error loading Yandex widget script', e);
                       }}
                     />
+                    <Script 
+                      id="russian-post-widget"
+                      src="https://widget.pochta.ru/map/widget/widget.js"
+                      strategy="lazyOnload"
+                      onLoad={() => {
+                        console.log('Russian Post widget script loaded');
+                      }}
+                      onError={(e) => {
+                        console.error('Error loading Russian Post widget script', e);
+                      }}
+                    />
                     <ToastContainer style={{ zIndex: 999999 }} />
+                    <CookieConsent
+                      containerClasses="justify-content-center text-center"
+                      style={{ zIndex: 1001, backgroundColor: '#2b3c5f' }}
+                      buttonStyle={{ backgroundColor: '#eaeef6', borderRadius: '7px', padding: '10px 20px' }}
+                      buttonText={i18n.t('cookieConsent.buttonText')}
+                    >
+                      <>
+                        {i18n.t('cookieConsent.contentText')}
+                        <Link className="text-decoration-underline" href={routes.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
+                      </>
+                    </CookieConsent>
                     <App>
                       <Component {...pageProps} />
                     </App>

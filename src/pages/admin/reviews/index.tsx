@@ -215,8 +215,8 @@ const Reviews = () => {
           }}
           loading={isLoading}
           renderItem={(value, i) => (
-            <div className="d-flex align-items-center justify-content-between mb-2" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
-              <div className="d-flex align-items-center gap-4 w-100 py-2">
+            <div className="d-flex flex-column flex-xl-row align-items-center justify-content-between mb-2" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
+              <div className="d-flex flex-column flex-xl-row align-items-center gap-4 w-100 py-2">
                 <ImageHover className="align-self-start" href={getHref(value?.item)} images={value?.item?.images} height={height} width={width} />
                 <List.Item
                   className="d-flex flex-column w-100 p-0"
@@ -256,7 +256,7 @@ const Reviews = () => {
                   ) : null}
                 </List.Item>
               </div>
-              {value.deleted || value.checked ? null : <Button className="button border-button py-2 fs-6" title={t('accept')} onClick={() => onGradeAccept(value.id)}>{t('accept')}</Button>}
+              {value.deleted || value.checked ? null : <Button className="button border-button py-2 fs-6 mt-3 mt-xl-0" title={t('accept')} onClick={() => onGradeAccept(value.id)}>{t('accept')}</Button>}
             </div>
           )}
         />

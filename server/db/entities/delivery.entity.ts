@@ -3,6 +3,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, U
 import { YandexDeliveryStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.status.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.reason.status.enum';
+import { RussianPostMailTypeEnum } from '@/types/delivery/russian.post.delivery.interface';
 
 /** Доставка */
 @Entity({
@@ -37,12 +38,14 @@ export class DeliveryEntity extends BaseEntity {
   /** Уникальный номер станции отправки заказа (склад) */
   @Column('character varying', {
     name: 'platform_station_from',
+    nullable: true,
   })
   public platformStationFrom: string;
 
   /** Уникальный номер станции доставки заказа (ПВЗ клиента) */
   @Column('character varying', {
     name: 'platform_station_to',
+    nullable: true,
   })
   public platformStationTo: string;
 
@@ -60,7 +63,7 @@ export class DeliveryEntity extends BaseEntity {
   })
   public deliveryTo: Date;
 
-  /** Текстовый доставки заказа (ПВЗ клиента) */
+  /** Адрес доставки заказа (ПВЗ клиента) */
   @Column('character varying')
   public address: string;
 
@@ -71,6 +74,20 @@ export class DeliveryEntity extends BaseEntity {
     nullable: true,
   })
   public status: YandexDeliveryStatusEnum;
+
+  /** Индекс почтового отделения (только для Почты России) */
+  @Column('character varying', {
+    nullable: true,
+  })
+  public index?: string;
+
+  /** Выбранный тип доставки (только для Почты России) */
+  @Column({
+    type: 'enum',
+    enum: RussianPostMailTypeEnum,
+    nullable: true,
+  })
+  public mailType?: RussianPostMailTypeEnum;
 
   /** Тип доставки */
   @Column('enum', {

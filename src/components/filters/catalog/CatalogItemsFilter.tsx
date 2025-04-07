@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { Funnel } from 'react-bootstrap-icons';
+import { FunnelFill } from 'react-bootstrap-icons';
 import type { CollapseProps } from 'antd/lib';
 
 import { routes } from '@/routes';
@@ -86,7 +86,14 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     }
   };
 
-  const filtersCount = () => (initialValues.itemGroups?.length ?? 0) + (initialValues.itemCollections?.length ?? 0) + (initialValues.compositions?.length ?? 0) + (initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0);
+  const filtersCount = () => (
+    initialValues.itemGroups?.length ?? 0) +
+    (initialValues.itemCollections?.length ?? 0) +
+    (initialValues.compositions?.length ?? 0) +
+    (initialValues.from ? 1 : 0) +
+    (initialValues.to ? 1 : 0) +
+    (initialValues.new ? 1 : 0) +
+    (initialValues.bestseller ? 1 : 0);
 
   const filters: CollapseProps['items'] = [
     {
@@ -148,7 +155,12 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     },
     {
       key: '4',
-      label: <span className="font-oswald text-uppercase">{t('price.title')}</span>,
+      label: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('price.title')}</span>
+          {initialValues.from || initialValues.to ? <Badge count={(initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0)} color="#69788e" /> : null}
+        </div>
+      ),
       children: (
         <>
           <Form.Item<CatalogFiltersInterface> name="from" className="custom-placeholder">
@@ -156,6 +168,25 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
           </Form.Item>
           <Form.Item<CatalogFiltersInterface> name="to" className="custom-placeholder">
             <InputNumber className="w-100" size="small" placeholder={t('price.to')} suffix={t('price.suffix')} min={1} keyboard />
+          </Form.Item>
+        </>
+      ),
+    },
+    {
+      key: '5',
+      label: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('additionally.title')}</span>
+          {initialValues.new || initialValues.bestseller ? <Badge count={(initialValues.new ? 1 : 0) + (initialValues.bestseller ? 1 : 0)} color="#69788e" /> : null}
+        </div>
+      ),
+      children: (
+        <>
+          <Form.Item<CatalogFiltersInterface> name="new" className="mb-2" valuePropName="checked">
+            <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.new')}</Checkbox>
+          </Form.Item>
+          <Form.Item<CatalogFiltersInterface> name="bestseller" valuePropName="checked">
+            <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.bestseller')}</Checkbox>
           </Form.Item>
         </>
       ),
@@ -180,7 +211,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
         <FloatButton
           style={{ left: '6.5%', top: '5rem', zIndex: 1 }}
           badge={{ count: filtersCount() }}
-          icon={<Funnel />}
+          icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />
         <Drawer

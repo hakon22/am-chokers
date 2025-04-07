@@ -6,9 +6,11 @@ import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import { FloatButton } from 'antd';
+import cn from 'classnames';
 
 import pendant from '@/images/pendant.png';
 import choker from '@/images/choker.png';
+import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
@@ -60,6 +62,9 @@ const Index = () => {
   const coverImage6 = coverImages.find(({ coverOrder }) => coverOrder === 6);
   const coverImage7 = coverImages.find(({ coverOrder }) => coverOrder === 7);
   const coverImage8 = coverImages.find(({ coverOrder }) => coverOrder === 8);
+  const coverCollectionImage9 = coverImages.find(({ coverOrder }) => coverOrder === 9);
+  const coverCollectionImage10 = coverImages.find(({ coverOrder }) => coverOrder === 10);
+  const coverCollectionImage11 = coverImages.find(({ coverOrder }) => coverOrder === 11);
 
   const coefficient = 1.3;
 
@@ -74,7 +79,7 @@ const Index = () => {
         max: 3000,
         min: 1024,
       },
-      items: 4,
+      items: 5,
     },
     mobile: {
       breakpoint: {
@@ -136,7 +141,7 @@ const Index = () => {
       {!isMobile
         ? (
           <>
-            <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>Смотреть каталог</Link>
+            <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
             {isLoaded && (
               <>
                 <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 1 : 3, height: '62vh', width: '55%' }}>
@@ -151,9 +156,15 @@ const Index = () => {
         ) : null}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
-          <section className="d-flex flex-column position-relative mb-5" data-aos="fade-right" data-aos-duration="1500">
+          <section className="mb-5" data-aos="fade-right" data-aos-duration="1500">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
-              <h2 className="d-flex align-items-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">{t('newItems')}</h2>
+              <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
+                <h2 className="text-center text-xl-start">{t('newItems')}</h2>
+                <Link href={`${routes.catalog}?new=true`} className="see-all color-dark-blue icon-button">
+                  <span>{t('seeAll')}</span>
+                  <ArrowRight />
+                </Link>
+              </div>
               <Carousel
                 autoPlaySpeed={3000}
                 centerMode={false}
@@ -184,8 +195,8 @@ const Index = () => {
                     key={item.id}
                     className={isMobile ? 'align-items-center' : item.className}
                     href={getHref(item)}
-                    height={height}
-                    width={width}
+                    height={isMobile ? 300 * coefficient : height}
+                    width={isMobile ? 300 : width}
                     images={item.images}
                     name={item.name}
                     rating={{ rating: item.rating, grades: item.grades }}
@@ -194,13 +205,15 @@ const Index = () => {
                 ))}
               </Carousel>
             </div>
-            <Link href={routes.catalog} className="see-all color-dark-blue icon-button">
-              <span>{t('seeAll')}</span>
-              <ArrowRight />
-            </Link>
           </section>
           <section className="d-flex flex-column col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
-            <h2 className="d-flex justify-content-center justify-content-xl-start">{t('bestsellers')}</h2>
+            <div className="d-flex flex-column justify-content-center justify-content-xl-start">
+              <h2>{t('bestsellers')}</h2>
+              <Link href={`${routes.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
+                <span>{t('seeAll')}</span>
+                <ArrowRight />
+              </Link>
+            </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between gap-4 gap-xl-0">
               <div className="d-flex flex-column col-12 col-xl-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
                 <ContextMenu item={bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
@@ -246,72 +259,128 @@ const Index = () => {
             </div>
           </section>
           <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '2rem' }}>
-            <h2 className="lh-base">
+            <h2 className="col-12 col-xl-10 lh-base">
               {t('slogan.create')}
               <br />
               {t('slogan.uniqueDecoration')}
             </h2>
-            <div className="guide col-10">
-              <span className="guide-text lh-base fs-2">
-                {t('text.part1')}
-                <br />
-                {t('text.part2')}
-              </span>
+            <div className="guide col-12 col-xl-10">
+              <div className="d-flex lh-base">
+                {!isMobile && <Image src={uniqueDecoration} className="col-5" unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('slogan.uniqueDecoration')} priority />}
+                <div className="guide-text w-100 d-flex flex-column">
+                  <h3 className="mb-4 text-center text-xl-start">{t('slogan.title')}</h3>
+                  <p className="fs-5 mb-4">{t('slogan.paragraph')}</p>
+                  <ul className="d-flex flex-column gap-2 mb-4">
+                    <li>
+                      {t('slogan.1')}
+                      <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} target="_blank" className="fw-bold">{t('slogan.1.1')}</Link>
+                      {t('slogan.1.2')}
+                    </li>
+                    <li>{t('slogan.2')}</li>
+                    <li>{t('slogan.3')}</li>
+                    <li>{t('slogan.4')}</li>
+                    <li>{t('slogan.5')}</li>
+                  </ul>
+                  <div className="d-flex justify-content-center">
+                    <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} target="_blank" title={t('slogan.wantButton')} className="button border-button" style={{ borderRadius: '7px', padding: '0.5rem 0.7rem' }}>{t('slogan.wantButton')}</Link>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center">
-            {!isMobile
-              ? <h2 className="col-10 text-center text-xl-start" style={{ marginBottom: '7%' }}>{t('collections')}</h2>
-              : null}
-            <div className="d-flex flex-column col-10" style={{ gap: '5rem' }}>
-              <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
-                <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
+          <section className="d-flex flex-column align-items-center" style={{ rowGap: isMobile ? '4rem' : '7rem' }}>
+            {!isMobile && <div className="col-5">
+              <h2 className="text-center">{t('collections')}</h2>
+            </div>}
+            <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
+              <div className="d-flex justify-content-center justify-content-xl-between col-12 col-xl-7">
+                <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
+                  <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
+                    <ImageHover
+                      className="col-12 col-xl-6"
+                      style={{ alignSelf: isMobile ? 'center' : 'start' }}
+                      href={getHref(collection1)}
+                      height={height}
+                      width={width}
+                      images={collection1?.images ?? []}
+                      name={collection1?.name}
+                      rating={collection1 ? { rating: collection1.rating, grades: collection1.grades } : undefined}
+                      description={tPrice('price', { price: collection1 ? collection1.price - collection1.discountPrice : 0 })}
+                    />
+                  </div>
+                </ContextMenu>
+                {/*!isMobile && <ContextMenu image={coverCollectionImage9} cover={9} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
                   <ImageHover
-                    className="col-12 col-xl-6"
-                    style={{ alignSelf: isMobile ? 'center' : 'start' }}
-                    href={getHref(collection1)}
-                    height={height}
-                    width={width}
-                    images={collection1?.images ?? []}
-                    name={collection1?.name}
-                    rating={collection1 ? { rating: collection1.rating, grades: collection1.grades } : undefined}
-                    description={tPrice('price', { price: collection1 ? collection1.price - collection1.discountPrice : 0 })}
+                    className={isMobile ? 'align-items-center' : ''}
+                    width={450}
+                    height={299}
+                    images={(coverCollectionImage9 ? [coverCollectionImage9] : [])}
                   />
-                  <h2>{collection1?.collection?.name}</h2>
-                </div>
-              </ContextMenu>
-              <ContextMenu item={collection2} order={5} data-aos="fade-right" data-aos-duration="1500">
-                <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0 flex-xl-row-reverse">
+                </ContextMenu>*/}
+              </div>
+              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
+                <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection1?.collection?.name}</Link>
+              </div>
+            </div>
+            <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
+              <div className="d-flex flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-7">
+                <ContextMenu item={collection2} order={5} data-aos="fade-left" data-aos-duration="1500">
+                  <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
+                    <ImageHover
+                      className="col-12 col-xl-6"
+                      style={{ alignSelf: isMobile ? 'center' : 'start' }}
+                      href={getHref(collection2)}
+                      height={height}
+                      width={width}
+                      images={collection2?.images ?? []}
+                      name={collection2?.name}
+                      rating={collection2 ? { rating: collection2.rating, grades: collection2.grades } : undefined}
+                      description={tPrice('price', { price: collection2 ? collection2.price - collection2.discountPrice : 0 })}
+                    />
+                  </div>
+                </ContextMenu>
+                {/*!isMobile && <ContextMenu image={coverCollectionImage10} cover={10} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
                   <ImageHover
-                    className="col-12 col-xl-6"
-                    style={{ alignSelf: isMobile ? 'center' : 'end' }}
-                    href={getHref(collection2)}
-                    height={height}
-                    width={width}
-                    images={collection2?.images ?? []}
-                    name={collection2?.name}
-                    rating={collection2 ? { rating: collection2.rating, grades: collection2.grades } : undefined}
-                    description={tPrice('price', { price: collection2 ? collection2.price - collection2.discountPrice : 0 })}
+                    className={isMobile ? 'align-items-center' : ''}
+                    width={450}
+                    height={299}
+                    images={(coverCollectionImage10 ? [coverCollectionImage10] : [])}
                   />
-                  <h2>{collection2?.collection?.name}</h2>
-                </div>
-              </ContextMenu>
-              <ContextMenu item={collection3} order={6} data-aos="fade-right" data-aos-duration="1500">
-                <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0 flex-xl-row-reverse">
+                </ContextMenu>*/}
+              </div>
+              <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
+                <Link href={collection2 ? `${routes.catalog}?collectionIds=${collection2?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection2?.collection?.name}</Link>
+              </div>
+            </div>
+            <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
+              <div className="d-flex flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-7">
+                <ContextMenu item={collection3} order={6} data-aos="fade-left" data-aos-duration="1500">
+                  <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
+                    <ImageHover
+                      className="col-12 col-xl-6"
+                      style={{ alignSelf: isMobile ? 'center' : 'start' }}
+                      href={getHref(collection3)}
+                      height={height}
+                      width={width}
+                      images={collection3?.images ?? []}
+                      name={collection3?.name}
+                      rating={collection3 ? { rating: collection3.rating, grades: collection3.grades } : undefined}
+                      description={tPrice('price', { price: collection3 ? collection3.price - collection3.discountPrice : 0 })}
+                    />
+                  </div>
+                </ContextMenu>
+                {/*!isMobile && <ContextMenu image={coverCollectionImage11} cover={11} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
                   <ImageHover
-                    className="col-12 col-xl-6"
-                    style={{ alignSelf: isMobile ? 'center' : 'end' }}
-                    href={getHref(collection3)}
-                    height={height}
-                    width={width}
-                    images={collection3?.images ?? []}
-                    name={collection3?.name}
-                    rating={collection3 ? { rating: collection3.rating, grades: collection3.grades } : undefined}
-                    description={tPrice('price', { price: collection3 ? collection3.price - collection3.discountPrice : 0 })}
+                    className={isMobile ? 'align-items-center' : ''}
+                    width={450}
+                    height={299}
+                    images={(coverCollectionImage11 ? [coverCollectionImage11] : [])}
                   />
-                  <h2>{collection3?.collection?.name}</h2>
-                </div>
-              </ContextMenu>
+                </ContextMenu>*/}
+              </div>
+              <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
+                <Link href={collection3 ? `${routes.catalog}?collectionIds=${collection3?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection3?.collection?.name}</Link>
+              </div>
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
@@ -362,7 +431,7 @@ const Index = () => {
                   images={(coverImage5 ? [coverImage5] : [])}
                 />
               </ContextMenu>
-              <h2 className="col-12 col-xl-4 text-center">{t('glassesChains')}</h2>
+              <h2 className="col-12 col-xl-4 text-center">{t('earrings')}</h2>
               <ContextMenu className="col-12 col-xl-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
@@ -372,7 +441,7 @@ const Index = () => {
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
+            {/*<div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
               <ContextMenu className="col-12 col-xl-4" image={coverImage7} cover={7} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
@@ -390,12 +459,12 @@ const Index = () => {
                   images={(coverImage8 ? [coverImage8] : [])}
                 />
               </ContextMenu>
-            </div>
+            </div>*/}
           </section>
-          <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500">
+          <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500" style={isMobile ? { marginBottom: '-200px' } : {}}>
             <div className="font-mr_hamiltoneg fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
-            <p className="fw-light fs-5 mb-2">
-              <span>{t('subscribe')}</span>
+            <p className="d-flex flex-column fw-light fs-5 mb-1">
+              <span className="mb-1">{t('subscribe')}</span>
               <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
             </p>
             <p className="fw-light fs-5">{t('getUpdates')}</p>

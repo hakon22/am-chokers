@@ -13,7 +13,6 @@ import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { CartService } from '@server/services/cart/cart.service';
-import { DeliveryService } from '@server/services/delivery/delivery.service';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
@@ -40,8 +39,6 @@ export class OrderService extends BaseService {
   private readonly promotionalService = Container.get(PromotionalService);
 
   private readonly acquiringService = Container.get(AcquiringService);
-
-  private readonly deliveryService = Container.get(DeliveryService);
 
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -190,7 +187,7 @@ export class OrderService extends BaseService {
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
       const deliveryRepo = manager.getRepository(DeliveryEntity);
 
-      const { user: createdUser } = await this.userService.createOne('Пользователь', '79151003951', manager);
+      const { user: createdUser } = await this.userService.createOne(user?.name, user?.phone, manager);
 
       const cart = await this.cartService.findMany(null, undefined, { ids: cartIds }, { manager });
 
@@ -211,8 +208,6 @@ export class OrderService extends BaseService {
       const positions = await orderPositionRepo.save(preparedPositions);
       await this.cartService.deleteMany(null, cartIds, { manager });
 
-      const credential = await this.deliveryService.findOneByType(delivery.type, process.env.NODE_ENV === 'development', { manager });
-
       const created = await orderRepo.save({
         status: OrderStatusEnum.NOT_PAID,
         user: { id: user.id || createdUser?.id },
@@ -220,10 +215,10 @@ export class OrderService extends BaseService {
         positions,
         promotional,
         delivery: await deliveryRepo.create({
-          platformStationFrom: credential.password,
-          platformStationTo: delivery.platformStationTo,
           address: delivery.address,
           type: delivery.type,
+          index: delivery.indexTo,
+          mailType: delivery.mailType,
         }).save(),
       } as OrderEntity);
 
@@ -238,21 +233,19 @@ export class OrderService extends BaseService {
       await this.telegramService.sendMessage(text, user.telegramId);
     }
 
-    if (process.env.TELEGRAM_CHAT_ID) {
+    if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
       const adminText = [
         `Создан заказ <b>№${order.id}</b>`,
         '',
         `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderEntity)} ₽</b>`,
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
-      await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
 
-    // const paymentUrl = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
-    /** Это тут временно */
-    await this.deliveryService.createOrder(order);
+    const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
 
-    return order;
+    return { order, url };
   };
 
   public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface, user: PassportRequestInterface) => {
@@ -292,17 +285,29 @@ export class OrderService extends BaseService {
 
     order.status = status;
 
-    if (process.env.TELEGRAM_CHAT_ID && user.role !== UserRoleEnum.ADMIN) {
+    if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && user.role !== UserRoleEnum.ADMIN) {
       const adminText = [
         `Отмена заказа <b>№${order.id}</b>`,
         '',
         `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
-      await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
   
     return order;
+  };
+
+  public pay = async (params: ParamsIdInterface) => {
+    const order = await this.findOne(params, {}, { withUser: true });
+
+    if (order.status !== OrderStatusEnum.NOT_PAID) {
+      throw new Error('Заказ уже оплачен');
+    }
+
+    const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
+  
+    return url;
   };
 
   public deleteOne = async (params: ParamsIdInterface) => {

@@ -24,7 +24,7 @@ const Login = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
@@ -51,7 +51,7 @@ const Login = () => {
             </div>
           )
           : null}
-        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '30%' : '22%' }}>
+        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '100px' : '22%' }}>
           <h1 className="mb-5">{t('title')}</h1>
           <Form name="login" className="col-12 col-xl-8" form={form} onFinish={onFinish}>
             <Form.Item<UserLoginInterface> name="phone" rules={[loginValidation]}>
@@ -69,7 +69,7 @@ const Login = () => {
               </Alert.Link>
             </div>
             <div className="d-flex col-12">
-              <Button htmlType="submit" className="w-100 button fs-5">
+              <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
                 {t('submitButton')}
               </Button>
             </div>

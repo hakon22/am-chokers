@@ -21,6 +21,6 @@ export class ItemRoute extends BaseRouter {
     router.get(this.routes.getItemList({ isServer: true }), this.itemController.getList);
     router.get(this.routes.getItemSpecials({ isServer: true }), this.itemController.getSpecials);
     router.get(this.routes.getGrades({ isServer: true }), this.itemController.getGrades);
-    router.get(this.routes.publishToTelegram(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.publishToTelegram);
+    router.post(this.routes.publishToTelegram(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.publishToTelegram);
   };
 }

@@ -1,4 +1,4 @@
-const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.1.60:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 interface ServerClientInterface {
@@ -21,6 +21,8 @@ export const routes = {
   contactsPage: '/contacts',
   deliveryPage: '/delivery',
   cartPage: '/cart',
+  privacyPolicy: '/privacy-policy',
+  offerAgreement: '/offer-agreement',
   notFoundPage: '*',
   catalog: catalogPath,
 
@@ -60,6 +62,7 @@ export const routes = {
   // order
   crudOrder: (id?: number) => [apiPath, 'order', id ?? ':id'].join('/'),
   cancelOrder: (id?: number) => [apiPath, 'order', id ?? ':id', 'cancel'].join('/'),
+  payOrder: (id?: number) => [apiPath, 'order', id ?? ':id', 'pay'].join('/'),
   createOrder: [apiPath, 'order', 'new'].join('/'),
   getAllOrders: [apiPath, 'order', 'getAll'].join('/'),
   getOrder:  ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'order', id ?? ':id'].join('/'),

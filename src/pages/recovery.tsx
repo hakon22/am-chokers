@@ -7,7 +7,7 @@ import { useContext, useState } from 'react';
 import axios from 'axios';
 
 import { MaskedInput } from '@/components/forms/MaskedInput';
-import { SubmitContext, AuthContext } from '@/components/Context';
+import { SubmitContext, AuthContext, MobileContext } from '@/components/Context';
 import { loginValidation } from '@/validations/validations';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
@@ -26,8 +26,9 @@ const Recovery = () => {
 
   const [form] = Form.useForm();
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { loggedIn } = useContext(AuthContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [isSend, setIsSend] = useState(false);
 
@@ -54,7 +55,7 @@ const Recovery = () => {
           status="success"
           title={t('resultTitle')}
           subTitle={t('resultSubTitle')}
-          style={{ marginTop: '15%' }}
+          style={{ marginTop: isMobile ? '100px' : '15%' }}
           extra={<Button className="button col-xl-2 mx-auto" onClick={() => router.push(routes.loginPage)}>{t('home')}</Button>}
         />
       ) : (
@@ -72,7 +73,7 @@ const Recovery = () => {
                   </Alert.Link>
                 </div>
                 <div className="d-flex justify-content-center col-12">
-                  <Button htmlType="submit" className="button fs-5">
+                  <Button htmlType="submit" className="button fs-5" disabled={isSubmit}>
                     {t('submitButton')}
                   </Button>
                 </div>

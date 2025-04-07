@@ -82,31 +82,31 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   };
 
   const mobileItems: CollapseItem[] = [
-    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center' } }, children: <Personal /> },
-    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center' } }, children: getPage() },
-    { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center' } }, children: <Favorites /> },
-    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center' } }, children: <Reviews /> },
-    { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center' } }, children: <div /> },
+    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Personal /> },
+    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: getPage() },
+    { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Favorites /> },
+    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Reviews /> },
+    { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <div /> },
     ...(role === UserRoleEnum.ADMIN
-      ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center' }, body: { paddingTop: 0 } }, children: <Collapse
+      ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0 } }, children: <Collapse
         className="fs-6 font-oswald"
         accordion
         ghost
         items={[
-          { key: 'items', label: tMenu('menu.admin.items.title'), styles: { header: { alignItems: 'center' }, body: { paddingTop: 0, paddingLeft: '2.5rem' } }, children: <Collapse
+          { key: 'items', label: tMenu('menu.admin.items.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0, paddingLeft: '2.5rem' } }, children: <Collapse
             accordion
             ghost
             items={[
-              { key: routes.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
-          { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.compositionsControl, label: <Button className="button-link text-start fs-6 ms-4" style={{ boxShadow: 'none' }} href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.compositionsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
         ]}
       /> }]
       : []),
@@ -148,7 +148,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           {!isMobile
             ? <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
             : null}
-          <div className="d-flex flex-column flex-xl-row" style={isMobile ? { marginTop: '30%' } : {}}>
+          <div className="d-flex flex-column flex-xl-row" style={isMobile ? { marginTop: '100px' } : {}}>
             {isMobile
               ? (
                 <>
@@ -162,7 +162,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                     items={mobileItems}
                   />
                   <Divider className="my-0" /> 
-                  <Collapse ghost className="fs-5 ms-4 font-oswald" items={[{ key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button>, collapsible: 'disabled', showArrow: false }]} />
+                  <Collapse ghost className="fs-5 ms-4 font-oswald" items={[{ key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button>, collapsible: 'disabled', showArrow: false, styles: { header: { paddingLeft: 0 } } }]} />
                 </>
               )
               : (

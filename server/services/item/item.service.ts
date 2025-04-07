@@ -145,6 +145,12 @@ export class ItemService extends BaseService {
     if (query?.to) {
       builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
     }
+    if (query?.new) {
+      builder.andWhere('item.new = TRUE');
+    }
+    if (query?.bestseller) {
+      builder.andWhere('item.bestseller = TRUE');
+    }
     if (query?.groupCode) {
       builder.andWhere('group.code = :groupCode', { groupCode: query.groupCode });
     }
@@ -233,7 +239,7 @@ export class ItemService extends BaseService {
     return [items, count];
   };
 
-  public createOne = async (body: ItemEntity & { publishToTelegram: boolean; }, images: ImageEntity[]) => {
+  public createOne = async (body: ItemEntity, images: ImageEntity[]) => {
 
     const isExist = await this.exist({ name: body.name });
 
@@ -257,12 +263,9 @@ export class ItemService extends BaseService {
 
     const url = this.getUrl(createdItem);
 
-    const item = await this.findOne({ id: createdItem.id });
+    this.uploadPathService.createSitemap(url);
 
-    if (body.publishToTelegram && images.length > 1) {
-      const { message } = await this.publishToTelegram({ id: item.id }, item);
-      item.message = message;
-    }
+    const item = await this.findOne({ id: createdItem.id });
 
     return { code: 1, item, url };
   };
@@ -291,6 +294,9 @@ export class ItemService extends BaseService {
     updated.grades = grades;
 
     const url = this.getUrl(updated);
+    const oldUrl = this.getUrl(item);
+
+    this.uploadPathService.updateSitemap(oldUrl, url);
 
     return { item: updated, url };
   };
@@ -317,11 +323,14 @@ export class ItemService extends BaseService {
     updated.grades = grades;
 
     const url = this.getUrl(updated);
+    const oldUrl = this.getUrl(item);
+
+    this.uploadPathService.updateSitemap(oldUrl, url);
 
     return { item: updated, url };
   };
 
-  public publishToTelegram = async (params: ParamsIdInterface, value?: ItemEntity) => {
+  public publishToTelegram = async (params: ParamsIdInterface, description?: string, value?: ItemEntity) => {
     const item = value || await this.findOne(params);
 
     if (item.images.length < 2) {
@@ -331,12 +340,10 @@ export class ItemService extends BaseService {
     const url = this.getUrl(item);
 
     if (process.env.TELEGRAM_GROUP_ID) {
+      const values: string[] = (description || item.description).split('\n');
+
       const text = [
-        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}!`,
-        '',
-        `<b>${item.name}</b>`,
-        '',
-        `${item.description}`,
+        ...values,
         '',
         ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
         `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
@@ -407,6 +414,9 @@ export class ItemService extends BaseService {
 
     item.deleted = new Date();
 
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    item.grades = grades;
+
     return item;
   };
 
@@ -416,6 +426,9 @@ export class ItemService extends BaseService {
     await ItemEntity.update(deletedItem.id, { deleted: null });
 
     deletedItem.deleted = null;
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    deletedItem.grades = grades;
 
     return deletedItem;
   };

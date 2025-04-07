@@ -33,7 +33,7 @@ export const Favorites = () => {
       className="d-flex flex-column align-items-between col-8 w-100"
       renderItem={(item) => (
         <List.Item className="ms-xl-3">
-          <div className="d-flex gap-4" style={{ width, height }}>
+          <div className="d-flex gap-2 gap-xl-4">
             <ImageHover
               height={height}
               width={width}

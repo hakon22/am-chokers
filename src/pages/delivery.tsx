@@ -10,29 +10,20 @@ const Delivery = () => {
   const { isMobile } = useContext(MobileContext);
 
   return (
-    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '30%' : '12%' }}>
+    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title')}</h1>
-      <div className="d-flex flex-column text-center text-xl-start">
-        <p className="mb-4 fs-5 fw-bold">{t('1')}</p>
+      <div className="d-flex flex-column">
+        <p>{t('1')}</p>
         <p>{t('2')}</p>
-        <div className="mb-4">
-          {t('3')}
-          <br />
-          {t('4')}
-        </div>
-        <div>
-          {t('5')}
-          <br />
-          {t('6')}
-        </div>
-        <p className="my-4 fs-5 fw-bold">{t('7')}</p>
-        <p className="mb-4">{t('8')}</p>
-        <div>
-          {t('9')}
-          <br />
-          {t('10')}
-        </div>
+        <p>{t('3')}</p>
+        <p>{t('4')}</p>
+        <p>{t('5')}</p>
+        <p>{t('6')}</p>
+        <p>{t('7')}</p>
+        <p className="my-4 fs-5 fw-bold text-uppercase">{t('8')}</p>
+        <p>{t('9')}</p>
+        <p>{t('10')}</p>
       </div>
     </div>
   );

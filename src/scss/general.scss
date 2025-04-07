@@ -68,6 +68,14 @@ h2 {
   text-transform: uppercase;
 }
 
+.h2 {
+  margin: 0;
+  line-height: 1;
+  font-weight: 400;
+  text-transform: uppercase;
+  height: max-content;
+}
+
 .label {
   margin-bottom: 0.5rem;
   font-family: Oswald, sans-serif;
@@ -367,10 +375,20 @@ a {
     align-items: center !important;
   }
 
-  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper {
+  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper:not(.custom-size) {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
+  }
+
+  .ant-checkbox-wrapper.custom-size {
+    font-size: 1rem !important;
+    padding: 0 1rem 0 0;
+    font-family: Oswald, sans-serif !important;
+
+    .ant-checkbox + span {
+      padding-inline: unset !important;
+    }
   }
 
   .custom-placeholder > .ant-select-selector, .custom-placeholder ~ .ant-input-number {
@@ -443,6 +461,10 @@ a {
   }
 }
 
+.ant-float-btn-content .ant-float-btn-icon {
+  color: $dark-blue !important;
+}
+
 @keyframes show {
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -481,5 +503,21 @@ a {
   .back-button {
     font-size: 1rem;
     padding: 0.5rem 1rem;
+  }
+
+  .ymaps-2-1-79-controls__control {
+    inset: 202px 16px auto auto !important;
+  }
+
+  .ymaps_maps-button.ymaps__icon_only {
+    top: 100px !important;
+    right: -5px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-right: 20px !important;
+    padding-left: 20px !important;
   }
 }

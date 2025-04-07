@@ -33,7 +33,7 @@ const Signup = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [user, setUser] = useState<UserSignupInterface>();
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
@@ -73,7 +73,7 @@ const Signup = () => {
             </div>
           )
           : null}
-        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '38%' : '18%' }}>
+        <div className="col-12 col-xl-6 d-flex flex-column align-items-center" style={{ marginTop: isMobile ? '100px' : '18%' }}>
           {isProcessConfirmed ? <ConfirmPhone setState={setIsConfirmed} /> : (
             <>
               <h1 className="mb-5">{t('title')}</h1>
@@ -110,7 +110,7 @@ const Signup = () => {
                   </Alert.Link>
                 </div>
                 <div className="d-flex col-12">
-                  <Button htmlType="submit" className="w-100 button fs-5">
+                  <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
                     {t('next')}
                   </Button>
                 </div>

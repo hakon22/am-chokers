@@ -10,7 +10,7 @@ import type { EntityManager } from 'typeorm';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
-import { paramsIdSchema } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryUploadImageParams } from '@server/utilities/convertation.params';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
@@ -102,15 +102,36 @@ export class ImageService extends BaseService {
 
   public uploadHandler = async (req: Request, res: Response) => {
     try {
-      const { file } = req;
+      const { file, query: reqQuery } = req;
 
       if (!file) {
         res.status(400).json({ code: 3, message: 'Изображение не найдено' });
         return;
       }
 
+      const query = await queryUploadImageParams.validate(reqQuery);
+
+      let maxWidth = 800; // максимальная ширина
+      let maxHeight = Math.round(maxWidth * 1.3); // максимальная высота
+
+      if (query.cover) {
+        maxHeight = 460;
+        maxWidth = Math.round(maxHeight * 2.2);
+      } else if (query.coverCollection) {
+        maxHeight = 299;
+        maxWidth = Math.round(maxHeight * 1.505);
+      }
+
       // Используем sharp для обработки изображения
-      const data = await sharp(file.buffer).toFormat('jpeg').toBuffer();
+      const data = await sharp(file.buffer)
+        .resize({
+          width: maxWidth,
+          height: maxHeight,
+          fit: sharp.fit.inside, // сохраняет пропорции
+          withoutEnlargement: true, // не увеличивает изображение
+        })
+        .toFormat('jpeg')
+        .toBuffer();
 
       const name = `${uuid()}.jpeg`;
       // Сохранение обработанного изображения

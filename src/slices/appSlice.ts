@@ -124,9 +124,9 @@ export const restoreItem = createAsyncThunk(
 
 export const publishItem = createAsyncThunk(
   'app/publishItem',
-  async (id: number, { rejectWithValue }) => {
+  async ({ id, description }: { id: number; description?: string; }, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ItemResponseInterface>(routes.publishToTelegram(id));
+      const response = await axios.post<ItemResponseInterface>(routes.publishToTelegram(id), { description });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
-import { CloseOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -19,34 +19,22 @@ import { removeMany, removeCartItem } from '@/slices/cartSlice';
 import { createOrder, type OrderResponseInterface } from '@/slices/orderSlice';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
+import { signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { getPrice, getDiscount } from '@/utilities/order/getOrderPrice';
+import { MaskedInput } from '@/components/forms/MaskedInput';
+import { fetchConfirmCode } from '@/slices/userSlice';
+import { ConfirmPhone } from '@/components/ConfirmPhone';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import type { CreateOrderInterface } from '@/types/order/Order';
-
-interface YandexDeliveryDataInterface {
-  id: string;
-  address: {
-    geoId: number;
-    country: string;
-    region: string;
-    subRegion: string;
-    locality: string;
-    street: string;
-    house: string;
-    housing: string;
-    apartment: string;
-    building: string;
-    comment: string;
-    full_address: string;
-    postal_code: string;
-  };
-}
+import type { UserSignupInterface } from '@/types/user/User';
+import type { YandexDeliveryDataInterface } from '@/types/delivery/yandex.delivery.interface';
+import type { RussianPostDeliveryDataInterface } from '@/types/delivery/russian.post.delivery.interface';
 
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -76,20 +64,18 @@ const Cart = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
+  const { name, phone, key } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
   const defaultDelivery: CreateOrderInterface['delivery'] = {
     price: 0,
-    locality: '',
-    street: '',
-    house: '',
     address: '',
-    platformStationFrom: '',
-    platformStationTo: '',
     type: undefined,
+    indexTo: undefined,
+    mailType: undefined,
   };
 
   const [cartList, setCartList] = useState<CartItemInterface[]>([]);
@@ -100,7 +86,11 @@ const Cart = () => {
   const [deliveryButton, setDeliveryButton] = useState(false);
   const [isOpenDeliveryWidget, setIsOpenDeliveryWidget] = useState(false);
   const [delivery, setDelivery] = useState(defaultDelivery);
-  const [yandexPlatformStation, setYandexPlatformStation] = useState<string>('');
+  const [user, setUser] = useState<Pick<UserSignupInterface, 'name' | 'phone'>>({ name: '', phone: '' });
+  const [tempUser, setTempUser] = useState<Pick<UserSignupInterface, 'name' | 'phone'>>({ name: '', phone: '' });
+
+  const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   const { count, price: preparedPrice } = cartList.reduce((acc, cartItem) => {
     acc.price += (cartItem.item.price - cartItem.item.discountPrice) * cartItem.count;
@@ -159,21 +149,18 @@ const Cart = () => {
     form.resetFields();
   };
 
-  const openYanderDeliveryWidget = (items: CartItemInterface[], platformStation?: string) => {
+  const openYanderDeliveryWidget = (items: CartItemInterface[]) => {
     window.YaDelivery.createWidget({
       containerId: 'delivery-widget',
       params: {
         city: 'Москва',
         size: {
           height: '500px',
-          width: '100%',
+          width: '90vw',
         },
-        source_platform_station: platformStation,
+        source_platform_station: 'ca56c850-d268-4c9e-9e52-5dc09b006a7d',
         physical_dims_weight_gross: items.length * 200,
-        delivery_price: (value: number) => {
-          setDelivery((state) => ({ ...state, price: value }));
-          return `${value} руб`;
-        },
+        delivery_price: '300 руб',
         delivery_term: 1,
         show_select_button: true,
         filter: {
@@ -186,25 +173,62 @@ const Cart = () => {
     });
   };
 
+  const openRussianPostDeliveryWidget = (items: CartItemInterface[]) => {
+    window.ecomStartWidget({
+      id: 55091,
+      weight: items.length * 200,
+      sumoc: +getPrice(totalPrice, promotional),
+      callbackFunction: (result: RussianPostDeliveryDataInterface) => {
+        setDelivery({
+          price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : result.cashOfDelivery / 100,
+          address: `${result.cityTo}, ${result.addressTo}`,
+          type: deliveryType,
+          indexTo: result.indexTo,
+          mailType: result.mailType,
+        });
+        setIsOpenDeliveryWidget(false);
+      },
+      containerId: 'ecom-widget',
+    });
+  };
+
   const resetPVZ = () => {
     setDeliveryButton(false);
     setDelivery(defaultDelivery);
     setDeliveryType(undefined);
   };
 
-  const onFinish = async () => {
+  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone'>) => {
     setIsSubmit(true);
-    const { payload: { code, order } } = await dispatch(createOrder({ cart: cartList, promotional, delivery })) as { payload: OrderResponseInterface; };
-    if (code === 1) {
-      const ids = cartList.map(({ id }) => id);
-      dispatch(removeMany(ids));
-      setCartList(cartList.filter(({ id }) => !ids.includes(id)));
-      form.resetFields();
-      setPromotional(undefined);
-      resetPVZ();
-      router.push(`${routes.orderHistory}/${order.id}`);
-      toast(tToast('orderCreateSuccess'), 'success');
+    if (!delivery.address) {
+      toast(tValidation('notSelectedPVZ'), 'error');
     }
+    if (!name && !user.phone) {
+      const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
+      if (code === 1) {
+        setIsProcessConfirmed(true);
+        setTempUser({ name: values.name, phone: values.phone });
+      }
+      if (code === 4) {
+        toast(tToast('timeNotOverForSms'), 'error');
+      }
+      if (code === 5) {
+        form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
+      }
+    } else {
+      const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, user: { name: name || values.name, phone: phone || values.phone  }  })) as { payload: OrderResponseInterface & { url: string; }; };
+      if (code === 1) {
+        const ids = cartList.map(({ id }) => id);
+        dispatch(removeMany(ids));
+        setCartList(cartList.filter(({ id }) => !ids.includes(id)));
+        form.resetFields();
+        setPromotional(undefined);
+        resetPVZ();
+        router.push(url);
+        toast(tToast('orderCreateSuccess'), 'success');
+      }
+    }
+
     setIsSubmit(false);
   };
 
@@ -212,8 +236,7 @@ const Cart = () => {
     setCartList(filteredCart);
     axios.get<{ code: number; deliveryList: DeliveryCredentialsEntity[]; }>(routes.delivery.findMany)
       .then(({ data }) => {
-        setDeliveryList(data.deliveryList.map(({ name, type }) => ({ label: name, value: type })));
-        setYandexPlatformStation(data.deliveryList.find(({ type }) => type === DeliveryTypeEnum.YANDEX_DELIVERY)?.password ?? '');
+        setDeliveryList(data.deliveryList.map((list) => ({ label: list.name, value: list.type })));
       })
       .catch((e) => axiosErrorHandler(e, tToast));
   }, []);
@@ -221,53 +244,81 @@ const Cart = () => {
   useEffect(() => {
     const handlePointSelected = (data: any) => {
       const detail = data.detail as YandexDeliveryDataInterface;
-      setDelivery((state) => ({
-        ...state,
-        locality: detail.address.locality,
-        street: detail.address.street,
-        house: detail.address.house,
+      setDelivery({
+        price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : 300,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
-        platformStationFrom: yandexPlatformStation,
-        platformStationTo: detail.id,
         type: deliveryType,
-      }));
+      });
       setIsOpenDeliveryWidget(false);
     };
 
     document.removeEventListener('YaNddWidgetPointSelected', handlePointSelected);
-
     document.addEventListener('YaNddWidgetPointSelected', handlePointSelected);
   
     return () => {
       document.removeEventListener('YaNddWidgetPointSelected', handlePointSelected);
     };
-  }, [yandexPlatformStation, deliveryType]);
+  }, [deliveryType]);
 
   useEffect(() => {
     if (isOpenDeliveryWidget) {
-      openYanderDeliveryWidget(cartList, yandexPlatformStation);
+      switch (deliveryType) {
+      case DeliveryTypeEnum.YANDEX_DELIVERY:
+        openYanderDeliveryWidget(cartList);
+        break;
+      case DeliveryTypeEnum.RUSSIAN_POST:
+        openRussianPostDeliveryWidget(cartList);
+        break;
+      }
     }
-  }, [isOpenDeliveryWidget, yandexPlatformStation]);
+  }, [isOpenDeliveryWidget, deliveryType]);
 
   useEffect(() => {
     setDeliveryButton(!!deliveryType);
   }, [deliveryType]);
 
+  useEffect(() => {
+    if (isConfirmed && tempUser.phone) {
+      setUser(tempUser);
+      setIsProcessConfirmed(false);
+    }
+  }, [isConfirmed, tempUser.phone]);
+
   return (
-    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '30%' : '12%' }}>
+    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
       <Helmet title={t('title', { count: countCart })} description={t('description')} />
+      {isProcessConfirmed
+        ? (
+          <Modal
+            width={'100%'}
+            centered
+            zIndex={10000}
+            open
+            footer={null}
+            onCancel={() => setIsProcessConfirmed(false)}
+          >
+            <ConfirmPhone setState={setIsConfirmed} />
+          </Modal>
+        )
+        : null}
       <Modal
         width={'100%'}
         centered
         zIndex={10000}
         open={isOpenDeliveryWidget}
         footer={null}
-        onCancel={() => setIsOpenDeliveryWidget(false)}
+        onCancel={() => {
+          resetPVZ();
+          setIsOpenDeliveryWidget(false);
+        }}
       >
-        <div id="delivery-widget" />
+        <>
+          <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
+          <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+        </>
       </Modal>
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
-      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form}>
+      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={user}>
         <div className="d-flex flex-column justify-content-center align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
@@ -280,8 +331,8 @@ const Cart = () => {
                 emptyText: <NotFoundContent text={t('notFoundContent')} />,
               }}
               renderItem={(item) => (
-                <List.Item className={cn({ 'd-flex flex-column align-items-start gap-3': isMobile })}>
-                  <div className="d-flex gap-3" style={isMobile ? {} : { height }}>
+                <List.Item className={cn({ 'd-flex flex-column align-items-start gap-1': isMobile })}>
+                  <div className="d-flex gap-xl-3" style={isMobile ? {} : { height }}>
                     <Checkbox className={cn({ 'opacity-50': item.item.deleted, 'not-padding': isMobile })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
@@ -309,11 +360,11 @@ const Cart = () => {
           <h3 className="mb-4 text-uppercase">{t('deliveryType')}</h3>
           <Radio.Group size="large" disabled={!cartList.length} className="mb-4" options={deliveryList} value={deliveryType} onChange={({ target }) => setDeliveryType(target.value)} />
           {deliveryButton
-            ? delivery.locality
+            ? delivery.address
               ? <Button className="button mx-auto mb-4" onClick={resetPVZ}>{t('resetPVZ')}</Button>
               : <Button className="button mx-auto mb-4" onClick={() => setIsOpenDeliveryWidget(true)}>{t('selectPVZ')}</Button>
             : null}
-          {delivery.locality
+          {delivery.address
             ? (
               <div className="d-flex flex-column fs-5 mb-3" style={{ fontWeight: 300 }}>
                 <span className="text-uppercase fw-bold">{t('selectedPVZ.title')}</span>
@@ -321,6 +372,16 @@ const Cart = () => {
               </div>
             )
             : null}
+          {!name ? (
+            <>
+              <Form.Item<UserSignupInterface> name="name" rules={[signupValidation]}>
+                <Input size="small" prefix={<UserOutlined />} placeholder={t('name')} disabled={!!user?.name} />
+              </Form.Item>
+              <Form.Item<UserSignupInterface> name="phone" rules={[signupValidation]}>
+                <MaskedInput size="small" mask="+7 (000) 000-00-00" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} disabled={!!user?.phone} />
+              </Form.Item>
+            </>
+          ) : null}
           <div className="d-flex justify-content-between fs-5 mb-2" style={{ fontWeight: 300 }}>
             <span>{t('itemCount', { count })}</span>
             <span>{tPrice('price', { price })}</span>
@@ -344,7 +405,7 @@ const Cart = () => {
             <span>{t('total')}</span>
             <span>{tPrice('price', { price: getPrice(totalPrice, promotional) })}</span>
           </div>
-          <Button disabled={selectPromotionField || !filteredCart.length} className="button w-100" htmlType="submit">{t('submitPay')}</Button>
+          <Button disabled={selectPromotionField || !filteredCart.length || !delivery.address || isSubmit} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
         </div>
       </Form>
     </div>
