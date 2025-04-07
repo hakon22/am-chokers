@@ -16,11 +16,15 @@ export class AcquiringController extends BaseService {
       if (req.body?.type !== 'notification' || (req.body?.event !== 'payment.canceled' && req.body?.event !== 'payment.succeeded')) {
         this.loggerService.info(this.TAG, 'Ошибочный тип запроса');
         res.status(404).json({ message: 'Ошибочный тип запроса' });
+        return;
       }
       if (!req.body?.object?.id) {
         this.loggerService.info(this.TAG, 'Не указан номер транзакции');
         res.status(404).json({ message: 'Не указан номер транзакции' });
+        return;
       }
+
+      await this.acquiringService.checkYookassaOrder(req.body.object);
 
       res.json(await this.acquiringService.checkYookassaOrder(req.body.object));
     } catch (e) {

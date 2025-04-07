@@ -42,7 +42,7 @@ export class AcquiringService extends BaseService {
     try {
       this.loggerService.info(this.TAG, `Обработка уведомления от YooKassa со статусом ${payment.status} для платежа id: ${payment.id}`);
 
-      const transaction = await AcquiringTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional', 'order.delivery'] });
+      const transaction = await AcquiringTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional', 'order.delivery', 'order.positions'] });
 
       if (!transaction || transaction.status !== TransactionStatusEnum.CREATE) {
         return;
