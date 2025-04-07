@@ -189,7 +189,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <Link href={getHref(position.item)} className="col-5 col-xl-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</Link>
                       <div className="d-flex col-xl-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto
-                          ? <Image key={image.id} src={image.src} width={width} height={height} alt={position.item.name} style={{ borderRadius: '5px' }} />
+                          ? <Image key={image.id} src={image.src} width={width} height={height} unoptimized alt={position.item.name} style={{ borderRadius: '5px' }} />
                           : index === maxPhoto
                             ? <div key={image.id} className="d-flex align-items-center fs-6">
                               <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>

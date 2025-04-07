@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, FloatButton, Popconfirm, Rate, Tag } from 'antd';
+import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag } from 'antd';
 import { DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
@@ -33,6 +33,26 @@ interface AdminControlGroupInterface {
   setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
 }
 
+const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void }) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+
+  return (
+    <Modal
+      title={t('enterDescription')}
+      centered
+      zIndex={10000}
+      open={isPublish}
+      onOk={onPublish}
+      okText={t('publishToTelegram')}
+      cancelText={t('cancel')}
+      onClose={() => setIsPublish(false)}
+      onCancel={() => setIsPublish(false)}
+    >
+      <Input.TextArea value={description} onChange={(({ target }) => setDescription(target.value))} rows={6} placeholder={t('enterDescription')} />
+    </Modal>
+  );
+};
+
 const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -40,6 +60,9 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const router = useRouter();
 
   const dispatch = useAppDispatch();
+
+  const [isPublish, setIsPublish] = useState(false);
+  const [description, setDescription] = useState(item.description);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -71,28 +94,34 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   }, undefined, { shallow: true });
 
   const onPublish = async () => {
-    const { payload } = await dispatch(publishItem(item.id)) as { payload: ItemResponseInterface & { error: string; } };
+    setIsSubmit(true);
+    const { payload } = await dispatch(publishItem({ id: item.id, description })) as { payload: ItemResponseInterface & { error: string; } };
     if (!payload?.error) {
       setItem(payload.item);
       toast(tToast('itemPublishSuccess', { name }), 'success');
     }
+    setIsSubmit(false);
   };
 
   return role === UserRoleEnum.ADMIN
     ? isMobile
       ? (
-        <FloatButton.Group
-          trigger="click"
-          style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
-          icon={<EllipsisOutlined />}
-        >
-          <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
-          {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
-          {!item.message ? <FloatButton onClick={onPublish} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
-        </FloatButton.Group>
+        <>
+          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} />
+          <FloatButton.Group
+            trigger="click"
+            style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
+            icon={<EllipsisOutlined />}
+          >
+            <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
+            {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
+            {!item.message ? <FloatButton onClick={() => setIsPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
+          </FloatButton.Group>
+        </>
       )
       : (
         <>
+          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} />
           <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
           {item.deleted
             ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
@@ -102,7 +131,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
               </Popconfirm>
             )}
           {!item.message?.created
-            ? <Button type="text" className="action-button send-to-telegram" onClick={onPublish}>{t('publishToTelegram')}</Button>
+            ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsPublish(true)}>{t('publishToTelegram')}</Button>
             : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
         </>
       ) : null;

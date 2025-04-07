@@ -26,7 +26,7 @@ const Recovery = () => {
 
   const [form] = Form.useForm();
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { loggedIn } = useContext(AuthContext);
   const { isMobile } = useContext(MobileContext);
 
@@ -73,7 +73,7 @@ const Recovery = () => {
                   </Alert.Link>
                 </div>
                 <div className="d-flex justify-content-center col-12">
-                  <Button htmlType="submit" className="button fs-5">
+                  <Button htmlType="submit" className="button fs-5" disabled={isSubmit}>
                     {t('submitButton')}
                   </Button>
                 </div>

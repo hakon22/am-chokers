@@ -239,7 +239,7 @@ export class ItemService extends BaseService {
     return [items, count];
   };
 
-  public createOne = async (body: ItemEntity & { publishToTelegram: boolean; }, images: ImageEntity[]) => {
+  public createOne = async (body: ItemEntity, images: ImageEntity[]) => {
 
     const isExist = await this.exist({ name: body.name });
 
@@ -266,11 +266,6 @@ export class ItemService extends BaseService {
     this.uploadPathService.createSitemap(url);
 
     const item = await this.findOne({ id: createdItem.id });
-
-    if (body.publishToTelegram && images.length > 1) {
-      const { message } = await this.publishToTelegram({ id: item.id }, item);
-      item.message = message;
-    }
 
     return { code: 1, item, url };
   };
@@ -335,7 +330,7 @@ export class ItemService extends BaseService {
     return { item: updated, url };
   };
 
-  public publishToTelegram = async (params: ParamsIdInterface, value?: ItemEntity) => {
+  public publishToTelegram = async (params: ParamsIdInterface, description?: string, value?: ItemEntity) => {
     const item = value || await this.findOne(params);
 
     if (item.images.length < 2) {
@@ -345,12 +340,10 @@ export class ItemService extends BaseService {
     const url = this.getUrl(item);
 
     if (process.env.TELEGRAM_GROUP_ID) {
+      const values: string[] = (description || item.description).split('\n');
+
       const text = [
-        `Новая позиция на ${process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}!`,
-        '',
-        `<b>${item.name}</b>`,
-        '',
-        `${item.description}`,
+        ...values,
         '',
         ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
         `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,

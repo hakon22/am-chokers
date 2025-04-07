@@ -33,7 +33,7 @@ const Signup = () => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [user, setUser] = useState<UserSignupInterface>();
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
@@ -110,7 +110,7 @@ const Signup = () => {
                   </Alert.Link>
                 </div>
                 <div className="d-flex col-12">
-                  <Button htmlType="submit" className="w-100 button fs-5">
+                  <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
                     {t('next')}
                   </Button>
                 </div>

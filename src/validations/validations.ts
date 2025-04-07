@@ -50,6 +50,10 @@ export const uuidArraySchema = yup.array(yup.string().uuid().required()).require
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
 
+export const descriptionSchema = yup.object().shape({
+  description: stringSchema.optional(),
+});
+
 const requiredIdSchema = yup.object().shape({ id: numberSchema });
 
 const phoneSchema = yup.string().trim().required().transform((value) => value.replace(/[^\d]/g, ''))
@@ -135,7 +139,6 @@ const newItemSchema = yup.object().shape({
   compositions: yup.array(idSchema).min(1).required(),
   length: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
-  publishToTelegram: booleanSchema,
 });
 
 const partialUpdateItemSchema = yup.object().shape({

@@ -63,7 +63,7 @@ export class DeliveryEntity extends BaseEntity {
   })
   public deliveryTo: Date;
 
-  /** Текстовый доставки заказа (ПВЗ клиента) */
+  /** Адрес доставки заказа (ПВЗ клиента) */
   @Column('character varying')
   public address: string;
 

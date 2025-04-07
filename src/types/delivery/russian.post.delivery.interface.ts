@@ -9,6 +9,13 @@ export enum RussianPostMailTypeEnum {
   ECOM_MARKETPLACE = 'ECOM_MARKETPLACE',
 }
 
+export const russianPostMailTypeTranslateEnum: Record<RussianPostMailTypeEnum, string> = {
+  [RussianPostMailTypeEnum.POSTAL_PARCEL]: 'Нестандартная посылка',
+  [RussianPostMailTypeEnum.PARCEL_CLASS_1]: 'Посылка первого класса',
+  [RussianPostMailTypeEnum.ONLINE_PARCEL]: 'Посылка онлайн',
+  [RussianPostMailTypeEnum.ECOM_MARKETPLACE]: 'ЕКОМ маркетплейс',
+};
+
 export interface RussianPostDeliveryDataInterface {
   addressTo: string;
   areaTo?: string;

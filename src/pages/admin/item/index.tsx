@@ -94,7 +94,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   const galleryRef = useRef<ImageGallery>(null);
 
-  const [item, setItem] = useState<Partial<ItemInterface & { publishToTelegram: boolean; }> | undefined>(oldItem);
+  const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
@@ -105,7 +105,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
 
-  const [form] = Form.useForm<ItemInterface & { publishToTelegram: boolean; }>();
+  const [form] = Form.useForm<ItemInterface>();
 
   const itemName: string = Form.useWatch('name', form);
 
@@ -385,13 +385,6 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <Form.Item<typeof item> name="discountPrice" rules={[newItemValidation]} className="col-6 col-xl-3">
                   <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                {!oldItem
-                  ? (
-                    <Form.Item<typeof item> name="publishToTelegram" valuePropName="checked" className="large-input">
-                      <Checkbox>{t('publishToTelegram')}</Checkbox>
-                    </Form.Item>
-                  )
-                  : null}
               </div>
               {!isMobile && (<div className="d-flex align-items-center gap-5 mb-4 position-relative">
                 {oldItem && <BackButton style={{ position: 'absolute', left: '60%' }} />}

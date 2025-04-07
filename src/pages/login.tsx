@@ -24,7 +24,7 @@ const Login = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
   const [form] = Form.useForm();
@@ -69,7 +69,7 @@ const Login = () => {
               </Alert.Link>
             </div>
             <div className="d-flex col-12">
-              <Button htmlType="submit" className="w-100 button fs-5">
+              <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
                 {t('submitButton')}
               </Button>
             </div>

@@ -233,14 +233,14 @@ export class OrderService extends BaseService {
       await this.telegramService.sendMessage(text, user.telegramId);
     }
 
-    if (process.env.TELEGRAM_CHAT_ID) {
+    if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
       const adminText = [
         `Создан заказ <b>№${order.id}</b>`,
         '',
         `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderEntity)} ₽</b>`,
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
-      await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
 
     const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
@@ -285,14 +285,14 @@ export class OrderService extends BaseService {
 
     order.status = status;
 
-    if (process.env.TELEGRAM_CHAT_ID && user.role !== UserRoleEnum.ADMIN) {
+    if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && user.role !== UserRoleEnum.ADMIN) {
       const adminText = [
         `Отмена заказа <b>№${order.id}</b>`,
         '',
         `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
-      await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
   
     return order;

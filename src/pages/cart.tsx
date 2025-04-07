@@ -67,7 +67,7 @@ const Cart = () => {
   const { name, phone, key } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
   const defaultDelivery: CreateOrderInterface['delivery'] = {
@@ -405,7 +405,7 @@ const Cart = () => {
             <span>{t('total')}</span>
             <span>{tPrice('price', { price: getPrice(totalPrice, promotional) })}</span>
           </div>
-          <Button disabled={selectPromotionField || !filteredCart.length || !delivery.address} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
+          <Button disabled={selectPromotionField || !filteredCart.length || !delivery.address || isSubmit} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
         </div>
       </Form>
     </div>

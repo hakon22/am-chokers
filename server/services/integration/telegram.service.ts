@@ -74,7 +74,7 @@ export class TelegramService {
       resize_keyboard: true,
       one_time_keyboard: true,
     };
-    await this.sendMessage('Пожалуйста, предоставьте ваш номер телефона:', telegramId, { reply_markup: replyMarkup });
+    await this.sendMessage('Пожалуйста, предоставьте ваш номер телефона через кнопку ниже:', telegramId, { reply_markup: replyMarkup });
   };
 
   public sendMessage = async (message: string | string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {

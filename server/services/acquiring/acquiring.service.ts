@@ -16,6 +16,8 @@ import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
+import { DeliveryTypeEnum, deliveryTypeTranslateEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { russianPostMailTypeTranslateEnum } from '@/types/delivery/russian.post.delivery.interface';
 
 type Data = {
   userName: string;
@@ -116,9 +118,6 @@ export class AcquiringService extends BaseService {
         value: amount.toString(),
         currency: 'RUB',
       },
-      payment_method_data: {
-        type: 'bank_card',
-      },
       confirmation: {
         type: 'redirect',
         return_url: data.returnUrl,
@@ -192,14 +191,19 @@ export class AcquiringService extends BaseService {
         await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW)}</b>.`, order.user.telegramId);
       }
 
-      if (process.env.TELEGRAM_CHAT_ID) {
+      if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
         const adminText = [
           `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
           '',
           `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
+          `Способ доставки: <b>${deliveryTypeTranslateEnum[order.delivery.type]}</b>`,
+          `Адрес доставки: <b>${order.delivery.address}</b>`,
+          ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
+          ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
           `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
         ];
-        await this.telegramService.sendMessage(adminText, process.env.TELEGRAM_CHAT_ID);
+
+        await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
       }
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);

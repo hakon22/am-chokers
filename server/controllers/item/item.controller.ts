@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
-import { newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
+import { descriptionSchema, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
 import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
@@ -105,7 +105,7 @@ export class ItemController extends BaseService {
       const { images, ...rest } = body;
 
 
-      const result = await this.itemService.createOne(rest as ItemEntity & { publishToTelegram: boolean; }, images);
+      const result = await this.itemService.createOne(rest as ItemEntity, images);
 
       res.json(result);
     } catch (e) {
@@ -166,8 +166,9 @@ export class ItemController extends BaseService {
   public publishToTelegram = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
+      const body = await descriptionSchema.validate(req.body);
 
-      const item = await this.itemService.publishToTelegram(params);
+      const item = await this.itemService.publishToTelegram(params, body.description);
 
       res.json({ code: 1, item });
     } catch (e) {
