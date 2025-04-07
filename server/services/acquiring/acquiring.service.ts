@@ -48,8 +48,6 @@ export class AcquiringService extends BaseService {
         return;
       }
 
-      this.loggerService.info(this.TAG, JSON.stringify(payment));
-
       if (payment.status === 'succeeded') {
         await this.successfulPayment(transaction);
       } else if (payment.status === 'canceled') {

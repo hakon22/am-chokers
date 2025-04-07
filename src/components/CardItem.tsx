@@ -98,6 +98,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     const { payload } = await dispatch(publishItem({ id: item.id, description })) as { payload: ItemResponseInterface & { error: string; } };
     if (!payload?.error) {
       setItem(payload.item);
+      setIsPublish(false);
       toast(tToast('itemPublishSuccess', { name }), 'success');
     }
     setIsSubmit(false);
