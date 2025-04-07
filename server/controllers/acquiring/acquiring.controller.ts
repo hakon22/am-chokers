@@ -8,17 +8,24 @@ import { AcquiringService } from '@server/services/acquiring/acquiring.service';
 export class AcquiringController extends BaseService {
   private readonly acquiringService = Container.get(AcquiringService);
 
+  private TAG = 'AcquiringController';
+
   public checkYookassaOrder = async (req: Request, res: Response) => {
+    this.loggerService.info(this.TAG, `Уведомление от YooKassa: ${JSON.stringify(req.body)}`);
     try {
-      if (!req.body.orderId) {
-        return res.status(404).json({ message: 'Не указан номер транзакции.' });
+      if (req.body?.type !== 'notification' || (req.body?.event !== 'payment.canceled' && req.body?.event !== 'payment.succeeded')) {
+        this.loggerService.info(this.TAG, 'Ошибочный тип запроса');
+        res.status(404).json({ message: 'Ошибочный тип запроса' });
+      }
+      if (!req.body?.object?.id) {
+        this.loggerService.info(this.TAG, 'Не указан номер транзакции');
+        res.status(404).json({ message: 'Не указан номер транзакции' });
       }
 
-      await this.acquiringService.checkYookassaOrder(req.body);
-
-      res.json({ code: 1 });
+      res.json(await this.acquiringService.checkYookassaOrder(req.body.object));
     } catch (e) {
-      this.errorHandler(e, res);
+      this.loggerService.error(e);
+      res.status(404).json(e);
     }
   };
 }
