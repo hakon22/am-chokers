@@ -309,14 +309,14 @@ const Index = () => {
                     />
                   </div>
                 </ContextMenu>
-                {!isMobile && <ContextMenu image={coverCollectionImage9} cover={9} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                {/*!isMobile && <ContextMenu image={coverCollectionImage9} cover={9} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={450}
                     height={299}
                     images={(coverCollectionImage9 ? [coverCollectionImage9] : [])}
                   />
-                </ContextMenu>}
+                </ContextMenu>*/}
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
                 <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection1?.collection?.name}</Link>
@@ -339,14 +339,14 @@ const Index = () => {
                     />
                   </div>
                 </ContextMenu>
-                {!isMobile && <ContextMenu image={coverCollectionImage10} cover={10} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
+                {/*!isMobile && <ContextMenu image={coverCollectionImage10} cover={10} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={450}
                     height={299}
                     images={(coverCollectionImage10 ? [coverCollectionImage10] : [])}
                   />
-                </ContextMenu>}
+                </ContextMenu>*/}
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
                 <Link href={collection2 ? `${routes.catalog}?collectionIds=${collection2?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection2?.collection?.name}</Link>
@@ -369,14 +369,14 @@ const Index = () => {
                     />
                   </div>
                 </ContextMenu>
-                {!isMobile && <ContextMenu image={coverCollectionImage11} cover={11} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
+                {/*!isMobile && <ContextMenu image={coverCollectionImage11} cover={11} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={450}
                     height={299}
                     images={(coverCollectionImage11 ? [coverCollectionImage11] : [])}
                   />
-                </ContextMenu>}
+                </ContextMenu>*/}
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
                 <Link href={collection3 ? `${routes.catalog}?collectionIds=${collection3?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection3?.collection?.name}</Link>

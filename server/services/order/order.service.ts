@@ -299,7 +299,7 @@ export class OrderService extends BaseService {
   };
 
   public pay = async (params: ParamsIdInterface) => {
-    const order = await this.findOne(params);
+    const order = await this.findOne(params, {}, { withUser: true });
 
     if (order.status !== OrderStatusEnum.NOT_PAID) {
       throw new Error('Заказ уже оплачен');
