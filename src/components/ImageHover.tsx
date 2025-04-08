@@ -14,6 +14,7 @@ interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterf
   width?: number | string;
   href?: string;
   name?: string;
+  deleted?: boolean;
   description?: string;
   marker?: boolean;
   rating?: { rating?: ItemInterface['rating']; grades: ItemInterface['grades'] };
@@ -26,6 +27,7 @@ export const ImageHover = ({
   href,
   width = undefined,
   name = '',
+  deleted = false,
   description = '',
   marker = false,
   className = '',
@@ -111,7 +113,7 @@ export const ImageHover = ({
     :  (
       <div className={`d-flex flex-column ${className}`} {...props}>
         <div
-          className="image-hover"
+          className={cn('image-hover', { 'image-label': deleted })}
           style={{ width, height, ...style }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -126,7 +128,7 @@ export const ImageHover = ({
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 alt={`Image ${index + 1}`}
-                className={i === index ? 'active' : ''}
+                className={cn({ 'active': i === index, 'opacity-50': !!deleted })}
               />
             ))
             : <Image src={image404} alt="" className="active" />}

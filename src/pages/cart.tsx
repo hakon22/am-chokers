@@ -43,7 +43,7 @@ const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItem
 
   return (
     <div className="d-flex gap-4" style={isMobile ? { marginLeft: '2.77rem' } : {}}>
-      <CartControl id={item.item.id} deleted={item.item.deleted} width={width} setCartList={setCartList} />
+      <CartControl id={item.item.id} width={width} setCartList={setCartList} />
       <div className="d-flex gap-3">
         <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
           <DeleteOutlined className="icon fs-5" />
@@ -333,11 +333,12 @@ const Cart = () => {
               renderItem={(item) => (
                 <List.Item className={cn({ 'd-flex flex-column align-items-start gap-1': isMobile })}>
                   <div className="d-flex gap-xl-3" style={isMobile ? {} : { height }}>
-                    <Checkbox className={cn({ 'opacity-50': item.item.deleted, 'not-padding': isMobile })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
+                    <Checkbox className={cn({ 'not-padding': isMobile })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
                         height={height}
                         width={width}
+                        deleted={!!item.item.deleted}
                         style={{ borderRadius: 7 }}
                         images={item.item?.images ?? []}
                       />

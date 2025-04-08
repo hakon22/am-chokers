@@ -25,10 +25,7 @@ const Contacts = () => {
           <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} title={t('personalTelegram')} target="_blank">
             <Image src={telegramIcon} width="35" priority alt={t('personalTelegram')} />
           </Link>
-          <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} title={t('telegram')} target="_blank">
-            <Image src={telegramIcon} width="35" priority alt={t('telegram')} />
-          </Link>
-          <Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.homePage} title={t('instagram')} target="_blank">
+          <Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.homePage} className="instagram" title={t('instagram')} target="_blank">
             <Image src={instagramIcon} width="35" priority alt={t('instagram')} />
           </Link>
         </div>

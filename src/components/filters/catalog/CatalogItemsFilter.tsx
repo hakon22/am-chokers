@@ -107,7 +107,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="itemGroups">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" style={{ fontWeight: 300 }} options={itemGroup && !isMobile ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" style={{ fontWeight: 300 }} options={itemGroup && !isMobile ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
         </Form.Item>
       ),
     },
@@ -134,7 +134,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
               }
             }} />
           <Form.Item<CatalogFiltersInterface>>
-            <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" value={initialValues.compositions} onChange={setValueCompositions} style={{ fontWeight: 300 }} options={compositionsFilterOptions} />
+            <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" value={initialValues.compositions} onChange={setValueCompositions} style={{ fontWeight: 300 }} options={compositionsFilterOptions} />
           </Form.Item>
         </div>
       ),
@@ -149,7 +149,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="itemCollections">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-2 checkbox-center" style={{ fontWeight: 300 }} options={itemCollectionsFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" style={{ fontWeight: 300 }} options={itemCollectionsFilterOptions} />
         </Form.Item>
       ),
     },

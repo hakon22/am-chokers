@@ -161,7 +161,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                   </div>
                   <div className="d-flex flex-column gap-2">
                     {order.promotional
-                      ? <Tag color="#e3dcfa" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                      ? <Tag color="#e3dcfa" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
                         <span>{t('promotional')}</span>
                         <span className="fw-bold">{t('promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
                       </Tag>
@@ -192,7 +192,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                           ? <Image key={image.id} src={image.src} width={width} height={height} unoptimized alt={position.item.name} style={{ borderRadius: '5px' }} />
                           : index === maxPhoto
                             ? <div key={image.id} className="d-flex align-items-center fs-6">
-                              <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '12px' }}>{`+ ${position.item.images.length - maxPhoto}`}</span>
+                              <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '6px 10px' }}>{`+${position.item.images.length - maxPhoto}`}</span>
                             </div>
                             : null)}
                       </div>

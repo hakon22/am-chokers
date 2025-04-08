@@ -226,7 +226,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
         <div className="d-flex flex-column justify-content-center align-items-center gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass="w-100 mb-5 mb-xl-0"
+            additionalClass={cn('w-100 mb-5 mb-xl-0', { 'image-label': !!item.deleted })}
             showIndex
             items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== 1000 ? undefined : originalHeight, originalWidth: isMobile && originalHeight === 1000 ? originalHeight / 1.3 : undefined }))}
             infinite
@@ -317,12 +317,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               ? showThumbnails
                 ? (
                   <div className="float-control-cart d-flex align-items-center justify-content-center gap-5" style={{ backgroundColor: inCart ? '#eaeef6' : '#2b3c5f', ...(inCart ? { border: '1px solid #c8c8c8' } : {}) }}>
-                    <CartControl id={id} deleted={item.deleted} className="fs-5" classNameButton="w-100 h-100" />
+                    <CartControl id={id} className="fs-5" classNameButton="w-100 h-100" />
                   </div>
                 ) : null
               : (
                 <div className="d-flex align-items-center gap-5 mb-3">
-                  <CartControl id={id} deleted={item.deleted} className="fs-5" />
+                  <CartControl id={id} className="fs-5" />
                   <Favorites id={id} />
                 </div>
               )}

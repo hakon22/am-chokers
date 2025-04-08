@@ -68,7 +68,7 @@ const Recovery = () => {
                   <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
-                  <Alert.Link className="text-primary fw-light fs-7" onClick={() => router.push(routes.loginPage)}>
+                  <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.loginPage)}>
                     {t('rememberPassword')}
                   </Alert.Link>
                 </div>

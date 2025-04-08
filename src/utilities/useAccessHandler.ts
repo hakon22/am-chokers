@@ -21,7 +21,7 @@ export const useAccessHandler = () => {
   ];
 
   useEffect(() => {
-    if (adminPaths.includes(router.asPath)) {
+    if (adminPaths.some(path => router.asPath.startsWith(path))) {
       const timeout = setTimeout(() => {
         if (role !== UserRoleEnum.ADMIN) {
           router.push(routes.homePage);

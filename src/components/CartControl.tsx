@@ -2,16 +2,15 @@ import { useTranslation } from 'react-i18next';
 import { useContext } from 'react';
 import cn from 'classnames';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Tag } from 'antd';
+import { Button } from 'antd';
 
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
 
-export const CartControl = ({ id, deleted, className = 'fs-6', classNameButton, width, setCartList }: { id: number; deleted?: Date | null; width?: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; className?: string; classNameButton?: string; }) => {
+export const CartControl = ({ id, className = 'fs-6', classNameButton, width, setCartList }: { id: number; width?: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; className?: string; classNameButton?: string; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
-  const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
 
   const dispatch = useAppDispatch();
 
@@ -67,15 +66,13 @@ export const CartControl = ({ id, deleted, className = 'fs-6', classNameButton, 
     setIsSubmit(false);
   };
 
-  return deleted
-    ? <Tag color="volcano" className="py-1 px-2">{tCart('deleted')}</Tag>
-    : inCart ? (
-      <div className="d-flex gap-3 justify-content-center align-items-center cart-control" style={width ? { width } : {}}>
-        <Button onClick={decrement}><MinusOutlined className="fs-6" title={t('remove')} /></Button>
-        <span className={className}>{inCart.count}</span>
-        <Button onClick={increment}><PlusOutlined className="fs-6" title={t('add')} /></Button>
-      </div>
-    ) : (
-      <Button className={cn('button border-button fs-5', classNameButton ? { [classNameButton]: classNameButton } : {})} title={t('addToCart')} onClick={add}>{t('addToCart')}</Button>
-    );
+  return inCart ? (
+    <div className="d-flex gap-3 justify-content-center align-items-center cart-control" style={width ? { width } : {}}>
+      <Button onClick={decrement}><MinusOutlined className="fs-6" title={t('remove')} /></Button>
+      <span className={className}>{inCart.count}</span>
+      <Button onClick={increment}><PlusOutlined className="fs-6" title={t('add')} /></Button>
+    </div>
+  ) : (
+    <Button className={cn('button border-button fs-5', classNameButton ? { [classNameButton]: classNameButton } : {})} title={t('addToCart')} onClick={add}>{t('addToCart')}</Button>
+  );
 };

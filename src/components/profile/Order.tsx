@@ -132,7 +132,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                     <span className="fs-5 fw-bold mb-2 mb-xl-0">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
                     <div className="d-flex flex-column gap-2" style={{ ...(isMobile ? { alignSelf: 'start', marginTop: '1rem' } : {}) }}>
                       {order.promotional
-                        ? <Tag color="#e3dcfa" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                        ? <Tag color="#e3dcfa" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
                           <span>{tOrders('promotional')}</span>
                           <span className="fw-bold">{tOrders('promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
                         </Tag>

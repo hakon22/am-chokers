@@ -61,10 +61,10 @@ const Login = () => {
               <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
             </Form.Item>
             <div className="d-flex justify-content-between mb-3-5">
-              <Alert.Link className="text-primary fw-light fs-7" onClick={() => router.push(routes.signupPage)}>
+              <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.signupPage)}>
                 {t('noAccount')}
               </Alert.Link>
-              <Alert.Link className="text-primary fw-light fs-7" onClick={() => router.push(routes.recoveryPage)}>
+              <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.recoveryPage)}>
                 {t('forgotPassword')}
               </Alert.Link>
             </div>

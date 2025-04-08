@@ -105,7 +105,7 @@ const Signup = () => {
                   <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
-                  <Alert.Link className="text-primary fw-light fs-7" onClick={() => router.push(routes.loginPage)}>
+                  <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.loginPage)}>
                     {t('haveAccount')}
                   </Alert.Link>
                 </div>

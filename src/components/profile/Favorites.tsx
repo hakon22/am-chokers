@@ -33,10 +33,11 @@ export const Favorites = () => {
       className="d-flex flex-column align-items-between col-8 w-100"
       renderItem={(item) => (
         <List.Item className="ms-xl-3">
-          <div className="d-flex gap-2 gap-xl-4">
+          <div className="d-flex gap-2 gap-xl-4 font-oswald">
             <ImageHover
               height={height}
               width={width}
+              deleted={!!item.deleted}
               images={item.images ?? []}
               className={cn({ 'opacity-50': item.deleted })}
             />
@@ -46,7 +47,7 @@ export const Favorites = () => {
                 <span>{tPrice('price', { price: item.price - item.discountPrice })}</span>
               </Link>
               <div className="d-flex align-items-center gap-4">
-                <CartControl id={item.id} deleted={item.deleted} />
+                <CartControl id={item.id} />
                 <FavoritesButton id={item.id} className="fs-5" outlined={true} />
               </div>
             </div>
