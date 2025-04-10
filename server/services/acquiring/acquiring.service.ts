@@ -1,6 +1,6 @@
 import { In } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer } from '@a2seven/yoo-checkout';
+import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer, type IItemWithoutData } from '@a2seven/yoo-checkout';
 import { Container } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
@@ -10,7 +10,7 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { TelegramService } from '@server/services/integration/telegram.service';
-import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { getDiscountPercent, getOrderPrice, getPositionPriceWithDiscount, truncateLastDecimal } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -18,6 +18,9 @@ import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTransla
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { DeliveryTypeEnum, deliveryTypeTranslateEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { russianPostMailTypeTranslateEnum } from '@/types/delivery/russian.post.delivery.interface';
+import type { OrderInterface } from '@/types/order/Order';
+import type { OrderPositionInterface } from '@/types/order/OrderPosition';
+import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
 type Data = {
   userName: string;
@@ -63,7 +66,7 @@ export class AcquiringService extends BaseService {
     }
   };
 
-  public createOrder = async (order: OrderEntity, type: AcquiringTypeEnum) => {
+  public createOrder = async (order: OrderInterface, type: AcquiringTypeEnum) => {
 
     const credential = await AcquiringCredentialsEntity.findOne({ where: { issuer: type, isDevelopment: process.env.NODE_ENV === 'development' } });
 
@@ -79,13 +82,54 @@ export class AcquiringService extends BaseService {
     });
 
     const orderId = `${order.id}-1${transactions.length}`;
+
     const amount = getOrderPrice(order);
+    const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional).percent;
+
+    const deliveryPosition = {
+      item: {
+        name: 'Доставка',
+      } as OrderPositionInterface['item'],
+      price: order.deliveryPrice,
+      discountPrice: 0,
+      count: 1,
+    } as OrderPositionEntity;
+
+    order.positions.push(deliveryPosition);
+
+    const items = order.positions.map((position) => (
+      {
+        description: position.item.name,
+        amount: {
+          value: getPositionPriceWithDiscount(position, discountPercent).toString(),
+          currency: 'RUB',
+        },
+        quantity: position.count.toString(),
+        vat_code: 1,
+        payment_subject: 'commodity',
+        payment_mode: 'full_payment',
+      }
+    )) as IItemWithoutData[];
+
+    const positionsAmount = items.reduce((acc, item) => acc + +item.amount.value, 0);
+
+    if (amount.toString() !== positionsAmount.toString()) {
+      const max = Math.max(+amount, +positionsAmount);
+      const min = Math.min(+amount, +positionsAmount);
+      const difference = truncateLastDecimal(max - min);
+
+      if (+amount > +positionsAmount) {
+        items[0].amount.value = (+items[0].amount.value + difference).toString();
+      } else {
+        items[0].amount.value = (+items[0].amount.value - difference).toString();
+      }
+    }
 
     const data: Data = {
-      userName: credential.login,
-      password: credential.password,
+      userName: 'credential.login',
+      password: 'credential.password',
       orderNumber: orderId,
-      amount: +amount,
+      amount,
       description: `Оплата по заказу №${order.id}`,
       returnUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}/payment/success`,
       failUrl: `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}/payment/error`,
@@ -124,21 +168,11 @@ export class AcquiringService extends BaseService {
       capture: true,
       receipt: {
         customer,
-        items: [
-          {
-            description: 'Изготовление украшений ручной работы',
-            amount: {
-              value: amount.toString(),
-              currency: 'RUB',
-            },
-            quantity: '1',
-            vat_code: 1,
-            payment_subject: 'service',
-            payment_mode: 'full_payment',
-          },
-        ],
+        items,
       },
     };
+
+    this.loggerService.info(this.TAG, JSON.stringify(createPayload));
 
     try {
       this.loggerService.info(this.TAG, `Создание заявки на платёж в ${credential.issuer} для заказа №${order.id}. Параметры: ${JSON.stringify(data)}`);
@@ -193,11 +227,12 @@ export class AcquiringService extends BaseService {
         const adminText = [
           `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
           '',
-          `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
+          `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
           `Способ доставки: <b>${deliveryTypeTranslateEnum[order.delivery.type]}</b>`,
           `Адрес доставки: <b>${order.delivery.address}</b>`,
           ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
           ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
+          '',
           `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
         ];
 

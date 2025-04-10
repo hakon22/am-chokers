@@ -24,17 +24,18 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
-import { getPrice, getDiscount } from '@/utilities/order/getOrderPrice';
+import { getOrderPrice, getOrderDiscount } from '@/utilities/order/getOrderPrice';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { fetchConfirmCode } from '@/slices/userSlice';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
-import type { CreateOrderInterface } from '@/types/order/Order';
+import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 import type { UserSignupInterface } from '@/types/user/User';
 import type { YandexDeliveryDataInterface } from '@/types/delivery/yandex.delivery.interface';
 import type { RussianPostDeliveryDataInterface } from '@/types/delivery/russian.post.delivery.interface';
+import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -83,6 +84,7 @@ const Cart = () => {
   const [promotional, setPromotional] = useState<PromotionalInterface>();
   const [deliveryList, setDeliveryList] = useState<CheckboxGroupProps['options']>([]);
   const [deliveryType, setDeliveryType] = useState<DeliveryTypeEnum>();
+  const [savedDeliveryPrice, setSavedDeliveryPrice] = useState(0);
   const [deliveryButton, setDeliveryButton] = useState(false);
   const [isOpenDeliveryWidget, setIsOpenDeliveryWidget] = useState(false);
   const [delivery, setDelivery] = useState(defaultDelivery);
@@ -92,17 +94,16 @@ const Cart = () => {
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
-  const { count, price: preparedPrice } = cartList.reduce((acc, cartItem) => {
-    acc.price += (cartItem.item.price - cartItem.item.discountPrice) * cartItem.count;
-    acc.count += cartItem.count;
-    return acc;
-  }, { count: 0, price: 0 });
+  const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count }));
 
+  const getPreparedOrder = (items: OrderPositionInterface[], deliveryPrice: number, promo?: PromotionalInterface) => ({ positions: items, deliveryPrice, promotional: promo }) as OrderInterface;
+
+  const count = cartList.reduce((acc, cartItem) => acc + cartItem.count, 0);
   const countCart = cart.reduce((acc, cartItem) => acc + cartItem.count, 0);
 
-  const price = Math.floor(preparedPrice);
+  const priceForFreeDelivery = 10000;
 
-  const totalPrice = price + delivery.price;
+  const price = getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0));
 
   const filteredCart = cart.filter(({ item }) => !item.deleted);
 
@@ -177,10 +178,11 @@ const Cart = () => {
     window.ecomStartWidget({
       id: 55091,
       weight: items.length * 200,
-      sumoc: +getPrice(totalPrice, promotional),
+      sumoc: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)),
       callbackFunction: (result: RussianPostDeliveryDataInterface) => {
+        setSavedDeliveryPrice(result.cashOfDelivery / 100);
         setDelivery({
-          price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : result.cashOfDelivery / 100,
+          price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery ? 0 : result.cashOfDelivery / 100,
           address: `${result.cityTo}, ${result.addressTo}`,
           type: deliveryType,
           indexTo: result.indexTo,
@@ -244,8 +246,9 @@ const Cart = () => {
   useEffect(() => {
     const handlePointSelected = (data: any) => {
       const detail = data.detail as YandexDeliveryDataInterface;
+      setSavedDeliveryPrice(300);
       setDelivery({
-        price: +getPrice(totalPrice, promotional) >= 10000 ? 0 : 300,
+        price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery ? 0 : 300,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });
@@ -283,6 +286,10 @@ const Cart = () => {
       setIsProcessConfirmed(false);
     }
   }, [isConfirmed, tempUser.phone]);
+
+  useEffect(() => {
+    setDelivery((state) => ({ ...state, price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery ? 0 : savedDeliveryPrice }));
+  }, [count]);
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
@@ -389,24 +396,24 @@ const Cart = () => {
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4" style={{ fontWeight: 300 }}>
             <span>{t('delivery')}</span>
-            <span>{tPrice('price', { price: delivery.price })}</span>
+            <span>{price >= priceForFreeDelivery ? t('free') : tPrice('price', { price: delivery.price })}</span>
           </div>
           <div className="d-flex justify-content-between align-items-center fs-5 mb-4" style={{ fontWeight: 300 }}>
             <span>{t('promotional')}</span>
             {promotional
               ? <div className="d-flex">
                 <Tag color="green" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={onPromotionalRemove}>{t('promotionalName', { name: promotional.name })}</Tag>
-                <span>{t('promotionalDiscount', { discount: getDiscount(totalPrice, promotional) })}</span>
+                <span>{t('promotionalDiscount', { discount: getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">
-                <Input disabled={!filteredCart.length} onSelect={() => setSelectPromotionField(true)} placeholder={t('promotional')} className="not-padding" size="large" onBlur={onPromotional} />
+                <Input disabled={!filteredCart.length || !delivery.address} onSelect={() => setSelectPromotionField(true)} placeholder={t('promotional')} className="not-padding" size="large" onBlur={onPromotional} />
               </Form.Item>}
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 text-uppercase fw-bold">
             <span>{t('total')}</span>
-            <span>{tPrice('price', { price: getPrice(totalPrice, promotional) })}</span>
+            <span>{tPrice('price', { price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
           </div>
-          <Button disabled={selectPromotionField || !filteredCart.length || !delivery.address || isSubmit} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
+          <Button disabled={selectPromotionField || !filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
         </div>
       </Form>
     </div>

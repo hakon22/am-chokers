@@ -75,7 +75,7 @@ const Index = () => {
 
   const responsive = {
     desktop: {
-      breakpoint: { max: 1900, min: 1024 },
+      breakpoint: { max: 5000, min: 1024 },
       items: 5,
     },
     tablet: {

@@ -182,7 +182,7 @@ const newOrderPositionSchema = yup.object().shape({
     id: yup.number(),
   }).optional(),
   delivery: yup.object().shape({
-    price: numberSchema,
+    price: numberSchema.min(0),
     address: stringSchema,
     type: yup.string().oneOf(Object.values(DeliveryTypeEnum)),
     indexTo: yup.string().optional(),

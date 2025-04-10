@@ -203,7 +203,7 @@ export class OrderService extends BaseService {
         discount: value.item.discount,
         discountPrice: value.item.discountPrice,
         item: { id: value.item.id },
-      }));
+      })) as OrderInterface['positions'];
 
       const positions = await orderPositionRepo.save(preparedPositions);
       await this.cartService.deleteMany(null, cartIds, { manager });
@@ -237,13 +237,14 @@ export class OrderService extends BaseService {
       const adminText = [
         `Создан заказ <b>№${order.id}</b>`,
         '',
-        `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderEntity)} ₽</b>`,
+        `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+        '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
       await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
 
-    const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
+    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA);
 
     return { order, url };
   };
@@ -289,7 +290,8 @@ export class OrderService extends BaseService {
       const adminText = [
         `Отмена заказа <b>№${order.id}</b>`,
         '',
-        `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
+        `Сумма: <b>${getOrderPrice({ ... order } as OrderInterface)} ₽</b>`,
+        '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
       await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
@@ -305,7 +307,7 @@ export class OrderService extends BaseService {
       throw new Error('Заказ уже оплачен');
     }
 
-    const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA);
+    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA);
   
     return url;
   };

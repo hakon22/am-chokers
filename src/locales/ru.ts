@@ -314,6 +314,7 @@ export default {
         delete: 'Удалить',
         favorites: 'Избранное',
         deleted: 'Товар закончился',
+        free: 'Бесплатно',
         promotional: 'Промокод',
         promotionalName: '{{ name }}',
         promotionalDiscount: '-{{ discount }} ₽',

@@ -24,6 +24,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
 import { CropImage } from '@/components/CropImage';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { getHeight } from '@/utilities/screenExtension';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
@@ -264,13 +265,13 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 ref={galleryRef}
                 additionalClass="w-100 mb-5 mb-xl-0"
                 showIndex
-                items={images.map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== 1000 ? undefined : originalHeight, originalWidth: isMobile && originalHeight === 1000 ? originalHeight / 1.3 : undefined }))}
+                items={images.map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== getHeight() ? undefined : originalHeight, originalWidth: isMobile && originalHeight === getHeight() ? originalHeight / 1.3 : undefined }))}
                 infinite
                 showBullets={isMobile}
                 showNav={!isMobile}
                 onScreenChange={(fullscreen) => {
                   if (fullscreen) {
-                    setOriginalHeight(1000);
+                    setOriginalHeight(getHeight());
                     document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
                     document.documentElement.style.setProperty('--galleryHeight', '100vh');
                     if (isMobile) {

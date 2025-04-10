@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 
-import { getWidth, getRatio } from '@/utilities/screenExtension';
+import { getWidth, getRatio, getHeight } from '@/utilities/screenExtension';
 
 export const useRootStyle = () => {
   useEffect(() => {
     const handleResize = () => {
       const width = getWidth();
+      const height = getHeight();
       const ratio = getRatio();
-      console.log(width, ratio, width * ratio);
+      console.log(width, height, ratio, width * ratio);
       document.documentElement.style.setProperty('--ratio', `${ratio}`);
     };
 
