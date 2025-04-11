@@ -126,8 +126,8 @@ export class AcquiringService extends BaseService {
     }
 
     const data: Data = {
-      userName: 'credential.login',
-      password: 'credential.password',
+      userName: credential.login,
+      password: credential.password,
       orderNumber: orderId,
       amount,
       description: `Оплата по заказу №${order.id}`,
