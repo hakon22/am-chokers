@@ -21,7 +21,6 @@ export const getServerSideProps = async ({ params }: { params: { id: string; } }
 };
 
 const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  console.log(id);
   const { t: tOrder } = useTranslation('translation', { keyPrefix: 'pages.profile.orders.order' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -53,7 +52,7 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
 
   return (
     <div className="d-flex flex-column mb-5 justify-content-center">
-      <Helmet title={tOrder('title', { id })} description={tOrder('description')} />
+      <Helmet title={tOrder('title', { id })} description={tOrder('description', { id })} />
       <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{tOrder('title', { id })}</h1>
       <div className="d-flex align-items-center gap-3 mb-5">
         <BackButton style={{}} />

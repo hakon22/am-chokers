@@ -103,7 +103,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
         ...(back ? [<BackwardOutlined key="back" onClick={() => changeStatusHandler(back, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${back}`) })} />] : []),
         ...(next ? [<ForwardOutlined key="next" onClick={() => changeStatusHandler(next, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${next}`) })} />] : []),
       ]
-      : status === OrderStatusEnum.NEW ? [<StopOutlined key="stop" onClick={() => cancelOrderHandler(orderId)} title={t('actions.stop')} />] : [];
+      : status === OrderStatusEnum.NOT_PAID ? [<StopOutlined key="stop" onClick={() => cancelOrderHandler(orderId)} title={t('actions.stop')} />] : [];
   };
 
   const onPay = async (id: number) => {
@@ -161,7 +161,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                   </div>
                   <div className="d-flex flex-column gap-2">
                     {order.promotional
-                      ? <Tag color="#e3dcfa" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
+                      ? <Tag color="#e3dcfa" className={cn('fs-6 text-wrap', { 'w-100': isMobile })} style={{ padding: '5px 10px', color: '#69788e', ...(isMobile ? {} : { width: 'max-content' }) }}>
                         <span>{t('promotional')}</span>
                         <span className="fw-bold">{t('promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
                       </Tag>
@@ -175,7 +175,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                         <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
                         </Tag>
-                      ) : <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button>
+                      ) : <Button className="button" style={isMobile ? {} : { width: 'max-content' }} onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button>
                       : (
                         <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{t('payment')}</span>

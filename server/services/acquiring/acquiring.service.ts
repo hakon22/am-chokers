@@ -10,7 +10,7 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { TelegramService } from '@server/services/integration/telegram.service';
-import { getDiscountPercent, getOrderPrice, getPositionPriceWithDiscount, truncateLastDecimal } from '@/utilities/order/getOrderPrice';
+import { getDiscountPercent, getOrderPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -84,7 +84,7 @@ export class AcquiringService extends BaseService {
     const orderId = `${order.id}-1${transactions.length}`;
 
     const amount = getOrderPrice(order);
-    const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional).percent;
+    const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
     const deliveryPosition = {
       item: {
@@ -111,17 +111,18 @@ export class AcquiringService extends BaseService {
       }
     )) as IItemWithoutData[];
 
-    const positionsAmount = items.reduce((acc, item) => acc + +item.amount.value, 0);
+    const positionsAmount = items.reduce((acc, item) => acc + (+item.amount.value * 100), 0);
+    const centAmount = amount * 100;
 
-    if (amount.toString() !== positionsAmount.toString()) {
-      const max = Math.max(+amount, +positionsAmount);
-      const min = Math.min(+amount, +positionsAmount);
-      const difference = truncateLastDecimal(max - min);
+    if (centAmount !== positionsAmount) {
+      const max = Math.max(centAmount, positionsAmount);
+      const min = Math.min(centAmount, positionsAmount);
+      const difference = max - min;
 
-      if (+amount > +positionsAmount) {
-        items[0].amount.value = (+items[0].amount.value + difference).toString();
+      if (centAmount > positionsAmount) {
+        items[0].amount.value = ((+items[0].amount.value * 100) + difference).toFixed(2);
       } else {
-        items[0].amount.value = (+items[0].amount.value - difference).toString();
+        items[0].amount.value = ((+items[0].amount.value * 100) - difference).toFixed(2);
       }
     }
 
