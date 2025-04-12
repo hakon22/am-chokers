@@ -741,6 +741,7 @@ export default {
       promotionalNotExist: 'Промокод не найден',
       promotionalExpired: 'Промокод истёк',
       notSelectedPVZ: 'Не выбран ПВЗ!',
+      incorrectColor: 'Неверное значение цвета',
     },
     toast: {
       sendSmsSuccess: 'СМС успешно отправлено',

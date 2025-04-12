@@ -17,6 +17,7 @@ import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.creden
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';
+import { ColorEntity } from '@server/db/entities/color.entity';
 
 export const entities = [
   UserEntity,
@@ -38,4 +39,5 @@ export const entities = [
   AcquiringTransactionEntity,
   DeliveryCredentialsEntity,
   DeliveryEntity,
+  ColorEntity,
 ];

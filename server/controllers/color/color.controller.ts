@@ -1,24 +1,24 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import { CompositionEntity } from '@server/db/entities/composition.entity';
+import { ColorEntity } from '@server/db/entities/color.entity';
 import { BaseService } from '@server/services/app/base.service';
-import { newCompositionValidation } from '@/validations/validations';
-import { CompositionService } from '@server/services/composition/composition.service';
+import { newColorValidation } from '@/validations/validations';
+import { ColorService } from '@server/services/color/color.service';
 import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
 
 @Singleton
-export class CompositionController extends BaseService {
-  private readonly compositionService = Container.get(CompositionService);
+export class ColorController extends BaseService {
+  private readonly colorService = Container.get(ColorService);
 
   public findOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const composition = await this.compositionService.findOne(params, query);
+      const color = await this.colorService.findOne(params, query);
 
-      res.json({ code: 1, composition });
+      res.json({ code: 1, color });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -28,9 +28,9 @@ export class CompositionController extends BaseService {
     try {
       const query = await queryOptionalSchema.validate(req.query);
 
-      const compositions = await this.compositionService.findMany(query);
+      const colors = await this.colorService.findMany(query);
 
-      res.json({ code: 1, compositions });
+      res.json({ code: 1, colors });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -38,9 +38,9 @@ export class CompositionController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const body = await newCompositionValidation.serverValidator(req.body) as CompositionEntity;
+      const body = await newColorValidation.serverValidator(req.body) as ColorEntity;
 
-      const result = await this.compositionService.createOne(body);
+      const result = await this.colorService.createOne(body);
 
       res.json(result);
     } catch (e) {
@@ -51,11 +51,11 @@ export class CompositionController extends BaseService {
   public updateOne = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);
-      const body = await newCompositionValidation.serverValidator(req.body) as CompositionEntity;
+      const body = await newColorValidation.serverValidator(req.body) as ColorEntity;
 
-      const composition = await this.compositionService.updateOne(params, body);
+      const color = await this.colorService.updateOne(params, body);
 
-      res.json({ code: 1, composition });
+      res.json({ code: 1, color });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -65,9 +65,9 @@ export class CompositionController extends BaseService {
     try {
       const params = await paramsIdSchema.validate(req.params);
 
-      const composition = await this.compositionService.deleteOne(params);
+      const color = await this.colorService.deleteOne(params);
 
-      res.json({ code: 1, composition });
+      res.json({ code: 1, color });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -77,9 +77,9 @@ export class CompositionController extends BaseService {
     try {
       const params = await paramsIdSchema.validate(req.params);
 
-      const composition = await this.compositionService.restoreOne(params);
+      const color = await this.colorService.restoreOne(params);
 
-      res.json({ code: 1, composition });
+      res.json({ code: 1, color });
     } catch (e) {
       this.errorHandler(e, res);
     }

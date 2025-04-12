@@ -15,6 +15,7 @@ import { RatingEntity } from '@server/db/entities/rating.entity';
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { CompositionEntity } from '@server/db/entities/composition.entity';
+import { ColorEntity } from '@server/db/entities/color.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
 
 /** Товар */
@@ -139,6 +140,21 @@ export class ItemEntity extends BaseEntity {
     },
   })
   public compositions: CompositionEntity[];
+
+  /** Цвет товара (в описании) */
+  @ManyToMany(() => ColorEntity, color => color.items)
+  @JoinTable({
+    name: 'item_color',
+    joinColumn: {
+      name: 'item_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'color_id',
+      referencedColumnName: 'id',
+    },
+  })
+  public colors: ColorEntity[];
 
   /** Пользователи, добавившие товар в избранное */
   @ManyToMany(() => UserEntity, user => user.favorites)

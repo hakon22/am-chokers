@@ -35,6 +35,7 @@ export const routes = {
   moderationOfReview: [adminPath, 'reviews'].join('/'),
   promotionalCodes: [adminPath, 'promotionals'].join('/'),
   compositionsControl: [adminPath, 'compositions'].join('/'),
+  colorsControl: [adminPath, 'colors'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -127,6 +128,14 @@ export const routes = {
   updateComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'update'].join('/'),
   restoreComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'restore'].join('/'),
   removeComposition: (id?: number) => [apiPath, 'composition', id ?? ':id', 'remove'].join('/'),
+
+  // color
+  createColor: [apiPath, 'color', 'add'].join('/'),
+  getColor: (id?: number) => [apiPath, 'color', id ?? ':id'].join('/'),
+  getColors: [apiPath, 'color', 'getAll'].join('/'),
+  updateColor: (id?: number) => [apiPath, 'color', id ?? ':id', 'update'].join('/'),
+  restoreColor: (id?: number) => [apiPath, 'color', id ?? ':id', 'restore'].join('/'),
+  removeColor: (id?: number) => [apiPath, 'color', id ?? ':id', 'remove'].join('/'),
 
   // grade
   createGrade: (id?: number) => [apiPath, 'order-position', id ?? ':id', 'grade', 'add'].join('/'),

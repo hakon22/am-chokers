@@ -160,6 +160,18 @@ const newCompositionSchema = yup.object().shape({
   name: stringSchema,
 });
 
+const newColorSchema = yup.object().shape({
+  name: stringSchema,
+  hex: yup
+    .lazy((value) => (typeof value === 'object'
+      ? yup.object()
+        .required()
+      : yup.string()
+        .required()
+        .matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, t('validation.incorrectColor'))
+    )),
+});
+
 const newItemCollectionSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
@@ -283,3 +295,4 @@ export const newPromotionalValidation = validate(newPromotionalSchema);
 export const orderChangeStatusValidation = validate(orderChangeStatusSchema);
 export const newCompositionValidation = validate(newCompositionSchema);
 export const setCoverImageValidation = validate(setCoverImageSchema);
+export const newColorValidation = validate(newColorSchema);
