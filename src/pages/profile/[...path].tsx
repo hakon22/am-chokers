@@ -146,7 +146,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       {id ? (
         <>
           {!isMobile
-            ? <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
+            ? <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', titleProps)}</h1>
             : null}
           <div className="d-flex flex-column flex-xl-row" style={isMobile ? { marginTop: '100px' } : {}}>
             {isMobile

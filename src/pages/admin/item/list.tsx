@@ -141,7 +141,7 @@ const ItemList = () => {
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
       <FloatButton.BackTop />
-      <h1 className="font-mr_hamiltoneg text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
+      <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
       <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-4 gap-xl-0 mb-5">
         <div className="d-flex align-items-center gap-3">
           <BackButton style={{}} />
