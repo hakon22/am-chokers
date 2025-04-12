@@ -19,6 +19,8 @@ interface GetServerSidePropsInterface {
     from?: number;
     to?: number;
     search?: string;
+    new?: boolean;
+    bestseller?: boolean;
   },
 }
 
@@ -46,6 +48,8 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
         ...(query?.from ? { from: query.from } : {}),
         ...(query?.to ? { to: query.to } : {}),
         ...(query?.search ? { search: query.search } : {}),
+        ...(query?.new ? { new: query.new } : {}),
+        ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
       },
     }),
     ...(groupCode ? [axios.get<ItemGroupResponseInterface>(routes.getItemGroupByCode({ isServer: false }), {
