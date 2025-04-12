@@ -86,7 +86,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     }
   };
 
-  const filtersCount = () => (
+  const getFiltersCount = () => (
     initialValues.itemGroups?.length ?? 0) +
     (initialValues.itemCollections?.length ?? 0) +
     (initialValues.compositions?.length ?? 0) +
@@ -94,6 +94,22 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     (initialValues.to ? 1 : 0) +
     (initialValues.new ? 1 : 0) +
     (initialValues.bestseller ? 1 : 0);
+
+  const getActiveFields = () => {
+    const activeFields = ['1', '4'];
+
+    if (initialValues.compositions?.length) {
+      activeFields.push('2');
+    }
+    if (initialValues.itemCollections?.length) {
+      activeFields.push('3');
+    }
+    if (initialValues.new || initialValues.bestseller) {
+      activeFields.push('5');
+    }
+
+    return activeFields;
+  };
 
   const filters: CollapseProps['items'] = [
     {
@@ -210,7 +226,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
       <>
         <FloatButton
           style={{ left: '6.5%', top: '5rem', zIndex: 1 }}
-          badge={{ count: filtersCount() }}
+          badge={{ count: getFiltersCount() }}
           icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />
@@ -222,7 +238,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
           zIndex={10001}
         >
           <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-            <Collapse defaultActiveKey={['1', '4']} ghost items={filters} expandIconPosition="end" className="mb-4" />
+            <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" className="mb-4" />
             <Button htmlType="submit" className="button fs-6 mx-auto">
               {t('submitButton')}
             </Button>
@@ -233,7 +249,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     : (
       <div className="d-flex col-2">
         <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-          <Collapse defaultActiveKey={['1', '4']} ghost items={filters} expandIconPosition="end" className="mb-4" />
+          <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" className="mb-4" />
           <Button htmlType="submit" className="button fs-6 mx-auto">
             {t('submitButton')}
           </Button>

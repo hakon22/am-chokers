@@ -396,15 +396,17 @@ const Index = () => {
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage1 ? [coverImage1] : [])}
+                  href={`${routes.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
-              <h2 className="col-12 col-xl-4 text-center">{t('necklacesAndChokers')}</h2>
+              <Link href={`${routes.catalog}?groupIds=1&groupIds=2`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('necklacesAndChokers')}</Link>
               <ContextMenu className="col-12 col-xl-4" image={coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage2 ? [coverImage2] : [])}
+                  href={`${routes.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
             </div>
@@ -415,15 +417,17 @@ const Index = () => {
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage3 ? [coverImage3] : [])}
+                  href={`${routes.catalog}/bracelet`}
                 />
               </ContextMenu>
-              <h2 className="col-12 col-xl-4 text-center">{t('bracelets')}</h2>
+              <Link href={`${routes.catalog}/bracelet`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('bracelets')}</Link>
               <ContextMenu className="col-12 col-xl-4" image={coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage4 ? [coverImage4] : [])}
+                  href={`${routes.catalog}/bracelet`}
                 />
               </ContextMenu>
             </div>
@@ -434,15 +438,17 @@ const Index = () => {
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage5 ? [coverImage5] : [])}
+                  href={`${routes.catalog}/earrings`}
                 />
               </ContextMenu>
-              <h2 className="col-12 col-xl-4 text-center">{t('earrings')}</h2>
+              <Link href={`${routes.catalog}/earrings`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('earrings')}</Link>
               <ContextMenu className="col-12 col-xl-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage6 ? [coverImage6] : [])}
+                  href={`${routes.catalog}/earrings`}
                 />
               </ContextMenu>
             </div>

@@ -284,7 +284,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       setShowThumbnails(false);
                     }
                   } else {
-                    setOriginalHeight(403);
+                    setOriginalHeight(416);
                     document.documentElement.style.setProperty('--galleryWidth', '320px');
                     document.documentElement.style.setProperty('--galleryHeight', '416px');
                     if (isMobile) {
