@@ -389,7 +389,7 @@ const Index = () => {
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
-            <div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
+            <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
               <ContextMenu className="col-12 col-xl-4" image={coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
@@ -410,7 +410,7 @@ const Index = () => {
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
+            <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
               <ContextMenu className="col-12 col-xl-4" image={coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
@@ -431,7 +431,7 @@ const Index = () => {
                 />
               </ContextMenu>
             </div>
-            <div className="d-flex flex-column flex-xl-row align-items-center gap-5 gap-xl-0">
+            <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
               <ContextMenu className="col-12 col-xl-4" image={coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
