@@ -29,5 +29,6 @@ export interface CreateOrderInterface {
   promotional?: PromotionalInterface;
   delivery: CreateDeliveryInterface;
   user: Pick<UserSignupInterface, 'name' | 'phone'>;
+  comment?: string;
 }
 

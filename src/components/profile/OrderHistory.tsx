@@ -181,6 +181,9 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                           <span>{t('payment')}</span>
                           <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
                         </Tag>)}
+                    {order.comment
+                      ? <span className="mt-2">{order.comment}</span>
+                      : null}
                   </div>
                 </Link>
                 <div className="d-flex flex-column col-12 col-xl-8 gap-2">

@@ -398,11 +398,19 @@ a {
     padding-left: 0.6rem !important;
   }
 
-  .custom-placeholder input {
-    font-size: 0.95rem !important;
-    padding-left: 0.3rem !important;
-  }
+  .custom-placeholder {
+    
+    & input {
+      font-size: 0.95rem !important;
+      padding-left: 0.3rem !important;
+    }
 
+    & textarea {
+      font-size: 1.2rem !important;
+      padding-left: 1rem !important;
+      padding-top: 0.5rem !important;
+    }
+}
   .ant-checkbox .ant-checkbox-inner, .ant-radio-wrapper .ant-radio-inner {
     width: 20px;
     height: 20px;

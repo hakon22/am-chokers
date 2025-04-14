@@ -19,7 +19,7 @@ import { removeMany, removeCartItem } from '@/slices/cartSlice';
 import { createOrder, type OrderResponseInterface } from '@/slices/orderSlice';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
-import { signupValidation } from '@/validations/validations';
+import { newOrderPositionValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
@@ -147,7 +147,7 @@ const Cart = () => {
 
   const onPromotionalRemove = () => {
     setPromotional(undefined);
-    form.resetFields();
+    form.setFieldValue('promotional', undefined);
   };
 
   const openYanderDeliveryWidget = (items: CartItemInterface[]) => {
@@ -197,10 +197,11 @@ const Cart = () => {
   const resetPVZ = () => {
     setDeliveryButton(false);
     setDelivery(defaultDelivery);
+    setSavedDeliveryPrice(0);
     setDeliveryType(undefined);
   };
 
-  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone'>) => {
+  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone'> & { comment: string; }) => {
     setIsSubmit(true);
     if (!delivery.address) {
       toast(tValidation('notSelectedPVZ'), 'error');
@@ -218,7 +219,7 @@ const Cart = () => {
         form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
       }
     } else {
-      const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, user: { name: name || values.name, phone: phone || values.phone  }  })) as { payload: OrderResponseInterface & { url: string; }; };
+      const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone  }  })) as { payload: OrderResponseInterface & { url: string; }; };
       if (code === 1) {
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
@@ -325,7 +326,7 @@ const Cart = () => {
         </>
       </Modal>
       <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
-      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={user}>
+      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '' }}>
         <div className="d-flex flex-column justify-content-center align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
@@ -374,7 +375,7 @@ const Cart = () => {
             : null}
           {delivery.address
             ? (
-              <div className="d-flex flex-column fs-5 mb-3" style={{ fontWeight: 300 }}>
+              <div className="d-flex flex-column fs-5 mb-4" style={{ fontWeight: 300 }}>
                 <span className="text-uppercase fw-bold">{t('selectedPVZ.title')}</span>
                 <span>{t('selectedPVZ.address', { address: delivery.address })}</span>
               </div>
@@ -390,6 +391,9 @@ const Cart = () => {
               </Form.Item>
             </>
           ) : null}
+          <Form.Item<CreateOrderInterface['comment']> name="comment" className="custom-placeholder" rules={[newOrderPositionValidation]}>
+            <Input.TextArea rows={3} className="border border-secondary" size="small" variant="borderless" placeholder={t('comment')} />
+          </Form.Item>
           <div className="d-flex justify-content-between fs-5 mb-2" style={{ fontWeight: 300 }}>
             <span>{t('itemCount', { count })}</span>
             <span>{tPrice('price', { price })}</span>
@@ -398,7 +402,7 @@ const Cart = () => {
             <span>{t('delivery')}</span>
             <span>{price >= priceForFreeDelivery ? t('free') : tPrice('price', { price: delivery.price })}</span>
           </div>
-          <div className="d-flex justify-content-between align-items-center fs-5 mb-4" style={{ fontWeight: 300 }}>
+          <div className="d-flex justify-content-between align-items-center fs-5 mb-4" style={{ fontWeight: 300, color: '#ff9500' }}>
             <span>{t('promotional')}</span>
             {promotional
               ? <div className="d-flex">

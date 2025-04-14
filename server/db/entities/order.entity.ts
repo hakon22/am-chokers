@@ -78,6 +78,12 @@ export class OrderEntity extends BaseEntity {
   })
   public delivery: DeliveryEntity;
 
+  /** Комментарий к заказу */
+  @Column('character varying', {
+    nullable: true,
+  })
+  public comment: string;
+
   /** Позиции */
   @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
   public positions: OrderPositionEntity[];

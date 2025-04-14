@@ -93,9 +93,9 @@ export class OrderController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { cart, promotional, delivery, user } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
+      const { cart, promotional, delivery, user, comment } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
 
-      const { order, url } = await this.orderService.createOne(cart, req.user as PassportRequestInterface || user, delivery, promotional);
+      const { order, url } = await this.orderService.createOne(cart, req.user as PassportRequestInterface || user, delivery, comment, promotional);
 
       res.json({ code: 1, order, url });
     } catch (e) {

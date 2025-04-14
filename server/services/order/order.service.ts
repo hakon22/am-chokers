@@ -67,6 +67,7 @@ export class OrderService extends BaseService {
           'order.status',
           'order.deliveryPrice',
           'order.deleted',
+          'order.comment',
         ])
         .leftJoin('order.positions', 'positions')
         .addSelect([
@@ -165,7 +166,7 @@ export class OrderService extends BaseService {
     return [orders, count];
   };
 
-  public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, promotional?: PromotionalInterface) => {
+  public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, comment?: string, promotional?: PromotionalInterface) => {
     const cartIds = body.map(({ id }) => id);
 
     if (promotional) {
@@ -208,6 +209,7 @@ export class OrderService extends BaseService {
         deliveryPrice: delivery.price,
         positions,
         promotional,
+        comment,
         delivery: await deliveryRepo.create({
           address: delivery.address,
           type: delivery.type,
@@ -232,13 +234,18 @@ export class OrderService extends BaseService {
         `Создан заказ <b>№${order.id}</b>`,
         '',
         `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+        ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
       await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
 
-    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA);
+    let url = '';
+
+    if (process.env.NODE_ENV === 'production') {
+      url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA) as string;
+    }
 
     return { order, url };
   };

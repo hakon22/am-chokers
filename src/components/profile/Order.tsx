@@ -128,7 +128,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
             <div className="d-flex col-12" style={{ ...(isMobile ? {} : { lineHeight: 0.5 }) }}>
               <div className="d-flex flex-column justify-content-between col-12">
                 <div className="d-flex flex-column font-oswald">
-                  <div className="d-flex flex-column flex-xl-row mb-4 mb-xl-5 justify-content-between align-items-center">
+                  <div className="d-flex flex-column flex-xl-row mb-4 mb-xl-5 justify-content-between">
                     <span className="fs-5 fw-bold mb-2 mb-xl-0">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
                     <div className="d-flex flex-column gap-2" style={{ ...(isMobile ? { alignSelf: 'start', marginTop: '1rem' } : {}) }}>
                       {order.promotional
@@ -151,6 +151,9 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                           <span>{tOrders('payment')}</span>
                           <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>
                         </Tag>)}
+                      {order.comment
+                        ? <span className="mt-2">{order.comment}</span>
+                        : null}
                     </div>
                   </div>
                   {/*<div className="d-flex flex-column fs-6 gap-4 mb-5">

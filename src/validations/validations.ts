@@ -206,6 +206,7 @@ const newOrderPositionSchema = yup.object().shape({
     name: stringSchema,
     phone: phoneSchema,
   }),
+  comment: yup.string().optional(),
 });
 
 const orderChangeStatusSchema = yup.object().shape({
