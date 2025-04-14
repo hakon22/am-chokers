@@ -144,7 +144,7 @@ export const routes = {
   acceptGrade: (id?: number) => [apiPath, 'grade', id ?? ':id', 'accept'].join('/'),
   getUnchekedGrades: [apiPath, 'grade', 'getAll'].join('/'),
 
-  // Доставка
+  // delivery
   delivery: {
     findMany: [apiPath, 'delivery', 'findMany'].join('/'),
   },

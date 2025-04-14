@@ -86,7 +86,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: getPage() },
     { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Favorites /> },
     { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Reviews /> },
-    { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <div /> },
+    // { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <div /> },
     ...(role === UserRoleEnum.ADMIN
       ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0 } }, children: <Collapse
         className="fs-6 font-oswald"
@@ -117,7 +117,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'orders', label: <Link href={routes.orderHistory}>{tMenu('menu.orders')}</Link> },
     { key: 'favorites', label: <Link href={routes.favorites}>{tMenu('menu.favorites')}</Link> },
     { key: 'reviews', label: <Link href={routes.myReviews}>{tMenu('menu.reviews')}</Link> },
-    { key: 'settings', label: <Link href={routes.settings}>{tMenu('menu.settings')}</Link> },
+    // { key: 'settings', label: <Link href={routes.settings}>{tMenu('menu.settings')}</Link> },
     role === UserRoleEnum.ADMIN
       ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
         { key: 'items', label: tMenu('menu.admin.items.title'), children: [
@@ -130,6 +130,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
         { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
         { key: routes.promotionalCodes, label: <Link href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },
         { key: routes.compositionsControl, label: <Link href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Link> },
+        { key: routes.colorsControl, label: <Link href={routes.colorsControl}>{tMenu('menu.admin.colors')}</Link> },
       ],
       } : null,
     { type: 'divider' },

@@ -16,6 +16,7 @@ interface GetServerSidePropsInterface {
     groupIds?: number | number[];
     collectionIds?: number | number[];
     compositionIds?: number | number[];
+    colorIds?: number | number[];
     from?: number;
     to?: number;
     search?: string;
@@ -45,6 +46,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
         ...(query?.groupIds ? Array.isArray(query.groupIds) ? { groupIds: query.groupIds } : { groupIds: [query.groupIds] } : {}),
         ...(query?.collectionIds ? Array.isArray(query.collectionIds) ? { collectionIds: query.collectionIds } : { collectionIds: [query.collectionIds] } : {}),
         ...(query?.compositionIds ? Array.isArray(query.compositionIds) ? { compositionIds: query.compositionIds } : { compositionIds: [query.compositionIds] } : {}),
+        ...(query?.colorIds ? Array.isArray(query.colorIds) ? { colorIds: query.colorIds } : { colorIds: [query.colorIds] } : {}),
         ...(query?.from ? { from: query.from } : {}),
         ...(query?.to ? { to: query.to } : {}),
         ...(query?.search ? { search: query.search } : {}),

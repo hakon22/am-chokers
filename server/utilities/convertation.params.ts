@@ -111,6 +111,7 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     groupIds: yup.array(yup.number().optional()),
     collectionIds: yup.array(yup.number().optional()),
     compositionIds: yup.array(yup.number().optional()),
+    colorIds: yup.array(yup.number().optional()),
     from: yup.number().optional(),
     to: yup.number().optional(),
     new: booleanSchema,

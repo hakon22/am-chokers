@@ -44,21 +44,20 @@ export class ItemService extends BaseService {
       if (query?.collectionIds?.length) {
         builder.leftJoin('item.collection', 'collection');
       }
-
       if (query?.compositionIds?.length) {
         builder.leftJoin('item.compositions', 'compositions');
       }
-
+      if (query?.colorIds?.length) {
+        builder.leftJoin('item.colors', 'colors');
+      }
       if (query?.groupIds?.length || query?.groupCode) {
         builder.leftJoin('item.group', 'group');
       }
-
       if (query?.limit || query?.offset) {
         builder
           .limit(query.limit)
           .offset(query.offset);
       }
-
       if (query?.search) {
         builder
           .setParameter('search', `%${query.search.trim()}%`)
@@ -105,6 +104,7 @@ export class ItemService extends BaseService {
         .leftJoinAndSelect('item.group', 'group')
         .leftJoinAndSelect('item.collection', 'collection')
         .leftJoinAndSelect('item.compositions', 'compositions')
+        .leftJoinAndSelect('item.colors', 'colors')
         .orderBy('item.created', 'DESC')
         .addOrderBy('item.deleted IS NOT NULL', 'ASC');
     }
@@ -135,6 +135,9 @@ export class ItemService extends BaseService {
     }
     if (query?.compositionIds?.length) {
       builder.andWhere('compositions.id IN(:...compositionIds)', { compositionIds: query.compositionIds });
+    }
+    if (query?.colorIds?.length) {
+      builder.andWhere('colors.id IN(:...colorIds)', { colorIds: query.colorIds });
     }
     if (query?.groupIds) {
       builder.andWhere('group.id IN(:...groupIds)', { groupIds: query.groupIds });

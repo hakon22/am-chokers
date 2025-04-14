@@ -30,6 +30,8 @@ import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
+import type { ColorInterface } from '@/types/color/ColorInterface';
+import type { ColorEntity } from '@server/db/entities/color.entity';
 
 export const getServerSideProps = async () => {
   const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }));
@@ -101,6 +103,8 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
   const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
   const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
+  const [itemColors, setItemColors] = useState<ColorInterface[] | undefined>(item?.colors);
+  const [colors, setColors] = useState<ColorInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
 
   const [originalHeight, setOriginalHeight] = useState(416);
@@ -136,17 +140,21 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     values.group = itemGroup as ItemGroupInterface;
     values.collection = itemCollection as ItemCollectionInterface;
     values.compositions = (itemCompositions ?? []).map((composition) => ({ id: typeof composition === 'number' ? composition : composition.id } as CompositionEntity));
+    values.colors = (itemColors ?? []).map((color) => ({ id: typeof color === 'number' ? color : color.id } as ColorEntity));
 
     let code: number;
     if (oldItem) {
       if (item?.compositions?.length) {
         item.compositions = item.compositions.map((composition) => ({ id: composition.id } as  CompositionEntity));
       }
+      if (item?.colors?.length) {
+        item.colors = item.colors.map((color) => ({ id: color.id } as  ColorEntity));
+      }
       if (isEqual(oldItem, { ...item, ...values })) {
         setIsSubmit(false);
         return;
       }
-      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } })) as { payload: ItemWithUrlResponseInterface };
+      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } })) as { payload: ItemWithUrlResponseInterface; };
       code = payload.code;
       if (code === 1 && updateStateItem) {
         updateStateItem(payload.item);
@@ -164,12 +172,14 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         setItemGroup(undefined);
         setItemCollection(undefined);
         setItemCompositions(undefined);
+        setItemColors(undefined);
         setFileList([]);
         setImages([]);
         form.resetFields();
         form.setFieldValue('group', undefined);
         form.setFieldValue('collection', undefined);
         form.setFieldValue('compositions', undefined);
+        form.setFieldValue('colors', undefined);
         window.open(payload.url, '_blank');
       }
     }
@@ -203,10 +213,16 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   useEffect(() => {
     if (axiosAuth) {
-      axios.get(routes.getCompositions)
-        .then(({ data: response }) => {
-          if (response.code === 1) {
-            setCompositions(response.compositions);
+      Promise.all([
+        axios.get(routes.getCompositions),
+        axios.get(routes.getColors),
+      ])
+        .then(([{ data: response1 }, { data: response2 }]) => {
+          if (response1.code === 1) {
+            setCompositions(response1.compositions);
+          }
+          if (response2.code === 1) {
+            setColors(response2.colors);
           }
         })
         .catch((e) => {
@@ -322,7 +338,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
           </CropImage>
         </div>
         <div style={{ width: isMobile ? '100%' : '55%' }}>
-          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
+          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id), colors: itemColors?.map((color) => color.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
               <Form.Item<typeof item> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
                 <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
@@ -414,6 +430,32 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       onChange={(state) => setItemCompositions(state)}
                       onClear={() => setItemCompositions([])}
                       options={compositions?.map(({ id, name }) => ({ value: id, label: name }))}
+                    />
+                  </Form.Item>
+                </div>
+                <div className="d-flex flex-column gap-2">
+                  <span className="font-oswald fs-6">{tCardItem('color')}</span>
+                  <Form.Item<typeof item> name="colors" className="large-input" rules={[newItemValidation]}>
+                    <Select
+                      mode="multiple"
+                      allowClear
+                      className="col-6"
+                      size="large"
+                      notFoundContent={<NotFoundContent />}
+                      placeholder={t('placeholders.color')}
+                      variant={isMobile ? 'outlined' : 'borderless'}
+                      optionFilterProp="label"
+                      filterOption={(input, option) => 
+                        option?.label.props.children[1]?.props?.children?.toLowerCase().includes(input.toLowerCase())
+                      }
+                      onChange={(state) => setItemColors(state)}
+                      onClear={() => setItemColors([])}
+                      options={colors?.map(({ id, name, hex }) => ({ value: id, label: (
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="d-block" style={{ backgroundColor: hex, borderRadius: '50%', width: 25, height: 25 }} />
+                          <span>{name}</span>
+                        </div>
+                      ) }))}
                     />
                   </Form.Item>
                 </div>

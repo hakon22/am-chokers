@@ -238,7 +238,7 @@ const CreatePromotional = () => {
           setPromotionals((state) => [...state, promotional]);
           setEditingKey('');
         } else if (code === 2) {
-          form.setFields([{ name: 'code', errors: [tToast('promotionalExist', { name })] }]);
+          form.setFields([{ name: 'name', errors: [tToast('promotionalExist', { name })] }]);
           toast(tToast('promotionalExist', { name }), 'error');
         }
       }

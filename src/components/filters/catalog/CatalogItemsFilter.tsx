@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react';
 import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { FunnelFill } from 'react-bootstrap-icons';
-import type { CollapseProps } from 'antd/lib';
+import type { CollapseProps, FormInstance } from 'antd/lib';
 
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -14,10 +14,12 @@ import { MobileContext } from '@/components/Context';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
+import type { ColorInterface } from '@/types/color/ColorInterface';
 
 interface CatalogItemsPropsInterface {
   setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
   onFilters: (values: CatalogFiltersInterface) => Promise<void>;
+  form: FormInstance<CatalogFiltersInterface>;
   initialValues: CatalogFiltersInterface;
   setInitialValues: React.Dispatch<React.SetStateAction<CatalogFiltersInterface>>;
   showDrawer: boolean;
@@ -27,7 +29,7 @@ interface CatalogItemsPropsInterface {
 
 const mapping = ({ id, name }: { id: number; name: string; }) => ({ label: <span className="fs-6">{name}</span>, value: id.toString() });
 
-export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup }: CatalogItemsPropsInterface) => {
+export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup }: CatalogItemsPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog.filters' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -38,12 +40,20 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
   const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>([]);
   const [fullCompositions, setFullCompositions] = useState<CompositionInterface[]>([]);
   const [optionCompositions, setOptionCompositions] = useState<CompositionInterface[]>([]);
+  const [optionColors, setOptionColors] = useState<ColorInterface[]>([]);
 
   const itemGroupFilterOptions = itemGroups.map(mapping);
   const itemCollectionsFilterOptions = itemCollections.map(mapping);
   const compositionsFilterOptions = optionCompositions.map(mapping);
-
-  const [form] = Form.useForm<CatalogFiltersInterface>();
+  const colorsFilterOptions = optionColors.map((color) => ({
+    label: (
+      <div className="d-flex align-items-center gap-2 fs-6">
+        <span className="d-block" style={{ backgroundColor: color.hex, borderRadius: '50%', width: 20, height: 20 }} />
+        <span>{color.name}</span>
+      </div>
+    ),
+    value: color.id.toString(),
+  }));
 
   const onChange = (str: string) => {
     if (str) {
@@ -69,9 +79,10 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
   const fetchData = async () => {
     try {
       setIsSubmit(true);
-      const [{ data: response1 }, { data: response2 }] = await Promise.all([
+      const [{ data: response1 }, { data: response2 }, { data: response3 }] = await Promise.all([
         axios.get<{ code: number; itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false })),
         axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.getCompositions),
+        axios.get<{ code: number; colors: ColorInterface[]; }>(routes.getColors),
       ]);
       if (response1.code === 1) {
         setItemCollections(response1.itemCollections);
@@ -79,6 +90,9 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
       if (response2.code === 1) {
         setOptionCompositions(response2.compositions);
         setFullCompositions(response2.compositions);
+      }
+      if (response3.code === 1) {
+        setOptionColors(response3.colors);
       }
       setIsSubmit(false);
     } catch (e) {
@@ -90,6 +104,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     initialValues.itemGroups?.length ?? 0) +
     (initialValues.itemCollections?.length ?? 0) +
     (initialValues.compositions?.length ?? 0) +
+    (initialValues.colors?.length ?? 0) +
     (initialValues.from ? 1 : 0) +
     (initialValues.to ? 1 : 0) +
     (initialValues.new ? 1 : 0) +
@@ -106,6 +121,9 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
     }
     if (initialValues.new || initialValues.bestseller) {
       activeFields.push('5');
+    }
+    if (initialValues.colors?.length) {
+      activeFields.push('6');
     }
 
     return activeFields;
@@ -205,6 +223,20 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, initialValues, setI
             <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.bestseller')}</Checkbox>
           </Form.Item>
         </>
+      ),
+    },
+    {
+      key: '6',
+      label: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('colors')}</span>
+          {initialValues.colors?.length ? <Badge count={initialValues.colors.length} color="#69788e" /> : null}
+        </div>
+      ),
+      children: (
+        <Form.Item<CatalogFiltersInterface> name="colors">
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" style={{ fontWeight: 300 }} options={colorsFilterOptions} />
+        </Form.Item>
       ),
     },
   ];

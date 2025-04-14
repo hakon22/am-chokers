@@ -18,6 +18,7 @@ export const useAccessHandler = () => {
     routes.promotionalCodes,
     routes.itemList,
     routes.compositionsControl,
+    routes.colorsControl,
   ];
 
   useEffect(() => {

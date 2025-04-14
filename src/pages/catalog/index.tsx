@@ -4,7 +4,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
-import { Skeleton, FloatButton, Button } from 'antd';
+import { Skeleton, FloatButton, Button, Form } from 'antd';
 import cn from 'classnames';
 import { chunk } from 'lodash';
 
@@ -28,6 +28,7 @@ export interface CatalogFiltersInterface {
   itemGroups?: string[];
   itemCollections?: string[];
   compositions?: string[];
+  colors?: string[];
   from?: string | null;
   to?: string | null;
   search?: string | null;
@@ -204,6 +205,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const typesParams = urlParams.getAll('groupIds');
   const collectionsParams = urlParams.getAll('collectionIds');
   const compositionParams = urlParams.getAll('compositionIds');
+  const colorParams = urlParams.getAll('colorIds');
   const fromParams = urlParams.get('from');
   const toParams = urlParams.get('to');
   const searchParams = urlParams.get('search');
@@ -213,10 +215,13 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const [isFilters, setIsFilters] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
 
+  const [form] = Form.useForm<CatalogFiltersInterface>();
+
   const preparedInitialValues: CatalogFiltersInterface = {
     itemGroups: typesParams,
     itemCollections: collectionsParams,
     compositions: compositionParams,
+    colors: colorParams,
     from: fromParams,
     to: toParams,
     search: searchParams,
@@ -228,6 +233,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     itemGroups: itemGroup ? [itemGroup.id.toString()] : [],
     itemCollections: [],
     compositions: [],
+    colors: [],
     from: undefined,
     to: undefined,
     search: undefined,
@@ -247,6 +253,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.itemGroups?.length ? { groupIds: values.itemGroups } : {}),
         ...(values?.itemCollections?.length ? { collectionIds: values.itemCollections } : {}),
         ...(values?.compositions?.length ? { compositionIds: values.compositions } : {}),
+        ...(values?.colors?.length ? { colorIds: values.colors } : {}),
         ...(values?.from ? { from: values.from } : {}),
         ...(values?.to ? { to: values.to } : {}),
         ...(values?.search ? { search: values.search } : {}),
@@ -284,6 +291,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   const resetFilters = async () => {
     setInitialValues(defaultInitialValues);
+    form.setFieldsValue(defaultInitialValues);
     await onFilters(defaultInitialValues);
   };
 
@@ -337,7 +345,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
       <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
       <FloatButton.BackTop />
-      <CatalogItemsFilter onFilters={onFilters} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
+      <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
       <div className="d-flex col-12 col-xl-9">
         <div className="w-100">
           <InfiniteScroll

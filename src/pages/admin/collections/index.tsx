@@ -165,7 +165,7 @@ const CreateItemCollection = () => {
         setItemCollections((state) => [...state, itemCollection]);
         setEditingKey('');
       } else if (payloadCode === 2) {
-        form.setFields([{ name: 'code', errors: [tToast('itemCollectionExist', { name })] }]);
+        form.setFields([{ name: 'name', errors: [tToast('itemCollectionExist', { name })] }]);
         toast(tToast('itemCollectionExist', { name }), 'error');
       }
     }

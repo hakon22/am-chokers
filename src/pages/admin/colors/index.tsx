@@ -2,14 +2,15 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
-import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
+import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag, ColorPicker } from 'antd';
 import axios from 'axios';
 import { maxBy } from 'lodash';
+import type { Color } from 'antd/lib/color-picker';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
-import { newCompositionValidation } from '@/validations/validations';
+import { newColorValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -17,11 +18,12 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
-import type { CompositionFormInterface, CompositionInterface, CompositionResponseInterface } from '@/types/composition/CompositionInterface';
+import type { ColorFormInterface, ColorInterface, ColorResponseInterface } from '@/types/color/ColorInterface';
 
-interface CompositionTableInterface {
+interface ColorTableInterface {
   key: string;
   name: string;
+  hex: Color | string;
   deleted?: Date;
 }
 
@@ -29,7 +31,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   editing: boolean;
   dataIndex: string;
   title: string;
-  record: CompositionTableInterface;
+  record: ColorTableInterface;
   index: number;
 }
 
@@ -37,6 +39,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   editing,
   dataIndex,
   title,
+  record,
   children,
 }) => (
   <td>
@@ -44,18 +47,17 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
       <Form.Item
         name={dataIndex}
         style={{ margin: 0 }}
-        rules={[newCompositionValidation]}
+        validateTrigger={false}
+        rules={[newColorValidation]}
       >
-        <Input placeholder={title} />
+        {dataIndex === 'hex' ? <ColorPicker size="large" disabledAlpha showText />  : <Input placeholder={title} />}
       </Form.Item>
-    ) : (
-      children
-    )}
+    ) : dataIndex === 'hex' ? <ColorPicker value={record.hex as string} size="large" disabledAlpha showText /> : children}
   </td>
 );
 
-const CreateComposition = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'pages.composition' });
+const CreateColor = () => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.color' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const router = useRouter();
@@ -71,19 +73,19 @@ const CreateComposition = () => {
 
   const [form] = Form.useForm();
 
-  const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
-  const [data, setData] = useState<CompositionTableInterface[]>([]);
+  const [colors, setColors] = useState<ColorInterface[]>([]);
+  const [data, setData] = useState<ColorTableInterface[]>([]);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
 
-  const updateData = (composition: CompositionInterface, row?: CompositionTableInterface) => {
-    const index = data.findIndex((tableComposition) => tableComposition.key.toString() === composition.id.toString());
+  const updateData = (color: ColorInterface, row?: ColorTableInterface) => {
+    const index = data.findIndex((tableColor) => tableColor.key.toString() === color.id.toString());
     if (index !== -1) {
       const newData = [...data];
       const item = newData[index];
       newData.splice(index, 1, {
         ...item,
-        ...(row || composition),
+        ...(row || color),
       });
       setData(newData);
       if (row) {
@@ -94,37 +96,38 @@ const CreateComposition = () => {
 
   const withDeletedHandler = () => setWithDeleted(!withDeleted);
 
-  const isEditing = (record: CompositionTableInterface) => record.key === editingKey;
+  const isEditing = (record: ColorTableInterface) => record.key === editingKey;
 
-  const edit = (record: Partial<CompositionTableInterface> & { key: React.Key }) => {
+  const edit = (record: Partial<ColorTableInterface> & { key: React.Key }) => {
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
-  const cancel = (record: CompositionTableInterface) => {
-    if (!compositions.find(({ name }) => name === record.name)) {
+  const cancel = (record: ColorTableInterface) => {
+    if (!colors.find(({ name }) => name === record.name)) {
       setData(data.filter(({ key }) => key !== record.key));
     }
     setEditingKey('');
   };
 
   const handleAdd = () => {
-    const maxId = maxBy(compositions, 'id')?.id;
-    const newData: CompositionTableInterface = {
+    const maxId = maxBy(colors, 'id')?.id;
+    const newData: ColorTableInterface = {
       name: '',
+      hex: '',
       key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
     edit(newData);
   };
 
-  const handleDelete = async (record: CompositionTableInterface) => {
+  const handleDelete = async (record: ColorTableInterface) => {
     try {
       setIsSubmit(true);
-      const { data: { code, composition } } = await axios.delete<CompositionResponseInterface>(routes.removeComposition(+record.key));
+      const { data: { code, color } } = await axios.delete<ColorResponseInterface>(routes.removeColor(+record.key));
       if (code === 1) {
         if (withDeleted) {
-          updateData(composition);
+          updateData(color);
         } else {
           const newData = data.filter((item) => item.key !== record.key);
           setData(newData);
@@ -139,9 +142,9 @@ const CreateComposition = () => {
   const restore = async (key: string) => {
     try {
       setIsSubmit(true);
-      const { data: { code, composition } } = await axios.patch<CompositionResponseInterface>(routes.restoreComposition(+key));
+      const { data: { code, color } } = await axios.patch<ColorResponseInterface>(routes.restoreColor(+key));
       if (code === 1) {
-        updateData(composition);
+        updateData(color);
       }
       setIsSubmit(false);
     } catch (e) {
@@ -149,31 +152,31 @@ const CreateComposition = () => {
     }
   };
 
-  const save = async (record: CompositionTableInterface) => {
+  const save = async (record: ColorTableInterface) => {
     try {
       setIsSubmit(true);
-      const row = await form.validateFields().catch(() => setIsSubmit(false)) as CompositionTableInterface;
+      const row = await form.validateFields().catch(() => setIsSubmit(false)) as ColorTableInterface;
 
       if (!row) {
         return;
       }
 
-      const { name } = row;
+      const { name, hex } = row;
 
-      const exist = compositions.find((composition) => composition.id.toString() === record.key.toString());
+      const exist = colors.find((color) => color.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, composition } } = await axios.put<CompositionResponseInterface>(routes.updateComposition(exist.id), { id: exist.id, name } as CompositionFormInterface);
+        const { data: { code, color } } = await axios.put<ColorResponseInterface>(routes.updateColor(exist.id), { id: exist.id, name, hex: (hex as Color).toHexString() } as ColorFormInterface);
         if (code === 1) {
-          updateData(composition, row);
+          updateData(color, row);
         }
       } else {
-        const { data: { code, composition } } = await axios.post<CompositionResponseInterface>(routes.createComposition, { name } as CompositionFormInterface);
+        const { data: { code, color } } = await axios.post<ColorResponseInterface>(routes.createColor, { name, hex: (hex as Color).toHexString() } as ColorFormInterface);
         if (code === 1) {
-          setCompositions((state) => [...state, composition]);
+          setColors((state) => [...state, color]);
           setEditingKey('');
         } else if (code === 2) {
-          form.setFields([{ name: 'name', errors: [tToast('compositionExist', { name })] }]);
-          toast(tToast('compositionExist', { name }), 'error');
+          form.setFields([{ name: 'name', errors: [tToast('colorExist', { name })] }]);
+          toast(tToast('colorExist', { name }), 'error');
         }
       }
       setIsSubmit(false);
@@ -186,9 +189,9 @@ const CreateComposition = () => {
     {
       title: t('columns.name'),
       dataIndex: 'name',
-      width: '70%',
+      width: '50%',
       editable: true,
-      render: (_: any, record: CompositionTableInterface) => (
+      render: (_: any, record: ColorTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.name}</span>
           {record.deleted
@@ -198,9 +201,15 @@ const CreateComposition = () => {
       ),
     },
     {
+      title: t('columns.hex'),
+      dataIndex: 'hex',
+      width: '50%',
+      editable: true,
+    },
+    {
       title: t('columns.operation'),
       dataIndex: 'operation',
-      render: (_: any, record: CompositionTableInterface) => {
+      render: (_: any, record: ColorTableInterface) => {
         const editable = isEditing(record);
         return editable ? (
           <span className="d-flex gap-2">
@@ -236,13 +245,13 @@ const CreateComposition = () => {
     },
   ];
 
-  const mergedColumns: TableProps<CompositionTableInterface>['columns'] = columns.map((col) => {
+  const mergedColumns: TableProps<ColorTableInterface>['columns'] = columns.map((col) => {
     if (!col.editable) {
       return col;
     }
     return {
       ...col,
-      onCell: (record: CompositionTableInterface) => ({
+      onCell: (record: ColorTableInterface) => ({
         record,
         dataIndex: col.dataIndex,
         title: col.title,
@@ -252,7 +261,7 @@ const CreateComposition = () => {
   });
 
   useEffect(() => {
-    if ((withDeleted !== undefined || !compositions.length) && axiosAuth) {
+    if ((withDeleted !== undefined || !colors.length) && axiosAuth) {
       router.push({
         query: { 
           ...router.query, 
@@ -263,14 +272,14 @@ const CreateComposition = () => {
       { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.getCompositions, {
+      axios.get<{ code: number; colors: ColorInterface[]; }>(routes.getColors, {
         params: { withDeleted },
       })
         .then(({ data: response }) => {
           if (response.code === 1) {
-            setCompositions(response.compositions);
-            const newCompositions: CompositionTableInterface[] = response.compositions.map((composition) => ({ ...composition, key: composition.id.toString() }));
-            setData(newCompositions);
+            setColors(response.colors);
+            const newColors: ColorTableInterface[] = response.colors.map((color) => ({ ...color, key: color.id.toString() }));
+            setData(newColors);
           }
           setIsSubmit(false);
         })
@@ -281,8 +290,8 @@ const CreateComposition = () => {
   }, [withDeleted, axiosAuth]);
 
   useEffect(() => {
-    setData(compositions.map((composition) => ({ ...composition, key: composition.id.toString() })));
-  }, [compositions.length]);
+    setData(colors.map((color) => ({ ...color, key: color.id.toString() })));
+  }, [colors.length]);
 
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
@@ -294,13 +303,13 @@ const CreateComposition = () => {
         </div>
         <div className="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 mb-3">
           <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
-            {t('addComposition')}
+            {t('addColor')}
           </Button>
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
         </div>
       </div>
       <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
-        <Table<CompositionTableInterface>
+        <Table<ColorTableInterface>
           components={{
             body: { cell: EditableCell },
           }}
@@ -318,4 +327,4 @@ const CreateComposition = () => {
   ) : null;
 };
 
-export default CreateComposition;
+export default CreateColor;

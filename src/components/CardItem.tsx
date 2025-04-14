@@ -140,7 +140,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
 };
 
 export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface; }) => {
-  const { id, collection, images, name, description, price, discountPrice, compositions, length, rating } = fetchedItem;
+  const { id, collection, images, name, description, colors, price, discountPrice, compositions, length, rating } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
@@ -332,6 +332,17 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               <div className="d-flex flex-column gap-2">
                 <span>{t('composition')}</span>
                 <span>{compositions.map((composition) => composition.name).join(', ')}</span>
+              </div>
+              <div className="d-flex flex-column gap-2">
+                <span>{t('color')}</span>
+                <div className="d-flex gap-3">
+                  {colors.map((color) => (
+                    <div key={color.id} className="d-flex align-items-center gap-2">
+                      <span className="d-block" style={{ backgroundColor: color.hex, borderRadius: '50%', width: 25, height: 25 }} />
+                      <span>{color.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="d-flex flex-column gap-2">
                 <span>{t('length')}</span>
