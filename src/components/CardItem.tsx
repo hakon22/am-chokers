@@ -224,10 +224,10 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             </>
           )
           : null}
-        <div className="d-flex flex-column justify-content-center align-items-center gap-3">
+        <div className="d-flex flex-column align-items-center gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass={cn('w-100 mb-5 mb-xl-0', { 'image-label': !!item.deleted })}
+            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'image-label': !!item.deleted })}
             showIndex
             items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== getHeight() ? undefined : originalHeight, originalWidth: isMobile && originalHeight === getHeight() ? originalHeight / 1.3 : undefined }))}
             infinite
@@ -281,7 +281,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
           <div className="d-flex flex-column">
             {!isMobile
               ? (
-                <><h1 className="mb-4 fs-3">{name}</h1>
+                <><h1 className="mb-4 mt-xl-0 fs-3">{name}</h1>
                   {collection
                     ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.name })}</Tag></div>
                     : null}
@@ -330,12 +330,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             <p className={cn('lh-lg', { 'order-2': isMobile })} style={{ letterSpacing: '0.5px' }}>{description}</p>
             <div className={cn('d-flex flex-column gap-3', { 'order-3': isMobile })}>
               <div className="d-flex flex-column gap-2">
-                <span>{t('composition')}</span>
+                <span className="fs-5">{t('composition')}</span>
                 <span>{compositions.map((composition) => composition.name).join(', ')}</span>
               </div>
               <div className="d-flex flex-column gap-2">
-                <span>{t('color')}</span>
-                <div className="d-flex gap-3">
+                <span className="fs-5">{t('color')}</span>
+                <div className="d-flex gap-3 flex-wrap">
                   {colors.map((color) => (
                     <div key={color.id} className="d-flex align-items-center gap-2">
                       <span className="d-block" style={{ backgroundColor: color.hex, borderRadius: '50%', width: 25, height: 25 }} />
@@ -345,7 +345,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 </div>
               </div>
               <div className="d-flex flex-column gap-2">
-                <span>{t('length')}</span>
+                <span className="fs-5">{t('length')}</span>
                 <span>{length}</span>
               </div>
             </div>

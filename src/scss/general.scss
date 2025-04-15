@@ -95,6 +95,10 @@ h2 {
   padding-bottom: 1.2rem;
 }
 
+.mt-xl-2-5 {
+  margin-top: 0.8rem !important;
+}
+
 .anim-show {
 	opacity: 0;
 	transition: 1s;
@@ -498,6 +502,10 @@ a {
 }
 
 @media (max-width: 1199px) {
+  .mt-xl-2-5 {
+    margin-top: unset !important;
+  }
+
   .ant-table-content {
     overflow-x: scroll;
   }
