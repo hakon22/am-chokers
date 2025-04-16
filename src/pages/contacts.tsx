@@ -20,7 +20,7 @@ const Contacts = () => {
       <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-5">{t('title')}</h1>
       <div className="d-flex flex-column text-center text-xl-start">
         <p>{t('1')}</p>
-        <p className="mb-5">{t('2')}<a className="fw-bold" href={`tel:${process.env.NEXT_PUBLIC_WORK_PHONE}`}>{process.env.NEXT_PUBLIC_WORK_PHONE}</a></p>
+        {/*<p className="mb-5">{t('2')}<a className="fw-bold" href={`tel:${process.env.NEXT_PUBLIC_WORK_PHONE}`}>{process.env.NEXT_PUBLIC_WORK_PHONE}</a></p>*/}
         <div className="d-flex align-items-center justify-content-center justify-content-xl-start gap-3">
           <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} title={t('personalTelegram')} target="_blank">
             <Image src={telegramIcon} width="35" priority alt={t('personalTelegram')} />
