@@ -53,6 +53,7 @@ const Index = () => {
   const collection1 = collections.find(({ deleted, order }) => order === 4 && !deleted);
   const collection2 = collections.find(({ deleted, order }) => order === 5 && !deleted);
   const collection3 = collections.find(({ deleted, order }) => order === 6 && !deleted);
+  const collection4 = collections.find(({ deleted, order }) => order === 7 && !deleted);
 
   const coverImage1 = coverImages.find(({ coverOrder }) => coverOrder === 1);
   const coverImage2 = coverImages.find(({ coverOrder }) => coverOrder === 2);
@@ -65,6 +66,7 @@ const Index = () => {
   const coverCollectionImage9 = coverImages.find(({ coverOrder }) => coverOrder === 9);
   const coverCollectionImage10 = coverImages.find(({ coverOrder }) => coverOrder === 10);
   const coverCollectionImage11 = coverImages.find(({ coverOrder }) => coverOrder === 11);
+  const coverCollectionImage12 = coverImages.find(({ coverOrder }) => coverOrder === 12);
 
   const coefficient = 1.3;
 
@@ -385,6 +387,36 @@ const Index = () => {
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
                 <Link href={collection3 ? `${routes.catalog}?collectionIds=${collection3?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection3?.collection?.name}</Link>
+              </div>
+            </div>
+            <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
+              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-7">
+                {!isMobile && <ContextMenu item={collection4} order={7} data-aos="fade-right" data-aos-duration="1500">
+                  <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
+                    <ImageHover
+                      className="col-12 col-xl-6"
+                      style={{ alignSelf: isMobile ? 'center' : 'start' }}
+                      href={getHref(collection4)}
+                      height={height}
+                      width={width}
+                      images={collection4?.images ?? []}
+                      name={collection4?.name}
+                      rating={collection4 ? { rating: collection4.rating, grades: collection4.grades } : undefined}
+                      description={tPrice('price', { price: collection4 ? collection4.price - collection4.discountPrice : 0 })}
+                    />
+                  </div>
+                </ContextMenu>}
+                <ContextMenu image={coverCollectionImage12} cover={12} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                  <ImageHover
+                    className={isMobile ? 'align-items-center' : ''}
+                    width={coverSize.coverCollection.width}
+                    height={coverSize.coverCollection.height}
+                    images={(coverCollectionImage12 ? [coverCollectionImage12] : [])}
+                  />
+                </ContextMenu>
+              </div>
+              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
+                <Link href={collection4 ? `${routes.catalog}?collectionIds=${collection4?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection4?.collection?.name}</Link>
               </div>
             </div>
           </section>
