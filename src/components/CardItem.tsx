@@ -26,6 +26,7 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { toast } from '@/utilities/toast';
 import { ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import { getHeight } from '@/utilities/screenExtension';
+import { scrollToElement } from '@/utilities/scrollToElement';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
@@ -176,19 +177,6 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
       dispatch(removeSpecialItem(value));
     } else if ((value.new || value.collection || value.bestseller) && !specialItems.find((specialItem) => specialItem.id === value.id)) {
       dispatch(addSpecialItem(value));
-    }
-  };
-
-  const scrollToElement = (elementId: string, offset: number) => {
-    const element = document.getElementById(elementId);
-    if (element) {
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
     }
   };
 

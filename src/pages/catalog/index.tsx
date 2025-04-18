@@ -23,6 +23,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { getWidth } from '@/utilities/screenExtension';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
+import { scrollToElement } from '@/utilities/scrollToElement';
 
 export interface CatalogFiltersInterface {
   itemGroups?: string[];
@@ -122,7 +123,7 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
   return isMobile
     ? extensionValue < 768
       ? (
-        <div className="d-flex flex-column gap-5 col-12">
+        <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
           <div className="d-flex justify-content-between">
             <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
             <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
@@ -144,7 +145,7 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
         </div>
       )
       : (
-        <div className="d-flex flex-column gap-5 col-12">
+        <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
           <div className="d-flex justify-content-between">
             <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
             <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
@@ -162,7 +163,7 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
         </div>
       )
     : (
-      <div className="d-flex flex-column gap-5 col-12">
+      <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
         <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
           <div className={cn('d-flex col-6 gap-5', { 'flex-row-reverse': isReverse })}>
             <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
@@ -211,6 +212,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const searchParams = urlParams.get('search');
   const newParams = urlParams.get('new');
   const bestsellerParams = urlParams.get('bestseller');
+  const pageParams = urlParams.get('page');
 
   const [isFilters, setIsFilters] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -250,6 +252,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       setIsFilters(true);
 
       const params = {
+        page: (paginationParams?.offset || chunkNumber) / chunkNumber,
         ...(values?.itemGroups?.length ? { groupIds: values.itemGroups } : {}),
         ...(values?.itemCollections?.length ? { collectionIds: values.itemCollections } : {}),
         ...(values?.compositions?.length ? { compositionIds: values.compositions } : {}),
@@ -294,6 +297,52 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     form.setFieldsValue(defaultInitialValues);
     await onFilters(defaultInitialValues);
   };
+
+  useEffect(() => {
+    // Создаем новый экземпляр Intersection Observer
+    const threshold = isMobile ? 0.1 : 0.35;
+    const observer = new IntersectionObserver((entries) => {
+
+      let lastVisibleSectionId = null; // Храним ID последней видимой секции
+  
+      entries.forEach(entry => {
+        // Проверяем, что секция видима не менее чем на 35%
+        if (entry.isIntersecting && entry.intersectionRatio >= threshold) {
+          const currentSection = entry.target.id; // Получаем id текущей секции
+          lastVisibleSectionId = currentSection; // Обновляем ID последней видимой секции
+        }
+      });
+  
+      // Если есть видимая секция, обновляем параметр page в адресной строке
+      if (lastVisibleSectionId && router.query.page !== lastVisibleSectionId) {
+        router.push({
+          pathname: router.pathname,
+          query: { ...router.query, page: lastVisibleSectionId },
+        }, undefined, { shallow: true });
+      }
+    }, {
+      threshold, // Уровень пересечения для видимости 35%
+    });
+  
+    // Получаем все секции, которые нужно отслеживать
+    const sections = document.querySelectorAll('.part');
+    sections.forEach(section => {
+      observer.observe(section); // Начинаем наблюдение за каждой секцией
+    });
+  
+    // Очистка при размонтировании компонента
+    return () => {
+      sections.forEach(section => {
+        observer.unobserve(section); // Останавливаем наблюдение за каждой секцией
+      });
+    };
+  }, [router]);
+
+  useEffect(() => {
+    if (pageParams && pageParams !== '1') {
+      scrollToElement(pageParams, isMobile ? 60 : 120);
+    }
+  }, []);
 
   useEffect(() => {
     dispatch(setPaginationParams(propsPaginationParams));

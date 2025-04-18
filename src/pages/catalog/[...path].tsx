@@ -22,6 +22,7 @@ interface GetServerSidePropsInterface {
     search?: string;
     new?: boolean;
     bestseller?: boolean;
+    page: number;
   },
 }
 
@@ -40,7 +41,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
   const [{ data: { items: payloadItems, paginationParams } }, { data: { itemGroup } }] = await Promise.all([
     axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: false }), {
       params: {
-        limit: 8,
+        limit: +(query?.page || 1) * 8,
         offset: 0,
         groupCode,
         ...(query?.groupIds ? Array.isArray(query.groupIds) ? { groupIds: query.groupIds } : { groupIds: [query.groupIds] } : {}),
