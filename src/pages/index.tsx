@@ -505,7 +505,7 @@ const Index = () => {
             </div>*/}
           </section>
           <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500" style={isMobile ? { marginBottom: '-200px' } : {}}>
-            <div className="font-honey-vineyard fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
+            <div className="font-good-vibes-pro fs-1 fw-bold mb-5">{t('iEmphasizeYourIndividuality')}</div>
             <p className="d-flex flex-column fw-light fs-5 mb-1">
               <span className="mb-1">{t('subscribe')}</span>
               <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>

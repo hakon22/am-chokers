@@ -53,7 +53,7 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
   return (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={tOrder('title', { id })} description={tOrder('description', { id })} />
-      <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{tOrder('title', { id })}</h1>
+      <h1 className="font-good-vibes-pro text-center fs-1 fw-bold mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{tOrder('title', { id })}</h1>
       <div className="d-flex align-items-center gap-3 mb-5">
         <BackButton style={{}} />
       </div>

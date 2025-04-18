@@ -287,7 +287,7 @@ const CreateComposition = () => {
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
-      <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-5" style={{ marginTop: isMobile ? '100px' : '12%' }}>{t('title')}</h1>
+      <h1 className="font-good-vibes-pro text-center fs-1 fw-bold mb-5" style={{ marginTop: isMobile ? '100px' : '12%' }}>{t('title')}</h1>
       <div className="d-flex flex-column justify-content-center">
         <div className="mb-3">
           <BackButton style={{}} />

@@ -35,8 +35,8 @@
 
 @font-face {
   font-weight: 400;
-  font-family: HoneyVineyard;
-  src: url('../fonts/HoneyVineyard.ttf');
+  font-family: GoodVibesPro;
+  src: url('../fonts/Good-Vibes-Pro.ttf');
 }
 
 html {
@@ -297,8 +297,8 @@ a {
   min-height: var(--galleryHeight);
 }
 
-.font-honey-vineyard {
-  font-family: HoneyVineyard;
+.font-good-vibes-pro {
+  font-family: GoodVibesPro;
   letter-spacing: 3px;
   font-size: 48px !important;
   margin: 0;
@@ -502,7 +502,7 @@ a {
 }
 
 @media (max-width: 1199px) {
-  .font-honey-vineyard {
+  .font-good-vibes-pro {
     font-size: 36px !important;
   }
 

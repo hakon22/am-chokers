@@ -76,7 +76,7 @@ const Orders = () => {
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
-      <h1 className="font-honey-vineyard text-center fs-1 fw-bold mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>
+      <h1 className="font-good-vibes-pro text-center fs-1 fw-bold mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>
       <div className="d-flex flex-column flex-xl-row align-items-center gap-3 mb-5">
         <BackButton style={isMobile ? { alignSelf: 'start' } : {}} />
         <OrderStatusFilter statuses={statuses} setStatuses={setStatuses} />
