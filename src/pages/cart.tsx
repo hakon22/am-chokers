@@ -325,7 +325,7 @@ const Cart = () => {
           <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
         </>
       </Modal>
-      <h1 className="font-good-vibes-pro text-center fs-1 fw-bold mb-5">{t('title', { count: countCart })}</h1>
+      <h1 className="font-good-vibes-pro text-center mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '' }}>
         <div className="d-flex flex-column justify-content-center align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>

@@ -99,6 +99,10 @@ h2 {
   margin-top: 0.8rem !important;
 }
 
+.gap-2-5 {
+  gap: 0.6rem !important;
+}
+
 .anim-show {
 	opacity: 0;
 	transition: 1s;
@@ -300,7 +304,7 @@ a {
 .font-good-vibes-pro {
   font-family: GoodVibesPro;
   letter-spacing: 3px;
-  font-size: 48px !important;
+  font-size: 40px;
   margin: 0;
 }
 
@@ -503,7 +507,7 @@ a {
 
 @media (max-width: 1199px) {
   .font-good-vibes-pro {
-    font-size: 36px !important;
+    font-size: 28px;
   }
 
   .mt-xl-2-5 {

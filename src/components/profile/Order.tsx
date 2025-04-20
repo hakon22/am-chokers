@@ -174,7 +174,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                             images={orderPosition.item.images}
                           />
                           <div className="d-flex flex-column justify-content-between fs-6" style={{ height }}>
-                            <span className="font-oswald fs-5-5 lh-1" style={{ fontWeight: 500 }}>{orderPosition.item.name}</span>
+                            <span className="font-oswald fs-6 lh-1" style={{ fontWeight: 500 }}>{orderPosition.item.name}</span>
                             <span className="lh-1">{t('countPrice', { count: orderPosition.count, price: (orderPosition.price - orderPosition.discountPrice) * orderPosition.count })}</span>
                           </div>
                         </div>

@@ -17,7 +17,7 @@ const Contacts = () => {
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
       <Helmet title={t('title')} description={t('description')} />
-      <h1 className="font-good-vibes-pro text-center fs-1 fw-bold mb-5">{t('title')}</h1>
+      <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div className="d-flex flex-column">
         <p>{t('1')}</p>
         {/*<p className="mb-5">{t('2')}<a className="fw-bold" href={`tel:${process.env.NEXT_PUBLIC_WORK_PHONE}`}>{process.env.NEXT_PUBLIC_WORK_PHONE}</a></p>*/}

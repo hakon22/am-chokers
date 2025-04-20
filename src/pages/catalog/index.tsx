@@ -340,7 +340,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   useEffect(() => {
     if (pageParams && pageParams !== '1') {
-      scrollToElement(pageParams, isMobile ? 60 : 120);
+      scrollToElement(pageParams, 120);
     }
   }, []);
 
