@@ -101,7 +101,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     if (!payload?.error) {
       setItem(payload.item);
       setIsPublish(false);
-      toast(tToast('itemPublishSuccess', { name }), 'success');
+      toast(tToast('itemPublishSuccess', { name: item.name }), 'success');
     }
     setIsSubmit(false);
   };

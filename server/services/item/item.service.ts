@@ -340,6 +340,10 @@ export class ItemService extends BaseService {
       throw new Error('Для публикации в группу Telegram товар должен иметь более одной фотографии');
     }
 
+    if (item.message?.id) {
+      throw new Error('Товар уже опубликован!');
+    }
+
     const url = this.getUrl(item);
 
     if (process.env.TELEGRAM_GROUP_ID) {
