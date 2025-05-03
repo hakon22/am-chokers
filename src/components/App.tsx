@@ -59,7 +59,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
         {isMobile ? null : <Breadcrumb />}
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? footerHeight - 100 : footerHeight }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? footerHeight + 100 : footerHeight }}>
         <main className="container">
           {children}
         </main>
