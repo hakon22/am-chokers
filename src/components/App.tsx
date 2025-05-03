@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import { Spin } from 'antd';
@@ -21,7 +21,10 @@ export const App = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
   const router = useRouter();
 
+  const footerRef = useRef<HTMLElement>(null);
+
   const [isLoaded, setIsLoaded] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
 
   const { error: userError } = useAppSelector((state) => state.user);
   const { error: orderError } = useAppSelector((state) => state.order);
@@ -41,6 +44,14 @@ export const App = ({ children }: { children: JSX.Element }) => {
     setTimeout(setIsLoaded, 1000, true);
   }, []);
 
+  useEffect(() => {
+    if (footerRef.current) {
+      const height = footerRef.current.getBoundingClientRect().height;
+
+      setFooterHeight(Math.round(height + 200));
+    }
+  }, [footerRef]);
+
   return (
     <>
       {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
@@ -48,12 +59,12 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
         {isMobile ? null : <Breadcrumb />}
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? '820px' : '25%' }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? footerHeight - 100 : footerHeight }}>
         <main className="container">
           {children}
         </main>
       </div>
-      <footer className="footer">
+      <footer ref={footerRef} className="footer">
         <Footer />
       </footer>
     </>

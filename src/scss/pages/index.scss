@@ -48,7 +48,7 @@
     margin-top: 1rem;
   }
 
-  .text-with-arrow {
+  .text-with-arrow, .text-with-arrow-reverse {
     position: relative;
     padding-bottom: 30px;
 
@@ -72,6 +72,18 @@
       background-repeat: no-repeat;
       width: 11px;
       height: 15px;
+    }
+
+    &-reverse {
+      &::after {
+        right: auto;
+        left: -3px;
+        -moz-transform: rotate(180deg);
+        -ms-transform: rotate(180deg);
+        -webkit-transform: rotate(180deg);
+        -o-transform: rotate(180deg);
+        transform: rotate(180deg);
+      }
     }
   }
 }

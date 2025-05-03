@@ -10,7 +10,7 @@ const Delivery = () => {
   const { isMobile } = useContext(MobileContext);
 
   return (
-    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
+    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div className="d-flex flex-column">

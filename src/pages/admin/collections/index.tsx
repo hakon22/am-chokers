@@ -4,11 +4,11 @@ import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
 import axios from 'axios';
+import { maxBy } from 'lodash';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
-import type { ItemCollectionInterface } from '@/types/item/Item';
 import { newItemCollectionValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItemCollection, deleteItemCollection, type ItemCollectionResponseInterface, restoreItemCollection, updateItemCollection } from '@/slices/appSlice';
@@ -18,6 +18,7 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import type { ItemCollectionInterface } from '@/types/item/Item';
 
 interface ItemCollectionTableInterface {
   key: string;
@@ -120,10 +121,11 @@ const CreateItemCollection = () => {
   };
 
   const handleAdd = () => {
+    const maxId = maxBy(itemCollections, 'id')?.id;
     const newData: ItemCollectionTableInterface = {
       name: '',
       description: '',
-      key: (data.length + 1).toString(),
+      key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
     edit(newData);

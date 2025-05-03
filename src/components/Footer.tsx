@@ -16,14 +16,17 @@ export const Footer = () => {
     <div className="container d-flex col-12">
       <div className="d-flex flex-column flex-xl-row justify-content-between col-12 col-xl-6 gap-4 gap-xl-0">
         <div className="col-12 col-xl-6">
-          <h6 className="mb-4">{t('jewelryCatalog')}</h6>
+          <h6 className="mb-4">
+            <Link href={routes.catalog}>{t('jewelryCatalog')}</Link>
+          </h6>
           <ul>
-            <li><Link href={routes.catalog}>{t('jewelryCatalog')}</Link></li>
             {itemGroups.map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.name}</Link></li>)}
           </ul>
         </div>
         <div className="col-12 col-xl-8">
-          <h6 className="mb-4">{t('contacts')}</h6>
+          <h6 className="mb-4">
+            <Link href={routes.contactsPage}>{t('contacts')}</Link>
+          </h6>
           <ul>
             <li className="text-muted"><Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`}>{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link></li>
           </ul>

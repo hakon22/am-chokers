@@ -293,7 +293,7 @@ const Cart = () => {
   }, [count]);
 
   return (
-    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '12%' }}>
+    <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
       <Helmet title={t('title', { count: countCart })} description={t('description')} />
       {isProcessConfirmed
         ? (
@@ -327,7 +327,7 @@ const Cart = () => {
       </Modal>
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '' }}>
-        <div className="d-flex flex-column justify-content-center align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
+        <div className="d-flex flex-column align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
           </Checkbox>

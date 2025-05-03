@@ -1,10 +1,10 @@
 import { writeFileSync } from 'fs';
 
 import sharp from 'sharp';
-import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 import multer from 'multer';
 import { v4 as uuid } from 'uuid';
+import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
 
 import { ImageEntity } from '@server/db/entities/image.entity';

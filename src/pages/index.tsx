@@ -77,8 +77,12 @@ const Index = () => {
 
   const responsive = {
     desktop: {
-      breakpoint: { max: 5000, min: 1024 },
+      breakpoint: { max: 5000, min: 1400 },
       items: 5,
+    },
+    tv: {
+      breakpoint: { max: 1400, min: 1024 },
+      items: 4,
     },
     tablet: {
       breakpoint: { max: 1024, min: 464 },
@@ -117,16 +121,16 @@ const Index = () => {
               : 160,
         },
         coverCollection: {
-          width: extension > 1400
+          width: extension >= 1200
             ? 450
             : extension < 1200
               ? 300
               : 352,
-          height: extension > 1400
+          height: extension >= 1200
             ? 299
             : extension < 1200
               ? 199.3
-              : 529.7,
+              : 233.9,
         },
       });
     };
@@ -266,12 +270,12 @@ const Index = () => {
             </div>
           </section>
           <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '2rem' }}>
-            <h2 className="col-12 col-xl-10 lh-base">
+            <h2 className="col-12 col-xxl-10 lh-base">
               {t('slogan.create')}
               <br />
               {t('slogan.uniqueDecoration')}
             </h2>
-            <div className="guide col-12 col-xl-10">
+            <div className="guide col-12 col-xxl-10">
               <div className="d-flex lh-base">
                 {!isMobile && <Image src={uniqueDecoration} className="col-5" unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('slogan.uniqueDecoration')} priority />}
                 <div className="guide-text w-100 d-flex flex-column">
@@ -300,7 +304,7 @@ const Index = () => {
               <h2 className="text-center">{t('collections')}</h2>
             </div>}
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
-              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-7">
+              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
                 {!isMobile && <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
@@ -326,11 +330,11 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection1?.collection?.name}</Link>
+                <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection1?.collection?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
-              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-7">
+              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
                 {!isMobile && <ContextMenu item={collection2} order={5} data-aos="fade-left" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
@@ -360,7 +364,7 @@ const Index = () => {
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
-              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-7">
+              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
                 {!isMobile && <ContextMenu item={collection3} order={6} data-aos="fade-left" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
@@ -390,7 +394,7 @@ const Index = () => {
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
-              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-7">
+              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
                 {!isMobile && <ContextMenu item={collection4} order={7} data-aos="fade-right" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
@@ -416,7 +420,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection4 ? `${routes.catalog}?collectionIds=${collection4?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection4?.collection?.name}</Link>
+                <Link href={collection4 ? `${routes.catalog}?collectionIds=${collection4?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection4?.collection?.name}</Link>
               </div>
             </div>
           </section>

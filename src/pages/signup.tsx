@@ -65,7 +65,7 @@ const Signup = () => {
   return (
     <>
       <Helmet title={t('title')} description={t('description')} />
-      <div className="col-12 d-flex gap-5">
+      <div className="col-12 d-flex justify-content-between">
         {!isMobile
           ? (
             <div className="col-5" style={{ marginTop: '12%' }}>
