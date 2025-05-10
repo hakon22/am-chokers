@@ -648,7 +648,7 @@ export default {
         offerAgreement: 'Договор оферты',
         info: 'Информация',
         instagramText1: '*Instagram - проект Meta Platforms Inc.',
-        instagramText2: 'деятельность которого в Росии запрещена ',
+        instagramText2: 'деятельность которого в России запрещена ',
       },
       gradeList: {
         reviews: 'Отзывы',
