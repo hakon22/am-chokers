@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 import moment from 'moment';
 import Image from 'next/image';
 import { Telegram } from 'react-bootstrap-icons';
+import axios from 'axios';
 
 import telegramIcon from '@/images/icons/telegram.svg';
 import { Favorites } from '@/components/Favorites';
@@ -27,6 +28,7 @@ import { toast } from '@/utilities/toast';
 import { ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import { getHeight } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
+import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 
@@ -35,7 +37,7 @@ interface AdminControlGroupInterface {
   setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
 }
 
-const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void }) => {
+const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish, generateDescription }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void, generateDescription: () => void}) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   return (
@@ -49,6 +51,13 @@ const PublishModal = ({ description, isPublish, setIsPublish, setDescription, on
       cancelText={t('cancel')}
       onClose={() => setIsPublish(false)}
       onCancel={() => setIsPublish(false)}
+      footer={(_, { OkBtn, CancelBtn }) => (
+        <div className="d-flex flex-column flex-xl-row justify-content-end gap-2">
+          <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button>
+          <CancelBtn />
+          <OkBtn />
+        </div>
+      )}
     >
       <Input.TextArea value={description} onChange={(({ target }) => setDescription(target.value))} rows={6} placeholder={t('enterDescription')} />
     </Modal>
@@ -106,11 +115,24 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     setIsSubmit(false);
   };
 
+  const generateDescription = async () => {
+    try {
+      setIsSubmit(true);
+      const { data } = await axios.get<{ code: number; description: string; }>(routes.generateDescription(item.id));
+      if (data.code === 1) {
+        setDescription(data.description);
+      }
+      setIsSubmit(false);
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    }
+  };
+
   return role === UserRoleEnum.ADMIN
     ? isMobile
       ? (
         <>
-          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} />
+          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} generateDescription={generateDescription} />
           <FloatButton.Group
             trigger="click"
             style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
@@ -124,7 +146,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       )
       : (
         <>
-          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} />
+          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} generateDescription={generateDescription} />
           <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
           {item.deleted
             ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>

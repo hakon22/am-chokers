@@ -687,6 +687,7 @@ export default {
         remove: 'Удалить',
         restore: 'Восстановить',
         publishToTelegram: 'Опубликовать в Telegram',
+        generateDescription: 'Сгенерировать описание',
         enterDescription: 'Введите описание товара',
         removeTitle: 'Удаление товара',
         removeDescription: 'Вы действительно хотите удалить товар?',

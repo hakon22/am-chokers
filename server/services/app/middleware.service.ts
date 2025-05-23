@@ -1,10 +1,10 @@
-import type { Request, Response, NextFunction } from 'express';
 import { Singleton } from 'typescript-ioc';
 import passport from 'passport';
+import type { Request, Response, NextFunction } from 'express';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
 export class MiddlewareService {
@@ -43,6 +43,27 @@ export class MiddlewareService {
     if (subnets.find((subnet) => this.checkIpService.isCorrectIP(this.getClientIp(req) as string, subnet))) {
       next();
       return;
+    }
+
+    res.status(401).json({ message: 'Unauthorized' });
+  };
+
+  public authorizationYookassaMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const subnets = [
+      '185.71.76.0/27',
+      '185.71.77.0/27',
+      '77.75.153.0/25',
+      '77.75.154.128/25',
+    ];
+    const ips = [
+      '77.75.156.11',
+      '77.75.156.35',
+    ];
+
+    const ip = this.getClientIp(req) as string;
+
+    if (ips.includes(ip) || subnets.find(subnet => this.checkIpService.isCorrectIP(ip, subnet))) {
+      return next();
     }
 
     res.status(401).json({ message: 'Unauthorized' });
