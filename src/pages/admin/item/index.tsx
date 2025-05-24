@@ -1,4 +1,6 @@
 import ImageGallery from 'react-image-gallery';
+import cn from 'classnames';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import { RightOutlined, InboxOutlined, UploadOutlined } from '@ant-design/icons';
@@ -8,8 +10,6 @@ import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
 import { isEqual } from 'lodash';
-import cn from 'classnames';
-import axios from 'axios';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
