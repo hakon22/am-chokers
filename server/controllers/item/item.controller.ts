@@ -104,7 +104,6 @@ export class ItemController extends BaseService {
 
       const { images, ...rest } = body;
 
-
       const result = await this.itemService.createOne(rest as ItemEntity, images);
 
       res.json(result);

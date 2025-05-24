@@ -43,7 +43,7 @@ export const getServerSideProps = async () => {
   };
 };
 
-const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateItem: updateStateItem }: { oldItem?: ItemInterface; itemCollections?: ItemCollectionInterface[]; updateItem?: (value: ItemInterface) => void }) => {
+const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateItem: updateStateItem }: { oldItem?: ItemInterface; itemCollections?: ItemCollectionInterface[]; updateItem?: (value: ItemInterface) => void; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.createItem' });
   const { t: tCardItem } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -189,6 +189,34 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       toast(tToast('itemExist', { name: values.name }), 'error');
     }
     setIsSubmit(false);
+  };
+
+  const generateDescription = async () => {
+    try {
+      setIsSubmit(true);
+      const values = form.getFieldsValue();
+
+      if (!(values.name && values.group && values.collection && values.length && values.colors?.length && values.compositions?.length && images.length)) {
+        form.setFields([{ name: 'description', errors: [tToast('requiredFields')] }]);
+        throw new Error(tToast('requiredFields'));
+      }
+
+      values.images = images;
+      values.group = itemGroup as ItemGroupInterface;
+      values.collection = itemCollection as ItemCollectionInterface;
+      values.compositions = compositions.filter((composition) => itemCompositions?.find((value) => (typeof value === 'number' && value === composition.id) || value.id === composition.id)) as CompositionEntity[];
+      values.colors = colors.filter((color) => itemColors?.find((value) => (typeof value === 'number' && value === color.id) || value.id === color.id)) as ColorEntity[];
+
+      const { data } = await axios.post<{ code: number; description: string; }>(routes.generateDescriptionWithoutItem, values);
+
+      if (data.code === 1) {
+        form.setFields([{ name: 'description', errors: [] }]);
+        form.setFieldValue('description', data.description);
+      }
+      setIsSubmit(false);
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    }
   };
 
   useEffect(() => {
@@ -408,9 +436,16 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
               </div>)}
-              <Form.Item<typeof item> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
-                <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} size="large" rows={2} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
-              </Form.Item>
+              <div className="position-relative">
+                <Form.Item<typeof item> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
+                  <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} size="large" rows={3} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
+                </Form.Item>
+                {!isMobile && <Button className="generate-button" onClick={generateDescription}>{t('generateDescription')}</Button>}
+              </div>
+              {isMobile && (
+                <div className="mb-4 text-center">
+                  <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button>
+                </div>)}
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('composition')}</span>

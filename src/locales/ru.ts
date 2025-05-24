@@ -177,6 +177,7 @@ export default {
         editDescription: 'Редактирование товара',
         submitButton: 'Добавить товар',
         submitEditButton: 'Изменить товар',
+        generateDescription: 'Сгенерировать описание',
         favorites: 'Избранное',
         success: 'Изображение {{ fileName }} успешно загружено',
         home: 'Главная',
@@ -795,6 +796,7 @@ export default {
       changeOrderStatusSuccess: 'Статус заказа №{{ id }} изменён на {{ status }}',
       cancelOrderStatusSuccess: 'Заказ успешно отменён',
       addPromotionalSuccess: 'Промокод {{ name }} успешно применён!',
+      requiredFields: 'Заполните все обязательные поля',
     },
     cookieConsent: {
       contentText: 'Этот сайт использует cookie для улучшения вашего опыта. Если вы продолжите использовать этот сайт, вы соглашаетесь с этим. ',

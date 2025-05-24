@@ -8,15 +8,15 @@ import { ArrowRight } from 'react-bootstrap-icons';
 import { FloatButton } from 'antd';
 import cn from 'classnames';
 
-import pendant from '@/images/pendant.png';
-import choker from '@/images/choker.png';
+// import pendant from '@/images/pendant.png';
+// import choker from '@/images/choker.png';
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
 import { ContextMenu } from '@/components/ContextMenu';
-import { MobileContext, SearchContext } from '@/components/Context';
+import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
 import type { ItemInterface } from '@/types/item/Item';
@@ -25,12 +25,12 @@ const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  const { isSearch } = useContext(SearchContext);
+  // const { isSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
 
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  // const [isLoaded, setIsLoaded] = useState(false);
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
 
   const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
@@ -61,8 +61,8 @@ const Index = () => {
   const coverImage4 = coverImages.find(({ coverOrder }) => coverOrder === 4);
   const coverImage5 = coverImages.find(({ coverOrder }) => coverOrder === 5);
   const coverImage6 = coverImages.find(({ coverOrder }) => coverOrder === 6);
-  const coverImage7 = coverImages.find(({ coverOrder }) => coverOrder === 7);
-  const coverImage8 = coverImages.find(({ coverOrder }) => coverOrder === 8);
+  // const coverImage7 = coverImages.find(({ coverOrder }) => coverOrder === 7);
+  // const coverImage8 = coverImages.find(({ coverOrder }) => coverOrder === 8);
   const coverCollectionImage9 = coverImages.find(({ coverOrder }) => coverOrder === 9);
   const coverCollectionImage10 = coverImages.find(({ coverOrder }) => coverOrder === 10);
   const coverCollectionImage11 = coverImages.find(({ coverOrder }) => coverOrder === 11);
@@ -141,15 +141,16 @@ const Index = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
+  /*useEffect(() => {
     setTimeout(setIsLoaded, 1000, true);
   }, []);
+  */
 
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
       <FloatButton.BackTop />
-      {!isMobile
+      {/*!isMobile
         ? (
           <>
             <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
@@ -164,10 +165,11 @@ const Index = () => {
               </>
             )}
           </>
-        ) : null}
+        ) : null*/}
+      {!isMobile && <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
-          <section className="mb-5" data-aos="fade-right" data-aos-duration="1500">
+          <section className="mb-5">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
                 <h2 className="text-center text-xl-start">{t('newItems')}</h2>
@@ -177,7 +179,7 @@ const Index = () => {
                 </Link>
               </div>
               <Carousel
-                autoPlaySpeed={3000}
+                autoPlaySpeed={2000}
                 centerMode={false}
                 containerClass="col-12 index-block-container-carousel"
                 draggable={false}
@@ -200,6 +202,7 @@ const Index = () => {
                 slidesToSlide={1}
                 swipeable
                 ssr
+                autoPlay
               >
                 {news.map((item) => (
                   <ImageHover

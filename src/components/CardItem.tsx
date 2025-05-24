@@ -37,7 +37,7 @@ interface AdminControlGroupInterface {
   setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
 }
 
-const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish, generateDescription }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void, generateDescription: () => void}) => {
+const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish, generateDescription }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void; generateDescription: () => void; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   return (

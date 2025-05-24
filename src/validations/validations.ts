@@ -228,6 +228,16 @@ const newGradeSchema = yup.object().shape({
   position: requiredIdSchema,
 });
 
+export const generateDescriptionWithoutItemSchema = yup.object().shape({
+  name: stringSchema,
+  group: idSchema,
+  collection: idSchema,
+  length: stringSchema,
+  compositions: yup.array(idSchema).min(1).required(),
+  colors: yup.array(idSchema).min(1).required(),
+  images: yup.array(idSchema).min(1).required(),
+});
+
 export const periodSchema = yup.object().shape({
   start: yup
     .date()

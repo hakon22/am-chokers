@@ -35,6 +35,19 @@ $base-delay: 0.2s; // Базовая задержка
   }
 }
 
+.generate-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  background: linear-gradient(135deg,#fdd8a6,#f7daed) !important;
+  opacity: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 1199px) {
   .image-gallery-content.image-gallery-thumbnails-right.fullscreen {
     text-align: center;
