@@ -1,8 +1,8 @@
+import cn from 'classnames';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import { Spin } from 'antd';
-import cn from 'classnames';
 
 import { useAppSelector } from '@/utilities/hooks';
 import { useErrorHandler } from '@/utilities/useErrorHandler';
