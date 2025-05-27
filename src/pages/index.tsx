@@ -54,6 +54,7 @@ const Index = () => {
   const collection2 = collections.find(({ deleted, order }) => order === 5 && !deleted);
   const collection3 = collections.find(({ deleted, order }) => order === 6 && !deleted);
   const collection4 = collections.find(({ deleted, order }) => order === 7 && !deleted);
+  const collection5 = collections.find(({ deleted, order }) => order === 8 && !deleted);
 
   const coverImage1 = coverImages.find(({ coverOrder }) => coverOrder === 1);
   const coverImage2 = coverImages.find(({ coverOrder }) => coverOrder === 2);
@@ -67,6 +68,7 @@ const Index = () => {
   const coverCollectionImage10 = coverImages.find(({ coverOrder }) => coverOrder === 10);
   const coverCollectionImage11 = coverImages.find(({ coverOrder }) => coverOrder === 11);
   const coverCollectionImage12 = coverImages.find(({ coverOrder }) => coverOrder === 12);
+  const coverCollectionImage13 = coverImages.find(({ coverOrder }) => coverOrder === 13);
 
   const coefficient = 1.3;
 
@@ -169,7 +171,7 @@ const Index = () => {
       {!isMobile && <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
-          <section className="mb-5">
+          <section className="mb-5 position-relative">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
                 <h2 className="text-center text-xl-start">{t('newItems')}</h2>
@@ -220,7 +222,7 @@ const Index = () => {
               </Carousel>
             </div>
           </section>
-          <section className="d-flex flex-column col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
+          <section className="d-flex flex-column position-relative col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <div className="d-flex flex-column justify-content-center justify-content-xl-start">
               <h2>{t('bestsellers')}</h2>
               <Link href={`${routes.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
@@ -306,6 +308,36 @@ const Index = () => {
             {!isMobile && <div className="col-5">
               <h2 className="text-center">{t('collections')}</h2>
             </div>}
+            <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
+              <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
+                {!isMobile && <ContextMenu item={collection5} order={8} data-aos="fade-right" data-aos-duration="1500">
+                  <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
+                    <ImageHover
+                      className="col-12 col-xl-6"
+                      style={{ alignSelf: isMobile ? 'center' : 'start' }}
+                      href={getHref(collection5)}
+                      height={height}
+                      width={width}
+                      images={collection5?.images ?? []}
+                      name={collection5?.name}
+                      rating={collection5 ? { rating: collection5.rating, grades: collection5.grades } : undefined}
+                      description={tPrice('price', { price: collection5 ? collection5.price - collection5.discountPrice : 0 })}
+                    />
+                  </div>
+                </ContextMenu>}
+                <ContextMenu image={coverCollectionImage13} cover={13} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                  <ImageHover
+                    className={isMobile ? 'align-items-center' : ''}
+                    width={coverSize.coverCollection.width}
+                    height={coverSize.coverCollection.height}
+                    images={(coverCollectionImage13 ? [coverCollectionImage13] : [])}
+                  />
+                </ContextMenu>
+              </div>
+              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
+                <Link href={collection5 ? `${routes.catalog}?collectionIds=${collection5?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection5?.collection?.name}</Link>
+              </div>
+            </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
                 {!isMobile && <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
