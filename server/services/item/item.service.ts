@@ -14,6 +14,7 @@ import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 import type { ItemOptionsInterface } from '@server/types/item/item.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
@@ -38,8 +39,30 @@ export class ItemService extends BaseService {
     if (options?.onlyIds) {
       builder
         .select('item.id')
-        .distinct(true)
-        .orderBy('item.id', 'DESC');
+        .distinct(true);
+
+      if (query?.sort) {
+        switch (query.sort) {
+        case ItemSortEnum.BY_RATING:
+          builder
+            .leftJoin('item.rating', 'rating')
+            .addSelect('rating.rating')
+            .orderBy('rating.rating', 'ASC');
+          break;
+        case ItemSortEnum.BY_OVER_PRICE:
+          builder
+            .addSelect('(item.price - item.discountPrice)', 'diff_price')
+            .orderBy('diff_price', 'DESC');
+          break;
+        case ItemSortEnum.BY_LOWER_PRICE:
+          builder
+            .addSelect('(item.price - item.discountPrice)', 'diff_price')
+            .orderBy('diff_price', 'ASC');
+          break;
+        }
+      } else {
+        builder.orderBy('item.id', 'DESC');
+      }
 
       if (query?.collectionIds?.length) {
         builder.leftJoin('item.collection', 'collection');
@@ -105,8 +128,23 @@ export class ItemService extends BaseService {
         .leftJoinAndSelect('item.collection', 'collection')
         .leftJoinAndSelect('item.compositions', 'compositions')
         .leftJoinAndSelect('item.colors', 'colors')
-        .orderBy('item.created', 'DESC')
         .addOrderBy('item.deleted IS NOT NULL', 'ASC');
+    }
+
+    if (query?.sort) {
+      switch (query.sort) {
+      case ItemSortEnum.BY_RATING:
+        builder.orderBy('rating.rating', 'ASC');
+        break;
+      case ItemSortEnum.BY_OVER_PRICE:
+        builder.orderBy('(item.price - item.discountPrice)', 'DESC');
+        break;
+      case ItemSortEnum.BY_LOWER_PRICE:
+        builder.orderBy('(item.price - item.discountPrice)', 'ASC');
+        break;
+      }
+    } else {
+      builder.orderBy('item.id', 'DESC');
     }
 
     if (query?.withDeleted) {

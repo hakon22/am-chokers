@@ -1,3 +1,4 @@
+import type { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 
 export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
@@ -33,4 +34,6 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   new?: boolean;
   /** Бестселлеры */
   bestseller?: boolean;
+  /** Сортировка */
+  sort?: ItemSortEnum;
 }

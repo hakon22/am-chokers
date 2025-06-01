@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
-import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber } from 'antd';
+import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { FunnelFill } from 'react-bootstrap-icons';
+import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
 import type { CollapseProps, FormInstance } from 'antd/lib';
 
 import { routes } from '@/routes';
@@ -11,6 +11,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { useAppSelector } from '@/utilities/hooks';
 import { onFocus } from '@/utilities/onFocus';
 import { MobileContext } from '@/components/Context';
+import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
@@ -270,6 +271,38 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
           zIndex={10001}
         >
           <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
+            <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
+              <Select
+                className="w-100 mb-2 custom-placeholder"
+                placeholder={t('sort.title')}
+                options={[
+                  {
+                    value: ItemSortEnum.BY_RATING,
+                    label: (
+                      <span>
+                        <SortNumericDownAlt className="me-2" />
+                        {t('sort.byRating')}
+                      </span>),
+                  },
+                  {
+                    value: ItemSortEnum.BY_OVER_PRICE,
+                    label: (
+                      <span>
+                        <SortDown className="me-2" />
+                        {t('sort.byOverPrice')}
+                      </span>),
+                  },
+                  {
+                    value: ItemSortEnum.BY_LOWER_PRICE,
+                    label: (
+                      <span>
+                        <SortDownAlt className="me-2" />
+                        {t('sort.byLowerPrice')}
+                      </span>),
+                  },
+                ]}
+              />
+            </Form.Item>
             <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" className="mb-4" />
             <Button htmlType="submit" className="button fs-6 mx-auto">
               {t('submitButton')}
@@ -281,6 +314,38 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     : (
       <div className="d-flex col-2">
         <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
+          <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
+            <Select
+              className="w-100 mb-2 custom-placeholder"
+              placeholder={t('sort.title')}
+              options={[
+                {
+                  value: ItemSortEnum.BY_RATING,
+                  label: (
+                    <span>
+                      <SortNumericDownAlt className="me-2" />
+                      {t('sort.byRating')}
+                    </span>),
+                },
+                {
+                  value: ItemSortEnum.BY_OVER_PRICE,
+                  label: (
+                    <span>
+                      <SortDown className="me-2" />
+                      {t('sort.byOverPrice')}
+                    </span>),
+                },
+                {
+                  value: ItemSortEnum.BY_LOWER_PRICE,
+                  label: (
+                    <span>
+                      <SortDownAlt className="me-2" />
+                      {t('sort.byLowerPrice')}
+                    </span>),
+                },
+              ]}
+            />
+          </Form.Item>
           <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" className="mb-4" />
           <Button htmlType="submit" className="button fs-6 mx-auto">
             {t('submitButton')}

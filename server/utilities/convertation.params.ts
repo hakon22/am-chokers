@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 
 export const queryOptionalSchema = yup.object().shape({
   itemGroupId: yup
@@ -116,6 +117,7 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     to: yup.number().optional(),
     new: booleanSchema,
     bestseller: booleanSchema,
+    sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
   }),
 );
 

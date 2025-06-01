@@ -561,6 +561,12 @@ export default {
           materials: 'Материалы',
           collections: 'Коллекция',
           colors: 'Цвета',
+          sort: {
+            title: 'Сортировка',
+            byRating: 'По рейтингу',
+            byOverPrice: 'Сначала дороже',
+            byLowerPrice: 'Сначала дешевле',
+          },
           price: {
             title: 'Цена',
             from: 'От',
