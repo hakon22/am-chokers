@@ -196,16 +196,13 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       setIsSubmit(true);
       const values = form.getFieldsValue();
 
-      if (!(values.name && values.group && values.collection && values.length && values.colors?.length && values.compositions?.length && images.length)) {
+      if (!(values.compositions?.length && images.length)) {
         form.setFields([{ name: 'description', errors: [tToast('requiredFields')] }]);
         throw new Error(tToast('requiredFields'));
       }
 
       values.images = images;
-      values.group = itemGroup as ItemGroupInterface;
-      values.collection = itemCollection as ItemCollectionInterface;
       values.compositions = compositions.filter((composition) => itemCompositions?.find((value) => (typeof value === 'number' && value === composition.id) || value.id === composition.id)) as CompositionEntity[];
-      values.colors = colors.filter((color) => itemColors?.find((value) => (typeof value === 'number' && value === color.id) || value.id === color.id)) as ColorEntity[];
 
       const { data } = await axios.post<{ code: number; description: string; }>(routes.generateDescriptionWithoutItem, values);
 

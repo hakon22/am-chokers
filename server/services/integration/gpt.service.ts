@@ -38,12 +38,12 @@ export class GptService {
     try {
       const template = {
         api_key: process.env.CHAD_AI_API_KEY,
-        message: `У меня есть ${item.group.name} с названием ${item.name}. Коллекция: ${item.collection?.name}, состав: ${item.compositions.map((composition) => composition.name).join(', ')}, цвет: ${item.colors.map((color) => color.name).join(', ')}, длина: ${item.length}. Сделай описание для товара в интернет магазине по фотографии текстом без форматирования и абзацев: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${item.images[0].src}`,
+        message: `Напиши описание из 2-3 предложений для продажи этого украшения в интернет магазине, в состав которого входят ${item.compositions.map((composition) => composition.name).join(', ')}. Не употребляй банальные слова и следующие слова и их производные: утонченность, индивидуальность, изысканный, оригинальный. Фото украшения: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${item.images[0].src}`,
       };
 
       this.loggerService.info(this.TAG, template.message);
 
-      const { data } = await axios.post<{ is_success: boolean; response: string; }>('https://ask.chadgpt.ru/api/public/gpt-4o-mini', template);
+      const { data } = await axios.post<{ is_success: boolean; response: string; }>('https://ask.chadgpt.ru/api/public/gemini-2.5-pro', template);
 
       return data.response;
     } catch (e) {
