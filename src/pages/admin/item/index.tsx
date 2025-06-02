@@ -437,8 +437,8 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
               </div>)}
               <div className="position-relative">
-                <Form.Item<typeof item> name="description" className="lh-lg large-input" rules={[newItemValidation]}>
-                  <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} size="large" rows={3} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
+                <Form.Item<typeof item> name="description" className="lh-lg" rules={[newItemValidation]}>
+                  <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
                 </Form.Item>
                 {!isMobile && <Button className="generate-button" onClick={generateDescription}>{t('generateDescription')}</Button>}
               </div>
@@ -449,11 +449,11 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('composition')}</span>
-                  <Form.Item<typeof item> name="compositions" className="large-input" rules={[newItemValidation]}>
+                  <Form.Item<typeof item> name="compositions" rules={[newItemValidation]}>
                     <Select
                       mode="multiple"
                       allowClear
-                      className="col-6"
+                      className="col-6 font-oswald fs-5 p-xl-0"
                       size="large"
                       notFoundContent={<NotFoundContent />}
                       placeholder={t('placeholders.composition')}
@@ -470,11 +470,11 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </div>
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('color')}</span>
-                  <Form.Item<typeof item> name="colors" className="large-input" rules={[newItemValidation]}>
+                  <Form.Item<typeof item> name="colors" rules={[newItemValidation]}>
                     <Select
                       mode="multiple"
                       allowClear
-                      className="col-6"
+                      className="col-6 font-oswald fs-5 p-xl-0"
                       size="large"
                       notFoundContent={<NotFoundContent />}
                       placeholder={t('placeholders.color')}
@@ -496,8 +496,8 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </div>
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('length')}</span>
-                  <Form.Item<typeof item> name="length" className="large-input" rules={[newItemValidation]}>
-                    <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.length')} />
+                  <Form.Item<typeof item> name="length" rules={[newItemValidation]}>
+                    <Input variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" placeholder={t('placeholders.length')} />
                   </Form.Item>
                 </div>
                 {isMobile && (
