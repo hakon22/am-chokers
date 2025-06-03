@@ -255,17 +255,24 @@ export const discountAndDiscountPercentSchema = yup.object().shape({
     .number()
     .nullable()
     .min(1)
-    .test('one-of', t('validation.discountOrDiscountPercent'), function (value) {
-      const { discountPercent } = this.parent;
-      return !!value === true && !discountPercent ? true : !!value === false && discountPercent ? true : false;
+    .test('one-of', t('validation.oneOfValue'), function (value) {
+      const { discountPercent, freeDelivery } = this.parent;
+      return !!value === true && !discountPercent && !freeDelivery ? true : !!value === false && (discountPercent || freeDelivery) ? true : false;
     }),
   discountPercent: yup
     .number()
     .nullable()
     .min(1)
-    .test('one-of', t('validation.discountOrDiscountPercent'), function (value) {
-      const { discount } = this.parent;
-      return !!value === true && !discount ? true : !!value === false && discount ? true : false;
+    .test('one-of', t('validation.oneOfValue'), function (value) {
+      const { discount, freeDelivery } = this.parent;
+      return !!value === true && !discount && !freeDelivery ? true : !!value === false && (discount || freeDelivery) ? true : false;
+    }),
+  freeDelivery: yup
+    .boolean()
+    .nullable()
+    .test('one-of', t('validation.oneOfValue'), function (value) {
+      const { discountPercent, discount } = this.parent;
+      return !!value === true && !discount && !discountPercent ? true : !!value === false && (discount || discountPercent) ? true : false;
     }),
 });
 
@@ -300,6 +307,7 @@ export const newOrderPositionValidation = validate(newOrderPositionSchema);
 export const newCommentValidation = validate(newCommentSchema);
 export const newGradeValidation = validate(newGradeSchema);
 export const newPromotionalValidation = validate(newPromotionalSchema);
+export const discountAndDiscountPercentValidation = validate(discountAndDiscountPercentSchema);
 export const orderChangeStatusValidation = validate(orderChangeStatusSchema);
 export const newCompositionValidation = validate(newCompositionSchema);
 export const setCoverImageValidation = validate(setCoverImageSchema);

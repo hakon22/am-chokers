@@ -33,6 +33,7 @@ interface PromotionalTableInterface {
   description: string;
   discountPercent: number | null;
   discount: number | null;
+  freeDelivery: boolean;
   start: Date | Moment | string | null;
   end: Date | Moment | string | null;
   active: boolean;
@@ -53,8 +54,8 @@ const getFields = (dataIndex: string, title: string, record: PromotionalTableInt
   if (['start', 'end'].includes(dataIndex)) {
     return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={locale} />;
   }
-  if (dataIndex === 'active') {
-    return <Checkbox checked={record.active} />;
+  if (['active', 'freeDelivery'].includes(dataIndex)) {
+    return <Checkbox checked={dataIndex === 'active' ? record.active : record.freeDelivery} />;
   }
   return ['discount', 'discountPercent'].includes(dataIndex) ? <InputNumber placeholder={title} /> : <Input placeholder={title} />;
 };
@@ -67,7 +68,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   children,
   tValidation,
 }) => (
-  <td className={dataIndex === 'active' ? 'text-center' : undefined}>
+  <td className={['active', 'freeDelivery'].includes(dataIndex) ? 'text-center' : undefined}>
     {editing ? (
       <Form.Item
         name={dataIndex}
@@ -84,18 +85,36 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
               return Promise.reject(new Error(tValidation(dataIndex === 'start' ? 'isInFuture' : 'isAfterStart')));
             },
           })]
-          : ['discount', 'discountPercent'].includes(dataIndex)
+          : ['discount', 'discountPercent', 'freeDelivery'].includes(dataIndex)
             ? [({ getFieldValue }) => ({
               validator(_, value) {
-                const val = getFieldValue(dataIndex === 'discount' ? 'discountPercent' : 'discount');
-                if (!!value === true && !val ? true : !!value === false && val ? true : false) {
+                const keys = {} as { key1: 'discount' | 'discountPercent' | 'freeDelivery', key2: 'discount' | 'discountPercent' | 'freeDelivery' };
+
+                switch (dataIndex) {
+                case 'discount':
+                  keys.key1 = 'discountPercent';
+                  keys.key2 = 'freeDelivery';
+                  break;
+                case 'discountPercent':
+                  keys.key1 = 'discount';
+                  keys.key2 = 'freeDelivery';
+                  break;
+                case 'freeDelivery':
+                  keys.key1 = 'discount';
+                  keys.key2 = 'discountPercent';
+                  break;
+                }
+
+                const val = getFieldValue(keys.key1);
+                const val2 = getFieldValue(keys.key2);
+                if (!!value === true && !val && !val2 ? true : !!value === false && (val || val2) ? true : false) {
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error(tValidation('discountOrDiscountPercent')));
+                return Promise.reject(new Error(tValidation('oneOfValue')));
               },
             })]
             : [newPromotionalValidation]}
-        valuePropName={dataIndex === 'active' ? 'checked' : undefined}
+        valuePropName={['active', 'freeDelivery'].includes(dataIndex) ? 'checked' : undefined}
       >
         {getFields(dataIndex, title, record)}
       </Form.Item>
@@ -171,6 +190,7 @@ const CreatePromotional = () => {
       start: null,
       end: null,
       active: true,
+      freeDelivery: false,
       key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
@@ -224,16 +244,16 @@ const CreatePromotional = () => {
         row.end = row.end.format(DateFormatEnum.YYYY_MM_DD);
       }
 
-      const { name, description, discount, discountPercent, start, end, active } = row;
+      const { name, description, discount, discountPercent, freeDelivery, start, end, active } = row;
 
       const exist = promotionals.find((promotional) => promotional.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.updatePromotional(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.updatePromotional(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery } as PromotionalFormInterface);
         if (code === 1) {
           updateData(promotional, row);
         }
       } else {
-        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.createPromotional, { name, description, discount, discountPercent, start, end, active } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.createPromotional, { name, description, discount, discountPercent, start, end, active, freeDelivery } as PromotionalFormInterface);
         if (code === 1) {
           setPromotionals((state) => [...state, promotional]);
           setEditingKey('');
@@ -283,6 +303,12 @@ const CreatePromotional = () => {
       title: t('columns.discount'),
       dataIndex: 'discount',
       width: '10%',
+      editable: true,
+    },
+    {
+      title: t('columns.freeDelivery'),
+      dataIndex: 'freeDelivery',
+      width: '5%',
       editable: true,
     },
     {
@@ -362,6 +388,7 @@ const CreatePromotional = () => {
   const end = Form.useWatch('end', form);
   const discount = Form.useWatch('discount', form);
   const discountPercent = Form.useWatch('discountPercent', form);
+  const freeDelivery = Form.useWatch('freeDelivery', form);
 
   useEffect(() => {
     if (start && end) {
@@ -372,12 +399,12 @@ const CreatePromotional = () => {
   }, [start, end]);
 
   useEffect(() => {
-    if (discount || discountPercent) {
-      discountAndDiscountPercentSchema.validate({ discount, discountPercent }, { abortEarly: false })
+    if (discount || discountPercent || freeDelivery) {
+      discountAndDiscountPercentSchema.validate({ discount, discountPercent, freeDelivery }, { abortEarly: false })
         .then((values) => form.setFields(Object.keys(values).map((name) => ({ name, errors: [] }))))
         .catch((e: ValidationError) => form.setFields(e.inner.map(({ path, message }) => ({ name: path, errors: [message] }))));
     }
-  }, [discount, discountPercent]);
+  }, [discount, discountPercent, freeDelivery]);
 
   useEffect(() => {
     if ((withExpired !== undefined || withDeleted !== undefined || !promotionals.length) && axiosAuth) {

@@ -50,6 +50,13 @@ export class PromotionalEntity extends BaseEntity {
   })
   public discountPercent: number;
 
+  /** Бесплатная доставка */
+  @Column('boolean', {
+    default: false,
+    name: 'free_delivery',
+  })
+  public freeDelivery: boolean;
+
   /** Старт действия промокода */
   @Column('date')
   public start: Date;

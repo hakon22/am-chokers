@@ -96,6 +96,11 @@
   }
 }
 
+.ant-menu-submenu-popup .ant-menu-vertical > .ant-menu-item {
+  height: 35px;
+  line-height: 35px;
+}
+
 @media (max-width: 1199px) {
   .nav {
     padding: 1rem;

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import cn from 'classnames';
-import type { CheckboxProps, InputProps } from 'antd/lib';
+import type { CheckboxProps } from 'antd/lib';
 import type { CheckboxGroupProps } from 'antd/lib/checkbox';
 
 import { Helmet } from '@/components/Helmet';
@@ -125,16 +125,20 @@ const Cart = () => {
     setCartList(target.checked ? filteredCart : []);
   };
 
-  const onPromotional: InputProps['onBlur'] = async ({ target }) => {
+  const onPromotional = async () => {
     try {
-      setTimeout(setSelectPromotionField, 1000, false);
-      if (!target.value) {
+      const value = form.getFieldValue('promotional');
+      if (!value) {
         return;
       }
       setIsSubmit(true);
-      const { data } = await axios.get<PromotionalResponseInterface>(routes.getPromotionalByName, { params: { name: target.value } });
+      const { data } = await axios.get<PromotionalResponseInterface>(routes.getPromotionalByName, { params: { name: value } });
       if (data.code === 1) {
         setPromotional(data.promotional);
+        if (data.promotional.freeDelivery) {
+          setDelivery((state) => ({ ...state, price: 0 }));
+        }
+        setSelectPromotionField(false);
         toast(tToast('addPromotionalSuccess', { name: data.promotional.name }), 'success');
       } else if ([2, 3].includes(data.code)) {
         form.setFields([{ name: 'promotional', errors: [tValidation(data.code === 2 ? 'promotionalNotExist' : 'promotionalExpired')] }]);
@@ -146,6 +150,9 @@ const Cart = () => {
   };
 
   const onPromotionalRemove = () => {
+    if (promotional && promotional.freeDelivery) {
+      setDelivery((state) => ({ ...state, price: savedDeliveryPrice }));
+    }
     setPromotional(undefined);
     form.setFieldValue('promotional', undefined);
   };
@@ -159,10 +166,10 @@ const Cart = () => {
           height: '500px',
           width: '90vw',
         },
-        source_platform_station: 'ca56c850-d268-4c9e-9e52-5dc09b006a7d',
+        // source_platform_station: 'ca56c850-d268-4c9e-9e52-5dc09b006a7d',
         physical_dims_weight_gross: items.length * 200,
         delivery_price: '300 руб',
-        delivery_term: 1,
+        delivery_term: 'от 2 до 7 дней',
         show_select_button: true,
         filter: {
           type: ['pickup_point', 'terminal'],
@@ -182,7 +189,7 @@ const Cart = () => {
       callbackFunction: (result: RussianPostDeliveryDataInterface) => {
         setSavedDeliveryPrice(result.cashOfDelivery / 100);
         setDelivery({
-          price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery ? 0 : result.cashOfDelivery / 100,
+          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery) ? 0 : result.cashOfDelivery / 100,
           address: `${result.cityTo}, ${result.addressTo}`,
           type: deliveryType,
           indexTo: result.indexTo,
@@ -235,6 +242,12 @@ const Cart = () => {
     setIsSubmit(false);
   };
 
+  const promotionalValue = Form.useWatch('promotional', form);
+
+  useEffect(() => {
+    setSelectPromotionField(!!promotionalValue);
+  }, [promotionalValue]);
+
   useEffect(() => {
     setCartList(filteredCart);
     axios.get<{ code: number; deliveryList: DeliveryCredentialsEntity[]; }>(routes.delivery.findMany)
@@ -249,7 +262,7 @@ const Cart = () => {
       const detail = data.detail as YandexDeliveryDataInterface;
       setSavedDeliveryPrice(300);
       setDelivery({
-        price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery ? 0 : 300,
+        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery) ? 0 : 300,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });
@@ -400,24 +413,27 @@ const Cart = () => {
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4" style={{ fontWeight: 300 }}>
             <span>{t('delivery')}</span>
-            <span>{price >= priceForFreeDelivery ? t('free') : tPrice('price', { price: delivery.price })}</span>
+            <span>{(promotional && promotional.freeDelivery) || (price >= priceForFreeDelivery) ? t('free') : tPrice('price', { price: delivery.price })}</span>
           </div>
           <div className="d-flex justify-content-between align-items-center fs-5 mb-4" style={{ fontWeight: 300, color: '#ff9500' }}>
             <span>{t('promotional')}</span>
             {promotional
               ? <div className="d-flex">
                 <Tag color="green" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={onPromotionalRemove}>{t('promotionalName', { name: promotional.name })}</Tag>
-                <span>{t('promotionalDiscount', { discount: getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
+                <span>{t('promotionalDiscount', { discount: promotional && promotional.freeDelivery ? savedDeliveryPrice : getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">
-                <Input disabled={!filteredCart.length || !delivery.address} onSelect={() => setSelectPromotionField(true)} placeholder={t('promotional')} className="not-padding" size="large" onBlur={onPromotional} />
+                <Input disabled={!filteredCart.length || !delivery.address} placeholder={t('promotional')} className="not-padding" size="large" />
               </Form.Item>}
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 text-uppercase fw-bold">
             <span>{t('total')}</span>
             <span>{tPrice('price', { price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
           </div>
-          <Button disabled={selectPromotionField || !filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
+          {selectPromotionField
+            ? <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100" onClick={onPromotional}>{t('acceptPromotional')}</Button>
+            : <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
+          }
         </div>
       </Form>
     </div>

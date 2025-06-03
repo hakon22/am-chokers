@@ -95,6 +95,7 @@ export class OrderService extends BaseService {
           'promotional.name',
           'promotional.discount',
           'promotional.discountPercent',
+          'promotional.freeDelivery',
         ])
         .leftJoinAndSelect('order.delivery', 'delivery')
         .leftJoin('item.images', 'images')
