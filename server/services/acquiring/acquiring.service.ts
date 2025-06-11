@@ -86,16 +86,18 @@ export class AcquiringService extends BaseService {
     const amount = getOrderPrice(order);
     const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
-    const deliveryPosition = {
-      item: {
-        name: 'Доставка',
-      } as OrderPositionInterface['item'],
-      price: order.deliveryPrice,
-      discountPrice: 0,
-      count: 1,
-    } as OrderPositionEntity;
+    if (order.deliveryPrice) {
+      const deliveryPosition = {
+        item: {
+          name: 'Доставка',
+        } as OrderPositionInterface['item'],
+        price: order.deliveryPrice,
+        discountPrice: 0,
+        count: 1,
+      } as OrderPositionEntity;
 
-    order.positions.push(deliveryPosition);
+      order.positions.push(deliveryPosition);
+    }
 
     const items = order.positions.map((position) => (
       {
@@ -110,6 +112,10 @@ export class AcquiringService extends BaseService {
         payment_mode: 'full_payment',
       }
     )) as IItemWithoutData[];
+
+    if (items.length > 6) {
+      throw new Error('Максимум 6 позиций в одном заказе');
+    }
 
     const positionsAmount = items.reduce((acc, item) => acc + (+item.amount.value * 100), 0);
     const centAmount = amount * 100;
