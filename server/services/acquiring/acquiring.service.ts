@@ -46,13 +46,7 @@ export class AcquiringService extends BaseService {
 
       if (!transaction) {
         if (payment.status === 'succeeded' && (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2)) {
-          const adminText = [
-            `‼️Оплачен товар <b>${payment.description}</b>‼️`,
-            '',
-            `Сумма: <b>${payment.amount.value} ₽</b>`,
-          ];
-
-          await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+          await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(`‼️Поступила оплата на сумму: <b>${payment.amount.value} ₽</b>‼️`, tgId as string)));
         }
 
         return;
