@@ -24,8 +24,6 @@ export class AcquiringController extends BaseService {
         return;
       }
 
-      await this.acquiringService.checkYookassaOrder(req.body.object);
-
       res.json(await this.acquiringService.checkYookassaOrder(req.body.object));
     } catch (e) {
       this.loggerService.error(e);

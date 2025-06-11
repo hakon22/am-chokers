@@ -4,7 +4,6 @@ import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type IChe
 import { Container } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
-import { DeliveryService } from '@server/services/delivery/delivery.service';
 import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.error.translate';
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
@@ -37,8 +36,6 @@ export class AcquiringService extends BaseService {
 
   private readonly telegramService = Container.get(TelegramService);
 
-  private readonly deliveryService = Container.get(DeliveryService);
-
   private TAG = 'AcquiringService';
 
   public checkYookassaOrder = async (payment: Payment) => {
@@ -47,7 +44,21 @@ export class AcquiringService extends BaseService {
 
       const transaction = await AcquiringTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional', 'order.delivery', 'order.positions'] });
 
-      if (!transaction || transaction.status !== TransactionStatusEnum.CREATE) {
+      if (!transaction) {
+        if (payment.status === 'succeeded' && (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2)) {
+          const adminText = [
+            `‼️Оплачен товар <b>${payment.description}</b>‼️`,
+            '',
+            `Сумма: <b>${payment.amount.value} ₽</b>`,
+          ];
+
+          await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+        }
+
+        return;
+      }
+
+      if (transaction.status !== TransactionStatusEnum.CREATE) {
         return;
       }
 
