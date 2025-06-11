@@ -59,7 +59,7 @@ export class OrderController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
       const body = await orderChangeStatusValidation.serverValidator(req.body) as OrderInterface;
 
-      const order = await this.orderService.updateStatus(params, body, req.user as PassportRequestInterface);
+      const order = await this.orderService.updateStatus(params, body);
 
       res.json({ code: 1, order });
     } catch (e) {

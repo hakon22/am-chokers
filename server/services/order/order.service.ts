@@ -115,6 +115,7 @@ export class OrderService extends BaseService {
           'user.id',
           'user.name',
           'user.phone',
+          'user.telegramId',
         ]);
     }
     if (options?.userId) {
@@ -251,8 +252,8 @@ export class OrderService extends BaseService {
     return { order, url };
   };
 
-  public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface, user: PassportRequestInterface) => {
-    const order = await this.findOne(params);
+  public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface) => {
+    const order = await this.findOne(params, {}, { withUser: true });
 
     const { back, next } = getNextOrderStatuses(order.status);
 
@@ -262,8 +263,8 @@ export class OrderService extends BaseService {
 
     await OrderEntity.update(order.id, { status });
 
-    if (user.telegramId) {
-      await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(status)}</b>.`, user.telegramId);
+    if (order.user.telegramId) {
+      await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(status)}</b>.`, order.user.telegramId);
     }
 
     order.status = status;
