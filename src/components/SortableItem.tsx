@@ -60,7 +60,14 @@ export const SortableItem = ({ image, index, activeId, setImages, setFileList }:
   return (
     <Badge count={DeleteButton} offset={[0, 90]}>
       <Badge count={index} color="blue">
-        <Image src={src} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />
+        {image.src.endsWith('.mp4') ? (
+          <video
+            src={image.src}
+            ref={setNodeRef}
+            style={{ ...style, width: 100, height: 100 }}
+            {...attributes} {...listeners}
+          />
+        ) : <Image src={src} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />}
       </Badge>
     </Badge>
   );

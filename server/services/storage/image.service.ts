@@ -1,8 +1,9 @@
-import { writeFileSync } from 'fs';
+import { unlink, writeFileSync } from 'fs';
 
 import sharp from 'sharp';
 import { Container, Singleton } from 'typescript-ioc';
 import multer from 'multer';
+import ffmpeg from 'fluent-ffmpeg';
 import { v4 as uuid } from 'uuid';
 import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
@@ -109,43 +110,94 @@ export class ImageService extends BaseService {
         return;
       }
 
-      const query = await queryUploadImageParams.validate(reqQuery);
+      const isVideo = file.mimetype === 'video/mp4';
 
-      let maxWidth = 800; // максимальная ширина
-      let maxHeight = Math.round(maxWidth * 1.3); // максимальная высота
+      if (isVideo) {
+        const name = `${uuid()}.mp4`;
+        const outputName = `${uuid()}.mp4`;
 
-      if (query.cover) {
-        maxHeight = 460;
-        maxWidth = Math.round(maxHeight * 2.2);
-      } else if (query.coverCollection) {
-        maxHeight = 299;
-        maxWidth = Math.round(maxHeight * 1.505);
+        const inputPath = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, name);
+        const outputPath = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, outputName);
+        writeFileSync(inputPath, file.buffer);
+
+        if (process.env.NODE_ENV === 'development') {
+          ffmpeg.setFfmpegPath('C:/srv/ffmpeg/bin/ffmpeg');
+        }
+
+        // Сжатие видео с помощью FFmpeg
+        await new Promise((resolve, reject) => {
+          ffmpeg(inputPath)
+            .outputOptions([
+              '-loglevel', 'debug',
+              '-vf', 'crop=ih*0.769:ih,setsar=1', // Обрезаем к соотношению 1:1.3
+              '-preset', 'fast',
+              '-crf', '23',
+              '-vcodec', 'libx264',
+            ])
+            .save(outputPath)
+            .on('end', () => {
+            // Удалите оригинальный файл, если необходимо
+              unlink(inputPath, (error) => {
+                if (error) {
+                  this.loggerService.error(error);
+                }
+              });
+              resolve(inputPath);
+            })
+            .on('error', (err) => {
+              this.loggerService.error('Ошибка сжатия:', err);
+              reject();
+              throw new Error('Ошибка при обработке видео');
+            });
+        });
+
+        const image = await ImageEntity.save({
+          name: outputName,
+          path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
+        });
+
+        image.src = this.getSrc(image);
+
+        res.json({ code: 1, image });
+      } else {
+        const query = await queryUploadImageParams.validate(reqQuery);
+
+        let maxWidth = 800; // максимальная ширина
+        let maxHeight = Math.round(maxWidth * 1.3); // максимальная высота
+
+        if (query.cover) {
+          maxHeight = 460;
+          maxWidth = Math.round(maxHeight * 2.2);
+        } else if (query.coverCollection) {
+          maxHeight = 299;
+          maxWidth = Math.round(maxHeight * 1.505);
+        }
+
+        // Используем sharp для обработки изображения
+        const data = await sharp(file.buffer)
+          .resize({
+            width: maxWidth,
+            height: maxHeight,
+            fit: sharp.fit.inside, // сохраняет пропорции
+            withoutEnlargement: true, // не увеличивает изображение
+          })
+          .toFormat('jpeg')
+          .toBuffer();
+
+        const name = `${uuid()}.jpeg`;
+        // Сохранение обработанного изображения
+        const outputPath = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, name);
+        writeFileSync(outputPath, data);
+
+        const image = await ImageEntity.save({
+          name,
+          path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
+        });
+
+        image.src = this.getSrc(image);
+
+        res.json({ code: 1, image });
       }
-
-      // Используем sharp для обработки изображения
-      const data = await sharp(file.buffer)
-        .resize({
-          width: maxWidth,
-          height: maxHeight,
-          fit: sharp.fit.inside, // сохраняет пропорции
-          withoutEnlargement: true, // не увеличивает изображение
-        })
-        .toFormat('jpeg')
-        .toBuffer();
-
-      const name = `${uuid()}.jpeg`;
-      // Сохранение обработанного изображения
-      const outputPath = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, name);
-      writeFileSync(outputPath, data);
-
-      const image = await ImageEntity.save({
-        name,
-        path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
-      });
-
-      image.src = this.getSrc(image);
-
-      res.json({ code: 1, image });
     } catch (e) {
       this.loggerService.error(e);
       res.status(500).json({ code: 2, message: 'Ошибка при обработке изображения' });

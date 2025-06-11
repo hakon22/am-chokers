@@ -60,7 +60,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const props: UploadProps<ResponseFileInterface> = {
     name: 'file',
     fileList,
-    accept: 'image/png,image/jpg,image/jpeg',
+    accept: 'image/png,image/jpg,image/jpeg,video/mp4',
     action: routes.imageUpload({ isServer: false }),
     headers: {
       Authorization: `Bearer ${token}`,
@@ -306,7 +306,36 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 ref={galleryRef}
                 additionalClass="w-100 mb-5 mb-xl-0"
                 showIndex
-                items={images.map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== getHeight() ? undefined : originalHeight, originalWidth: isMobile && originalHeight === getHeight() ? originalHeight / 1.3 : undefined }))}
+                items={images.map((image) => ({
+                  original: image.src,
+                  renderThumbInner: image.src.endsWith('.mp4') ? () => (
+                    <video
+                      className="w-100"
+                      autoPlay
+                      loop
+                      muted
+                      src={image.src}
+                    />
+                  ) : undefined,
+                  thumbnail: image.src,
+                  originalHeight: isMobile && originalHeight !== getHeight()
+                    ? undefined
+                    : originalHeight,
+                  originalWidth: isMobile && originalHeight === getHeight()
+                    ? originalHeight / 1.3
+                    : undefined,
+                  renderItem: image.src.endsWith('.mp4')
+                    ? () => (
+                      <video
+                        style={{ maxHeight: originalHeight, width: '100%' }}
+                        autoPlay
+                        loop
+                        muted
+                        src={image.src}
+                      />
+                    )
+                    : undefined,
+                }))}
                 infinite
                 showBullets={isMobile}
                 showNav={!isMobile}

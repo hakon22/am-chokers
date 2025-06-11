@@ -237,9 +237,38 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
         <div className="d-flex flex-column align-items-center gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'image-label': !!item.deleted })}
+            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'image-label': !!item.deleted, 'd-flex align-items-center': isMobile })}
             showIndex
-            items={images.sort((a, b) => a.order - b.order).map((image) => ({ original: image.src, thumbnail: image.src, originalHeight: isMobile && originalHeight !== getHeight() ? undefined : originalHeight, originalWidth: isMobile && originalHeight === getHeight() ? originalHeight / 1.3 : undefined }))}
+            items={images.sort((a, b) => a.order - b.order).map((image) => ({
+              original: image.src,
+              renderThumbInner: image.src.endsWith('.mp4') ? () => (
+                <video
+                  className="w-100"
+                  autoPlay
+                  loop
+                  muted
+                  src={image.src}
+                />
+              ) : undefined,
+              thumbnail: image.src,
+              originalHeight: isMobile && originalHeight !== getHeight()
+                ? undefined
+                : originalHeight,
+              originalWidth: isMobile && originalHeight === getHeight()
+                ? originalHeight / 1.3
+                : undefined,
+              renderItem: image.src.endsWith('.mp4')
+                ? () => (
+                  <video
+                    style={{ maxHeight: originalHeight, width: '100%' }}
+                    autoPlay
+                    loop
+                    muted
+                    src={image.src}
+                  />
+                )
+                : undefined,
+            }))}
             infinite
             showBullets={isMobile}
             showNav={!isMobile}

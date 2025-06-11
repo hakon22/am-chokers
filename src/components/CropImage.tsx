@@ -12,7 +12,9 @@ export const CropImage = ({ children }: { children: JSX.Element }) => {
       modalCancel={t('modalCancel')}
       modalTitle={t('modalTitle')}
       resetText={t('resetText')}
-      fillColor="transparent">
+      fillColor="transparent"
+      beforeCrop={(file) => file.type !== 'video/mp4'}
+    >
       {children}
     </ImgCrop>
   );
