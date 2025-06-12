@@ -4,6 +4,8 @@ import sharp from 'sharp';
 import { Container, Singleton } from 'typescript-ioc';
 import multer from 'multer';
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegPath from 'ffmpeg-static';
+import ffprobePath from 'ffprobe-static';
 import { v4 as uuid } from 'uuid';
 import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
@@ -18,6 +20,9 @@ import { CommentEntity } from '@server/db/entities/comment.entity';
 import { setCoverImageValidation } from '@/validations/validations';
 import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
+
+ffmpeg.setFfmpegPath(ffmpegPath as string);
+ffmpeg.setFfprobePath(ffprobePath.path);
 
 @Singleton
 export class ImageService extends BaseService {
@@ -125,31 +130,7 @@ export class ImageService extends BaseService {
         }
 
         // Сжатие видео с помощью FFmpeg
-        await new Promise((resolve, reject) => {
-          ffmpeg(inputPath)
-            .outputOptions([
-              '-loglevel', 'debug',
-              '-vf', 'crop=ih*0.769:ih,setsar=1', // Обрезаем к соотношению 1:1.3
-              '-preset', 'fast',
-              '-crf', '23',
-              '-vcodec', 'libx264',
-            ])
-            .save(outputPath)
-            .on('end', () => {
-            // Удалите оригинальный файл, если необходимо
-              unlink(inputPath, (error) => {
-                if (error) {
-                  this.loggerService.error(error);
-                }
-              });
-              resolve(inputPath);
-            })
-            .on('error', (err) => {
-              this.loggerService.error('Ошибка сжатия:', err);
-              reject();
-              throw new Error('Ошибка при обработке видео');
-            });
-        });
+        await this.cropVideo(inputPath, outputPath);
 
         const image = await ImageEntity.save({
           name: outputName,
@@ -286,4 +267,89 @@ export class ImageService extends BaseService {
   };
 
   private getSrc = (image: ImageEntity) => [image.path, image.name].join('/').replaceAll('\\', '/');
+
+  private getVideoInfo = async (videoPath: string): Promise<ffmpeg.FfprobeData> => {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(videoPath, (err, metadata) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(metadata);
+        }
+      });
+    });
+  };
+
+  private calculateCropParams = async (videoPath: string) => {
+    const info = await this.getVideoInfo(videoPath);
+  
+    // Вытаскиваем разрешение первого видеопотока
+    const videoStream = info.streams.find(s => s.codec_type === 'video') as ffmpeg.FfprobeStream;
+    const originalWidth = videoStream.width as number;
+    const originalHeight = videoStream.height as number;
+  
+    // Соотношение сторон: 1:1.3 (ширина:высота)
+    const targetRatio = 1 / 1.3; // ≈ 0.769
+  
+    // Если оригинал уже нужного соотношения — ничего не делаем
+    if (Math.abs(originalWidth / originalHeight - targetRatio) < 0.01) {
+      return {
+        cropWidth: originalWidth,
+        cropHeight: originalHeight,
+        cropX: 0,
+        cropY: 0,
+      };
+    }
+  
+    // Если оригинал шире — кропим по ширине (оставляем всю высоту)
+    if ((originalWidth / originalHeight) > targetRatio) {
+      const cropWidth = Math.round(originalHeight * targetRatio);
+      const cropX = Math.round((originalWidth - cropWidth) / 2);
+      return {
+        cropWidth,
+        cropHeight: originalHeight,
+        cropX,
+        cropY: 0,
+      };
+    } else {
+    // Если оригинал уже ниже или получается узким (такое редко, но пусть будет)
+      const cropHeight = Math.round(originalWidth / targetRatio);
+      const cropY = Math.round((originalHeight - cropHeight) / 2);
+      return {
+        cropWidth: originalWidth,
+        cropHeight,
+        cropX: 0,
+        cropY,
+      };
+    }
+  };
+
+  private cropVideo = async (input: string, output: string): Promise<void> => {
+    const { cropWidth, cropHeight, cropX, cropY } = await this.calculateCropParams(input);
+    const filter = `crop=${cropWidth}:${cropHeight}:${cropX}:${cropY},setsar=1`;
+  
+    return new Promise((resolve, reject) => {
+      ffmpeg(input)
+        .videoFilter(filter)
+        .outputOptions([
+          '-c:v libx264', // Используем кодек x264
+          '-preset veryslow', // Баланс качества и скорости (slow/medium/fast по желанию)
+          '-crf 20',      // Качество (по желанию, 18-23 обычно)
+          '-c:a copy',    // Не перекодируем звук
+        ])
+        .save(output)
+        .on('end', () => {
+          unlink(input, (error) => {
+            if (error) {
+              this.loggerService.error(error);
+            }
+          });
+          resolve();
+        })
+        .on('error', (err) => {
+          this.loggerService.error(err);
+          reject(err);
+        });
+    });
+  };
 }
