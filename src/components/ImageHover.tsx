@@ -75,18 +75,29 @@ export const ImageHover = ({
           onMouseLeave={handleMouseLeave}
         >
           {images.length
-            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
-              <Image
-                key={image.id}
-                src={image.src}
-                unoptimized
-                style={{ borderRadius: 7 }}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                alt={`Image ${index + 1}`}
-                className={i === index ? 'active' : ''}
-              />
-            ))
+            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => image.src.endsWith('.mp4')
+              ? (
+                <video
+                  key={image.id}
+                  className="w-100"
+                  style={{ borderRadius: 7 }}
+                  autoPlay
+                  loop
+                  muted
+                  src={image.src}
+                />
+              ) : (
+                <Image
+                  key={image.id}
+                  src={image.src}
+                  unoptimized
+                  style={{ borderRadius: 7 }}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  alt={`Image ${index + 1}`}
+                  className={i === index ? 'active' : ''}
+                />
+              ))
             : <Image src={image404} alt="" className="active" />}
         </Link>
         {marker || name || description ? (
@@ -119,18 +130,29 @@ export const ImageHover = ({
           onMouseLeave={handleMouseLeave}
         >
           {images.length
-            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
-              <Image
-                key={image.id}
-                src={image.src}
-                unoptimized
-                style={{ borderRadius: 7 }}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                alt={`Image ${index + 1}`}
-                className={cn({ 'active': i === index, 'opacity-50': !!deleted })}
-              />
-            ))
+            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => image.src.endsWith('.mp4')
+              ? (
+                <video
+                  key={image.id}
+                  className="w-100"
+                  style={{ borderRadius: 7 }}
+                  autoPlay
+                  loop
+                  muted
+                  src={image.src}
+                />
+              ) : (
+                <Image
+                  key={image.id}
+                  src={image.src}
+                  unoptimized
+                  style={{ borderRadius: 7 }}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  alt={`Image ${index + 1}`}
+                  className={cn({ 'active': i === index, 'opacity-50': !!deleted })}
+                />
+              ))
             : <Image src={image404} alt="" className="active" />}
         </div>
         {marker || name || description ? (
