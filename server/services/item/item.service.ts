@@ -101,7 +101,6 @@ export class ItemService extends BaseService {
           'item.discount',
           'item.discountPrice',
           'item.length',
-          'item.className',
           'item.new',
           'item.bestseller',
           'item.order',
@@ -123,6 +122,7 @@ export class ItemService extends BaseService {
         .addSelect([
           'message.id',
           'message.created',
+          'message.send',
         ])
         .leftJoinAndSelect('item.group', 'group')
         .leftJoinAndSelect('item.collection', 'collection')
@@ -374,11 +374,13 @@ export class ItemService extends BaseService {
   public publishToTelegram = async (params: ParamsIdInterface, description?: string, value?: ItemEntity) => {
     const item = value || await this.findOne(params);
 
+    item.images = item.images.filter(({ src }) => !src.endsWith('.mp4'));
+
     if (item.images.length < 2) {
       throw new Error('Для публикации в группу Telegram товар должен иметь более одной фотографии');
     }
 
-    if (item.message?.id) {
+    if (item.message?.send) {
       throw new Error('Товар уже опубликован!');
     }
 
