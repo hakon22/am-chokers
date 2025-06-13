@@ -7,7 +7,7 @@ import {
   SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined, UpOutlined,
   CloseOutlined,
 } from '@ant-design/icons';
-import { AutoComplete, Badge, Button, Drawer, Input, Menu, type MenuProps } from 'antd';
+import { AutoComplete, Badge, Button, Drawer, Input, Menu, type MenuProps, type GetRef } from 'antd';
 import { useSearchParams } from 'next/navigation';
 import cn from 'classnames';
 
@@ -123,6 +123,8 @@ export const NavBar = () => {
   const { isMobile } = useContext(MobileContext);
   const { isActive, setIsActive } = useContext(NavbarContext);
 
+  const searchRef = useRef<GetRef<typeof AutoComplete>>(null);
+
   const searchParams = urlParams.get('search');
 
   const { itemGroups } = useAppSelector((state) => state.app);
@@ -213,6 +215,12 @@ export const NavBar = () => {
   };
 
   useEffect(() => {
+    if (isSearch?.value && searchRef.current) {
+      searchRef.current.focus();
+    }
+  }, [isSearch?.value, searchRef.current]);
+
+  useEffect(() => {
     const defaultHeight = isMobile ? 60 : 108;
 
     if (!isMobile) {
@@ -246,6 +254,7 @@ export const NavBar = () => {
                   <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">
                     <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
                     <AutoComplete
+                      ref={searchRef}
                       className="custom-placeholder w-100"
                       style={{ height: 'auto' }}
                       value={search}
@@ -270,6 +279,7 @@ export const NavBar = () => {
                   <div className="d-flex justify-content-center align-items-center animate__animated animate__fadeInDown gap-3" style={{ width: '60%' }}>
                     <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
                     <AutoComplete
+                      ref={searchRef}
                       className="custom-placeholder"
                       style={{ width: '80%', height: 'auto' }}
                       value={search}
