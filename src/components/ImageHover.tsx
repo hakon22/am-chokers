@@ -84,6 +84,7 @@ export const ImageHover = ({
                   autoPlay
                   loop
                   muted
+                  playsInline
                   src={image.src}
                 />
               ) : (
@@ -139,6 +140,7 @@ export const ImageHover = ({
                   autoPlay
                   loop
                   muted
+                  playsInline
                   src={image.src}
                 />
               ) : (

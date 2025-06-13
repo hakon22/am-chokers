@@ -247,6 +247,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   autoPlay
                   loop
                   muted
+                  playsInline
                   src={image.src}
                 />
               ) : undefined,
@@ -264,6 +265,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                     autoPlay
                     loop
                     muted
+                    playsInline
                     src={image.src}
                   />
                 )

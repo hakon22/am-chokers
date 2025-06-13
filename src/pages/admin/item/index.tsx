@@ -314,6 +314,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       autoPlay
                       loop
                       muted
+                      playsInline
                       src={image.src}
                     />
                   ) : undefined,
@@ -331,6 +332,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                         autoPlay
                         loop
                         muted
+                        playsInline
                         src={image.src}
                       />
                     )
