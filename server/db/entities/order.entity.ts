@@ -5,6 +5,7 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -42,6 +43,7 @@ export class OrderEntity extends BaseEntity {
   public status: OrderStatusEnum;
 
   /** Покупатель */
+  @Index()
   @ManyToOne(() => UserEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -58,6 +60,7 @@ export class OrderEntity extends BaseEntity {
   public deliveryPrice: number;
 
   /** Промокод */
+  @Index()
   @ManyToOne(() => PromotionalEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -69,6 +72,7 @@ export class OrderEntity extends BaseEntity {
   public promotional?: PromotionalEntity;
 
   /** Доставка */
+  @Index()
   @ManyToOne(() => DeliveryEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

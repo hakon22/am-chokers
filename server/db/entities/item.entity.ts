@@ -6,6 +6,7 @@ import {
   OneToOne,
   Unique,
   JoinTable,
+  Index,
 } from 'typeorm';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
@@ -63,6 +64,7 @@ export class ItemEntity extends BaseEntity {
   /** Скидка на товар (в `рублях`) */
   @Column('int', {
     default: 0,
+    name: 'discount_price',
   })
   public discountPrice: number;
 
@@ -86,14 +88,8 @@ export class ItemEntity extends BaseEntity {
   })
   public new: boolean;
 
-  /** Классы товара (для компонента ImageHover) */
-  @Column('character varying', {
-    name: 'class_name',
-    default: 'me-3',
-  })
-  public className: string;
-
   /** Имя товара в транслите */
+  @Index()
   @Column('character varying', {
     name: 'translate_name',
   })
@@ -106,6 +102,7 @@ export class ItemEntity extends BaseEntity {
   public order: number;
 
   /** Группа товара */
+  @Index()
   @ManyToOne(() => ItemGroupEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -116,6 +113,7 @@ export class ItemEntity extends BaseEntity {
   public group: ItemGroupEntity;
 
   /** Коллекция товара */
+  @Index()
   @ManyToOne(() => ItemCollectionEntity, {
     nullable: true,
     onUpdate: 'CASCADE',
@@ -169,6 +167,7 @@ export class ItemEntity extends BaseEntity {
   public grades: ItemGradeEntity[];
 
   /** Сообщение о публикации товара в группу Telegram */
+  @Index()
   @ManyToOne(() => MessageEntity, {
     nullable: true,
     onUpdate: 'CASCADE',

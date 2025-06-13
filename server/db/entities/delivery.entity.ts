@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { YandexDeliveryStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.status.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
@@ -23,6 +23,7 @@ export class DeliveryEntity extends BaseEntity {
   public updated: Date;
 
   /** Уникальный `id` доставки (внешний) */
+  @Index()
   @Column('character varying', {
     name: 'delivery_id',
     nullable: true,
@@ -86,6 +87,7 @@ export class DeliveryEntity extends BaseEntity {
     type: 'enum',
     enum: RussianPostMailTypeEnum,
     nullable: true,
+    name: 'mail_type',
   })
   public mailType?: RussianPostMailTypeEnum;
 

@@ -5,6 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToOne,
+  Index,
 } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
@@ -33,6 +34,7 @@ export class OrderPositionEntity extends BaseEntity {
   public deleted: Date;
 
   /** Товар */
+  @Index()
   @ManyToOne(() => ItemEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -60,6 +62,7 @@ export class OrderPositionEntity extends BaseEntity {
   /** Скидка на позицию заказа (в `рублях`) */
   @Column('int', {
     default: 0,
+    name: 'discount_price',
   })
   public discountPrice: number;
 
@@ -68,6 +71,7 @@ export class OrderPositionEntity extends BaseEntity {
   public count: number;
 
   /** Заказ */
+  @Index()
   @ManyToOne(() => OrderEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

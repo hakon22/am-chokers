@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   OneToMany,
   OneToOne,
+  Index,
 } from 'typeorm';
 
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -39,6 +40,7 @@ export class CommentEntity extends BaseEntity {
   public text: string;
 
   /** Создатель комментария */
+  @Index()
   @ManyToOne(() => UserEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -57,6 +59,7 @@ export class CommentEntity extends BaseEntity {
   public replies: CommentEntity[];
 
   /** Родительский комментарий */
+  @Index()
   @ManyToOne(() => CommentEntity, parent => parent.replies)
   @JoinColumn({
     name: 'parent_comment_id',

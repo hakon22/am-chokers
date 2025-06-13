@@ -6,6 +6,7 @@ import {
   AfterLoad,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 
@@ -55,6 +56,7 @@ export class ImageEntity extends BaseEntity {
   public coverOrder?: number;
 
   /** Товар изображения */
+  @Index()
   @ManyToOne(() => ItemEntity, {
     nullable: true,
     onUpdate: 'CASCADE',
@@ -66,6 +68,7 @@ export class ImageEntity extends BaseEntity {
   public item: ItemEntity;
 
   /** Комментарий изображения */
+  @Index()
   @ManyToOne(() => CommentEntity, {
     nullable: true,
     onUpdate: 'CASCADE',

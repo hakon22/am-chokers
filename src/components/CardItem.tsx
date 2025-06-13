@@ -155,7 +155,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
                 <Button type="text" className="action-button remove">{t('remove')}</Button>
               </Popconfirm>
             )}
-          {!item.message?.created
+          {!item.message?.send
             ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsPublish(true)}>{t('publishToTelegram')}</Button>
             : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
         </>

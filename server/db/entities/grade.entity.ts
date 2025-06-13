@@ -5,6 +5,7 @@ import {
   DeleteDateColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
@@ -43,6 +44,7 @@ export class GradeEntity extends BaseEntity {
   public checked: boolean;
 
   /** Оценённая позиция заказа */
+  @Index()
   @ManyToOne(() => OrderPositionEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -53,6 +55,7 @@ export class GradeEntity extends BaseEntity {
   public position: OrderPositionEntity;
 
   /** Комментарий к оценке */
+  @Index()
   @ManyToOne(() => CommentEntity, {
     nullable: true,
     onUpdate: 'CASCADE',
@@ -64,6 +67,7 @@ export class GradeEntity extends BaseEntity {
   public comment?: CommentEntity;
 
   /** Создатель оценки */
+  @Index()
   @ManyToOne(() => UserEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

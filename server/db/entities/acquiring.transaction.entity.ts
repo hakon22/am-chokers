@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import { OrderEntity } from '@server/db/entities/order.entity';
@@ -22,6 +22,7 @@ export class AcquiringTransactionEntity extends BaseEntity {
   public updated: Date;
 
   /** Уникальный `id` транзакции (внешний) */
+  @Index()
   @Column('character varying', {
     name: 'transaction_id',
   })
@@ -51,6 +52,7 @@ export class AcquiringTransactionEntity extends BaseEntity {
   public type: AcquiringTypeEnum;
 
   /** Заказ */
+  @Index()
   @ManyToOne(() => OrderEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

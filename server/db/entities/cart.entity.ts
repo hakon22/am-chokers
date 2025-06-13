@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToOne, JoinColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToOne, JoinColumn, UpdateDateColumn, CreateDateColumn, Index } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
@@ -25,6 +25,7 @@ export class CartEntity extends BaseEntity {
   public count: number;
 
   /** Позиция */
+  @Index()
   @ManyToOne(() => ItemEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -35,6 +36,7 @@ export class CartEntity extends BaseEntity {
   public item: ItemEntity;
 
   /** Пользователь */
+  @Index()
   @ManyToOne(() => UserEntity, {
     nullable: true,
     onUpdate: 'CASCADE',

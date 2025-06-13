@@ -209,7 +209,7 @@ const Index = () => {
                 {news.map((item) => (
                   <ImageHover
                     key={item.id}
-                    className={isMobile ? 'align-items-center' : item.className}
+                    className={isMobile ? 'align-items-center' : 'me-3'}
                     href={getHref(item)}
                     height={isMobile ? 300 * coefficient : height}
                     width={isMobile ? 300 : width}
