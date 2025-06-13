@@ -71,12 +71,12 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
       <div className="d-grid col-12 row-gap-5" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center' }}>
         <Helmet title={title} description={description} />
         {data.map(({
-          id, name, price, images, group, className, deleted, translateName,
+          id, name, price, images, group, deleted, translateName,
         }) => (
           <Link href={getHref({ name, group, translateName } as ItemInterface)} key={id} className="position-relative" style={{ width }}>
             {deleted ? <Tag color="volcano" className="m-0 py-1 px-2 z-1 top-0 end-0 position-absolute">{tCart('deleted')}</Tag> : null}
             <ImageHover
-              className={cn(className, { 'opacity-50': deleted })}
+              className={cn('me-3', { 'opacity-50': deleted })}
               width={width}
               height={height}
               images={images}
