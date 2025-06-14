@@ -372,9 +372,11 @@ export class ItemService extends BaseService {
   };
 
   public publishToTelegram = async (params: ParamsIdInterface, description?: string, value?: ItemEntity) => {
-    const item = value || await this.findOne(params);
+    if (!process.env.TELEGRAM_GROUP_ID) {
+      throw new Error('Не указана группа для отправки в Telegram');
+    }
 
-    item.images = item.images.filter(({ src }) => !src.endsWith('.mp4'));
+    const item = value || await this.findOne(params);
 
     if (item.images.length < 2) {
       throw new Error('Для публикации в группу Telegram товар должен иметь более одной фотографии');
@@ -386,26 +388,24 @@ export class ItemService extends BaseService {
 
     const url = this.getUrl(item);
 
-    if (process.env.TELEGRAM_GROUP_ID) {
-      const values: string[] = (description || item.description).split('\n');
+    const values: string[] = (description || item.description).split('\n');
 
-      const text = [
-        ...values,
-        '',
-        ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
-        `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
-        `Длина: <b>${item.length}</b>`,
-        `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
-        '',
-        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
-      ];
+    const text = [
+      ...values,
+      '',
+      ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
+      `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
+      `Длина: <b>${item.length}</b>`,
+      `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
+      '',
+      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
+    ];
 
-      const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
+    const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
 
-      if (message?.history) {
-        await ItemEntity.update(item.id, { message: message.history });
-        item.message = message.history;
-      }
+    if (message?.history) {
+      await ItemEntity.update(item.id, { message: message.history });
+      item.message = message.history;
     }
 
     return item;

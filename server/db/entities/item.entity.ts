@@ -4,7 +4,6 @@ import {
   OneToMany,
   ManyToMany,
   OneToOne,
-  Unique,
   JoinTable,
   Index,
 } from 'typeorm';
@@ -23,14 +22,13 @@ import { MessageEntity } from '@server/db/entities/message.entity';
 @Entity({
   name: 'item',
 })
-@Unique(['name'])
 export class ItemEntity extends BaseEntity {
   /** Уникальный `id` товара */
   @PrimaryGeneratedColumn()
   public id: number;
 
   /** Имя товара */
-  @Column('character varying')
+  @Column('character varying', { unique: true })
   public name: string;
 
   /** Описание товара */
@@ -92,6 +90,7 @@ export class ItemEntity extends BaseEntity {
   @Index()
   @Column('character varying', {
     name: 'translate_name',
+    unique: true,
   })
   public translateName: string;
 

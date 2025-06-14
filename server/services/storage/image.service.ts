@@ -334,8 +334,8 @@ export class ImageService extends BaseService {
         .outputOptions([
           '-c:v libx264', // Используем кодек x264
           '-preset veryslow', // Баланс качества и скорости (slow/medium/fast по желанию)
-          '-crf 20',      // Качество (по желанию, 18-23 обычно)
-          '-c:a copy',    // Не перекодируем звук
+          '-crf 20', // Качество (по желанию, 18-23 обычно)
+          '-an', // Отключаем звук
         ])
         .save(output)
         .on('end', () => {

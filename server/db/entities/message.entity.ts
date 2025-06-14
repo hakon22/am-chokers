@@ -4,7 +4,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram';
+import type { InputMedia } from 'telegraf/typings/core/types/typegram';
 
 import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
 
@@ -71,5 +71,5 @@ export class MessageEntity extends BaseEntity {
     array: true,
     default: [],
   })
-  public mediaFiles: InputMediaPhoto[];
+  public mediaFiles: InputMedia[];
 }

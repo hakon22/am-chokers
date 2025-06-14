@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Container, Singleton } from 'typescript-ioc';
 import { Context } from 'telegraf';
 import { Message } from 'typegram/message';
-import type { InputMediaPhoto } from 'telegraf/typings/core/types/typegram';
+import type { InputMedia } from 'telegraf/typings/core/types/typegram';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
@@ -104,8 +104,8 @@ export class TelegramService {
   public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {
     const text = this.serializeText(message);
 
-    const media: InputMediaPhoto[] = images.map((image, i) => ({
-      type: 'photo',
+    const media: InputMedia[] = images.map((image, i) => ({
+      type: image.endsWith('.mp4') ? 'video' : 'photo',
       media: image,
       ...(!i ? { caption: text, parse_mode: 'HTML' } : {}),
     }));
@@ -124,7 +124,7 @@ export class TelegramService {
       if (data?.ok) {
         this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
         history.send = true;
-        history.messageId = data.result.map(({ message_id }) => message_id).join(', ');
+        history.messageId = data.result.map(({ message_id }) => message_id).join(', ').trim();
         await history.save();
         return { ...data, text, history };
       }
