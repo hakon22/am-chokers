@@ -52,7 +52,7 @@ export class TelegramService {
         const telegramId = context.myChatMember.chat.id.toString();
         this.loggerService.info(this.TAG, `User has blocked a bot. Deleting telegramID: ${telegramId}`);
 
-        await UserEntity.update({ telegramId }, { telegramId: undefined });
+        await UserEntity.update({ telegramId }, { telegramId: null });
       }
       res.end();
     } catch (e) {

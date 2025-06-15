@@ -297,7 +297,7 @@ export class UserService extends BaseService {
         throw new Error('Телеграм-аккаунт не найден');
       }
 
-      await UserEntity.update(id, { telegramId: undefined });
+      await UserEntity.update(id, { telegramId: null });
 
       res.json({ code: 1 });
     } catch (e) {

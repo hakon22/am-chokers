@@ -60,7 +60,7 @@ export class UserEntity extends BaseEntity {
     name: 'telegram_id',
     nullable: true,
   })
-  public telegramId: string;
+  public telegramId: string | null;
 
   /** Роль пользователя */
   @Column('enum', {

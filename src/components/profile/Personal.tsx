@@ -6,6 +6,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
 import { isEmpty } from 'lodash';
+import type { TFunction } from 'i18next';
 
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { SubmitContext } from '@/components/Context';
@@ -17,6 +18,15 @@ import { fetchConfirmCode, removeTelegramId, userProfileUpdate } from '@/slices/
 import { profileValidation } from '@/validations/validations';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import type { UserProfileType } from '@/types/user/User';
+
+const TelegramButton = ({ telegramId, t, telegramHandler }: { telegramId?: string | null; t: TFunction, telegramHandler: () => void; }) => (
+  <div className="text-center">
+    <Button type="link" className={cn('mb-2 fs-5 px-3 py-3-5', { 'text-danger mt-2': telegramId })} style={{ backgroundColor: 'white' }} onClick={telegramHandler}>
+      {t(telegramId ? 'unlinkTelegram' : 'linkTelegram')}
+    </Button>
+    <p className={cn('lh-sm', { 'text-danger': telegramId, 'text-muted': !telegramId })}>{t(telegramId ? 'unlinkDescription' : 'linkDescription')}</p>
+  </div>
+);
 
 export const Personal = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.personal' });
@@ -130,12 +140,7 @@ export const Personal = () => {
 
   return phoneConfirm && !isConfirmed ? <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} /> : (
     <Form name="user-profile" form={form} initialValues={initialValues} className="col-12 col-xl-8" onFinish={onFinish}>
-      <div className="text-center">
-        <Button type="link" className={cn('mb-2 fs-5 px-3 py-3-5', { 'text-danger': telegramId })} style={{ backgroundColor: 'white' }} onClick={telegramHandler}>
-          {t(telegramId ? 'unlinkTelegram' : 'linkTelegram')}
-        </Button>
-        <p className={cn('lh-sm', { 'text-danger': telegramId, 'text-muted': !telegramId })}>{t(telegramId ? 'unlinkDescription' : 'linkDescription')}</p>
-      </div>
+      {!telegramId && <TelegramButton telegramId={telegramId} t={t} telegramHandler={telegramHandler} />}
       <label htmlFor="user-profile_phone" className="label">{t('phone')}</label>
       <Form.Item<UserProfileType> name="phone" rules={[profileValidation]} className="mb-3">
         <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
@@ -175,6 +180,7 @@ export const Personal = () => {
           </Form.Item>
         </>
       )}
+      {telegramId && <TelegramButton telegramId={telegramId} t={t} telegramHandler={telegramHandler} />}
       <div className="mt-5 d-flex justify-content-center mx-auto">
         <Button type="primary" htmlType="submit" className="button px-4">
           {t('submitButton')}

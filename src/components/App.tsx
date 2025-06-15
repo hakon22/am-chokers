@@ -45,12 +45,18 @@ export const App = ({ children }: { children: JSX.Element }) => {
   }, []);
 
   useEffect(() => {
-    if (footerRef.current) {
-      const height = footerRef.current.getBoundingClientRect().height;
+    const handleResize = () => {
+      if (footerRef.current) {
+        const height = footerRef.current.getBoundingClientRect().height;
 
-      setFooterHeight(Math.round(height + 200));
-    }
-  }, [footerRef]);
+        setFooterHeight(Math.round(height + 200 + (isMobile ? 100 : 0)));
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobile, footerRef]);
 
   return (
     <>
@@ -59,7 +65,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
         {isMobile ? null : <Breadcrumb />}
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: isMobile ? footerHeight + 100 : footerHeight }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: footerHeight }}>
         <main className="container">
           {children}
         </main>
