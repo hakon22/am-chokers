@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-bootstrap';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PhoneOutlined } from '@ant-design/icons';
 import { Button, Form, Result } from 'antd';
@@ -68,15 +68,16 @@ const Recovery = () => {
                   <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
-                  <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.loginPage)}>
+                  <Link className="text-primary fw-light" href={routes.loginPage}>
                     {t('rememberPassword')}
-                  </Alert.Link>
+                  </Link>
                 </div>
-                <div className="d-flex justify-content-center col-12">
+                <div className="d-flex justify-content-center col-12 mb-3">
                   <Button htmlType="submit" className="button fs-5" disabled={isSubmit}>
                     {t('submitButton')}
                   </Button>
                 </div>
+                <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
               </Form>
             </div>
           </div>

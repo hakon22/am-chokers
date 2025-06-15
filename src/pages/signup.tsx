@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { Alert } from 'react-bootstrap';
 import { useContext, useEffect, useState } from 'react';
 
 import { Helmet } from '@/components/Helmet';
@@ -105,15 +105,16 @@ const Signup = () => {
                   <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
-                  <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.loginPage)}>
+                  <Link className="text-primary fw-light"href={routes.loginPage}>
                     {t('haveAccount')}
-                  </Alert.Link>
+                  </Link>
                 </div>
-                <div className="d-flex col-12">
+                <div className="d-flex col-12 mb-3">
                   <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
                     {t('next')}
                   </Button>
                 </div>
+                <p className="text-muted text-center">{t('accept', { submitButton: t('next') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
               </Form>
             </>
           )}

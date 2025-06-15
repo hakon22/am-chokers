@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import cn from 'classnames';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -129,6 +130,12 @@ export const Personal = () => {
 
   return phoneConfirm && !isConfirmed ? <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} /> : (
     <Form name="user-profile" form={form} initialValues={initialValues} className="col-12 col-xl-8" onFinish={onFinish}>
+      <div className="text-center">
+        <Button type="link" className={cn('mb-2 fs-5 px-3 py-3-5', { 'text-danger': telegramId })} style={{ backgroundColor: 'white' }} onClick={telegramHandler}>
+          {t(telegramId ? 'unlinkTelegram' : 'linkTelegram')}
+        </Button>
+        <p className={cn('lh-sm', { 'text-danger': telegramId, 'text-muted': !telegramId })}>{t(telegramId ? 'unlinkDescription' : 'linkDescription')}</p>
+      </div>
       <label htmlFor="user-profile_phone" className="label">{t('phone')}</label>
       <Form.Item<UserProfileType> name="phone" rules={[profileValidation]} className="mb-3">
         <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
@@ -168,9 +175,6 @@ export const Personal = () => {
           </Form.Item>
         </>
       )}
-      <Button type="link" className="text-danger mt-2 fs-5 px-3 py-3-5" onClick={telegramHandler}>
-        {t(telegramId ? 'unlinkTelegram' : 'linkTelegram')}
-      </Button>
       <div className="mt-5 d-flex justify-content-center mx-auto">
         <Button type="primary" htmlType="submit" className="button px-4">
           {t('submitButton')}

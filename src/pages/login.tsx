@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button, Form, Input } from 'antd';
 import { LockOutlined, PhoneOutlined } from '@ant-design/icons';
-import { Alert } from 'react-bootstrap';
 import { useContext } from 'react';
 
 import { Helmet } from '@/components/Helmet';
@@ -21,7 +20,6 @@ const Login = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.login' });
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
 
-  const router = useRouter();
   const dispatch = useAppDispatch();
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
@@ -61,18 +59,19 @@ const Login = () => {
               <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
             </Form.Item>
             <div className="d-flex justify-content-between mb-3-5">
-              <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.signupPage)}>
+              <Link className="text-primary fw-light" href={routes.signupPage}>
                 {t('noAccount')}
-              </Alert.Link>
-              <Alert.Link className="text-primary fw-light" onClick={() => router.push(routes.recoveryPage)}>
+              </Link>
+              <Link className="text-primary fw-light" href={routes.recoveryPage}>
                 {t('forgotPassword')}
-              </Alert.Link>
+              </Link>
             </div>
-            <div className="d-flex col-12">
+            <div className="d-flex col-12 mb-3">
               <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
                 {t('submitButton')}
               </Button>
             </div>
+            <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
           </Form>
         </div>
       </div>
