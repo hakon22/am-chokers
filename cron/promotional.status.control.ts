@@ -11,7 +11,7 @@ const TAG = 'PromotionalStatusControl';
 /** Меняет статусы промокодов, если срок действия попадает под условия */
 class PromotionalStatusControlCron {
 
-  public loggerService = Container.get(LoggerService);
+  public readonly loggerService = Container.get(LoggerService);
 
   private readonly databaseService = Container.get(DatabaseService);
 

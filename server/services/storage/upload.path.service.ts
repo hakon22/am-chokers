@@ -15,7 +15,7 @@ export class UploadPathService {
 
   private dirname = dirname(fileURLToPath(import.meta.url));
 
-  private uploadFilesPath = join(this.dirname, '..', '..', '..', 'public');
+  public uploadFilesPath = join(this.dirname, '..', '..', '..', 'public');
 
   /** Собирает относительный путь для загрузки на сервер */
   public getUploadPath = (folder: UploadPathEnum, id: number, fileName = '') => {
