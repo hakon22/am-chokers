@@ -1,3 +1,5 @@
+import { writeFileSync } from 'fs';
+
 import { Container } from 'typescript-ioc';
 import XLSX from 'xlsx';
 import 'dotenv/config';
@@ -6,7 +8,7 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { DatabaseService } from '@server/db/database.service'; 
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 
-const TAG = 'UpdateYandexFid';
+const TAG = 'UpdateFids';
 
 interface YandexFidInterface {
   ID: number;
@@ -18,8 +20,19 @@ interface YandexFidInterface {
   Image: string;
 }
 
-/** Обновляет файл фида, который используется в Яндекс Директе */
-class UpdateYandexFidCron {
+interface GoogleFidInterface {
+  id: number;
+  title: number;
+  description: string;
+  price: number;
+  condition: 'new';
+  link: string;
+  availability: 'in_stock';
+  image_link: string;
+}
+
+/** Обновляет файлы фидов, которые используется в Яндекс Директе и Google Merchant */
+class UpdateFidsCron {
 
   public readonly loggerService = Container.get(LoggerService);
 
@@ -82,13 +95,42 @@ class UpdateYandexFidCron {
 
     XLSX.writeFile(workbook, `${this.uploadPathService.uploadFilesPath}/yandex_fid.xlsx`);
 
+    const googleData: GoogleFidInterface[] = data.map(({ ID, Title, Description, Price, URL, Image }) => ({
+      id: ID,
+      title: Title,
+      description: Description,
+      price: Math.round(Price),
+      condition: 'new',
+      link: URL,
+      availability: 'in_stock',
+      image_link: Image,
+    }));
+
+    const worksheet2 = XLSX.utils.json_to_sheet(googleData);
+    const range = XLSX.utils.decode_range(worksheet2['!ref'] as string);
+
+    const rows: string[] = [];
+
+    for (let rowNum = range.s.r; rowNum <= range.e.r; rowNum += 1) {
+      const row: string[] = [];
+      for (let colNum = range.s.c; colNum <= range.e.c; colNum += 1) {
+        const cell = worksheet2[XLSX.utils.encode_cell({ r: rowNum, c: colNum })];
+        row.push(cell ? cell.v : '');
+      }
+      rows.push(row.join('~'));
+    }
+
+    const output = rows.join('\n');
+
+    writeFileSync(`${this.uploadPathService.uploadFilesPath}/google_fid.txt`, output, { encoding: 'utf8' });
+
     this.loggerService.info(TAG, 'Процесс завершён');
 
     process.exit(0);
   };
 }
 
-const cron = new UpdateYandexFidCron();
+const cron = new UpdateFidsCron();
 
 await cron.start().catch((e) => {
   cron.loggerService.error(TAG, e);
