@@ -4,9 +4,11 @@ import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
+import { TelegramService } from '@server/services/integration/telegram.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { GradeEntity } from '@server/db/entities/grade.entity';
+import { routes } from '@/routes';
 import type { GradeQueryInterface } from '@server/types/rating/grade.query.interface';
 import type { GradeOptionsInterface } from '@server/types/rating/grade.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
@@ -18,6 +20,8 @@ export class GradeService extends BaseService {
   private readonly uploadPathService = Container.get(UploadPathService);
 
   private readonly imageService = Container.get(ImageService);
+
+  private readonly telegramService = Container.get(TelegramService);
 
   private createQueryBuilder = (query?: GradeQueryInterface, options?: GradeOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -217,6 +221,15 @@ export class GradeService extends BaseService {
 
       return gradeRepo.save(grade);
     });
+
+    if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
+      const adminText = [
+        `Вам оставлен новый отзыв с оценкой: <b>${body.grade}</b>`,
+        '',
+        `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.moderationOfReview}`,
+      ];
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+    }
 
     return this.findOne({ id: created.id });
   };
