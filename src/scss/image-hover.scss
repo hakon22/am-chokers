@@ -17,10 +17,23 @@
   }
 
   img {
-    border-radius: 5px;
+    border-radius: 7px;
     position: absolute;
     width: 100%;
     height: 100%;
+    transition: opacity 0.5s ease; /* Плавный переход */
+    opacity: 0; /* По умолчанию невидимо */
+
+    &.active {
+      opacity: 1; /* Видимо, когда активно */
+    }
+  }
+
+  video {
+    border-radius: 7px;
+    position: absolute;
+    top: 0;
+    width: 100%;
     transition: opacity 0.5s ease; /* Плавный переход */
     opacity: 0; /* По умолчанию невидимо */
 
