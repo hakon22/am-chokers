@@ -2,9 +2,9 @@ import { useState, useEffect, CSSProperties, HTMLAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
+import cn from 'classnames';
 import { Rate, Skeleton } from 'antd';
 import { LikeOutlined } from '@ant-design/icons';
-import cn from 'classnames';
 
 import image404 from '@/images/404.svg';
 import type { ItemInterface } from '@/types/item/Item';
