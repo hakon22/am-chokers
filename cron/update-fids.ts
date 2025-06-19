@@ -93,7 +93,12 @@ class UpdateFidsCron {
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Лист1');
 
-    XLSX.writeFile(workbook, `${this.uploadPathService.uploadFilesPath}/yandex_fid.xlsx`);
+    const csvBuffer = XLSX.write(workbook, {
+      bookType: 'csv',
+      type: 'buffer',
+    });
+
+    writeFileSync(`${this.uploadPathService.uploadFilesPath}/yandex_fid.csv`, csvBuffer, { encoding: 'utf8' });
 
     const googleData: GoogleFidInterface[] = data.map(({ ID, Title, Description, Price, URL, Image }) => ({
       id: ID,
