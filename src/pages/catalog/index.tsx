@@ -4,7 +4,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
-import { Skeleton, FloatButton, Button, Form } from 'antd';
+import { Skeleton, Button, Form } from 'antd';
 import cn from 'classnames';
 import { chunk } from 'lodash';
 
@@ -60,7 +60,7 @@ const RenderCatalogItem = ({ width, height, className, item }: { width: number; 
     : null;
 };
 
-const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: number; }) => {
+const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface[]; i: number; isSkeleton?: boolean; }) => {
   const { isMobile } = useContext(MobileContext);
 
   const isReverse = i % 2 !== 0;
@@ -126,40 +126,96 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
       ? (
         <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
           <div className="d-flex justify-content-between">
-            <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+              </>
+            )}
           </div>
           <div className="d-flex justify-content-center">
-            <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[2]} />
+            {isSkeleton ? <Skeleton.Image className="mt-5" style={{ width: lagerWidth, height: lagerHeight }} active /> : <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[2]} />}
           </div>
           <div className="d-flex justify-content-between">
-            <RenderCatalogItem width={width} height={height} item={chunkItems[3]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[4]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image style={{ width, height }} active />
+                <Skeleton.Image style={{ width, height }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={width} height={height} item={chunkItems[3]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[4]} />
+              </>
+            )}
           </div>
           <div className="d-flex justify-content-center">
-            <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[5]} />
+            {isSkeleton ? <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active /> : <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[5]} />}
           </div>
           <div className="d-flex justify-content-between">
-            <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image style={{ width, height }} active />
+                <Skeleton.Image style={{ width, height }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+              </>
+            )}
           </div>
         </div>
       )
       : (
         <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
           <div className="d-flex justify-content-between">
-            <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[2]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[2]} />
+              </>
+            )}
           </div>
           <div className="d-flex justify-content-between">
-            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[3]} />
-            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active />
+                <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[3]} />
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+              </>
+            )}
           </div>
           <div className="d-flex justify-content-between">
-            <RenderCatalogItem width={width} height={height} item={chunkItems[5]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image style={{ width, height }} active />
+                <Skeleton.Image style={{ width, height }} active />
+                <Skeleton.Image style={{ width, height }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={width} height={height} item={chunkItems[5]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+              </>
+            )}
           </div>
         </div>
       )
@@ -167,21 +223,48 @@ const CatalogItems = ({ chunkItems, i }: { chunkItems: ItemInterface[]; i: numbe
       <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
         <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
           <div className={cn('d-flex col-6 gap-5', { 'flex-row-reverse': isReverse })}>
-            <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-            <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+                <Skeleton.Image className="mt-5" style={{ width, height }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+              </>
+            )}
           </div>
-          <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} />
+          {isSkeleton ? <Skeleton.Image style={{ width, height }} active className={cn('mt-5 col-3', { 'align-items-end': !isReverse })} /> : <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} />}
         </div>
         <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
-          <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} />
+          {isSkeleton ? <Skeleton.Image style={{ width, height }} active className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} /> : <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} />}
           <div className={cn('d-flex col-8 gap-5', { 'justify-content-end': !isReverse })}>
-            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
-            <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} />
+            {isSkeleton ? (
+              <>
+                <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active />
+                <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active />
+              </>
+            ) : (
+              <>
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} />
+              </>
+            )}
           </div>
         </div>
         <div className={cn('d-flex justify-content-between gap-5', { 'flex-row-reverse': isReverse })}>
-          <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} />
-          <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
+          {isSkeleton ? (
+            <>
+              <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active className={cn('col-6', { 'align-items-end': isReverse })} />
+              <Skeleton.Image style={{ width, height }} active className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
+            </>
+          ) : (
+            <>
+              <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} />
+              <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
+            </>
+          )}
         </div>
       </div>
     );
@@ -398,7 +481,6 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   return (
     <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
       <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
-      <FloatButton.BackTop />
       <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
       <div className="d-flex col-12 col-xl-9">
         <div className="w-100">
@@ -406,8 +488,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
             dataLength={items.length}
             next={() => onFilters(initialValues, { limit: pagination.limit, offset: pagination.offset + chunkNumber })}
             hasMore={items.length < pagination.count}
-            loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
-            scrollableTarget="scrollableDiv"
+            loader={<CatalogItems chunkItems={[]} i={0} isSkeleton />}
+            style={{ overflow: 'unset' }}
             className="w-100"
           >
             <div className="d-flex flex-column gap-5">

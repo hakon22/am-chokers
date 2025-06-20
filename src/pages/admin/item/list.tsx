@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { LikeOutlined } from '@ant-design/icons';
-import { Popconfirm, Checkbox, List, Skeleton, Divider, Rate, Tag, FloatButton } from 'antd';
+import { Popconfirm, Checkbox, List, Skeleton, Divider, Rate, Tag } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -140,7 +140,6 @@ const ItemList = () => {
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
-      <FloatButton.BackTop />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>
       <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-4 gap-xl-0 mb-5">
         <div className="d-flex align-items-center gap-3">
@@ -155,7 +154,7 @@ const ItemList = () => {
         hasMore={data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
-        scrollableTarget="scrollableDiv"
+        style={{ overflow: 'unset' }}
       >
         <List
           dataSource={data}

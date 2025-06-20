@@ -65,8 +65,8 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
       dataLength={data.length}
       next={() => fetchItems({ limit: pagination.limit, offset: pagination.offset + 10 })}
       hasMore={data.length < pagination.count}
-      scrollableTarget="scrollableDiv"
       loader
+      style={{ overflow: 'unset' }}
     >
       <div className="d-grid col-12 row-gap-5" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center' }}>
         <Helmet title={title} description={description} />

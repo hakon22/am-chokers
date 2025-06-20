@@ -5,11 +5,8 @@ import { useEffect, useRef, useState, useContext, type WheelEvent } from 'react'
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
-import { FloatButton } from 'antd';
 import cn from 'classnames';
 
-// import pendant from '@/images/pendant.png';
-// import choker from '@/images/choker.png';
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
@@ -25,12 +22,10 @@ const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  // const { isSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
 
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
 
-  // const [isLoaded, setIsLoaded] = useState(false);
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
 
   const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
@@ -143,31 +138,9 @@ const Index = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  /*useEffect(() => {
-    setTimeout(setIsLoaded, 1000, true);
-  }, []);
-  */
-
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
-      <FloatButton.BackTop />
-      {/*!isMobile
-        ? (
-          <>
-            <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
-            {isLoaded && (
-              <>
-                <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 1 : 3, height: '62vh', width: '55%' }}>
-                  <Image src={choker} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-                </div>
-                <div className="position-absolute top-0 pe-none animate__animated animate__fadeInDownBig" style={{ zIndex: isSearch?.value ? 0 : 2, height: '105vh', width: '60%' }}>
-                  <Image src={pendant} unoptimized fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('title')} priority />
-                </div>
-              </>
-            )}
-          </>
-        ) : null*/}
       {!isMobile && <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem', zIndex: 1 }}>{t('seeCatalog')}</Link>}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">

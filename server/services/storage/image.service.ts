@@ -337,6 +337,7 @@ export class ImageService extends BaseService {
           '-crf 20', // Качество (по желанию, 18-23 обычно)
           '-an', // Отключаем звук
         ])
+        .noAudio()
         .save(output)
         .on('end', () => {
           unlink(input, (error) => {

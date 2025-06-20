@@ -2,7 +2,7 @@ import cn from 'classnames';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
-import { Spin } from 'antd';
+import { FloatButton, Spin } from 'antd';
 
 import { useAppSelector } from '@/utilities/hooks';
 import { useErrorHandler } from '@/utilities/useErrorHandler';
@@ -66,6 +66,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         {isMobile ? null : <Breadcrumb />}
       </header>
       <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: footerHeight }}>
+        <FloatButton.BackTop />
         <main className="container">
           {children}
         </main>

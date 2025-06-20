@@ -15,10 +15,10 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
+import { MobileContext } from '@/components/Context';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchOrdersInterface } from '@/types/order/Order';
 import type { OrderInterface } from '@/types/order/Order';
-import { MobileContext } from '@/components/Context';
 
 
 const Orders = () => {
@@ -87,7 +87,6 @@ const Orders = () => {
         hasMore={!(data.length < 10) && data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
-        scrollableTarget="scrollableDiv"
         style={{ overflow: 'unset' }}
       >
         <OrderHistory data={data} setData={setData} />

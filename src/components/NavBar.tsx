@@ -3,10 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { MouseEvent as ReactMouseEvent, useEffect, useState, useContext, useRef } from 'react';
-import {
-  SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined, UpOutlined,
-  CloseOutlined,
-} from '@ant-design/icons';
+import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined, UpOutlined, CloseOutlined } from '@ant-design/icons';
 import { AutoComplete, Badge, Button, Drawer, Input, Menu, type MenuProps, type GetRef } from 'antd';
 import { useSearchParams } from 'next/navigation';
 import cn from 'classnames';

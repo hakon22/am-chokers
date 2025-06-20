@@ -77,7 +77,7 @@ export const Reviews = () => {
         hasMore={data.length < pagination.count}
         loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
-        scrollableTarget="scrollableDiv"
+        style={{ overflow: 'unset' }}
       >
         <List
           dataSource={data}
