@@ -278,7 +278,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   const { pagination } = useAppSelector((state) => state.app);
 
-  const { setIsSubmit } = useContext(SubmitContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
   
@@ -488,7 +488,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
             dataLength={items.length}
             next={() => onFilters(initialValues, { limit: pagination.limit, offset: pagination.offset + chunkNumber })}
             hasMore={items.length < pagination.count}
-            loader={<CatalogItems chunkItems={[]} i={0} isSkeleton />}
+            loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton />}
             style={{ overflow: 'unset' }}
             className="w-100"
           >

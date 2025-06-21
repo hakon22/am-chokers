@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { Divider, List, Skeleton } from 'antd';
+import { Divider, List } from 'antd';
 import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -75,7 +75,7 @@ export const Reviews = () => {
         dataLength={data.length}
         next={() => fetchMyGrades({ limit: pagination.limit, offset: pagination.offset + 10 })}
         hasMore={data.length < pagination.count}
-        loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+        loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         style={{ overflow: 'unset' }}
       >

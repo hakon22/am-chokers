@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Skeleton, Divider } from 'antd';
+import { Divider } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -85,7 +85,7 @@ const Orders = () => {
         dataLength={data.length}
         next={() => fetchOrders({ limit: pagination.limit, offset: pagination.offset + 10, statuses })}
         hasMore={!(data.length < 10) && data.length < pagination.count}
-        loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+        loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         style={{ overflow: 'unset' }}
       >

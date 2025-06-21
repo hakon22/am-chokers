@@ -81,7 +81,7 @@ export const ImageHover = ({
         >
           {images.length
             ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
-              <div key={image.id} className="w-100">
+              <div key={image.id} style={i === index ? { width, height } : {}}>
                 {loading && i === index && (
                   <Skeleton.Image
                     active
@@ -146,7 +146,7 @@ export const ImageHover = ({
         >
           {images.length
             ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
-              <div key={image.id} className="w-100">
+              <div key={image.id} style={i === index ? { width, height } : {}}>
                 {loading && i === index && (
                   <Skeleton.Image
                     active

@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { LikeOutlined } from '@ant-design/icons';
-import { Popconfirm, Checkbox, List, Skeleton, Divider, Rate, Tag } from 'antd';
+import { Popconfirm, Checkbox, List, Divider, Rate, Tag } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -152,7 +152,7 @@ const ItemList = () => {
         dataLength={data.length}
         next={() => fetchItems({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, search: search?.value })}
         hasMore={data.length < pagination.count}
-        loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+        loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         style={{ overflow: 'unset' }}
       >

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
-import { Button, Form, Popconfirm, Checkbox, List, Skeleton, Divider } from 'antd';
+import { Button, Form, Popconfirm, Checkbox, List, Divider } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import type { UploadFile } from 'antd/lib';
@@ -204,7 +204,7 @@ const Reviews = () => {
         dataLength={data.length}
         next={() => fetchGrades({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, showAccepted })}
         hasMore={data.length < pagination.count}
-        loader={<Skeleton avatar paragraph={{ rows: 1 }} active />}
+        loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
         style={{ overflow: 'unset' }}
       >
