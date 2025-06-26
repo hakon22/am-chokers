@@ -6,7 +6,7 @@ import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
 import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { fetchCart } from '@/slices/cartSlice';
+import { fetchCart, addMany } from '@/slices/cartSlice';
 import { setAxiosAuth } from '@/slices/appSlice';
 import { routes } from '@/routes';
 
@@ -34,6 +34,7 @@ export const useAuthHandler = () => {
       dispatch(setAxiosAuth(true));
     } else {
       dispatch(setAxiosAuth(false));
+      dispatch(addMany());
     }
     if (token && !loggedIn) {
       logIn();

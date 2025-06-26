@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
+import { routes } from '@/routes';
 import type { CartItemInterface, CartItemFormInterface } from '@/types/cart/Cart';
 import type { InitialState } from '@/types/InitialState';
-import { routes } from '@/routes';
 
 interface CartStoreInterface extends InitialState {
   cart: CartItemInterface[];
@@ -18,6 +18,8 @@ export interface SelectedCartResponseInterface {
   code: number;
   cartItems: CartItemInterface[];
 }
+
+const cartStorageKey = process.env.NEXT_PUBLIC_CART_STORAGE_KEY ?? '';
 
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
@@ -108,6 +110,12 @@ const cartSlice = createSlice({
         state.cart = state.cart.filter(({ id }) => !payload.includes(id));
       }
     },
+    addMany: (state) => {
+      const cartStorage = window.localStorage.getItem(cartStorageKey);
+      if (cartStorage) {
+        state.cart = JSON.parse(cartStorage);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -117,6 +125,10 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
+          const cartStorage = window.localStorage.getItem(cartStorageKey);
+          if (cartStorage) {
+            window.localStorage.removeItem(cartStorageKey);
+          }
           state.cart = payload.cart;
         }
         state.loadingStatus = 'finish';
@@ -133,6 +145,9 @@ const cartSlice = createSlice({
       .addCase(addCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.cart = [...state.cart, payload.cartItem];
+          if (!payload.cartItem.user) {
+            window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
+          }
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -150,6 +165,9 @@ const cartSlice = createSlice({
           const cartIndex = state.cart.findIndex((cartItem) => cartItem.id === payload.cartItem.id);
           if (cartIndex !== -1) {
             state.cart[cartIndex] = payload.cartItem;
+            if (!payload.cartItem.user) {
+              window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
+            }
           }
         }
         state.loadingStatus = 'finish';
@@ -168,6 +186,9 @@ const cartSlice = createSlice({
           const cartIndex = state.cart.findIndex((cartItem) => cartItem.id === payload.cartItem.id);
           if (cartIndex !== -1) {
             state.cart[cartIndex] = payload.cartItem;
+            if (!payload.cartItem.user) {
+              window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
+            }
           }
         }
         state.loadingStatus = 'finish';
@@ -184,6 +205,9 @@ const cartSlice = createSlice({
       .addCase(removeCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.cart = state.cart.filter((cartItem) => cartItem.id !== payload.cartItem.id);
+          if (!payload.cartItem.user) {
+            window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
+          }
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -199,6 +223,10 @@ const cartSlice = createSlice({
       .addCase(removeManyCartItems.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.cart = [];
+          const cartStorage = window.localStorage.getItem(cartStorageKey);
+          if (cartStorage) {
+            window.localStorage.removeItem(cartStorageKey);
+          }
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -210,6 +238,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { removeMany } = cartSlice.actions;
+export const { removeMany, addMany } = cartSlice.actions;
 
 export default cartSlice.reducer;
