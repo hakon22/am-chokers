@@ -103,6 +103,13 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
               { key: routes.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
+          { key: 'reports', label: tMenu('menu.admin.reports.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0, paddingLeft: '2.5rem' } }, children: <Collapse
+            accordion
+            ghost
+            items={[
+              { key: routes.reports.cart, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.cartReport}>{tMenu('menu.admin.reports.cart')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+            ]}
+          /> },
           { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
@@ -126,6 +133,9 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link> },
           { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link> },
           { key: routes.itemList, label: <Link href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Link> },
+        ] },
+        { key: 'reports', label: tMenu('menu.admin.reports.title'), children: [
+          { key: routes.reports.cart, label: <Link href={routes.cartReport}>{tMenu('menu.admin.reports.cart')}</Link> },
         ] },
         { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link> },
         { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },

@@ -19,6 +19,7 @@ export const useAccessHandler = () => {
     routes.itemList,
     routes.compositionsControl,
     routes.colorsControl,
+    routes.cartReport,
   ];
 
   useEffect(() => {

@@ -36,6 +36,7 @@ export const routes = {
   promotionalCodes: [adminPath, 'promotionals'].join('/'),
   compositionsControl: [adminPath, 'compositions'].join('/'),
   colorsControl: [adminPath, 'colors'].join('/'),
+  cartReport: [adminPath, 'reports', 'cart'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -149,5 +150,10 @@ export const routes = {
   // delivery
   delivery: {
     findMany: [apiPath, 'delivery', 'findMany'].join('/'),
+  },
+
+  // reports
+  reports: {
+    cart: [apiPath, 'reports', 'cart'].join('/'),
   },
 } as const;

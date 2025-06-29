@@ -28,7 +28,6 @@ import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 
-
 const Reviews = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reviews' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });

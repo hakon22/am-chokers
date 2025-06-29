@@ -1,13 +1,15 @@
 import { Singleton } from 'typescript-ioc';
-import type { EntityManager } from 'typeorm';
+import { Brackets, type EntityManager } from 'typeorm';
 
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
+import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import type { ParamsIdStringInterface } from '@server/types/params.id.interface';
 import type { CartQueryInterface } from '@server/types/cart/cart.query.interface';
 import type { CartOptionsInterface } from '@server/types/cart/cart.options.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { UserEntity } from '@server/db/entities/user.entity';
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 
 @Singleton
 export class CartService extends BaseService {
@@ -18,8 +20,15 @@ export class CartService extends BaseService {
     const builder = manager.createQueryBuilder(CartEntity, 'cart')
       .select([
         'cart.id',
+        'cart.created',
         'cart.count',
       ]);
+
+    if (query?.limit || query?.offset) {
+      builder
+        .limit(query.limit)
+        .offset(query.offset);
+    }
 
     if (!options?.withoutJoin) {
       builder
@@ -32,6 +41,11 @@ export class CartService extends BaseService {
           'item.discountPrice',
           'item.deleted',
           'item.translateName',
+        ])
+        .leftJoin('cart.user', 'user')
+        .addSelect([
+          'user.id',
+          'user.name',
         ])
         .leftJoin('item.images', 'images')
         .addSelect([
@@ -160,5 +174,30 @@ export class CartService extends BaseService {
     });
 
     return [...cart.filter(({ id }) => !matchCartItemIds.includes(id)), ...updatedCartItems];
+  };
+
+  public cartReport = async (query: PaginationQueryInterface) => {
+    const builder = this.createQueryBuilder(null, query, { withoutJoin: true })
+      .setParameter('adminRole', UserRoleEnum.ADMIN)
+      .leftJoin('cart.user', 'user')
+      .andWhere(new Brackets(qb => {
+        qb
+          .where('user.role != :adminRole')
+          .orWhere('user.role IS NULL');
+      }))
+      .orderBy('cart.created', 'DESC');
+
+    const [cartItems, count] = await builder.getManyAndCount();
+
+    if (!count) {
+      return [[], 0];
+    }
+
+    return [
+      await this.createQueryBuilder(null, { ids: cartItems.map(({ id }) => id) })
+        .orderBy('cart.created', 'DESC')
+        .getMany(),
+      count,
+    ];
   };
 }
