@@ -188,6 +188,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
 
   const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
@@ -261,7 +262,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               renderItem: image.src.endsWith('.mp4')
                 ? () => (
                   <video
-                    style={{ maxHeight: originalHeight, width: '100%' }}
+                    className="image-gallery-image"
+                    style={!isFullscreen ? { maxHeight: originalHeight, width: '100%' } : { maxHeight: '100vh' }}
                     autoPlay
                     loop
                     muted
@@ -276,6 +278,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             showNav={!isMobile}
             onScreenChange={(fullscreen) => {
               if (fullscreen) {
+                setIsFullscreen(true);
                 setOriginalHeight(getHeight());
                 document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
                 document.documentElement.style.setProperty('--galleryHeight', '100vh');
@@ -289,6 +292,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   setShowThumbnails(false);
                 }
               } else {
+                setIsFullscreen(false);
                 setOriginalHeight(416);
                 document.documentElement.style.setProperty('--galleryWidth', '320px');
                 document.documentElement.style.setProperty('--galleryHeight', '416px');
