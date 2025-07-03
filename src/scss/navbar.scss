@@ -53,35 +53,6 @@
   &-submenu.bg-transparent {
     width: max-content;
   }
-
-  @supports (display: grid) {
-    @media (min-width: 1200px) {
-      &.ant-menu-sub.ant-menu-vertical {
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-auto-flow: column;
-
-        /* Если элементов ≥7 — активируем 2 колонки */
-        &:has(> li:nth-child(7)) {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        /* Первые 6 элементов — в первой колонке */
-        & > li:nth-child(-n + 6) {
-          grid-column: 1;
-        }
-
-        /* Переносим элементы с 7-го во вторую колонку */
-        & > li:nth-child(n + 7) {
-          grid-column: 2;
-        }
-      }
-
-      &::before {
-        content: unset;
-      }
-    }
-  }
 }
 
 .ant-menu-light.ant-menu-submenu > .ant-menu {
@@ -128,6 +99,35 @@
 .ant-menu-submenu-popup .ant-menu-vertical > .ant-menu-item {
   height: 35px;
   line-height: 35px;
+}
+
+@supports (display: grid) {
+  @media (min-width: 1200px) {
+    .grid-submenu > .ant-menu.ant-menu-sub.ant-menu-vertical {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-auto-flow: column;
+
+      /* Если элементов ≥7 — активируем 2 колонки */
+      &:has(> li:nth-child(7)) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      /* Первые 6 элементов — в первой колонке */
+      & > li:nth-child(-n + 6) {
+        grid-column: 1;
+      }
+
+      /* Переносим элементы с 7-го во вторую колонку */
+      & > li:nth-child(n + 7) {
+        grid-column: 2;
+      }
+    }
+
+    .grid-submenu > .ant-menu::before {
+      content: unset;
+    }
+  }
 }
 
 @media (max-width: 1199px) {

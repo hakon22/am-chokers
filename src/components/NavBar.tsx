@@ -155,6 +155,7 @@ export const NavBar = () => {
       onTitleMouseEnter,
       onTitleMouseLeave,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
+      popupClassName: 'grid-submenu',
       children: [...(isMobile ? [{ code: '', name: <span className="fw-bold">{t('menu.allItems')}</span> }, ...itemGroups] : itemGroups)].map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
     },
     {
