@@ -23,7 +23,6 @@ type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
 
 interface MobileNavBarInterface {
   searchClick: () => void;
-  onOpenChange: (value: string[]) => void;
   onChangeHandler: () => void;
   items: MenuItem[];
 }
@@ -72,7 +71,7 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
   );
 };
 
-const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: MobileNavBarInterface) => {
+const MobileNavBar = ({ searchClick, onChangeHandler, items }: MobileNavBarInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const container = useRef(null);
@@ -102,7 +101,6 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
           mode="inline"
           expandIcon={null}
           items={items}
-          onOpenChange={onOpenChange}
           rootClassName="bg-transparent"
         />
       </Drawer>
@@ -127,12 +125,9 @@ export const NavBar = () => {
   const { itemGroups } = useAppSelector((state) => state.app);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
-  const [isOpen, setIsOpen] = useState(false);
   const [navHeight, setNavHeight] = useState<string>(isMobile ? '' : '108px');
   const [isLoaded, setIsLoaded] = useState(false);
   const [search, setSearch] = useState<string | null>('');
-
-  const onOpenChange = (value: string[]) => setIsOpen(!!value.length);
 
   const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
 
@@ -155,7 +150,7 @@ export const NavBar = () => {
       onClick: onChangeHandler,
     } as MenuItem] : []),
     {
-      label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={isOpen} />,
+      label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={submenu === 'catalog'} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
@@ -165,21 +160,25 @@ export const NavBar = () => {
     {
       label: <Link href={routes.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
+      ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'about-brand',
     },
     {
       label: <Link href={routes.deliveryPage}>{t('menu.delivery')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
+      ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'delivery',
     },
     {
       label: <Link href={routes.jewelryCarePage}>{t('menu.jewelryCaring')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
+      ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'jewelry-care',
     },
     {
       label: <Link href={routes.contactsPage}>{t('menu.contacts')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
+      ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'contacts',
     },
   ];
@@ -224,7 +223,7 @@ export const NavBar = () => {
       if (!submenu) {
         setNavHeight(`${defaultHeight}px`);
       } else if (submenu === 'catalog') {
-        setNavHeight(`${itemGroups.length * 42 + defaultHeight}px`);
+        setNavHeight(`${(itemGroups.length > 6 ? 6 : itemGroups.length) * 43 + defaultHeight}px`);
       }
     } else {
       setNavHeight('');
@@ -245,7 +244,7 @@ export const NavBar = () => {
         ? isMobile
           ? (
             <>
-              <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
+              <MobileNavBar searchClick={searchClick} onChangeHandler={onChangeHandler} items={items} />
               {isSearch?.value
                 ? (
                   <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">
@@ -295,7 +294,6 @@ export const NavBar = () => {
                       selectedKeys={[router.asPath.split('/')[1]]}
                       rootClassName="bg-transparent"
                       mode="horizontal"
-                      onOpenChange={onOpenChange}
                       style={{
                         zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
                       }}
