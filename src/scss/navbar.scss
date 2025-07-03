@@ -64,7 +64,6 @@
         /* Если элементов ≥7 — активируем 2 колонки */
         &:has(> li:nth-child(7)) {
           grid-template-columns: repeat(2, 1fr);
-          grid-column-gap: 30px;
         }
 
         /* Первые 6 элементов — в первой колонке */
