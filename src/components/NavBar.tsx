@@ -24,6 +24,7 @@ type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
 interface MobileNavBarInterface {
   searchClick: () => void;
   onChangeHandler: () => void;
+  onOpenChange: (value: string[]) => void;
   items: MenuItem[];
 }
 
@@ -71,7 +72,7 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
   );
 };
 
-const MobileNavBar = ({ searchClick, onChangeHandler, items }: MobileNavBarInterface) => {
+const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: MobileNavBarInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const container = useRef(null);
@@ -101,7 +102,17 @@ const MobileNavBar = ({ searchClick, onChangeHandler, items }: MobileNavBarInter
           mode="inline"
           expandIcon={null}
           items={items}
+          onOpenChange={onOpenChange}
           rootClassName="bg-transparent"
+          motion={{
+            motionName: 'ant-motion-collapse',
+            onAppearStart: () => ({ height: 0 }),
+            onAppearActive: (node) => ({ height: `${node.scrollHeight}px` }),
+            onEnterStart: () => ({ height: 0 }),
+            onEnterActive: (node) => ({ height: `${node.scrollHeight}px` }),
+            onLeaveStart: () => ({ height: 0, transition: 'none' }),
+            onLeaveActive: () => ({ height: 0, transition: 'none' }),
+          }}
         />
       </Drawer>
     </div>
@@ -128,6 +139,9 @@ export const NavBar = () => {
   const [navHeight, setNavHeight] = useState<string>(isMobile ? '' : '108px');
   const [isLoaded, setIsLoaded] = useState(false);
   const [search, setSearch] = useState<string | null>('');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onOpenChange = (value: string[]) => setIsOpen(!!value.length);
 
   const onTitleMouseEnter = ({ key }: any) => setSubmenu(key);
 
@@ -150,7 +164,7 @@ export const NavBar = () => {
       onClick: onChangeHandler,
     } as MenuItem] : []),
     {
-      label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={submenu === 'catalog'} />,
+      label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={isMobile ? isOpen : submenu === 'catalog'} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
@@ -245,7 +259,7 @@ export const NavBar = () => {
         ? isMobile
           ? (
             <>
-              <MobileNavBar searchClick={searchClick} onChangeHandler={onChangeHandler} items={items} />
+              <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
               {isSearch?.value
                 ? (
                   <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">

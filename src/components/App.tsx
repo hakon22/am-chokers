@@ -53,9 +53,13 @@ export const App = ({ children }: { children: JSX.Element }) => {
       }
     };
 
-    handleResize();
+    const timer = setTimeout(handleResize, 100);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
   }, [isMobile, footerRef]);
 
   return (
