@@ -5,8 +5,8 @@ import { getDigitalCode } from 'node-verification-code';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { LoggerService } from '@server/services/app/logger.service';
-import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
-import { MessageEntity } from '@server/db/entities/message.entity';
+import { MessageService } from '@server/services/message/message.service';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 @Singleton
 export class SmsService {
@@ -14,12 +14,14 @@ export class SmsService {
 
   private readonly loggerService = Container.get(LoggerService);
 
+  private readonly messageService = Container.get(MessageService);
+
   public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
     try {
       const code = this.codeGen();
       const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
 
-      const history = await MessageEntity.create({ text: object.txt, type: MessageTypeEnum.SMS, phone }).save();
+      const { message } = await this.messageService.createOne({ text: object.txt, type: MessageTypeEnum.SMS, phone });
 
       if (process.env.NODE_ENV === 'production') {
         this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
@@ -29,8 +31,8 @@ export class SmsService {
         });
 
         if (data.request_id) {
-          history.send = true;
-          await history.save();
+          message.send = true;
+          await message.save();
           return { ...data, code };
         }
 
@@ -61,13 +63,13 @@ export class SmsService {
         sender_name: 'AM-PROJECTS',
       };
 
-      const history = await MessageEntity.create({ text: object.text, type: MessageTypeEnum.SMS, phone }).save();
+      const { message } = await this.messageService.createOne({ text: object.text, type: MessageTypeEnum.SMS, phone });
 
       if (process.env.NODE_ENV === 'production') {
         this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
         await axios.post('https://ssl.bs00.ru', qs.stringify(object));
-        history.send = true;
-        await history.save();
+        message.send = true;
+        await message.save();
       } else {
         console.log(password);
       }

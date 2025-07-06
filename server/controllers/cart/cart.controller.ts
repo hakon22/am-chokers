@@ -5,7 +5,6 @@ import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { uuidArraySchema, uuidSchema, cartItemsSchemaValidation, newCartItemValidation } from '@/validations/validations';
-import { queryPaginationSchema } from '@server/utilities/convertation.params';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { NullableParamsIdInterface } from '@server/types/params.id.interface';
 
@@ -86,24 +85,6 @@ export class CartController extends BaseService {
       await this.cartService.deleteMany(id, body);
 
       res.json({ code: 1 });
-    } catch (e) {
-      this.errorHandler(e, res);
-    }
-  };
-
-  public cartReport = async (req: Request, res: Response) => {
-    try {
-      const query = await queryPaginationSchema.validate(req.query);
-
-      const [items, count] = await this.cartService.cartReport(query);
-
-      const paginationParams = {
-        count,
-        limit: query.limit,
-        offset: query.offset,
-      };
-
-      res.json({ code: 1, items, paginationParams });
     } catch (e) {
       this.errorHandler(e, res);
     }

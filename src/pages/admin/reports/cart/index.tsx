@@ -86,12 +86,16 @@ const Cart = () => {
       };
       fetchData(params);
     }
+
+    return () => {
+      setPaginationParams({ limit: 0, offset: 0, count: 0 });
+    };
   }, [axiosAuth]);
 
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
-      <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
-      <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>
+      <Helmet title={t('title')} description={t('description')} />
+      <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('titleWithCount', { count: pagination.count })}</h1>
       <div className="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 mb-3 mb-xl-5">
         <BackButton style={{}} />
       </div>

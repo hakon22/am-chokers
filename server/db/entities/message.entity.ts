@@ -3,10 +3,14 @@ import {
   DeleteDateColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import type { InputMedia } from 'telegraf/typings/core/types/typegram';
 
-import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
+import { UserEntity } from '@server/db/entities/user.entity';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 /** Сообщения */
 @Entity({
@@ -57,6 +61,18 @@ export class MessageEntity extends BaseEntity {
     nullable: true,
   })
   public telegramId?: string;
+
+  /** Пользователь */
+  @Index()
+  @ManyToOne(() => UserEntity, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
+  @JoinColumn({
+    name: 'user_id',
+  })
+  public user?: UserEntity | null;
 
   /** Уникальный id сообщения в Telegram */
   @Column('character varying', {

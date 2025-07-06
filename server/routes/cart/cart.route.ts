@@ -15,6 +15,5 @@ export class CartRoute extends BaseRouter {
     router.delete(this.routes.removeCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.deleteOne);
     router.post(this.routes.removeManyCartItems, this.middlewareService.optionalJwtAuth, this.cartController.deleteMany);
     router.post(this.routes.getCart, this.middlewareService.jwtToken, this.cartController.findMany);
-    router.get(this.routes.reports.cart, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.cartController.cartReport);
   };
 }

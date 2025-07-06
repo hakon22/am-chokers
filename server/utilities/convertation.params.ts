@@ -2,6 +2,7 @@ import * as yup from 'yup';
 
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 export const queryOptionalSchema = yup.object().shape({
   itemGroupId: yup
@@ -128,3 +129,11 @@ export const queryTranslateNameParams = yup.object().shape({
 export const queryCodeParams = yup.object().shape({
   code: yup.string().required(),
 });
+
+export const queryMessageReportParams = queryPaginationSchema.concat(
+  yup.object().shape({
+    phone: yup.string().optional(),
+    onlySent: booleanSchema,
+    types: yup.array(yup.string().oneOf(Object.values(MessageTypeEnum)).defined()),
+  }),
+);

@@ -6,10 +6,10 @@ import { Message } from 'typegram/message';
 import type { InputMedia } from 'telegraf/typings/core/types/typegram';
 
 import { UserEntity } from '@server/db/entities/user.entity';
-import { MessageEntity } from '@server/db/entities/message.entity';
 import { LoggerService } from '@server/services/app/logger.service';
+import { MessageService } from '@server/services/message/message.service';
 import { phoneTransform } from '@server/utilities/phone.transform';
-import { MessageTypeEnum } from '@server/types/integration/enums/message.type.enum';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 interface OptionsTelegramMessageInterface {
   reply_markup?: {
@@ -30,6 +30,8 @@ export class TelegramService {
   private TAG = 'TelegramBotService';
 
   private readonly loggerService = Container.get(LoggerService);
+
+  private readonly messageService = Container.get(MessageService);
 
   public webhooks = async (req: Request, res: Response) => {
     try {
@@ -80,7 +82,7 @@ export class TelegramService {
   public sendMessage = async (message: string | string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {
     const text = this.serializeText(message);
 
-    const history = await MessageEntity.create({ text, type: MessageTypeEnum.TELEGRAM, telegramId }).save();
+    const { message: messageHistory } = await this.messageService.createOne({ text, type: MessageTypeEnum.TELEGRAM, telegramId });
 
     try {
       const { data } = await axios.post<{ ok: boolean; result: { message_id: string; } }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
@@ -91,10 +93,10 @@ export class TelegramService {
       });
       if (data?.ok) {
         this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
-        history.send = true;
-        history.messageId = data.result.message_id;
-        await history.save();
-        return { ...data, text, history };
+        messageHistory.send = true;
+        messageHistory.messageId = data.result.message_id;
+        await messageHistory.save();
+        return { ...data, text, history: messageHistory };
       }
     } catch (e) {
       this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
@@ -116,17 +118,17 @@ export class TelegramService {
       ...options,
     };
 
-    const history = await MessageEntity.create({ text, mediaFiles: media, type: MessageTypeEnum.TELEGRAM, telegramId }).save();
+    const { message: messageHistory } = await this.messageService.createOne({ text, mediaFiles: media, type: MessageTypeEnum.TELEGRAM, telegramId });
 
     try {
       const { data } = await axios.post<{ ok: boolean; result: { message_id: string; }[] }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMediaGroup`, request);
 
       if (data?.ok) {
         this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
-        history.send = true;
-        history.messageId = data.result.map(({ message_id }) => message_id).join(', ').trim();
-        await history.save();
-        return { ...data, text, history };
+        messageHistory.send = true;
+        messageHistory.messageId = data.result.map(({ message_id }) => message_id).join(', ').trim();
+        await messageHistory.save();
+        return { ...data, text, history: messageHistory };
       }
     } catch (e) {
       this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);

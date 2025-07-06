@@ -1,4 +1,4 @@
-const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.1.60:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.1.61:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 interface ServerClientInterface {
@@ -37,6 +37,7 @@ export const routes = {
   compositionsControl: [adminPath, 'compositions'].join('/'),
   colorsControl: [adminPath, 'colors'].join('/'),
   cartReport: [adminPath, 'reports', 'cart'].join('/'),
+  messageReport: [adminPath, 'reports', 'message'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -155,5 +156,6 @@ export const routes = {
   // reports
   reports: {
     cart: [apiPath, 'reports', 'cart'].join('/'),
+    message: [apiPath, 'reports', 'message'].join('/'),
   },
 } as const;

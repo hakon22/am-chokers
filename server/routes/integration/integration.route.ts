@@ -17,7 +17,7 @@ export class IntegrationRoute extends BaseRouter {
   public set = (router: Router) => {
     router.post(this.routes.telegram, this.middlewareService.accessTelegram, this.telegramService.webhooks);
     router.post(this.routes.yookassa, this.middlewareService.authorizationYookassaMiddleware, this.acquiringController.checkYookassaOrder);
-    router.get(this.routes.generateDescription(), this.gptService.generateDescription);
-    router.post(this.routes.generateDescriptionWithoutItem, this.gptService.generateDescriptionWithoutItem);
+    router.get(this.routes.generateDescription(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gptService.generateDescription);
+    router.post(this.routes.generateDescriptionWithoutItem, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gptService.generateDescriptionWithoutItem);
   };
 }
