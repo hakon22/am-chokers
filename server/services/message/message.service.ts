@@ -1,4 +1,5 @@
 import { Singleton } from 'typescript-ioc';
+import type { FindOptionsWhere } from 'typeorm';
 
 import { MessageEntity } from '@server/db/entities/message.entity';
 import { UserEntity } from '@server/db/entities/user.entity';
@@ -55,7 +56,16 @@ export class MessageService extends BaseService {
       const userRepo = manager.getRepository(UserEntity);
       const messageRepo = manager.getRepository(MessageEntity);
 
-      const user = await userRepo.findOne({ select: ['id'], where: { phone: body.phone } });
+      const where: FindOptionsWhere<UserEntity> = {};
+
+      if (body.phone) {
+        where.phone = body.phone;
+      }
+      if (body.telegramId) {
+        where.telegramId = body.telegramId;
+      }
+
+      const user = await userRepo.findOne({ select: ['id'], where });
 
       body.user = user;
 
