@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Table, Divider, Checkbox, Select, Input } from 'antd';
 import axios from 'axios';
@@ -37,8 +38,9 @@ const Message = () => {
   const router = useRouter();
 
   const typesParams = urlParams.getAll('types') as MessageTypeEnum[];
-  const onlySentParams = urlParams.get('onlySent');
+  const onlyUnsentParams = urlParams.get('onlyUnsent');
   const phoneParams = urlParams.get('phone');
+  const userIdParams = urlParams.get('userId');
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -46,7 +48,7 @@ const Message = () => {
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { role } = useAppSelector((state) => state.user);
 
-  const [onlySent, setOnlySent] = useState<boolean | undefined>(booleanSchema.validateSync(onlySentParams));
+  const [onlyUnsent, setOnlyUnsent] = useState<boolean | undefined>(booleanSchema.validateSync(onlyUnsentParams));
   const [data, setData] = useState<DataType[]>([]);
   const [types, setTypes] = useState<MessageTypeEnum[]>(typesParams);
   const [phone, setPhone] = useState(phoneParams);
@@ -59,8 +61,9 @@ const Message = () => {
       setIsSubmit(true);
       const queryParams = {
         types,
-        onlySent,
+        onlyUnsent,
         ...(params.phone ? { phone } : {}),
+        ...(userIdParams ? { userId: +userIdParams } : {}),
       };
 
       router.push({
@@ -82,7 +85,7 @@ const Message = () => {
     }
   };
 
-  const onlySentHandler = () => setOnlySent(!onlySent);
+  const onlyUnsentHandler = () => setOnlyUnsent(!onlyUnsent);
 
   const onPhoneSearch: SearchProps['onSearch'] = (value) => {
     setPhone(value);
@@ -90,8 +93,9 @@ const Message = () => {
       limit: pagination.limit || 10,
       offset: 0,
       types,
-      onlySent,
+      onlyUnsent,
       ...(value ? { phone: value } : {}),
+      ...(userIdParams ? { userId: +userIdParams } : {}),
     }, true);
   };
 
@@ -101,15 +105,16 @@ const Message = () => {
         limit: pagination.limit || 10,
         offset: 0,
         types,
-        onlySent,
+        onlyUnsent,
         ...(phone ? { phone } : {}),
+        ...(userIdParams ? { userId: +userIdParams } : {}),
       }, true);
     }
 
     return () => {
       setPaginationParams({ limit: 0, offset: 0, count: 0 });
     };
-  }, [axiosAuth, onlySent, types.length]);
+  }, [axiosAuth, onlyUnsent, userIdParams, types.length]);
 
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
@@ -118,7 +123,7 @@ const Message = () => {
       <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-4 gap-xl-0 mb-5">
         <div className="d-flex align-items-center gap-3">
           <BackButton style={{}} />
-          <Checkbox checked={onlySent} onChange={onlySentHandler}>{t('onlySent')}</Checkbox>
+          <Checkbox checked={onlyUnsent} onChange={onlyUnsentHandler}>{t('onlyUnsent')}</Checkbox>
         </div>
         <div className="d-flex flex-column flex-xl-row justify-content-between gap-3 gap-xl-0 col-12 col-xl-6">
           <Input.Search placeholder={t('table.phone')} allowClear value={phone ?? ''} onChange={({ target }) => setPhone(target.value)} onSearch={onPhoneSearch} className="col-12 col-xl-5" style={{ borderColor: '#2b3c5f' }} />
@@ -163,7 +168,7 @@ const Message = () => {
           <Table.Column<DataType> title={t('table.send')} dataIndex="send" width={'3%'} render={(checked) => <Checkbox className="d-flex justify-content-center" checked={checked} />} />
           <Table.Column<DataType> title={t('table.phone')} dataIndex="phone" width={'10%'} />
           <Table.Column<DataType> title={t('table.telegramId')} dataIndex="telegramId" width={'10%'} />
-          <Table.Column<DataType> title={t('table.user')} dataIndex="user" render={(user: DataType['user']) => <div>{user?.name}</div>} />
+          <Table.Column<DataType> title={t('table.user')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.userCard}/${user?.id}`}>{user?.name}</Link>} />
         </Table>
       </InfiniteScroll>
     </div>

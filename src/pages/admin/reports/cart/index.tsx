@@ -2,9 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Table, Divider } from 'antd';
+import Link from 'next/link';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import moment from 'moment';
+import { useSearchParams } from 'next/navigation';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -20,15 +22,16 @@ import { MobileContext, SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
-import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
+import type { CartQueryInterface } from '@server/types/cart/cart.query.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
+import type { UserEntity } from '@server/db/entities/user.entity';
 
 interface DataType {
   key: React.Key;
   item: ItemInterface;
   count: number;
   date: Date;
-  username?: string;
+  user?: UserEntity;
 }
 
 const Cart = () => {
@@ -41,6 +44,10 @@ const Cart = () => {
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
+  const urlParams = useSearchParams();
+
+  const userIdParams = urlParams.get('userId');
+
   const coefficient = 1.3;
 
   const width = 115;
@@ -51,7 +58,7 @@ const Cart = () => {
 
   const [data, setData] = useState<DataType[]>([]);
 
-  const fetchData = async (params: PaginationQueryInterface) => {
+  const fetchData = async (params: CartQueryInterface) => {
     try {
       if (isSubmit) {
         return;
@@ -62,7 +69,7 @@ const Cart = () => {
       });
       if (code === 1) {
         dispatch(setPaginationParams(paginationParams));
-        setData((state) => [...state, ...items.map(cart => ({ key: cart.id, date: cart.created, item: cart.item, count: cart.count, username: cart.user?.name }))]);
+        setData((state) => [...state, ...items.map(cart => ({ key: cart.id, date: cart.created, item: cart.item, count: cart.count, user: cart.user }))]);
       }
       setIsSubmit(false);
     } catch (e) {
@@ -80,9 +87,10 @@ const Cart = () => {
       undefined,
       { shallow: true });
 
-      const params: PaginationQueryInterface = {
+      const params: CartQueryInterface = {
         limit: pagination.limit || 10,
         offset: 0,
+        ...(userIdParams ? { userId: +userIdParams } : {}),
       };
       fetchData(params);
     }
@@ -101,7 +109,7 @@ const Cart = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchData({ limit: pagination.limit, offset: pagination.offset + 10 })}
+        next={() => fetchData({ limit: pagination.limit, offset: pagination.offset + 10, ...(userIdParams ? { userId: +userIdParams } : {}) })}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
@@ -124,7 +132,7 @@ const Cart = () => {
           )} />
           <Table.Column<DataType> title={t('table.date')} dataIndex="date" render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />
           <Table.Column<DataType> title={t('table.count')} dataIndex="count" width={'10%'} />
-          <Table.Column<DataType> title={t('table.username')} dataIndex="username" />
+          <Table.Column<DataType> title={t('table.username')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.userCard}/${user?.id}`}>{user?.name}</Link>} />
         </Table>
       </InfiniteScroll>
     </div>

@@ -2,7 +2,12 @@ import type { PaginationQueryInterface } from '@server/types/pagination.query.in
 import type { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 export interface MessageQueryInterface extends Partial<PaginationQueryInterface> {
+  /** Телефон пользователя */
   phone?: string;
+  /** Типы сообщений */
   types?: MessageTypeEnum[];
-  onlySent?: boolean;
+  /** Только неотправленные */
+  onlyUnsent?: boolean;
+  /** `id` пользователя */
+  userId?: number;
 }

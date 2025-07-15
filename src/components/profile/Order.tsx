@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Card, Form, Input, Rate, Tag } from 'antd';
+import { Badge, Button, Card, Form, Input, Rate, Tag, type UploadFile } from 'antd';
 import { useContext, useEffect, useRef, useState } from 'react';
 import moment from 'moment';
 import axios from 'axios';
-import type { UploadFile } from 'antd/lib';
+import Link from 'next/link';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -61,7 +61,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   const { role } = useAppSelector((state) => state.user);
   const { loadingStatus } = useAppSelector((state) => state.order);
 
-  const order = useAppSelector((state) => selectors.selectById(state, orderId)) || orderParams;
+  const order = useAppSelector((state) => orderParams || selectors.selectById(state, orderId));
 
   const coefficient = 1.3;
 
@@ -130,6 +130,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                 <div className="d-flex flex-column font-oswald">
                   <div className="d-flex flex-column flex-xl-row mb-4 mb-xl-5 justify-content-between">
                     <span className="fs-5 fw-bold mb-2 mb-xl-0">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
+                    {orderParams && <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5 mb-2 mb-xl-0">{order.user.name}</Link>}
                     <div className="d-flex flex-column gap-2" style={{ ...(isMobile ? { alignSelf: 'start', marginTop: '1rem' } : {}) }}>
                       {order.promotional
                         ? <Tag color="#e3dcfa" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>

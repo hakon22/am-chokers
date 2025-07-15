@@ -4,10 +4,12 @@ import {
   DeleteDateColumn,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { OrderEntity } from '@server/db/entities/order.entity';
 
 /** Пользователь */
 @Entity({
@@ -83,4 +85,8 @@ export class UserEntity extends BaseEntity {
     },
   })
   public favorites: ItemEntity[];
+
+  /** Заказы */
+  @OneToMany(() => OrderEntity, order => order.user)
+  public orders: OrderEntity[];
 }

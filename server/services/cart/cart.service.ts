@@ -9,7 +9,6 @@ import type { CartQueryInterface } from '@server/types/cart/cart.query.interface
 import type { CartOptionsInterface } from '@server/types/cart/cart.options.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { UserEntity } from '@server/db/entities/user.entity';
-import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 
 @Singleton
 export class CartService extends BaseService {
@@ -47,7 +46,7 @@ export class CartService extends BaseService {
           'user.id',
           'user.name',
         ])
-        .leftJoin('item.images', 'images')
+        .leftJoin('item.images', 'images', 'images.deleted IS NULL')
         .addSelect([
           'images.id',
           'images.name',
@@ -176,16 +175,20 @@ export class CartService extends BaseService {
     return [...cart.filter(({ id }) => !matchCartItemIds.includes(id)), ...updatedCartItems];
   };
 
-  public cartReport = async (query: PaginationQueryInterface) => {
-    const builder = this.createQueryBuilder(null, query, { withoutJoin: true })
-      .setParameter('adminRole', UserRoleEnum.ADMIN)
-      .leftJoin('cart.user', 'user')
-      .andWhere(new Brackets(qb => {
-        qb
-          .where('user.role != :adminRole')
-          .orWhere('user.role IS NULL');
-      }))
+  public cartReport = async (query: CartQueryInterface): Promise<[CartEntity[], number]> => {
+    const builder = this.createQueryBuilder(query?.userId || null, query, { withoutJoin: true })
       .orderBy('cart.created', 'DESC');
+
+    if (!query?.userId) {
+      builder
+        .setParameter('adminRole', UserRoleEnum.ADMIN)
+        .leftJoin('cart.user', 'user')
+        .andWhere(new Brackets(qb => {
+          qb
+            .where('user.role != :adminRole')
+            .orWhere('user.role IS NULL');
+        }));
+    }
 
     const [cartItems, count] = await builder.getManyAndCount();
 

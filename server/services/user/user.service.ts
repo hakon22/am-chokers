@@ -12,11 +12,16 @@ import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
 import { GradeService } from '@server/services/rating/grade.service';
-import { paramsIdSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import { MessageService } from '@server/services/message/message.service';
+import { CartService } from '@server/services/cart/cart.service';
+import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { paramsIdSchema, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
-import type { UserFormInterface, UserProfileType } from '@/types/user/User';
+import type { UserFormInterface, UserProfileType, UserCardInterface } from '@/types/user/User';
+import type { OrderInterface } from '@/types/order/Order';
+import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface';
 
 @Singleton
 export class UserService extends BaseService {
@@ -27,6 +32,10 @@ export class UserService extends BaseService {
   private readonly itemService = Container.get(ItemService);
 
   private readonly gradeService = Container.get(GradeService);
+
+  private readonly messageService = Container.get(MessageService);
+
+  private readonly cartService = Container.get(CartService);
 
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -40,6 +49,8 @@ export class UserService extends BaseService {
         'user.refreshTokens',
         'user.role',
         'user.deleted',
+        'user.created',
+        'user.updated',
       ])
       .leftJoin('user.favorites', 'favorites')
       .addSelect([
@@ -50,7 +61,7 @@ export class UserService extends BaseService {
         'favorites.deleted',
         'favorites.translateName',
       ])
-      .leftJoin('favorites.images', 'images')
+      .leftJoin('favorites.images', 'images', 'images.deleted IS NULL')
       .addSelect([
         'images.id',
         'images.name',
@@ -67,11 +78,55 @@ export class UserService extends BaseService {
     if (query?.phone) {
       builder.andWhere('user.phone = :phone', { phone: query.phone });
     }
-    if (options?.withDeleted) {
-      builder.withDeleted();
-    }
     if (options?.withPassword) {
       builder.addSelect('user.password');
+    }
+    if (options?.withOrders) {
+      builder
+        .leftJoin('user.orders', 'orders')
+        .addSelect([
+          'orders.id',
+          'orders.created',
+          'orders.status',
+          'orders.deliveryPrice',
+        ])
+        .leftJoin('orders.promotional', 'promotional')
+        .addSelect([
+          'promotional.id',
+          'promotional.name',
+          'promotional.discount',
+          'promotional.discountPercent',
+          'promotional.freeDelivery',
+        ])
+        .leftJoinAndSelect('orders.delivery', 'delivery')
+        .leftJoin('orders.positions', 'positions')
+        .addSelect([
+          'positions.id',
+          'positions.price',
+          'positions.discount',
+          'positions.discountPrice',
+          'positions.count',
+        ])
+        .leftJoin('positions.item', 'item')
+        .addSelect([
+          'item.id',
+          'item.name',
+          'item.translateName',
+        ])
+        .leftJoin('item.group', 'orderItemGroup')
+        .addSelect([
+          'orderItemGroup.code',
+        ])
+        .leftJoin('item.images', 'orderItemImages', 'orderItemImages.deleted IS NULL')
+        .addSelect([
+          'orderItemImages.id',
+          'orderItemImages.name',
+          'orderItemImages.path',
+          'orderItemImages.order',
+        ]);
+    }
+    if (options?.withDeleted) {
+      builder.withDeleted();
     }
 
     return builder.getOne();
@@ -388,5 +443,71 @@ export class UserService extends BaseService {
     await userRepo.update(createdUser.id, { refreshTokens: [createdRefreshToken] });
 
     return { code: 1, user: createdUser, token: createdToken, refreshToken: createdRefreshToken };
+  };
+
+  public getUserCard = async (req: Request, res: Response) => {
+    try {
+      const params = await paramsIdSchema.validate(req.params);
+
+      const [user, [, gradeCount], [, messageCount], cart] = await Promise.all([
+        this.findOne(params, { withDeleted: true, withOrders: true }),
+        this.gradeService.getMyGrades({} as FetchGradeInterface, params.id),
+        this.messageService.messageReport({}, { userId: params.id }),
+        this.cartService.findMany(params.id, undefined, undefined, { withoutJoin: true }),
+      ]);
+
+      if (!user) {
+        throw new Error(`Пользователь с ID #${params.id} не существует`);
+      }
+
+      user.refreshTokens = [];
+
+      const result: UserCardInterface = {
+        ...user,
+        amount: user.orders.reduce((acc, order) => acc + getOrderPrice(order as unknown as OrderInterface), 0),
+        gradeCount,
+        messageCount,
+        cartCount: cart.length,
+      };
+
+      res.json({ code: 1, user: result });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public getList = async (req: Request, res: Response) => {
+    try {
+      const query = await queryPaginationSchema.validate(req.query);
+      const manager = this.databaseService.getManager();
+
+      const builder = manager.createQueryBuilder(UserEntity, 'user')
+        .select([
+          'user.id',
+          'user.name',
+          'user.phone',
+          'user.created',
+          'user.updated',
+        ])
+        .orderBy('user.created', 'DESC');
+
+      if (query?.limit && query?.offset) {
+        builder
+          .limit(query.limit)
+          .offset(query.offset);
+      }
+    
+      const [items, count] = await builder.getManyAndCount();
+
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+
+      res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
   };
 }

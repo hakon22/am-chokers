@@ -44,7 +44,7 @@ export class MessageService extends BaseService {
     if (query?.phone) {
       builder.andWhere('message.phone ILIKE :phone', { phone: `%${query.phone}%` });
     }
-    if (query?.onlySent) {
+    if (query?.onlyUnsent) {
       builder.andWhere('NOT message.send');
     }
 

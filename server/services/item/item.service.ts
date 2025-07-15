@@ -106,7 +106,7 @@ export class ItemService extends BaseService {
           'item.order',
           'item.translateName',
         ])
-        .leftJoin('item.images', 'images')
+        .leftJoin('item.images', 'images', 'images.deleted IS NULL')
         .addSelect([
           'images.id',
           'images.name',

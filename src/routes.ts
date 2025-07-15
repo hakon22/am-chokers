@@ -38,6 +38,8 @@ export const routes = {
   colorsControl: [adminPath, 'colors'].join('/'),
   cartReport: [adminPath, 'reports', 'cart'].join('/'),
   messageReport: [adminPath, 'reports', 'message'].join('/'),
+  userList: [adminPath, 'user', 'list'].join('/'),
+  userCard: [adminPath, 'user'].join('/'),
 
   // profile
   personalData: [profilePath, 'personal'].join('/'),
@@ -57,6 +59,8 @@ export const routes = {
   unlinkTelegram: [apiPath, 'user', 'unlink-telegram'].join('/'),
   getOrders: [apiPath, 'user', 'orders'].join('/'),
   getMyGrades: [apiPath, 'user', 'myGrades'].join('/'),
+  getUserCard: (id?: number) => [apiPath, 'user', 'card', id ?? ':id'].join('/'),
+  getUserList: [apiPath, 'user', 'list'].join('/'),
 
   // integration
   telegram: [apiPath, 'telegram'].join('/'),

@@ -29,6 +29,7 @@ const Orders = () => {
   const urlParams = useSearchParams();
 
   const statusesParams = urlParams.getAll('statuses') as OrderStatusEnum[];
+  const userIdParams = urlParams.get('userId');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { role } = useAppSelector((state) => state.user);
@@ -64,6 +65,7 @@ const Orders = () => {
         limit: 10,
         offset: 0,
         statuses,
+        ...(userIdParams ? { userId: +userIdParams } : {}),
       };
       fetchOrders(params, true);
     }
@@ -71,7 +73,7 @@ const Orders = () => {
     return () => {
       setPaginationParams({ limit: 0, offset: 0, count: 0 });
     };
-  }, [axiosAuth, statuses.length]);
+  }, [axiosAuth, statuses.length, userIdParams]);
 
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
@@ -83,7 +85,7 @@ const Orders = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchOrders({ limit: pagination.limit, offset: pagination.offset + 10, statuses })}
+        next={() => fetchOrders({ limit: pagination.limit, offset: pagination.offset + 10, statuses, ...(userIdParams ? { userId: +userIdParams } : {}) })}
         hasMore={!(data.length < 10) && data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

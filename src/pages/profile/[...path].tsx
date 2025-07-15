@@ -111,6 +111,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
               { key: routes.reports.message, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.messageReport}>{tMenu('menu.admin.reports.message')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
+          { key: routes.getUserList, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.userList}>{tMenu('menu.admin.users')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
@@ -139,6 +140,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           { key: routes.reports.cart, label: <Link href={routes.cartReport}>{tMenu('menu.admin.reports.cart')}</Link> },
           { key: routes.reports.message, label: <Link href={routes.messageReport}>{tMenu('menu.admin.reports.message')}</Link> },
         ] },
+        { key: routes.getUserList, label: <Link href={routes.userList}>{tMenu('menu.admin.users')}</Link> },
         { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link> },
         { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
         { key: routes.promotionalCodes, label: <Link href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },

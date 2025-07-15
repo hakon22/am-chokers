@@ -4,12 +4,15 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
-export const queryOptionalSchema = yup.object().shape({
-  itemGroupId: yup
+export const userOptionalParamsSchema = yup.object().shape({
+  userId: yup
     .number()
     .transform((value) => +value)
     .optional(),
-  userId: yup
+});
+
+export const queryOptionalSchema = userOptionalParamsSchema.concat(yup.object().shape({
+  itemGroupId: yup
     .number()
     .transform((value) => +value)
     .optional(),
@@ -29,7 +32,7 @@ export const queryOptionalSchema = yup.object().shape({
       return undefined;
     })
     .optional(),
-});
+}));
 
 export const queryIdOptionalSchema = yup.object().shape({
   id: yup
@@ -73,18 +76,18 @@ export const queryPaginationSchema = yup.object().shape({
 });
 
 export const queryPaginationWithParams = queryPaginationSchema.concat(
-  yup.object().shape({
+  userOptionalParamsSchema.concat(yup.object().shape({
     withDeleted: booleanSchema,
     showAccepted: booleanSchema,
     search: yup.string().optional(),
-  }),
+  })),
 );
 
 export const queryOrderParams = queryPaginationSchema.concat(
-  yup.object().shape({
+  userOptionalParamsSchema.concat(yup.object().shape({
     withDeleted: booleanSchema,
     statuses: yup.array(yup.string().oneOf(Object.values(OrderStatusEnum)).defined()),
-  }),
+  })),
 );
 
 export const queryNameParams = yup.object().shape({
@@ -131,9 +134,9 @@ export const queryCodeParams = yup.object().shape({
 });
 
 export const queryMessageReportParams = queryPaginationSchema.concat(
-  yup.object().shape({
+  userOptionalParamsSchema.concat(yup.object().shape({
     phone: yup.string().optional(),
-    onlySent: booleanSchema,
+    onlyUnsent: booleanSchema,
     types: yup.array(yup.string().oneOf(Object.values(MessageTypeEnum)).defined()),
-  }),
+  })),
 );

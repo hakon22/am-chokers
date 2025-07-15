@@ -21,6 +21,8 @@ export const useAccessHandler = () => {
     routes.colorsControl,
     routes.cartReport,
     routes.messageReport,
+    routes.userCard,
+    routes.userList,
   ];
 
   useEffect(() => {

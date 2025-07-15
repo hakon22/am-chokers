@@ -19,7 +19,9 @@ export class UserRoute extends BaseRouter {
     router.post(this.routes.changeUserProfile, this.middlewareService.jwtToken, this.userService.changeUserProfile);
     router.get(this.routes.unlinkTelegram, this.middlewareService.jwtToken, this.userService.unlinkTelegram);
     router.get(this.routes.getMyGrades, this.middlewareService.jwtToken, this.userService.getMyGrades);
+    router.get(this.routes.getUserCard(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.userService.getUserCard);
     router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
     router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);
+    router.get(this.routes.getUserList, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.userService.getList);
   };
 }

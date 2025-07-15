@@ -1,6 +1,7 @@
 import type { UserEntity } from '@server/db/entities/user.entity';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { OmitBase } from '@/types/OmitBase';
+import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 
 export interface UserInterface extends OmitBase<UserEntity> {
   /** Токен пользователя */
@@ -27,4 +28,15 @@ export type UserLoginInterface = Omit<UserFormInterface, 'name'>;
 
 export interface UserSignupInterface extends UserFormInterface {
   confirmPassword: string;
+}
+
+export interface FetchUserInterface extends PaginationQueryInterface {
+  withDeleted?: boolean;
+}
+
+export interface UserCardInterface extends Omit<OmitBase<UserEntity>, 'password' | 'deleted' | 'refreshTokens'> {
+  amount: number;
+  gradeCount: number;
+  messageCount: number;
+  cartCount: number;
 }

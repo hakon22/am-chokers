@@ -1,10 +1,10 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import { queryPaginationSchema, queryMessageReportParams } from '@server/utilities/convertation.params';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { MessageService } from '@server/services/message/message.service';
+import { queryPaginationWithParams, queryMessageReportParams } from '@server/utilities/convertation.params';
 
 @Singleton
 export class ReportController extends BaseService {
@@ -14,7 +14,7 @@ export class ReportController extends BaseService {
 
   public cartReport = async (req: Request, res: Response) => {
     try {
-      const query = await queryPaginationSchema.validate(req.query);
+      const query = await queryPaginationWithParams.validate(req.query);
 
       const [items, count] = await this.cartService.cartReport(query);
 
@@ -34,7 +34,7 @@ export class ReportController extends BaseService {
     try {
       const query = await queryMessageReportParams.validate(req.query);
 
-      const [items, count] = await this.messageService.messageReport(query);
+      const [items, count] = await this.messageService.messageReport(query, { ...query });
 
       const paginationParams = {
         count,

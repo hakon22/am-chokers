@@ -65,7 +65,7 @@ export class CommentService extends BaseService {
         'user.id',
         'user.name',
       ])
-      .leftJoin('comment.images', 'images')
+      .leftJoin('comment.images', 'images', 'images.deleted IS NULL')
       .addSelect([
         'images.id',
         'images.name',

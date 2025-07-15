@@ -38,6 +38,7 @@ const Reviews = () => {
   const urlParams = useSearchParams();
   const withDeletedParams = urlParams.get('withDeleted');
   const showAcceptedParams = urlParams.get('showAccepted');
+  const userIdParams = urlParams.get('userId');
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -184,10 +185,11 @@ const Reviews = () => {
         offset: 0,
         withDeleted,
         showAccepted,
+        ...(userIdParams ? { userId: +userIdParams } : {}),
       };
       fetchGrades(params, true);
     }
-  }, [withDeleted, showAccepted, axiosAuth]);
+  }, [withDeleted, showAccepted, userIdParams, axiosAuth]);
 
   return role === UserRoleEnum.ADMIN ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
@@ -201,7 +203,7 @@ const Reviews = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchGrades({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, showAccepted })}
+        next={() => fetchGrades({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, showAccepted, ...(userIdParams ? { userId: +userIdParams } : {}) })}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

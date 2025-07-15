@@ -98,7 +98,7 @@ export class OrderService extends BaseService {
           'promotional.freeDelivery',
         ])
         .leftJoinAndSelect('order.delivery', 'delivery')
-        .leftJoin('item.images', 'images')
+        .leftJoin('item.images', 'images', 'images.deleted IS NULL')
         .addSelect([
           'images.id',
           'images.name',
@@ -119,7 +119,7 @@ export class OrderService extends BaseService {
         ]);
     }
     if (options?.userId) {
-      builder.andWhere('order.user_id = :userId', { userId: options.userId });
+      builder.andWhere('order.user = :userId', { userId: options.userId });
     }
     if (options?.ids?.length) {
       builder.andWhere('order.id IN(:...ids)', { ids: options.ids });
@@ -132,7 +132,7 @@ export class OrderService extends BaseService {
   };
 
   public findOne = async (params: ParamsIdInterface, query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
-    const builder = this.createQueryBuilder(query, options)
+    const builder = this.createQueryBuilder(query, { ...options, withUser: true })
       .andWhere('order.id = :id', { id: params.id });
 
     const order = await builder.getOne();

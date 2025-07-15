@@ -5,4 +5,6 @@ export interface CartQueryInterface extends Partial<PaginationQueryInterface> {
   id?: string;
   /** Список `id` товара корзины */
   ids?: string[];
+  /** `id` пользователя */
+  userId?: number;
 }

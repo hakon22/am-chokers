@@ -82,7 +82,7 @@ export class GradeService extends BaseService {
         .addSelect('position.id')
         .leftJoin('position.order', 'order')
         .addSelect('order.id')
-        .leftJoin('comment.images', 'images')
+        .leftJoin('comment.images', 'images', 'images.deleted IS NULL')
         .addSelect([
           'images.id',
           'images.name',

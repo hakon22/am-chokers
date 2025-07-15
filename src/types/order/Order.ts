@@ -14,6 +14,7 @@ export type OrderInterface = OmitBase<OrderEntity> & InitialState;
 export interface FetchOrdersInterface extends PaginationQueryInterface {
   withDeleted?: boolean;
   statuses?: OrderStatusEnum[];
+  userId?: number;
 }
 
 export interface CreateDeliveryInterface {
