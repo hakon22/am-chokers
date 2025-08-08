@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { MouseEvent as ReactMouseEvent, useEffect, useState, useContext, useRef } from 'react';
 import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined, UpOutlined, CloseOutlined } from '@ant-design/icons';
-import { AutoComplete, Badge, Button, Drawer, Input, Menu, type MenuProps, type GetRef } from 'antd';
+import { AutoComplete, Badge, Button, Drawer, Input, Menu, Avatar, type MenuProps, type GetRef } from 'antd';
 import { useSearchParams } from 'next/navigation';
 import cn from 'classnames';
 
@@ -43,7 +43,7 @@ const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; 
 const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
-  const { favorites } = useAppSelector((state) => state.user);
+  const { favorites, name } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   return (
@@ -53,7 +53,7 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
         <span className="visually-hidden">{t('search')}</span>
       </Button>
       <Link href={routes.favorites} title={t('favorites')}>
-        <Badge count={favorites?.length} offset={[3, 23]}>
+        <Badge count={favorites?.length} offset={[0, 23]}>
           <HeartOutlined className="icon" />
           <span className="visually-hidden">{t('favorites')}</span>
         </Badge>
@@ -65,7 +65,13 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
         </Badge>
       </Link>
       <Link href={routes.profilePage} title={t('profile')}>
-        <Image src={personIcon} unoptimized alt={t('logo')} />
+        {name
+          ? (
+            <Avatar style={{ backgroundColor: '#62c2d8ff', width: 28.8, height: 30, verticalAlign: 'middle' }}>
+              {name[0]}
+            </Avatar>
+          )
+          : <Image src={personIcon} unoptimized alt={t('logo')} />}
         <span className="visually-hidden">{t('profile')}</span>
       </Link>
     </div>
