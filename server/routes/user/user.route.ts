@@ -22,6 +22,6 @@ export class UserRoute extends BaseRouter {
     router.get(this.routes.getUserCard(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.userService.getUserCard);
     router.get(this.routes.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);
     router.delete(this.routes.removeFavorites(), this.middlewareService.jwtToken, this.userService.removeFavorites);
-    router.get(this.routes.getUserList, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.userService.getList);
+    router.get(this.routes.reports.users, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.userService.getList);
   };
 }

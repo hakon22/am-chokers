@@ -24,7 +24,7 @@ interface DataType extends Omit<Partial<UserInterface>, 'key'> {
 }
 
 const UserList = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'pages.userList' });
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.users' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const dispatch = useAppDispatch();
@@ -44,7 +44,7 @@ const UserList = () => {
         return;
       }
       setIsSubmit(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<UserInterface>>(routes.getUserList, {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<UserInterface>>(routes.reports.users, {
         params,
       });
       if (code === 1) {

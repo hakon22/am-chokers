@@ -60,7 +60,6 @@ export const routes = {
   getOrders: [apiPath, 'user', 'orders'].join('/'),
   getMyGrades: [apiPath, 'user', 'myGrades'].join('/'),
   getUserCard: (id?: number) => [apiPath, 'user', 'card', id ?? ':id'].join('/'),
-  getUserList: [apiPath, 'user', 'list'].join('/'),
 
   // integration
   telegram: [apiPath, 'telegram'].join('/'),
@@ -161,5 +160,6 @@ export const routes = {
   reports: {
     cart: [apiPath, 'reports', 'cart'].join('/'),
     message: [apiPath, 'reports', 'message'].join('/'),
+    users: [apiPath, 'reports', 'user', 'list'].join('/'),
   },
 } as const;
