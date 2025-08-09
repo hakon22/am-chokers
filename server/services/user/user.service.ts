@@ -124,6 +124,11 @@ export class UserService extends BaseService {
           'orderItemImages.name',
           'orderItemImages.path',
           'orderItemImages.order',
+        ])
+        .leftJoin('orders.transactions', 'transactions')
+        .addSelect([
+          'transactions.id',
+          'transactions.status',
         ]);
     }
     if (options?.withDeleted) {
