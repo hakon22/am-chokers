@@ -25,6 +25,7 @@ import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import type { FetchOrdersInterface, OrderInterface, CreateDeliveryInterface } from '@/types/order/Order';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
+import type { CartEntity } from '@server/db/entities/cart.entity';
 
 @Singleton
 export class OrderService extends BaseService {
@@ -96,6 +97,11 @@ export class OrderService extends BaseService {
           'promotional.discount',
           'promotional.discountPercent',
           'promotional.freeDelivery',
+        ])
+        .leftJoin('order.transactions', 'transactions')
+        .addSelect([
+          'transactions.id',
+          'transactions.status',
         ])
         .leftJoinAndSelect('order.delivery', 'delivery')
         .leftJoin('item.images', 'images', 'images.deleted IS NULL')
@@ -249,6 +255,8 @@ export class OrderService extends BaseService {
       url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA) as string;
     }
 
+    await this.redisService.setEx(`checkOrderPayment_${order.id}`, {}, 60 * 60);
+
     return { order, url };
   };
 
@@ -272,16 +280,28 @@ export class OrderService extends BaseService {
     return order;
   };
 
-  public cancel = async (params: ParamsIdInterface, user: PassportRequestInterface) => {
-    const order = await this.findOne(params);
+  public cancel = async (params: ParamsIdInterface, user?: PassportRequestInterface) => {
+    const manager = this.databaseService.getManager();
+
+    const order = await this.findOne(params, undefined, { manager });
 
     const status = OrderStatusEnum.CANCELED;
 
-    if (user.role !== UserRoleEnum.ADMIN && order.status !== OrderStatusEnum.NEW) {
-      throw new Error(`Заказ с №${order.id} и статусом ${order.status} нельзя поменять на статус ${status}`);
+    if (!user) {
+      user = order.user as PassportRequestInterface;
     }
 
-    await OrderEntity.update(order.id, { status });
+    if (user.role !== UserRoleEnum.ADMIN && order.status !== OrderStatusEnum.NOT_PAID) {
+      throw new Error(`Заказ №${order.id} и статусом ${order.status} нельзя поменять на статус ${status}`);
+    }
+
+    const cart = await manager.transaction(async (entityManager) => {
+      const orderRepo = manager.getRepository(OrderEntity);
+
+      await orderRepo.update(order.id, { status });
+
+      return this.cartService.createMany(user.id, order.positions.map((position) => ({ ...position, id: undefined } as unknown as CartEntity)), { manager: entityManager });
+    });
 
     if (user.telegramId) {
       await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> был отменён.`, user.telegramId);
@@ -293,14 +313,14 @@ export class OrderService extends BaseService {
       const adminText = [
         `Отмена заказа <b>№${order.id}</b>`,
         '',
-        `Сумма: <b>${getOrderPrice({ ... order } as OrderInterface)} ₽</b>`,
+        `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
       ];
       await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
     }
   
-    return order;
+    return { order, cart };
   };
 
   public pay = async (params: ParamsIdInterface) => {
@@ -327,5 +347,18 @@ export class OrderService extends BaseService {
     const order = await deletedOrder.recover();
 
     return order;
+  };
+
+  public subscribe = async () => {
+    await this.redisService.subscribeRedis.subscribe('__keyevent@0__:expired', async (message) => {
+      if (message.includes('checkOrderPayment')) {
+        const orderId = message.replace('checkOrderPayment_', '') as string;
+
+        console.log(`Обработка истёкшей оплаты для заказа ${orderId}`);
+  
+        await this.cancel({ id: +orderId });
+      }
+    });
+    console.log('Подписка на события Redis выполнена успешно');
   };
 }

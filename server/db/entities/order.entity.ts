@@ -13,6 +13,7 @@ import { UserEntity } from '@server/db/entities/user.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';
+import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 
 /** Заказ */
 @Entity({
@@ -91,4 +92,8 @@ export class OrderEntity extends BaseEntity {
   /** Позиции */
   @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
   public positions: OrderPositionEntity[];
+
+  /** Транзакции */
+  @OneToMany(() => AcquiringTransactionEntity, transaction => transaction.order)
+  public transactions: AcquiringTransactionEntity[];
 }

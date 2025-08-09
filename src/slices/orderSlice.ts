@@ -8,6 +8,7 @@ import type { RootState } from '@/slices';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import type { CartItemInterface } from '@/types/cart/Cart';
 
 export interface OrderResponseInterface {
   code: number;
@@ -56,7 +57,7 @@ export const cancelOrder = createAsyncThunk(
   'order/cancelOrder',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.get<OrderResponseInterface>(routes.cancelOrder(id));
+      const response = await axios.get<OrderResponseInterface & { cart: CartItemInterface[]; }>(routes.cancelOrder(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

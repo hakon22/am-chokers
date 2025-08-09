@@ -228,6 +228,8 @@ export class AcquiringService extends BaseService {
     try {
       const { order } = transaction;
 
+      await this.redisService.delete(`checkOrderPayment_${order.id}`);
+
       await AcquiringTransactionEntity.update(transaction.id, { status: TransactionStatusEnum.PAID });
       await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
 

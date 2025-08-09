@@ -71,9 +71,9 @@ export class OrderController extends BaseService {
     try {
       const params = await paramsIdSchema.validate(req.params);
 
-      const order = await this.orderService.cancel(params, req.user as PassportRequestInterface);
+      const { order, cart } = await this.orderService.cancel(params, req.user as PassportRequestInterface);
 
-      res.json({ code: 1, order });
+      res.json({ code: 1, order, cart });
     } catch (e) {
       this.errorHandler(e, res);
     }

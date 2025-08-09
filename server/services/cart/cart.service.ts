@@ -75,18 +75,43 @@ export class CartService extends BaseService {
     return builder;
   };
 
-  public createOne = async (userId: number | null, body: CartEntity) => {
+  public createOne = async (userId: number | null, body: CartEntity, options?: { manager?: EntityManager; }) => {
+    const manager = options?.manager || this.databaseService.getManager();
+
+    const cartRepo = manager.getRepository(CartEntity);
+
     if (userId) {
       body.user = { id: userId } as UserEntity;
     }
-    const created = await CartEntity.save(body);
+
+    const created = await cartRepo.save(body);
     const cartItem = await this.findOne(userId, { id: created.id });
 
     return { code: 1, cartItem };
   };
 
-  private findOne = async (userId: number | null, params: ParamsIdStringInterface) => {
-    const builder = this.createQueryBuilder(userId, params);
+  public createMany = async (userId: number, body: CartEntity[], options?: { manager?: EntityManager; }) => {
+    const entityManager = options?.manager || this.databaseService.getManager();
+
+    return entityManager.transaction(async (manager) => {
+      const cartRepo = manager.getRepository(CartEntity);
+
+      body.forEach((cartItem) => {
+        cartItem.user = { id: userId } as UserEntity;
+      });
+
+      const oldCartItems = await this.findMany(userId, undefined, undefined, { manager });
+
+      const cart = await cartRepo.save(body);
+
+      await this.saveCartItems(cart, oldCartItems, userId, { manager });
+
+      return this.findMany(userId, undefined, undefined, { manager });
+    });
+  };
+
+  private findOne = async (userId: number | null, params: ParamsIdStringInterface, options?: { manager?: EntityManager; }) => {
+    const builder = this.createQueryBuilder(userId, params, options);
 
     const cartItem = await builder.getOne();
 
@@ -106,7 +131,7 @@ export class CartService extends BaseService {
       return cart;
     }
 
-    return this.saveCartItems(cart, oldCart, userId);    
+    return this.saveCartItems(cart, oldCart, userId, options);    
   };
 
   public updateOne = async (userId: number | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement') => {
@@ -153,7 +178,7 @@ export class CartService extends BaseService {
     await cartRepo.delete(cart.map(({ id }) => id));
   };
 
-  private saveCartItems = async (cart: CartEntity[], oldCart: CartItemInterface[], userId: number) => {
+  private saveCartItems = async (cart: CartEntity[], oldCart: CartItemInterface[], userId: number, options?: { manager?: EntityManager; }) => {
     const matchCartItemIds = oldCart.reduce((acc, oldCartItem) => {
       const matchCartItem = cart.find(({ item }) => item.id === oldCartItem.item.id);
       if (matchCartItem) {
@@ -162,7 +187,7 @@ export class CartService extends BaseService {
       return acc;
     }, [] as string[]);
 
-    const updatedCartItems = await this.databaseService.getManager().transaction(async (manager) => {
+    const updatedCartItems = await (options?.manager || this.databaseService.getManager()).transaction(async (manager) => {
       const cartRepo = manager.getRepository(CartEntity);
 
       if (matchCartItemIds.length) {

@@ -10,6 +10,7 @@ import { Container } from 'typescript-ioc';
 import { RouterService } from '@server/services/app/router.service';
 import { TokenService } from '@server/services/user/token.service';
 import { BaseService } from '@server/services/app/base.service';
+import { OrderService } from '@server/services/order/order.service';
 import { routes } from '@/routes';
 
 const {
@@ -20,6 +21,8 @@ class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
 
   private readonly tokenService = Container.get(TokenService);
+
+  private readonly orderService = Container.get(OrderService);
 
   private readonly telegramBot = new Telegraf(TELEGRAM_TOKEN ?? '');
 
@@ -34,6 +37,7 @@ class Server extends BaseService {
   private init = async () => {
     await this.databaseService.init();
     await this.redisService.init();
+    await this.orderService.subscribe();
 
     if (!this.dev) {
       await this.telegramBot.telegram.setMyCommands([{

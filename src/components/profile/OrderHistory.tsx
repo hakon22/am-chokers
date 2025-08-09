@@ -12,6 +12,7 @@ import axios from 'axios';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
+import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
 import { truncateText } from '@/utilities/truncateText';
 import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice';
@@ -25,7 +26,9 @@ import { toast } from '@/utilities/toast';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import type { OrderInterface } from '@/types/order/Order';
+import type { CartItemInterface } from '@/types/cart/Cart';
 
 interface OrderHistoryInterface {
   data?: OrderInterface[];
@@ -76,7 +79,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   const changeStatusHandler = async (status: OrderStatusEnum, orderId: number) => {
     setIsSubmit(true);
-    const { payload } = await dispatch(updateOrder({ id: orderId, data: { status } })) as { payload: OrderResponseInterface };
+    const { payload } = await dispatch(updateOrder({ id: orderId, data: { status } })) as { payload: OrderResponseInterface; };
     if (payload.code === 1) {
       handleUpdate(payload);
       toast(tToast('changeOrderStatusSuccess', { id: payload.order.id, status: t(`statuses.${payload.order.status}`) }), 'success');
@@ -86,24 +89,35 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   const cancelOrderHandler = async (orderId: number) => {
     setIsSubmit(true);
-    const { payload } = await dispatch(cancelOrder(orderId)) as { payload: OrderResponseInterface };
+    const { payload } = await dispatch(cancelOrder(orderId)) as { payload: OrderResponseInterface & { cart: CartItemInterface[]; }; };
     if (payload.code === 1) {
       handleUpdate(payload);
+      dispatch(replaceCart(payload.cart));
       toast(tToast('cancelOrderStatusSuccess'), 'success');
     }
     setIsSubmit(false);
   };
 
-  const getActions = (status: OrderStatusEnum, orderId: number) => {
-    const { back, next } = getNextOrderStatuses(status);
+  const getActions = (order: OrderInterface, orderId: number) => {
+    const { back, next } = getNextOrderStatuses(order.status);
 
     return isAdmin
       ? [
-        ...(status === OrderStatusEnum.CANCELED ? [] : [<StopOutlined key="stop" onClick={() => cancelOrderHandler(orderId)} title={t('actions.stop')} />]),
+        ...(order.status === OrderStatusEnum.CANCELED ? [] : [
+          <div key="stop" title={t('actions.stop')} onClick={() => cancelOrderHandler(orderId)}>
+            <span className="me-2">{t('actions.stop')}</span>
+            <StopOutlined />
+          </div>,
+        ]),
         ...(back ? [<BackwardOutlined key="back" onClick={() => changeStatusHandler(back, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${back}`) })} />] : []),
         ...(next ? [<ForwardOutlined key="next" onClick={() => changeStatusHandler(next, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${next}`) })} />] : []),
       ]
-      : status === OrderStatusEnum.NOT_PAID ? [<StopOutlined key="stop" onClick={() => cancelOrderHandler(orderId)} title={t('actions.stop')} />] : [];
+      : !order.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID) ? [
+        <div key="stop" title={t('actions.stop')} onClick={() => cancelOrderHandler(orderId)}>
+          <span className="me-2">{t('actions.stop')}</span>
+          <StopOutlined />
+        </div>,
+      ] : [];
   };
 
   const onPay = async (id: number) => {
@@ -151,7 +165,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
         {orders.sort((a, b) => b.id - a.id).filter((order) => !statuses.length || statuses.includes(order.status)).map((order) => (
           <Badge.Ribbon key={order.id} text={t(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
             <Card
-              actions={getActions(order.status, order.id)}
+              actions={getActions(order, order.id)}
             >
               <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">
                 <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="d-flex flex-column justify-content-between col-12 gap-3 gap-xl-0 col-xl-4">
@@ -170,7 +184,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <span>{t('delivery')}</span>
                       <span className="fw-bold">{t('price', { price: order.deliveryPrice })}</span>
                     </Tag>
-                    {order.status === OrderStatusEnum.NOT_PAID
+                    {!order.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID)
                       ? isAdmin ? (
                         <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
@@ -192,7 +206,9 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <Link href={getHref(position.item)} className="col-5 col-xl-2 font-oswald lh-1 me-2">{truncateText(position.item.name)}</Link>
                       <div className="d-flex col-xl-10 gap-2">{position.item.images.map((image, index) =>
                         index < maxPhoto
-                          ? <Image key={image.id} src={image.src} width={width} height={height} unoptimized alt={position.item.name} style={{ borderRadius: '5px' }} />
+                          ? image.src.endsWith('.mp4')
+                            ? <video key={image.id} src={image.src} width={width} height={height} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
+                            : <Image key={image.id} src={image.src} width={width} height={height} unoptimized alt={position.item.name} style={{ borderRadius: '5px' }} />
                           : index === maxPhoto
                             ? <div key={image.id} className="d-flex align-items-center fs-6">
                               <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '6px 10px' }}>{`+${position.item.images.length - maxPhoto}`}</span>

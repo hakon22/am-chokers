@@ -5,10 +5,17 @@ import { Singleton } from 'typescript-ioc';
 export class RedisService {
   private redis: RedisClientType<any, any, any>;
 
+  public subscribeRedis: RedisClientType<any, any, any>;
+
   public init = async () => {
     this.redis = await createClient()
       .on('error', (error) => console.log('Невозможно подключиться к Redis', error))
       .connect();
+
+    this.subscribeRedis = await createClient()
+      .on('error', (error) => console.log('Ошибка при попытке подписаться на события Redis', error))
+      .connect();
+
     console.log('Соединение с Redis было успешно установлено');
   };
 

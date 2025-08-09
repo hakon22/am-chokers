@@ -106,7 +106,7 @@ export default {
           price: '{{ price }} ₽',
           selectStatuses: 'Выберите статусы',
           actions: {
-            stop: 'Отменить',
+            stop: 'Отменить заказ',
             change: 'Перевести в статус {{ status }}',
           },
           statuses: {

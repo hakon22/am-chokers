@@ -116,6 +116,9 @@ const cartSlice = createSlice({
         state.cart = JSON.parse(cartStorage);
       }
     },
+    replaceCart: (state, { payload }: PayloadAction<CartItemInterface[]>) => {
+      state.cart = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -238,6 +241,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { removeMany, addMany } = cartSlice.actions;
+export const { removeMany, addMany, replaceCart } = cartSlice.actions;
 
 export default cartSlice.reducer;

@@ -22,6 +22,7 @@ import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
@@ -142,7 +143,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                         <span>{tOrders('delivery')}</span>
                         <span className="fw-bold">{tOrders('price', { price: order.deliveryPrice })}</span>
                       </Tag>
-                      {order.status === OrderStatusEnum.NOT_PAID
+                      {!order.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID)
                         ? isAdmin ? (
                           <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                             <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
