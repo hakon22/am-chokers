@@ -615,6 +615,7 @@ export default {
         cancel: 'Отменить',
         okText: 'Да',
         deleted: 'Удалена',
+        getExcel: 'Выгрузить в Excel',
         finish: 'Данных больше нет 🤐',
       },
       payment: {

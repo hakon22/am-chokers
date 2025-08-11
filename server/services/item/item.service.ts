@@ -2,6 +2,8 @@ import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
 import { Brackets } from 'typeorm';
+import ExcelJS, { type Anchor } from 'exceljs';
+import moment from 'moment';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
@@ -15,6 +17,7 @@ import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 import type { ItemOptionsInterface } from '@server/types/item/item.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
@@ -394,8 +397,6 @@ export class ItemService extends BaseService {
       ...values,
       '',
       ...(item?.collection ? [`Коллекция: <b>${item.collection.name}</b>`] : []),
-      `Состав: <b>${item.compositions.map(({ name }) => name).join(', ')}</b>`,
-      `Длина: <b>${item.length}</b>`,
       `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
       '',
       `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
@@ -478,6 +479,110 @@ export class ItemService extends BaseService {
     deletedItem.grades = grades;
 
     return deletedItem;
+  };
+
+  public getListExcel = async () => {
+    const data = await this.findMany({ withDeleted: true });
+
+    const items = await Promise.all(data.map(async (item) => ({ ...item, image: item.images[0] ? await fetch(`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${item.images[0].src}`).then(res => res.arrayBuffer()) : null } as ItemEntity & { image: ArrayBuffer; })));
+
+    const { deleted, notDeleted } = items.reduce((acc, item) => {
+      if (item.deleted) {
+        acc.deleted.push(item);
+      } else {
+        acc.notDeleted.push(item);
+      }
+      return acc;
+    }, { deleted: [], notDeleted: [] } as { deleted: (ItemEntity & { image: ArrayBuffer; })[]; notDeleted: (ItemEntity & { image: ArrayBuffer; })[]; });
+
+    const workbook = new ExcelJS.Workbook();
+
+    const worksheet = workbook.addWorksheet('Актуальные');
+    const worksheet2 = workbook.addWorksheet('Удалённые');
+
+    [worksheet, worksheet2].forEach((ws => {
+      ws.columns = [
+        { header: 'Изображение', key: 'image', width: 25 },
+        { header: 'Уникальный номер', key: 'id', width: 10 },
+        { header: 'Название', key: 'name', width: 40 },
+        { header: 'Описание', key: 'description', width: 100 },
+        { header: 'Группа', key: 'group', width: 20 },
+        { header: 'Коллекция', key: 'collection', width: 20 },
+        { header: 'Цена', key: 'price', width: 10 },
+        { header: 'Скидка', key: 'discount', width: 10 },
+        { header: 'Длина', key: 'length', width: 50 },
+        { header: 'Новинка', key: 'new', width: 15 },
+        { header: 'Бестселлер', key: 'bestseller', width: 15 },
+        { header: 'Дата создания', key: 'created', width: 20 },
+      ];
+
+      const headerRow = ws.getRow(1);
+      headerRow.font = { bold: true };
+
+      ws.eachRow((row) => {
+        row.eachCell((cell, colNumber) => {
+          if (colNumber > 1) { // Пропускаем первую колонку (если нужно)
+            cell.alignment = { 
+              horizontal: 'center', 
+              vertical: 'middle', 
+            };
+          }
+        });
+      });
+    }));
+
+    const topPadding = 12700 * 5;  // 10 пикселей сверху
+    const bottomPadding = 12700 * 5; // 10 пикселей снизу
+
+    [notDeleted, deleted].forEach((values, i) => values.forEach((item, rowIndex) => {
+      const rowNumber = rowIndex + 2; // +2, т.к. первая строка — заголовки
+      const ws = i ? worksheet2 : worksheet;
+  
+      ws.addRow({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        group: item.group.name,
+        collection: item.collection?.name,
+        price: item.price - item.discountPrice,
+        discount: item.discountPrice,
+        length: item.length,
+        new: item.new ? 'Да' : 'Нет',
+        bestseller: item.bestseller ? 'Да' : 'Нет',
+        created: moment(item.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
+      });
+
+      const imageColWidth = ws.getColumn(1).width ?? 25;
+      ws.getRow(rowNumber).height = imageColWidth * 1.3 * 6.5;
+
+      if (item.image) {
+        const imageId = workbook.addImage({
+          buffer: item.image,
+          extension: 'jpeg',
+        });
+
+        ws.addImage(imageId, {
+          tl: { 
+            col: 0,
+            row: rowNumber - 1,
+            nativeCol: 0,         // Физическая колонка (0 = A)
+            nativeRow: rowNumber - 1, // Физическая строка
+            nativeColOff: 0,      // Смещение внутри колонки (0 = начало)
+            nativeRowOff: topPadding,      // Смещение внутри строки (0 = начало)
+          } as Anchor,
+          br: { 
+            col: 1,
+            row: rowNumber,
+            nativeCol: 1,         // Физическая колонка (1 = B)
+            nativeRow: rowNumber, // Физическая строка
+            nativeColOff: 0,      // Смещение внутри колонки (0 = конец)
+            nativeRowOff: -bottomPadding,      // Смещение внутри строки (0 = конец)
+          } as Anchor,
+        });
+      }
+    }));
+
+    return workbook.xlsx.writeBuffer();
   };
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);

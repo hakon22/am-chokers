@@ -193,4 +193,19 @@ export class ItemController extends BaseService {
       this.errorHandler(e, res);
     }
   };
+
+  public getListExcel = async (req: Request, res: Response) => {
+    try {
+
+      const buffer = await this.itemService.getListExcel();
+
+      res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.header('Content-Disposition', 'attachment; filename=item-register.xlsx');
+      res
+        .send(buffer)
+        .end();
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
 }

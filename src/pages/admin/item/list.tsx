@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
-import { LikeOutlined } from '@ant-design/icons';
-import { Popconfirm, Checkbox, List, Divider, Rate, Tag } from 'antd';
+import { LikeOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Popconfirm, Checkbox, List, Divider, Rate, Tag, Button } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
@@ -19,7 +19,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
-import { MobileContext } from '@/components/Context';
+import { MobileContext, SubmitContext } from '@/components/Context';
 import type { FetchItemInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
@@ -44,8 +44,8 @@ const ItemList = () => {
   const { role } = useAppSelector((state) => state.user);
 
   const { isMobile } = useContext(MobileContext);
+  const { setIsSubmit, isSubmit } = useContext(SubmitContext);
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [data, setData] = useState<ItemInterface[]>([]);
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
   const [search, setSearch] = useState<{ value: string; onFetch: boolean; } | undefined>({ value: searchParams as string, onFetch: true });
@@ -54,10 +54,10 @@ const ItemList = () => {
 
   const fetchItems = async (params: FetchItemInterface, replacement = false, onFetch = true) => {
     try {
-      if (isLoading || !onFetch) {
+      if (isSubmit || !onFetch) {
         return;
       }
-      setIsLoading(true);
+      setIsSubmit(true);
       const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: true }), {
         params,
       });
@@ -65,9 +65,33 @@ const ItemList = () => {
         dispatch(setPaginationParams(paginationParams));
         setData(replacement ? items : (state) => [...state, ...items]);
       }
-      setIsLoading(false);
+      setIsSubmit(false);
     } catch (e) {
-      axiosErrorHandler(e, tToast, setIsLoading);
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    }
+  };
+
+  const fetchItemsExcel = async () => {
+    try {
+      setIsSubmit(true);
+
+      const response = await axios.get(routes.getItemListExcel, { responseType: 'blob' });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+    
+      // Создаем ссылку и эмулируем клик для скачивания
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'item-register.xlsx'); // Указываем имя файла
+      document.body.appendChild(link);
+      link.click();
+    
+      // Убираем ссылку и освобождаем память
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      setIsSubmit(false);
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
     }
   };
 
@@ -84,7 +108,7 @@ const ItemList = () => {
   };
 
   const onItemRemove = async (id: number) => {
-    setIsLoading(true);
+    setIsSubmit(true);
     const { payload } = await dispatch(deleteItem(id)) as { payload: ItemResponseInterface };
     if (withDeleted) {
       handleUpdate(payload);
@@ -92,14 +116,14 @@ const ItemList = () => {
       const newData = data.filter((item) => item.id !== id);
       setData(newData);
     }
-    setIsLoading(false);
+    setIsSubmit(false);
   };
 
   const onItemRestore = async (id: number) => {
-    setIsLoading(true);
+    setIsSubmit(true);
     const { payload } = await dispatch(restoreItem(id)) as { payload: ItemResponseInterface };
     handleUpdate(payload);
-    setIsLoading(false);
+    setIsSubmit(false);
   };
 
   useEffect(() => {
@@ -146,7 +170,10 @@ const ItemList = () => {
           <BackButton style={{}} />
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
         </div>
-        <Search search={search} withDeleted={withDeleted} setSearch={setSearch} fetch={() => fetchItems({ limit: 10, offset: 0, withDeleted, search: search?.value }, true)} />
+        <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-xl-end gap-3 col-12 col-xl-9">
+          <Search search={search} withDeleted={withDeleted} setSearch={setSearch} fetch={() => fetchItems({ limit: 10, offset: 0, withDeleted, search: search?.value }, true)} />
+          <Button className="col-6 col-xl-2" icon={<DownloadOutlined />} type="primary" onClick={fetchItemsExcel}>{t('getExcel')}</Button>
+        </div>
       </div>
       <InfiniteScroll
         dataLength={data.length}
@@ -161,7 +188,7 @@ const ItemList = () => {
           locale={{
             emptyText: <NotFoundContent text={t('reviewsNotExist')} />,
           }}
-          loading={isLoading}
+          loading={isSubmit}
           renderItem={(item, i) => (
             <div className="d-flex align-items-center" style={i !== data.length - 1 ? { borderBlockEnd: '1px solid rgba(5, 5, 5, 0.06)' } : {}}>
               <div className="d-flex flex-column flex-xl-row gap-4 w-100 py-2">

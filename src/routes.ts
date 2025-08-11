@@ -98,6 +98,7 @@ export const routes = {
   getItemLinks: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'links'].join('/'),
   getItemByName: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-by-name'].join('/'),
   getItemSpecials: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-special'].join('/'),
+  getItemListExcel: [apiPath, 'item', 'list', 'excel'].join('/'),
   createItem: [apiPath, 'item', 'new'].join('/'),
   searchItem: [apiPath, 'item', 'search'].join('/'),
   crudItem: (id?: number) => [apiPath, 'item', id ?? ':id'].join('/'),
