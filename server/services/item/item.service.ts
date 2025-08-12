@@ -97,6 +97,7 @@ export class ItemService extends BaseService {
       builder
         .select([
           'item.id',
+          'item.created',
           'item.name',
           'item.description',
           'item.deleted',
@@ -500,10 +501,10 @@ export class ItemService extends BaseService {
     const worksheet = workbook.addWorksheet('Актуальные');
     const worksheet2 = workbook.addWorksheet('Удалённые');
 
-    [worksheet, worksheet2].forEach((ws => {
+    [worksheet, worksheet2].forEach((ws) => {
       ws.columns = [
-        { header: 'Изображение', key: 'image', width: 25 },
-        { header: 'Уникальный номер', key: 'id', width: 10 },
+        { header: 'Изображение', key: 'image', width: 20 },
+        { header: 'Номер', key: 'id', width: 10 },
         { header: 'Название', key: 'name', width: 40 },
         { header: 'Описание', key: 'description', width: 100 },
         { header: 'Группа', key: 'group', width: 20 },
@@ -518,18 +519,7 @@ export class ItemService extends BaseService {
 
       const headerRow = ws.getRow(1);
       headerRow.font = { bold: true };
-
-      ws.eachRow((row) => {
-        row.eachCell((cell, colNumber) => {
-          if (colNumber > 1) { // Пропускаем первую колонку (если нужно)
-            cell.alignment = { 
-              horizontal: 'center', 
-              vertical: 'middle', 
-            };
-          }
-        });
-      });
-    }));
+    });
 
     const topPadding = 12700 * 5;  // 10 пикселей сверху
     const bottomPadding = 12700 * 5; // 10 пикселей снизу
@@ -552,8 +542,8 @@ export class ItemService extends BaseService {
         created: moment(item.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
       });
 
-      const imageColWidth = ws.getColumn(1).width ?? 25;
-      ws.getRow(rowNumber).height = imageColWidth * 1.3 * 6.5;
+      const imageColWidth = ws.getColumn(1).width ?? 20;
+      ws.getRow(rowNumber).height = imageColWidth * 1.3 * 6;
 
       if (item.image) {
         const imageId = workbook.addImage({
@@ -581,6 +571,18 @@ export class ItemService extends BaseService {
         });
       }
     }));
+    
+    [worksheet, worksheet2].forEach((ws) => {
+      ws.eachRow((row) => {
+        row.eachCell((cell) => {
+          cell.alignment = {
+            horizontal: 'center',
+            vertical: 'middle',
+            wrapText: true,
+          };
+        });
+      });
+    });
 
     return workbook.xlsx.writeBuffer();
   };
