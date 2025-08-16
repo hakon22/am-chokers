@@ -34,7 +34,7 @@ export interface FetchUserInterface extends PaginationQueryInterface {
   withDeleted?: boolean;
 }
 
-export interface UserCardInterface extends Omit<OmitBase<UserEntity>, 'password' | 'deleted' | 'refreshTokens'> {
+export interface UserCardInterface extends Omit<OmitBase<UserEntity>, 'password' | 'deleted' | 'refreshTokens' | 'setAccessLevel'> {
   amount: number;
   gradeCount: number;
   messageCount: number;

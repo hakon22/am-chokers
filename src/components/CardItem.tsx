@@ -19,7 +19,6 @@ import { GradeList } from '@/components/GradeList';
 import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
@@ -78,7 +77,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const restoreItemHandler = async () => {
     setIsSubmit(true);
@@ -128,7 +127,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     }
   };
 
-  return role === UserRoleEnum.ADMIN
+  return isAdmin
     ? isMobile
       ? (
         <>
@@ -172,7 +171,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const dispatch = useAppDispatch();
 
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
   const { specialItems, pagination } = useAppSelector((state) => state.app);
 
@@ -204,10 +203,10 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   };
 
   useEffect(() => {
-    if (role === UserRoleEnum.ADMIN) {
+    if (isAdmin) {
       setEdit(booleanSchema.validateSync(editParams));
     }
-  }, [editParams, role]);
+  }, [editParams, isAdmin]);
 
   useEffect(() => {
     dispatch(setPaginationParams(paginationParams));

@@ -9,7 +9,6 @@ import type { FormInstance, UploadFile } from 'antd/lib';
 
 import { getItemGrades, createComment, removeGrade, setPaginationParams, type CommentResponseInterface, type GradeResponseInterface } from '@/slices/appSlice';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { newCommentValidation } from '@/validations/validations';
 import { PreviewImage } from '@/components/PreviewImage';
@@ -138,7 +137,7 @@ export const GradeListReplyForm = ({ reply, onFinish, form, fileList, setFileLis
 export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: React.Dispatch<React.SetStateAction<ItemInterface>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.gradeList' });
 
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
   const { pagination, loadingStatus } = useAppSelector((state) => state.app);
 
   const dispatch = useAppDispatch();
@@ -229,7 +228,7 @@ export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: Rea
           <List.Item
             className="d-flex flex-column"
             classNames={{ actions: 'ms-0 align-self-start' }}
-            actions={role === UserRoleEnum.ADMIN
+            actions={isAdmin
               ? [...(value?.comment
                 ? [
                   reply.parentComment && value.comment?.id === reply.parentComment.id

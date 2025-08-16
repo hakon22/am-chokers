@@ -6,9 +6,11 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  AfterLoad,
 } from 'typeorm';
 
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
@@ -96,4 +98,16 @@ export class OrderEntity extends BaseEntity {
   /** Транзакции */
   @OneToMany(() => AcquiringTransactionEntity, transaction => transaction.order)
   public transactions: AcquiringTransactionEntity[];
+
+  /** Статус оплаты */
+  public isPayment: boolean;
+
+  @AfterLoad()
+  async checkPayment() {
+    if (this.transactions) {
+      this.isPayment = !!this.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID);
+    } else {
+      this.isPayment = !!(await AcquiringTransactionEntity.exists({ where: { order: { id: this.id }, status: TransactionStatusEnum.PAID } }));
+    }
+  }
 }

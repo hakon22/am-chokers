@@ -12,7 +12,6 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
@@ -31,7 +30,7 @@ const UserList = () => {
   const router = useRouter();
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -67,7 +66,7 @@ const UserList = () => {
     }
   }, [axiosAuth]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: '12%' }}>{t('title', { count: pagination.count })}</h1>

@@ -19,14 +19,12 @@ import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice
 import { getWidth } from '@/utilities/screenExtension';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import type { OrderInterface } from '@/types/order/Order';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
@@ -59,9 +57,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
   const [orders, setOrders] = useState<OrderInterface[]>([]);
 
-  const { role } = useAppSelector((state) => state.user);
-
-  const isAdmin = role === UserRoleEnum.ADMIN;
+  const { id: userId, isAdmin } = useAppSelector((state) => state.user);
 
   const stateOrders = useAppSelector(selectors.selectAll);
 
@@ -92,7 +88,9 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
     const { payload } = await dispatch(cancelOrder(orderId)) as { payload: OrderResponseInterface & { cart: CartItemInterface[]; }; };
     if (payload.code === 1) {
       handleUpdate(payload);
-      dispatch(replaceCart(payload.cart));
+      if (userId === payload.order.user.id) {
+        dispatch(replaceCart(payload.cart));
+      }
       toast(tToast('cancelOrderStatusSuccess'), 'success');
     }
     setIsSubmit(false);
@@ -112,7 +110,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
         ...(back ? [<BackwardOutlined key="back" onClick={() => changeStatusHandler(back, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${back}`) })} />] : []),
         ...(next ? [<ForwardOutlined key="next" onClick={() => changeStatusHandler(next, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${next}`) })} />] : []),
       ]
-      : !order.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID) ? [
+      : !order.isPayment ? [
         <div key="stop" title={t('actions.stop')} onClick={() => cancelOrderHandler(orderId)}>
           <span className="me-2">{t('actions.stop')}</span>
           <StopOutlined />
@@ -170,6 +168,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
               <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">
                 <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="d-flex flex-column justify-content-between col-12 gap-3 gap-xl-0 col-xl-4">
                   <div className="d-flex flex-column" style={{ minHeight: 100 }}>
+                    {isAdmin && <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5 mb-3">{order.user.name}</Link>}
                     <span className="fs-6 mb-3">{t('orderNumber', { id: order.id })}</span>
                     <span className="text-muted">{moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>
                   </div>
@@ -184,12 +183,12 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <span>{t('delivery')}</span>
                       <span className="fw-bold">{t('price', { price: order.deliveryPrice })}</span>
                     </Tag>
-                    {!order.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID)
-                      ? isAdmin ? (
+                    {!order.isPayment
+                      ? isAdmin && order.user.id !== userId ? (
                         <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
                         </Tag>
-                      ) : <Button className="button" style={isMobile ? {} : { width: 'max-content' }} onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button>
+                      ) : order.status !== OrderStatusEnum.CANCELED ? <Button className="button" style={isMobile ? {} : { width: 'max-content' }} onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button> : null
                       : (
                         <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{t('payment')}</span>

@@ -156,9 +156,7 @@ export class CartService extends BaseService {
 
     const builder = this.createQueryBuilder(userId, { ids: created.map(({ id }) => id) }, { manager });
 
-    const cartItems = await builder.getMany();
-
-    return cartItems;
+    return created.length ? builder.getMany() : [];
   };
 
   public deleteOne = async (userId: number | null, params: ParamsIdStringInterface) => {

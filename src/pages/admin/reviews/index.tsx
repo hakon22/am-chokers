@@ -14,7 +14,6 @@ import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { PreviewImage } from '@/components/PreviewImage';
 import { GradeListTitle, GradeListDescription, GradeListReplyForm } from '@/components/GradeList';
@@ -55,7 +54,7 @@ const Reviews = () => {
   const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [data, setData] = useState<ItemGradeEntity[]>([]);
@@ -191,7 +190,7 @@ const Reviews = () => {
     }
   }, [withDeleted, showAccepted, userIdParams, axiosAuth]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>

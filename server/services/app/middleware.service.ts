@@ -3,7 +3,6 @@ import passport from 'passport';
 import type { Request, Response, NextFunction } from 'express';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
@@ -83,8 +82,8 @@ export class MiddlewareService {
 
   public checkAdminAccess = (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { role } = req.user as PassportRequestInterface;
-      if (role === UserRoleEnum.ADMIN) {
+      const { isAdmin } = req.user as PassportRequestInterface;
+      if (isAdmin) {
         next();
       } else {
         res.sendStatus(403);

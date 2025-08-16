@@ -16,7 +16,6 @@ import { MessageService } from '@server/services/message/message.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { paramsIdSchema, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
-import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
@@ -91,6 +90,11 @@ export class UserService extends BaseService {
           'orders.status',
           'orders.deliveryPrice',
         ])
+        .leftJoin('orders.transactions', 'transactions')
+        .addSelect([
+          'transactions.id',
+          'transactions.status',
+        ])
         .leftJoin('orders.promotional', 'promotional')
         .addSelect([
           'promotional.id',
@@ -124,11 +128,6 @@ export class UserService extends BaseService {
           'orderItemImages.name',
           'orderItemImages.path',
           'orderItemImages.order',
-        ])
-        .leftJoin('orders.transactions', 'transactions')
-        .addSelect([
-          'transactions.id',
-          'transactions.status',
         ]);
     }
     if (options?.withDeleted) {
@@ -470,7 +469,7 @@ export class UserService extends BaseService {
 
       const result: UserCardInterface = {
         ...user,
-        amount: user.orders.filter(({ transactions }) => transactions.some(({ status }) => status === TransactionStatusEnum.PAID)).reduce((acc, order) => acc + getOrderPrice(order as unknown as OrderInterface), 0),
+        amount: user.orders.filter(({ isPayment }) => isPayment).reduce((acc, order) => acc + getOrderPrice(order as unknown as OrderInterface), 0),
         gradeCount,
         messageCount,
         cartCount: cart.length,

@@ -13,7 +13,6 @@ import { AuthContext, MobileContext } from '@/components/Context';
 import { Personal } from '@/components/profile/Personal';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { Favorites } from '@/components/profile/Favorites';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NoAuthorization } from '@/components/NoAuthorization';
 import { Order } from '@/components/profile/Order';
 import { Reviews } from '@/components/profile/Reviews';
@@ -43,7 +42,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const [activeKey, setActiveKey] = useState(path);
 
   const { pagination } = useAppSelector((state) => state.app);
-  const { id, role, favorites } = useAppSelector((state) => state.user);
+  const { id, isAdmin, favorites } = useAppSelector((state) => state.user);
 
   const titleProps = {
     id: path[1],
@@ -87,7 +86,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Favorites /> },
     { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Reviews /> },
     // { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <div /> },
-    ...(role === UserRoleEnum.ADMIN
+    ...(isAdmin
       ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0 } }, children: <Collapse
         className="fs-6 font-oswald"
         accordion
@@ -128,7 +127,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     { key: 'favorites', label: <Link href={routes.favorites}>{tMenu('menu.favorites')}</Link> },
     { key: 'reviews', label: <Link href={routes.myReviews}>{tMenu('menu.reviews')}</Link> },
     // { key: 'settings', label: <Link href={routes.settings}>{tMenu('menu.settings')}</Link> },
-    role === UserRoleEnum.ADMIN
+    isAdmin
       ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
         { key: 'items', label: tMenu('menu.admin.items.title'), children: [
           { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Link> },

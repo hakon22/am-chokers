@@ -3,11 +3,10 @@ import { useRouter } from 'next/router';
 
 import { useAppSelector } from '@/utilities/hooks';
 import { routes } from '@/routes';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 
 export const useAccessHandler = () => {
   const router = useRouter();
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const adminPaths = [
     routes.newItem,
@@ -28,12 +27,12 @@ export const useAccessHandler = () => {
   useEffect(() => {
     if (adminPaths.some(path => router.asPath.startsWith(path))) {
       const timeout = setTimeout(() => {
-        if (role !== UserRoleEnum.ADMIN) {
+        if (!isAdmin) {
           router.push(routes.homePage);
         }
       }, 300);
       
       return () => clearTimeout(timeout);
     }
-  }, [role, router.asPath]);
+  }, [isAdmin, router.asPath]);
 };

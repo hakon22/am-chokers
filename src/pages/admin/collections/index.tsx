@@ -16,7 +16,6 @@ import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 
@@ -66,7 +65,7 @@ const CreateItemCollection = () => {
   const urlParams = useSearchParams();
   const withDeletedParams = urlParams.get('withDeleted');
 
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const { setIsSubmit } = useContext(SubmitContext);
@@ -272,7 +271,7 @@ const CreateItemCollection = () => {
     setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));
   }, [itemCollections.length]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>

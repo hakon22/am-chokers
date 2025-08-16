@@ -14,7 +14,6 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
@@ -54,7 +53,7 @@ const Cart = () => {
   const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const [data, setData] = useState<DataType[]>([]);
 
@@ -100,7 +99,7 @@ const Cart = () => {
     };
   }, [axiosAuth]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('titleWithCount', { count: pagination.count })}</h1>

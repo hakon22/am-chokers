@@ -5,6 +5,7 @@ import {
   ManyToMany,
   JoinTable,
   OneToMany,
+  AfterLoad,
 } from 'typeorm';
 
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
@@ -89,4 +90,12 @@ export class UserEntity extends BaseEntity {
   /** Заказы */
   @OneToMany(() => OrderEntity, order => order.user)
   public orders: OrderEntity[];
+
+  /** Уровень доступа */
+  public isAdmin: boolean;
+  
+  @AfterLoad()
+  setAccessLevel() {
+    this.isAdmin = this.role === UserRoleEnum.ADMIN;
+  }
 }

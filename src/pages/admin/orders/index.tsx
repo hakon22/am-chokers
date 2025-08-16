@@ -11,7 +11,6 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { OrderHistory } from '@/components/profile/OrderHistory';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
@@ -32,7 +31,7 @@ const Orders = () => {
   const userIdParams = urlParams.get('userId');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
@@ -75,7 +74,7 @@ const Orders = () => {
     };
   }, [axiosAuth, statuses.length, userIdParams]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title', { count: pagination.count })} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>

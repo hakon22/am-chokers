@@ -20,7 +20,6 @@ import { toast } from '@/utilities/toast';
 import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface, addSpecialItem } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/NotFoundContent';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { BackButton } from '@/components/BackButton';
 import { CropImage } from '@/components/CropImage';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -51,7 +50,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { role, token } = useAppSelector((state) => state.user);
+  const { isAdmin, token } = useAppSelector((state) => state.user);
   const { itemGroups, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -276,7 +275,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     }
   }, [isSortImage]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
       {oldItem ? null : isMobile ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}

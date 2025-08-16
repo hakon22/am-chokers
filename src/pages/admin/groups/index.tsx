@@ -16,7 +16,6 @@ import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import type { ItemGroupInterface } from '@/types/item/Item';
 
@@ -68,7 +67,7 @@ const CreateItemGroup = () => {
   const withDeletedParams = urlParams.get('withDeleted');
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -277,7 +276,7 @@ const CreateItemGroup = () => {
     setData(itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() })));
   }, [itemGroups.length]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: '12%' }}>{t('title')}</h1>

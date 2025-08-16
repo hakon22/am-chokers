@@ -10,7 +10,6 @@ import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getHref } from '@/utilities/getHref';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -37,7 +36,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const router = useRouter();
 
-  const { role, token } = useAppSelector((state) => state.user);
+  const { isAdmin, token } = useAppSelector((state) => state.user);
   const { specialItems } = useAppSelector((state) => state.app);
 
   const { bestsellers, collections } = specialItems.reduce((acc, value) => {
@@ -166,7 +165,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
 
   return (
     <div {...props}>
-      <Dropdown menu={{ items: menu }} trigger={['contextMenu']} disabled={role !== UserRoleEnum.ADMIN} className="w-100">
+      <Dropdown menu={{ items: menu }} trigger={['contextMenu']} disabled={!isAdmin} className="w-100">
         {isSelect && order
           ? (
             <Form className="d-flex justify-content-center align-items-center p-absolute w-100">

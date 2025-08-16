@@ -15,7 +15,6 @@ import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import type { CompositionFormInterface, CompositionInterface, CompositionResponseInterface } from '@/types/composition/CompositionInterface';
 
@@ -64,7 +63,7 @@ const CreateComposition = () => {
   const withDeletedParams = urlParams.get('withDeleted');
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -284,7 +283,7 @@ const CreateComposition = () => {
     setData(compositions.map((composition) => ({ ...composition, key: composition.id.toString() })));
   }, [compositions.length]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title')} description={t('description')} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: isMobile ? '100px' : '150px' }}>{t('title')}</h1>

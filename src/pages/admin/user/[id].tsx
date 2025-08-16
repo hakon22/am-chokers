@@ -34,7 +34,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
-  const { role } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const coefficient = 1.3;
@@ -152,7 +152,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
     }
   }, [axiosAuth]);
 
-  return role === UserRoleEnum.ADMIN ? (
+  return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
       <Helmet title={t('title', { username: user?.name })} description={t('description', { username: user?.name })} />
       <h1 className="font-good-vibes-pro text-center mb-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { username: user?.name })}</h1>

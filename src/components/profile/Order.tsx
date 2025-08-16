@@ -21,8 +21,6 @@ import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
@@ -59,7 +57,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   
   const [form] = Form.useForm();
 
-  const { role } = useAppSelector((state) => state.user);
+  const { id: userId, isAdmin } = useAppSelector((state) => state.user);
   const { loadingStatus } = useAppSelector((state) => state.order);
 
   const order = useAppSelector((state) => orderParams || selectors.selectById(state, orderId));
@@ -68,8 +66,6 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
 
   const width = 77;
   const height = width * coefficient;
-
-  const isAdmin = role === UserRoleEnum.ADMIN;
 
   const gradeFormInit = (positionId: number) => setGrade({ ...newGrade, position: { id: positionId } });
 
@@ -143,12 +139,12 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                         <span>{tOrders('delivery')}</span>
                         <span className="fw-bold">{tOrders('price', { price: order.deliveryPrice })}</span>
                       </Tag>
-                      {!order.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID)
-                        ? isAdmin ? (
+                      {!order.isPayment
+                        ? isAdmin && order.user.id !== userId ? (
                           <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                             <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
                           </Tag>
-                        ) : <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button>
+                        ) : order.status !== OrderStatusEnum.CANCELED ? <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button> : null
                         : (<Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
                           <span>{tOrders('payment')}</span>
                           <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>

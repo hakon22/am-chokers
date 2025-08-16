@@ -7,8 +7,6 @@ export interface OrderOptionsInterface {
   ids?: number[];
   /** `id` покупателя */
   userId?: number;
-  /** Вместе с пользователем */
-  withUser?: boolean;
   /** С удалёнными */
   withDeleted?: boolean;
   /** Менеджер typeorm */

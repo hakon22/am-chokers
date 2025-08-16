@@ -14,7 +14,6 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { CartService } from '@server/services/cart/cart.service';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
-import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
@@ -70,6 +69,13 @@ export class OrderService extends BaseService {
           'order.deleted',
           'order.comment',
         ])
+        .leftJoin('order.user', 'user')
+        .addSelect([
+          'user.id',
+          'user.name',
+          'user.phone',
+          'user.telegramId',
+        ])
         .leftJoin('order.positions', 'positions')
         .addSelect([
           'positions.id',
@@ -114,16 +120,6 @@ export class OrderService extends BaseService {
         .orderBy('order.id', 'DESC');
     }
 
-    if (options?.withUser) {
-      builder
-        .leftJoin('order.user', 'user')
-        .addSelect([
-          'user.id',
-          'user.name',
-          'user.phone',
-          'user.telegramId',
-        ]);
-    }
     if (options?.userId) {
       builder.andWhere('order.user = :userId', { userId: options.userId });
     }
@@ -138,7 +134,7 @@ export class OrderService extends BaseService {
   };
 
   public findOne = async (params: ParamsIdInterface, query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
-    const builder = this.createQueryBuilder(query, { ...options, withUser: true })
+    const builder = this.createQueryBuilder(query, options)
       .andWhere('order.id = :id', { id: params.id });
 
     const order = await builder.getOne();
@@ -226,7 +222,7 @@ export class OrderService extends BaseService {
         }).save(),
       } as OrderEntity);
 
-      return this.findOne({ id: created.id }, {}, { manager, withUser: true });
+      return this.findOne({ id: created.id }, {}, { manager });
     });
 
     if (user?.telegramId) {
@@ -261,7 +257,7 @@ export class OrderService extends BaseService {
   };
 
   public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface) => {
-    const order = await this.findOne(params, {}, { withUser: true });
+    const order = await this.findOne(params);
 
     const { back, next } = getNextOrderStatuses(order.status);
 
@@ -287,20 +283,22 @@ export class OrderService extends BaseService {
 
     const status = OrderStatusEnum.CANCELED;
 
-    if (!user) {
+    if (!user || user.id !== order.user.id) {
       user = order.user as PassportRequestInterface;
     }
 
-    if (user.role !== UserRoleEnum.ADMIN && order.status !== OrderStatusEnum.NOT_PAID) {
+    if (!user.isAdmin && order.isPayment) {
       throw new Error(`Заказ №${order.id} и статусом ${order.status} нельзя поменять на статус ${status}`);
     }
 
     const cart = await manager.transaction(async (entityManager) => {
       const orderRepo = manager.getRepository(OrderEntity);
 
+      const newCart = await this.cartService.createMany(user.id, order.positions.map((position) => ({ ...position, id: undefined } as unknown as CartEntity)), { manager: entityManager });
+
       await orderRepo.update(order.id, { status });
 
-      return this.cartService.createMany(user.id, order.positions.map((position) => ({ ...position, id: undefined } as unknown as CartEntity)), { manager: entityManager });
+      return newCart;
     });
 
     if (user.telegramId) {
@@ -309,7 +307,7 @@ export class OrderService extends BaseService {
 
     order.status = status;
 
-    if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && user.role !== UserRoleEnum.ADMIN) {
+    if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && !user.isAdmin) {
       const adminText = [
         `Отмена заказа <b>№${order.id}</b>`,
         '',
@@ -324,9 +322,9 @@ export class OrderService extends BaseService {
   };
 
   public pay = async (params: ParamsIdInterface) => {
-    const order = await this.findOne(params, {}, { withUser: true });
+    const order = await this.findOne(params);
 
-    if (order.status !== OrderStatusEnum.NOT_PAID) {
+    if (order.isPayment) {
       throw new Error('Заказ уже оплачен');
     }
 
