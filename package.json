@@ -11,7 +11,8 @@
     "lint": "next lint",
     "migration:create": "typeorm migration:create",
     "migration:create:name": "tsx ./server/db/migrations/helpers/create.migration.helper.ts",
-    "migration:run": "cross-env CRON='TRUE' WITHOUT_CACHE='TRUE' tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
+    "migration:run": "cross-env DB='LOCAL' CRON='TRUE' WITHOUT_CACHE='TRUE' tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
+    "migration:run:prod": "cross-env DB='HOST' CRON='TRUE' WITHOUT_CACHE='TRUE' tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
     "migration:revert": "cross-env CRON='TRUE' WITHOUT_CACHE='TRUE' tsx ./node_modules/typeorm/cli.js migration:revert --dataSource ./server/db/database.service.ts"
   },
   "dependencies": {

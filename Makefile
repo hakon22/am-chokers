@@ -11,4 +11,4 @@ start-local-prod:
 	npm run dev-prod
 
 build:
-	-pm2 delete am-chokers && rm -rf .next && npm run migration:run && NODE_OPTIONS=--max-old-space-size=8192 npm run build
+	-pm2 delete am-chokers && rm -rf .next && npm run migration:run:prod && NODE_OPTIONS=--max-old-space-size=8192 npm run build
