@@ -163,6 +163,10 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                           <span className="fw-bold">{tOrders(order.promotional.freeDelivery ? 'promotionalName' : 'promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
                         </Tag>
                         : null}
+                      <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                        <span>{tOrders('delivery')}</span>
+                        <span className="fw-bold">{tOrders('price', { price: order.deliveryPrice })}</span>
+                      </Tag>
                       <Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
                         <span className="fw-bold">{`${getDeliveryStatusTranslate(order.delivery.type, lang as UserLangEnum)}: `}</span>
                         <span>{order.delivery.address}</span>

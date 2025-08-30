@@ -27,8 +27,6 @@ import type { PassportRequestInterface } from '@server/types/user/user.request.i
 import type { FetchOrdersInterface, OrderInterface, CreateDeliveryInterface } from '@/types/order/Order';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartEntity } from '@server/db/entities/cart.entity';
-import type { OrderPositionInterface } from '@/types/order/OrderPosition';
-import { ItemInterface } from '@/types/item/Item';
 
 @Singleton
 export class OrderService extends BaseService {
@@ -154,17 +152,13 @@ export class OrderService extends BaseService {
         : `Order with number #${params.id} does not exist.`);
     }
 
-    this.createDeliveryPosition(order);
-
     return order;
   };
 
   public findMany = async (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const builder = this.createQueryBuilder(query, options);
 
-    const orders = await builder.getMany();
-
-    return orders.map(this.createDeliveryPosition);
+    return builder.getMany();
   };
 
   public getAllOrders = async (query: FetchOrdersInterface): Promise<[OrderEntity[], number]> => {
@@ -180,7 +174,7 @@ export class OrderService extends BaseService {
       orders = await builder.getMany();
     }
   
-    return [orders.map(this.createDeliveryPosition), count];
+    return [orders, count];
   };
 
   public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, comment?: string, promotional?: PromotionalInterface) => {
@@ -243,7 +237,7 @@ export class OrderService extends BaseService {
 
       const newOrder = await this.findOne({ id: created.id }, user.lang, {}, { manager });
 
-      return [this.createDeliveryPosition(newOrder), createdUser.refreshToken];
+      return [newOrder, createdUser.refreshToken];
     });
 
     if (user?.telegramId) {
@@ -422,28 +416,5 @@ export class OrderService extends BaseService {
       }
     });
     console.log('Подписка на события Redis выполнена успешно');
-  };
-
-  private createDeliveryPosition = (order: OrderEntity) => {
-    const deliveryPosition = {
-      id: Math.random() * -1,
-      count: 1,
-      price: order.deliveryPrice,
-      discountPrice: 0,
-      discount: 0,
-      grade: { id: 0, grade: 0 },
-      item: {
-        translations: [
-          { lang: UserLangEnum.RU, name: 'Доставка' },
-          { lang: UserLangEnum.EN, name: 'Delivery' },
-        ],
-        images: [] as ItemInterface['images'],
-      },
-    } as OrderPositionInterface;
-
-    if (order.deliveryPrice && !order.positions.find(({ id }) => id < 0)) {
-      order.positions.push(deliveryPosition as OrderPositionEntity);
-    }
-    return order;
   };
 }

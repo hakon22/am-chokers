@@ -21,6 +21,7 @@ import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enu
 import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
 import { russianPostMailTypeTranslateEnum } from '@/types/delivery/russian.post.delivery.interface';
 import type { OrderInterface } from '@/types/order/Order';
+import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
 type Data = {
   userName: string;
@@ -103,7 +104,25 @@ export class AcquiringService extends BaseService {
     const orderId = `${order.id}-1${transactions.length}`;
 
     const amount = getOrderPrice(order);
-    const discountPercent = getDiscountPercent(order.positions, order.promotional);
+    const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
+
+    if (order.deliveryPrice) {
+      const deliveryPosition = {
+        count: 1,
+        price: order.deliveryPrice,
+        discountPrice: 0,
+        discount: 0,
+        grade: { id: 0, grade: 0 },
+        item: {
+          translations: [
+            { lang: UserLangEnum.RU, name: 'Доставка' },
+            { lang: UserLangEnum.EN, name: 'Delivery' },
+          ],
+        },
+      } as OrderPositionEntity;
+
+      order.positions.push(deliveryPosition);
+    }
 
     const items = order.positions.filter((position) => position.price).map((position) => (
       {

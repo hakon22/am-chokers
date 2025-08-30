@@ -2,12 +2,12 @@ import type { OrderInterface } from '@/types/order/Order';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 
-export const getPositionsPrice = (positions: OrderInterface['positions']) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (position.discountPrice * 100)) * position.count, 0) / 100).toFixed(2);
+export const getPositionsPrice = (positions: OrderInterface['positions'], deliveryPrice: number) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (position.discountPrice * 100)) * position.count, deliveryPrice * 100) / 100).toFixed(2);
 
 export const getPositionPrice = (position: OrderPositionInterface) => +(((position.price * 100) - (position.discountPrice * 100)) * position.count / 100).toFixed(2);
 
-export const getDiscountPercent = (positions: OrderInterface['positions'], promotional?: PromotionalInterface) => {
-  const price = getPositionsPrice(positions);
+export const getDiscountPercent = (positions: OrderInterface['positions'], deliveryPrice: number, promotional?: PromotionalInterface) => {
+  const price = getPositionsPrice(positions, deliveryPrice);
 
   const discountPercent = promotional
     ? promotional.discountPercent || (100 - ((price - promotional.discount) * 100 / price))
@@ -24,11 +24,11 @@ export const getPositionPriceWithDiscount = (position: OrderPositionInterface, p
 };
 
 export const getOrderDiscount = (order: OrderInterface) => {
-  const percent = getDiscountPercent(order.positions, order.promotional);
+  const percent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
   const totalDiscount = order.positions.reduce((acc, position) => acc + (getPositionPrice(position) - (getPositionPriceWithDiscount(position, percent))), 0);
 
-  const orderDiscount = totalDiscount / 100;
+  const orderDiscount = totalDiscount + ((order.deliveryPrice * 100) - ((order.deliveryPrice * 100) - ((order.deliveryPrice * 100 * percent) / 100))) / 100;
 
   return +orderDiscount.toFixed(2);
 };
@@ -36,7 +36,7 @@ export const getOrderDiscount = (order: OrderInterface) => {
 export const getOrderPrice = (order: OrderInterface) => {
   const discount = getOrderDiscount(order);
 
-  const totalPrice = getPositionsPrice(order.positions);
+  const totalPrice = getPositionsPrice(order.positions, order.deliveryPrice);
 
   return +(totalPrice - discount).toFixed(2);
 };

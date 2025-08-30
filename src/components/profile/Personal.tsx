@@ -141,15 +141,15 @@ export const Personal = () => {
       {!telegramId && <TelegramButton telegramId={telegramId} t={t} telegramHandler={telegramHandler} />}
       <label htmlFor="user-profile_phone" className="label">{t('phone')}</label>
       <Form.Item<UserProfileType> name="phone" rules={[profileValidation]} className="mb-3">
-        <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
+        <MaskedInput mask="+7 (000) 000-00-00" autoComplete="off" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
       </Form.Item>
       <label htmlFor="user-profile_name" className="label">{t('name')}</label>
       <Form.Item<UserProfileType> name="name" rules={[profileValidation]} className="mb-3">
-        <Input size="large" prefix={<UserOutlined />} placeholder={t('name')} />
+        <Input size="large" autoComplete="off" prefix={<UserOutlined />} placeholder={t('name')} />
       </Form.Item>
       <label htmlFor="user-profile_password" className="label">{t('password')}</label>
       <Form.Item<UserProfileType> name="password" rules={[profileValidation]} className="mb-3">
-        <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder="••••••" />
+        <Input.Password size="large" autoComplete="off" prefix={<LockOutlined />} type="password" placeholder="••••••" />
       </Form.Item>
       {password && (
         <>
@@ -170,11 +170,11 @@ export const Personal = () => {
             className="mb-3"
             required
           >
-            <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
+            <Input.Password size="large" autoComplete="off" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
           </Form.Item>
           <label htmlFor="user-profile_oldPassword" className="label">{t('oldPassword')}</label>
           <Form.Item<UserProfileType> name="oldPassword" rules={[profileValidation]} className="mb-3" required>
-            <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('oldPassword')} />
+            <Input.Password size="large" autoComplete="off" prefix={<LockOutlined />} type="password" placeholder={t('oldPassword')} />
           </Form.Item>
         </>
       )}

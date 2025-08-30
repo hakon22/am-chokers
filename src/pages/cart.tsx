@@ -37,7 +37,6 @@ import type { UserSignupInterface } from '@/types/user/User';
 import type { YandexDeliveryDataInterface } from '@/types/delivery/yandex.delivery.interface';
 import type { RussianPostDeliveryDataInterface } from '@/types/delivery/russian.post.delivery.interface';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
-import type { ItemInterface } from '@/types/item/Item';
 
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -99,21 +98,7 @@ const Cart = () => {
 
   const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count }));
 
-  const getPreparedOrder = (items: OrderPositionInterface[], deliveryPrice: number, promo?: PromotionalInterface) => ({ positions: [...items, {
-    id: Math.random() * -1,
-    count: 1,
-    price: deliveryPrice,
-    discountPrice: 0,
-    discount: 0,
-    grade: { id: 0, grade: 0 },
-    item: {
-      translations: [
-        { lang: UserLangEnum.RU, name: 'Доставка' },
-        { lang: UserLangEnum.EN, name: 'Delivery' },
-      ],
-      images: [] as ItemInterface['images'],
-    },
-  } as OrderPositionInterface], deliveryPrice, promotional: promo }) as OrderInterface;
+  const getPreparedOrder = (items: OrderPositionInterface[], deliveryPrice: number, promo?: PromotionalInterface) => ({ positions: items, deliveryPrice, promotional: promo }) as OrderInterface;
 
   const count = cartList.reduce((acc, cartItem) => acc + cartItem.count, 0);
   const countCart = cart.reduce((acc, cartItem) => acc + cartItem.count, 0);
