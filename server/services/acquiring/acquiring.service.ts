@@ -103,7 +103,7 @@ export class AcquiringService extends BaseService {
     const orderId = `${order.id}-1${transactions.length}`;
 
     const amount = getOrderPrice(order);
-    const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
+    const discountPercent = getDiscountPercent(order.positions, order.promotional);
 
     const items = order.positions.filter((position) => position.price).map((position) => (
       {

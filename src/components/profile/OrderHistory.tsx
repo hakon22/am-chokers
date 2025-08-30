@@ -182,7 +182,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <div className="d-flex flex-column gap-2 mb-3">
                         <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
                         <CopyToClipboard text={order.user.phone}>
-                          <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5 col-12 col-xl-6', { 'animate__animated animate__headShake': isAnimating })} onClick={handlePhoneCopy}>
+                          <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5 col-12', { 'animate__animated animate__headShake': isAnimating, 'col-xl-6': !!setData, 'col-xl-8': !setData })} onClick={handlePhoneCopy}>
                             <CopyOutlined className="fs-5" />{order.user.phone}
                           </Button>
                         </CopyToClipboard>

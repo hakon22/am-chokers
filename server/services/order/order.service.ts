@@ -441,7 +441,7 @@ export class OrderService extends BaseService {
       },
     } as OrderPositionInterface;
 
-    if (order.deliveryPrice) {
+    if (order.deliveryPrice && !order.positions.find(({ id }) => id < 0)) {
       order.positions.push(deliveryPosition as OrderPositionEntity);
     }
     return order;
