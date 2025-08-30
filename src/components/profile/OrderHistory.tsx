@@ -5,7 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import Image from 'next/image';
-import { StopOutlined, ForwardOutlined, BackwardOutlined, ArrowRightOutlined, HeartTwoTone, CopyOutlined } from '@ant-design/icons';
+import { StopOutlined, ForwardOutlined, BackwardOutlined, CopyOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
 import axios from 'axios';
@@ -15,8 +15,7 @@ import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
-import { truncateText } from '@/utilities/truncateText';
-import { getOrderDiscount, getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { getWidth } from '@/utilities/screenExtension';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
@@ -28,7 +27,6 @@ import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter'
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import image404 from '@/images/404.svg';
 import type { OrderInterface } from '@/types/order/Order';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
@@ -57,18 +55,18 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
-  const [maxPhoto, setMaxPhoto] = useState(3);
+  const [maxPosition, setMaxPosition] = useState(3);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
   const [orders, setOrders] = useState<OrderInterface[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAnimating, setIsAnimating] = useState<number>();
 
   const { id: userId, isAdmin, lang } = useAppSelector((state) => state.user);
 
   const stateOrders = useAppSelector(selectors.selectAll);
 
-  const handlePhoneCopy = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 1000);
+  const handlePhoneCopy = (orderId: number) => {
+    setIsAnimating(orderId);
+    setTimeout(() => setIsAnimating(undefined), 1000);
   };
 
   const handleUpdate = (result: OrderResponseInterface) => {
@@ -152,11 +150,11 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
       const extension = getWidth();
       
       if (isMobile) {
-        setMaxPhoto(1);
+        setMaxPosition(3);
       } else if (extension < 1400) {
-        setMaxPhoto(2);
+        setMaxPosition(4);
       } else {
-        setMaxPhoto(3);
+        setMaxPosition(5);
       }
     };
 
@@ -175,82 +173,71 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
             <Card
               actions={getActions(order, order.id)}
             >
-              <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">
-                <div className="d-flex flex-column justify-content-between col-12 gap-3 gap-xl-0 col-xl-4">
-                  <div className="d-flex flex-column mb-xl-2" style={{ minHeight: 100, ...(isMobile ? {} : { width: '90%' }) }}>
-                    {isAdmin && (
-                      <div className="d-flex flex-column gap-2 mb-3">
-                        <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
-                        <CopyToClipboard text={order.user.phone}>
-                          <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5 col-12', { 'animate__animated animate__headShake': isAnimating, 'col-xl-6': !!setData, 'col-xl-8': !setData })} onClick={handlePhoneCopy}>
-                            <CopyOutlined className="fs-5" />{order.user.phone}
-                          </Button>
-                        </CopyToClipboard>
-                      </div>
-                    )}
-                    {!setData && !order.positions.some((position) => position.grade) && order.status === OrderStatusEnum.COMPLETED &&
-                      <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="mb-3">
-                        <Tag color="orange" className="fs-6 text-decoration-underline text-wrap w-100" style={{ padding: '5px 10px' }}>
-                          <span>{t('rateYourOrder')}</span>
-                          <HeartTwoTone twoToneColor="#eb2f96" />
-                        </Tag>
-                      </Link>
-                    }
-                    <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="fs-6 mb-3 text-primary text-muted fw-light text-center text-xl-start">
-                      <ArrowRightOutlined className="me-2" />
-                      <span className="fs-5 fw-bold font-oswald text-decoration-underline">{t('orderNumber', { id: order.id })}</span>
-                    </Link>
-                    <span className="text-muted">{moment(order.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>
-                  </div>
-                  <div className="d-flex flex-column gap-2" style={isMobile ? {} : { width: '90%' }}>
-                    {order.promotional
-                      ? <Tag color="#e3dcfa" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
-                        <span>{t('promotional')}</span>
-                        <span className="fw-bold">{t(order.promotional.freeDelivery ? 'promotionalName' : 'promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
-                      </Tag>
-                      : null}
-                    <Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                      <span className="fw-bold">{`${getDeliveryStatusTranslate(order.delivery.type, lang as UserLangEnum)}: `}</span>
-                      <span>{order.delivery.address}</span>
+              <div className="d-flex flex-column flex-xl-row justify-content-xl-between align-items-xl-center mb-2 mb-xl-4 gap-2">
+                <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="fs-5 fw-bold font-oswald text-decoration-underline text-primary text-muted fw-light text-center text-xl-start">
+                  {t('orderDate', { number: order.id, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}
+                </Link>
+                {!order.isPayment
+                  ? isAdmin && order.user.id !== userId ? (
+                    <Tag color="#eaeef6" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
+                      <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
                     </Tag>
-                    {!order.isPayment
-                      ? isAdmin && order.user.id !== userId ? (
-                        <Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                          <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
-                        </Tag>
-                      ) : order.status !== OrderStatusEnum.CANCELED ? <Button className="button" style={isMobile ? {} : { width: 'max-content' }} onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button> : null
-                      : (
-                        <Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                          <span>{t('payment')}</span>
-                          <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
-                        </Tag>)}
-                    {order.comment
-                      ? <span className="mt-2">{order.comment}</span>
-                      : null}
-                  </div>
+                  ) : order.status !== OrderStatusEnum.CANCELED ? <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button> : null
+                  : (
+                    <Tag color="#eaeef6" className="fs-6 text-wrap text-center text-xl-start" style={{ padding: '5px 10px', color: '#69788e' }}>
+                      <span>{t('payment')}</span>
+                      <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
+                    </Tag>)}
+              </div>
+              {isAdmin && (
+                <div className={cn('d-flex flex-xl-row gap-2 mb-3 mb-xl-0 mt-3 mt-xl-0', { 'position-absolute top-0': !isMobile })}>
+                  <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
+                  <CopyToClipboard text={order.user.phone}>
+                    <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order.id)}>
+                      <CopyOutlined className="fs-5" />{order.user.phone}
+                    </Button>
+                  </CopyToClipboard>
                 </div>
-                <div className="d-flex flex-column justify-content-between col-12 col-xl-8 gap-5">
-                  <div className="d-flex flex-column gap-2">
-                    {order.positions.map((position) =>
-                      <Tooltip key={position.id} title={isMobile ? '' : position.item.translations.find((translation) => translation.lang === lang)?.name} className="d-flex align-items-center justify-content-between justify-content-xl-start gap-xl-3" placement="left" color="#4d689e">
-                        <Link href={getHref(position.item)} className="col-5 col-xl-2 font-oswald lh-1 me-2">{truncateText(position.item.translations.find((translation) => translation.lang === lang)?.name as string)}</Link>
-                        <div className="d-flex col-xl-10 gap-2">{position.item.images.map((image, index) =>
-                          index < maxPhoto
-                            ? image.src.endsWith('.mp4')
-                              ? <video key={image.id} src={image.src} width={width} height={height} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
-                              : <Image key={image.id} src={image.src || image404} width={width} height={height} unoptimized alt={position.item.translations.find((translation) => translation.lang === lang)?.name as string} style={{ borderRadius: '5px' }} />
-                            : index === maxPhoto
-                              ? <div key={image.id} className="d-flex align-items-center fs-6">
-                                <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '6px 10px' }}>{`+${position.item.images.length - maxPhoto}`}</span>
-                              </div>
-                              : null)}
+              )}
+              <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">
+                <div className="d-flex flex-column gap-2 col-12 col-xl-4">
+                  <div>
+                    <Tag color="#eaeef6" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
+                      <span className="fw-bold">{getDeliveryStatusTranslate(order.delivery.type, lang as UserLangEnum)}</span>
+                    </Tag>
+                  </div>
+                  {!setData && !order.positions.some((position) => position.grade) && order.status === OrderStatusEnum.COMPLETED &&
+                    <div>
+                      <Button className="button mt-2">
+                        <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="fs-5">{t('rateYourOrder')}</Link>
+                      </Button>
+                    </div>
+                  }
+                </div>
+                <div className="d-flex flex-xl-row justify-content-xl-end gap-1 gap-xl-2 col-12 col-xl-8">
+                  {order.positions.map((position, index) => index < maxPosition
+                    ? (
+                      <div key={position.id} className="d-flex">
+                        <Tooltip title={isMobile ? '' : position.item.translations.find((translation) => translation.lang === lang)?.name} className="d-flex align-items-center justify-content-between justify-content-xl-start gap-xl-3" placement="left" color="#4d689e">
+                          <Link href={getHref(position.item)}>{
+                            position.item.images[0].src.endsWith('.mp4')
+                              ? <video src={position.item.images[0].src} width={width} height={height} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
+                              : <Image src={position.item.images[0].src} width={width} height={height} unoptimized alt={position.item.translations.find((translation) => translation.lang === lang)?.name as string} style={{ borderRadius: '5px' }} />}
+                          </Link>
+                        </Tooltip>
+                      </div>
+                    ) : index === maxPosition
+                      ? (
+                        <div key={position.id} className="d-flex align-items-center fs-6">
+                          <span style={{ backgroundColor: '#eaeef6', borderRadius: '10px', padding: '6px 10px' }}>{`+${order.positions.length - maxPosition}`}</span>
                         </div>
-                      </Tooltip>)}
-                  </div>
-                  <div className="d-flex fs-5 text-uppercase fw-bold">
-                    <span>{t('totalAmount', { price: getOrderPrice(order) } )}</span>
-                  </div>
+                      )
+                      : null,
+                  )}
                 </div>
+              </div>
+              <div className="d-flex justify-content-between fs-6 text-muted fw-bold mt-4 mt-xl-0">
+                <span>{t('totalAmount', { price: getOrderPrice(order) } )}</span>
               </div>
             </Card>
           </Badge.Ribbon>

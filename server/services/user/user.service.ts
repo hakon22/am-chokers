@@ -478,7 +478,7 @@ export class UserService extends BaseService {
         this.findOne(params, { withDeleted: true, withOrders: true }),
         this.gradeService.getMyGrades({} as FetchGradeInterface, params.id),
         this.messageService.messageReport({}, { userId: params.id }),
-        this.cartService.findMany(currentUser, undefined, undefined, { withoutJoin: true }),
+        this.cartService.findMany({ ...params, lang: currentUser.lang }, undefined, undefined, { withoutJoin: true }),
       ]);
 
       if (!user) {

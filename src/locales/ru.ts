@@ -95,7 +95,7 @@ export default {
           title: 'История заказов',
           description: 'История заказов',
           notFound: 'У вас ещё нет выполненных заказов',
-          orderNumber: 'Заказ №{{ id }}',
+          orderDate: 'Заказ №{{ number }} от {{ date }}',
           payment: 'Оплачено: ',
           notPayment: '{{ price }} ₽ (Не оплачено)',
           pay: 'Оплатить {{ price }} ₽',
@@ -105,7 +105,7 @@ export default {
           promotionalDiscount: '{{ name }} (-{{ discount }} ₽)',
           price: '{{ price }} ₽',
           selectStatuses: 'Выберите статусы',
-          rateYourOrder: 'Оцените, пожалуйста, позиции!',
+          rateYourOrder: 'Оценить товары',
           totalAmount: 'Сумма: {{ price }} ₽',
           actions: {
             stop: 'Отменить заказ',
@@ -122,8 +122,8 @@ export default {
             CANCELED: 'ОТМЕНЁН',
           },
           order: {
-            title: 'Заказ №{{ id }}',
-            description: 'Заказ №{{ id }}',
+            title: 'Заказ #{{ id }}',
+            description: 'Заказ #{{ id }}',
             orderDate: 'Заказ №{{ number }} от {{ date }}',
             delivery: 'Доставка {{ delivery }}',
             deliveryDate: 'Дата доставки {{ date }}',

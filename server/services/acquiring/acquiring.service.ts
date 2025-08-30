@@ -21,7 +21,7 @@ import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enu
 import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
 import { russianPostMailTypeTranslateEnum } from '@/types/delivery/russian.post.delivery.interface';
 import type { OrderInterface } from '@/types/order/Order';
-import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
+import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
 type Data = {
   userName: string;
