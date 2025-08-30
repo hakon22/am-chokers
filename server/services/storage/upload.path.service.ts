@@ -77,12 +77,12 @@ export class UploadPathService {
 
   public removeFile = (folder: UploadPathEnum, fileName: string, id?: number) => unlinkSync(this.getUploadPath(folder, id ?? 0, fileName));
 
-  public createSitemap = (url: string) => {
+  public createSitemap = (url: string, isItemGroup = false) => {
     const sitemapPath = join(this.uploadFilesPath, 'sitemap.xml');
 
     readFile(sitemapPath, 'utf8', (err, data) => {
       if (err) {
-        this.loggerService.error('Ошибка чтения файла sitemap:', err);
+        this.loggerService.error('Ошибка чтения файла sitemap', err);
         return;
       }
 
@@ -90,7 +90,7 @@ export class UploadPathService {
       const newUrl = `<url>
   <loc>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}</loc>
   <lastmod>${lastmod}</lastmod>
-  <priority>0.64</priority>
+  <priority>${isItemGroup ? '0.80' : '0.64'}</priority>
 </url>
 `;
 
@@ -98,42 +98,60 @@ export class UploadPathService {
 
       writeFile(sitemapPath, updatedSitemap, 'utf8', (error) => {
         if (err) {
-          this.loggerService.error('Ошибка записи в файл sitemap:', error);
+          this.loggerService.error('Ошибка записи в файл sitemap', error);
           return;
         }
-        this.loggerService.info('Sitemap успешно обновлён добавлением нового товара:', `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`);
+        this.loggerService.info(`Sitemap успешно обновлён добавлением ${isItemGroup ? 'новой группы' : 'нового'} товара:`, `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`);
       });
     });
   };
 
-  public updateSitemap = (oldUrl: string, newUrl: string) => {
+  public updateSitemap = (oldUrl: string, newUrl: string, isItemGroup = false) => {
     const sitemapPath = join(this.uploadFilesPath, 'sitemap.xml');
 
     readFile(sitemapPath, 'utf8', (err, data) => {
       if (err) {
-        this.loggerService.error('Ошибка чтения файла sitemap:', err);
+        this.loggerService.error('Ошибка чтения файла sitemap', err);
         return;
       }
 
-      // Регулярное выражение для поиска нужной ссылки и связанного тега lastmod
-      const regex = new RegExp(`<loc>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${oldUrl}</loc>\\s*<lastmod>.*?</lastmod>`, 'g');
-
-      const newLocTag = `<loc>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${newUrl}</loc>`;
       const newLastModTag = `  <lastmod>${moment.utc().format('YYYY-MM-DDTHH:mm:ssZ')}</lastmod>`;
+      let updatedSitemap = data;
+      let found = false;
 
-      // Заменяем старый loc и lastmod на новые теги
-      if (regex.test(data)) {
-        const updatedSitemap = data.replace(regex, () => `${newLocTag}\n${newLastModTag}`);
-
-        writeFile(sitemapPath, updatedSitemap, 'utf8', (error) => {
-          if (err) {
-            this.loggerService.error('Ошибка записи в файл sitemap:', error);
-            return;
-          }
-          this.loggerService.info('Sitemap успешно обновлён изменением товара:', `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${newUrl}`);
+      if (isItemGroup) {
+      // Режим группового обновления: находим все ссылки, содержащие oldUrl
+        const groupRegex = new RegExp(`<loc>(${process.env.NEXT_PUBLIC_PRODUCTION_HOST}.*?${oldUrl}.*?)</loc>\\s*<lastmod>.*?</lastmod>`, 'g');
+      
+        updatedSitemap = data.replace(groupRegex, (match, oldFullUrl) => {
+          found = true;
+          const newFullUrl = oldFullUrl.replace(oldUrl, newUrl);
+          return `<loc>${newFullUrl}</loc>\n${newLastModTag}`;
         });
       } else {
-        this.loggerService.error('Старая ссылка не найдена в sitemap.');
+      // Режим одиночного обновления
+        const singleRegex = new RegExp(`<loc>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${oldUrl}</loc>\\s*<lastmod>.*?</lastmod>`, 'g');
+      
+        if (singleRegex.test(data)) {
+          found = true;
+          const newLocTag = `<loc>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${newUrl}</loc>`;
+          updatedSitemap = data.replace(singleRegex, () => `${newLocTag}\n${newLastModTag}`);
+        }
+      }
+
+      if (found) {
+        writeFile(sitemapPath, updatedSitemap, 'utf8', (error) => {
+          if (error) {
+            this.loggerService.error('Ошибка записи в файл sitemap', error);
+            return;
+          }
+          this.loggerService.info('Sitemap успешно обновлён', isItemGroup ? 
+            `групповое изменение ссылок с "${oldUrl}" на "${newUrl}"` : 
+            `изменение товара: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${newUrl}`,
+          );
+        });
+      } else {
+        this.loggerService.error('Ссылка(и) не найдена(ы) в sitemap.');
       }
     });
   };

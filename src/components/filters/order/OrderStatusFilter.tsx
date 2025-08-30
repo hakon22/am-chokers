@@ -7,8 +7,9 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
-export const OrderStatusFilter = ({ statuses, setStatuses }: { statuses: OrderStatusEnum[]; setStatuses: React.Dispatch<React.SetStateAction<OrderStatusEnum[]>>; }) => {
+export const OrderStatusFilter = ({ statuses, setStatuses, lang }: { statuses: OrderStatusEnum[]; lang: UserLangEnum; setStatuses: React.Dispatch<React.SetStateAction<OrderStatusEnum[]>>; }) => {
   const { t: tOrders } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
 
   const router = useRouter();
@@ -40,7 +41,7 @@ export const OrderStatusFilter = ({ statuses, setStatuses }: { statuses: OrderSt
       placeholder={tOrders('selectStatuses')}
       onChange={(state) => setStatuses(state)}
       onClear={() => setStatuses([])}
-      options={Object.values(OrderStatusEnum).map((status) => ({ label: <Tag color={getOrderStatusColor(status)}>{getOrderStatusTranslate(status)}</Tag>, value: status }))}
+      options={Object.values(OrderStatusEnum).map((status) => ({ label: <Tag color={getOrderStatusColor(status)}>{getOrderStatusTranslate(status, lang)}</Tag>, value: status }))}
     />
   );
 };

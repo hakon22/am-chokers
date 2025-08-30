@@ -10,6 +10,7 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
 import { phoneTransform } from '@server/utilities/phone.transform';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 interface OptionsTelegramMessageInterface {
   reply_markup?: {
@@ -27,7 +28,7 @@ interface OptionsTelegramMessageInterface {
 
 @Singleton
 export class TelegramService {
-  private TAG = 'TelegramBotService';
+  private readonly TAG = 'TelegramBotService';
 
   private readonly loggerService = Container.get(LoggerService);
 
@@ -46,7 +47,9 @@ export class TelegramService {
         const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
         if (user) {
           await UserEntity.update(user.id, { telegramId: id });
-          await this.sendMessage('Вы успешно подписались на уведомления.', id as string, { reply_markup: { keyboard: [], remove_keyboard: true } });
+          await this.sendMessage(user.lang === UserLangEnum.RU
+            ? 'Вы успешно подписались на уведомления.'
+            : 'You have successfully subscribed to notifications.', id as string, { reply_markup: { keyboard: [], remove_keyboard: true } });
         } else {
           await this.sendMessage('Номер телефона не найден в базе данных.', id as string);
         }

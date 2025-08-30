@@ -17,11 +17,12 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ColorFormInterface, ColorInterface, ColorResponseInterface } from '@/types/color/ColorInterface';
 
 interface ColorTableInterface {
   key: string;
-  name: string;
+  translations: Record<UserLangEnum, { name: string; }>;
   hex: Color | string;
   deleted?: Date;
 }
@@ -85,6 +86,12 @@ const CreateColor = () => {
       newData.splice(index, 1, {
         ...item,
         ...(row || color),
+        translations: Object.values(UserLangEnum)
+          .reduce((acc, lang) => ({ ...acc, [lang]: row?.translations?.[lang]
+            || {
+              name: color.translations.find((translation) => translation.lang === lang)?.name,
+            },
+          }), {} as ColorTableInterface['translations']),
       });
       setData(newData);
       if (row) {
@@ -103,7 +110,10 @@ const CreateColor = () => {
   };
 
   const cancel = (record: ColorTableInterface) => {
-    if (!colors.find(({ name }) => name === record.name)) {
+    const recordName = record.translations[UserLangEnum.RU].name;
+    const exists = colors.some((color) => color.translations.find(({ lang }) => lang === UserLangEnum.RU)?.name === recordName);
+
+    if (!exists) {
       setData(data.filter(({ key }) => key !== record.key));
     }
     setEditingKey('');
@@ -112,7 +122,7 @@ const CreateColor = () => {
   const handleAdd = () => {
     const maxId = maxBy(colors, 'id')?.id;
     const newData: ColorTableInterface = {
-      name: '',
+      translations: Object.values(UserLangEnum).reduce((acc, lang) => ({ ...acc, [lang]: { name: '' } }), {} as ColorTableInterface['translations']),
       hex: '',
       key: ((maxId || 0) + 1).toString(),
     };
@@ -160,23 +170,30 @@ const CreateColor = () => {
         return;
       }
 
-      const { name, hex } = row;
+      const { hex, translations } = row;
 
       const exist = colors.find((color) => color.id.toString() === record.key.toString());
+
+      let payloadCode: number;
+
       if (exist) {
-        const { data: { code, color } } = await axios.put<ColorResponseInterface>(routes.updateColor(exist.id), { id: exist.id, name, hex: (hex as Color).toHexString() } as ColorFormInterface);
-        if (code === 1) {
+        const { data: { code, color } } = await axios.put<ColorResponseInterface>(routes.updateColor(exist.id), { id: exist.id, hex: typeof hex === 'string' ? hex : (hex as Color).toHexString(), translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as ColorInterface);
+        payloadCode = code;
+        if (payloadCode === 1) {
           updateData(color, row);
         }
       } else {
-        const { data: { code, color } } = await axios.post<ColorResponseInterface>(routes.createColor, { name, hex: (hex as Color).toHexString() } as ColorFormInterface);
-        if (code === 1) {
+        const { data: { code, color } } = await axios.post<ColorResponseInterface>(routes.createColor, { hex: (hex as Color).toHexString(), translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang })) } as ColorFormInterface);
+        payloadCode = code;
+        if (payloadCode === 1) {
           setColors((state) => [...state, color]);
           setEditingKey('');
-        } else if (code === 2) {
-          form.setFields([{ name: 'name', errors: [tToast('colorExist', { name })] }]);
-          toast(tToast('colorExist', { name }), 'error');
         }
+      }
+      if (payloadCode === 2) {
+        const name = translations[UserLangEnum.RU].name;
+        form.setFields([{ name: ['translations', UserLangEnum.RU, 'name'], errors: [tToast('colorExist', { name })] }]);
+        toast(tToast('colorExist', { name }), 'error');
       }
       setIsSubmit(false);
     } catch (e) {
@@ -187,15 +204,26 @@ const CreateColor = () => {
   const columns = [
     {
       title: t('columns.name'),
-      dataIndex: 'name',
-      width: '50%',
+      dataIndex: ['translations', UserLangEnum.RU, 'name'],
+      width: '25%',
       editable: true,
       render: (_: any, record: ColorTableInterface) => (
         <div className="d-flex align-items-center gap-3">
-          <span>{record.name}</span>
+          <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted
             ? <Tag color="volcano">{t('deleted')}</Tag>
             : null}
+        </div>
+      ),
+    },
+    {
+      title: t('columns.nameEn'),
+      dataIndex: ['translations', UserLangEnum.EN, 'name'],
+      width: '25%',
+      editable: true,
+      render: (_: any, record: ColorTableInterface) => (
+        <div className="d-flex align-items-center gap-3">
+          <span>{record.translations[UserLangEnum.EN].name}</span>
         </div>
       ),
     },
@@ -277,7 +305,14 @@ const CreateColor = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setColors(response.colors);
-            const newColors: ColorTableInterface[] = response.colors.map((color) => ({ ...color, key: color.id.toString() }));
+            const newColors: ColorTableInterface[] = response.colors.map((color) => ({
+              ...color,
+              translations: {
+                [UserLangEnum.RU]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
+                [UserLangEnum.EN]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
+              },
+              key: color.id.toString(),
+            }));
             setData(newColors);
           }
           setIsSubmit(false);
@@ -289,7 +324,14 @@ const CreateColor = () => {
   }, [withDeleted, axiosAuth]);
 
   useEffect(() => {
-    setData(colors.map((color) => ({ ...color, key: color.id.toString() })));
+    setData([...colors].sort((a, b) => b.id - a.id).map((color) => ({
+      ...color,
+      translations: {
+        [UserLangEnum.RU]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
+        [UserLangEnum.EN]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
+      },
+      key: color.id.toString(),
+    })));
   }, [colors.length]);
 
   return isAdmin ? (

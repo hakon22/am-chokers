@@ -3,18 +3,22 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import { PassportStatic } from 'passport';
 import { Container, Singleton } from 'typescript-ioc';
+import type { Request } from 'express';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { LoggerService } from '@server/services/app/logger.service';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
 export class TokenService {
-  private logger = Container.get(LoggerService);
+  private readonly logger = Container.get(LoggerService);
+
+  public getCurrentUser = (req: Request): PassportRequestInterface => req.user as PassportRequestInterface;
 
   public tokenChecker = (passport: PassportStatic) => passport.use(
     new JwtStrategy(this.options, async ({ id }, done) => {
       try {
-        const user = await UserEntity.findOne({ where: { id }, relations: ['favorites', 'favorites.images', 'favorites.group', 'favorites.collection'] });
+        const user = await UserEntity.findOne({ where: { id }, relations: ['favorites', 'favorites.translations', 'favorites.images', 'favorites.group'] });
         if (user) {
           const {
             password, updated, created, ...rest
@@ -33,7 +37,7 @@ export class TokenService {
     'jwt-refresh',
     new JwtStrategy(this.optionsRefresh, async ({ id, phone }, done) => {
       try {
-        const user = await UserEntity.findOne({ where: { id, phone }, relations: ['favorites', 'favorites.images', 'favorites.group', 'favorites.collection'] });
+        const user = await UserEntity.findOne({ where: { id, phone }, relations: ['favorites', 'favorites.translations', 'favorites.images', 'favorites.group'] });
         if (user) {
           const {
             password, updated, created, ...rest

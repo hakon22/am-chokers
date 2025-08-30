@@ -12,14 +12,15 @@ import { TelegramService } from '@server/services/integration/telegram.service';
 import { getDiscountPercent, getOrderPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
+import { UserEntity } from '@server/db/entities/user.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
-import { DeliveryTypeEnum, deliveryTypeTranslateEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
 import { russianPostMailTypeTranslateEnum } from '@/types/delivery/russian.post.delivery.interface';
 import type { OrderInterface } from '@/types/order/Order';
-import type { OrderPositionInterface } from '@/types/order/OrderPosition';
-import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
 type Data = {
   userName: string;
@@ -36,7 +37,7 @@ export class AcquiringService extends BaseService {
 
   private readonly telegramService = Container.get(TelegramService);
 
-  private TAG = 'AcquiringService';
+  private readonly TAG = 'AcquiringService';
 
   public checkYookassaOrder = async (payment: Payment) => {
     try {
@@ -46,7 +47,19 @@ export class AcquiringService extends BaseService {
 
       if (!transaction) {
         if (payment.status === 'succeeded' && (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2)) {
-          await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(`‼️Поступила оплата на сумму: <b>${payment.amount.value} ₽</b>‼️`, tgId as string)));
+          await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+            const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+        
+            if (!adminUser) {
+              return;
+            }
+        
+            const adminText = adminUser.lang === UserLangEnum.RU
+              ? `‼️Поступила оплата на сумму: <b>${payment.amount.value} ₽</b>‼️`
+              : `‼️Payment received in the amount of: <b>${payment.amount.value} ₽</b>‼️`;
+        
+            return this.telegramService.sendMessage(adminText, tgId as string);
+          }));
         }
 
         return;
@@ -71,12 +84,13 @@ export class AcquiringService extends BaseService {
     }
   };
 
-  public createOrder = async (order: OrderInterface, type: AcquiringTypeEnum) => {
-
+  public createOrder = async (order: OrderInterface, type: AcquiringTypeEnum, lang: UserLangEnum) => {
     const credential = await AcquiringCredentialsEntity.findOne({ where: { issuer: type, isDevelopment: process.env.NODE_ENV === 'development' } });
 
     if (!credential || credential?.deleted) {
-      throw new Error('Недоступна онлайн оплата для данного заказа');
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Недоступна онлайн оплата для данного заказа'
+        : 'Online payment is not available for this order');
     }
 
     const transactions = await AcquiringTransactionEntity.find({
@@ -91,22 +105,9 @@ export class AcquiringService extends BaseService {
     const amount = getOrderPrice(order);
     const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
-    if (order.deliveryPrice) {
-      const deliveryPosition = {
-        item: {
-          name: 'Доставка',
-        } as OrderPositionInterface['item'],
-        price: order.deliveryPrice,
-        discountPrice: 0,
-        count: 1,
-      } as OrderPositionEntity;
-
-      order.positions.push(deliveryPosition);
-    }
-
-    const items = order.positions.map((position) => (
+    const items = order.positions.filter((position) => position.price).map((position) => (
       {
-        description: position.item.name,
+        description: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
         amount: {
           value: getPositionPriceWithDiscount(position, discountPercent).toString(),
           currency: 'RUB',
@@ -119,7 +120,9 @@ export class AcquiringService extends BaseService {
     )) as IItemWithoutData[];
 
     if (items.length > 6) {
-      throw new Error('Максимум 6 позиций в одном заказе');
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Максимум 6 позиций в одном заказе'
+        : 'Maximum 6 items per order');
     }
 
     const positionsAmount = items.reduce((acc, item) => acc + (+item.amount.value * 100), 0);
@@ -154,7 +157,9 @@ export class AcquiringService extends BaseService {
     const { phone, name } = order.user;
 
     if (!phone && !name) {
-      throw new Error('В профиле не указаны имя пользователя или номер телефона');
+      throw new Error(lang === UserLangEnum.RU
+        ? 'В профиле не указаны имя пользователя или номер телефона'
+        : 'The profile does not contain a username or phone number');
     }
 
     const keys: (keyof ICheckoutCustomer)[] = ['phone', 'full_name'];
@@ -234,23 +239,47 @@ export class AcquiringService extends BaseService {
       await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
 
       if (order.user.telegramId) {
-        await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW)}</b>.`, order.user.telegramId);
+        await this.telegramService.sendMessage(order.user.lang === UserLangEnum.RU
+          ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`
+          : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> to <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`, order.user.telegramId);
       }
 
       if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-        const adminText = [
-          `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
-          '',
-          `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
-          `Способ доставки: <b>${deliveryTypeTranslateEnum[order.delivery.type]}</b>`,
-          `Адрес доставки: <b>${order.delivery.address}</b>`,
-          ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
-          ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
-          '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
-        ];
+        await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+          const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+        
+          if (!adminUser) {
+            return;
+          }
 
-        await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+          const delivery = getDeliveryStatusTranslate(order.delivery.type, adminUser.lang);
+        
+          const adminText = adminUser.lang === UserLangEnum.RU
+            ? [
+              `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
+              '',
+              `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+              `Способ доставки: <b>${delivery}</b>`,
+              `Адрес доставки: <b>${order.delivery.address}</b>`,
+              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
+              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
+              '',
+              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+            ]
+            : [
+              `‼️Paid order <b>№${order.id}</b>‼️`,
+              '',
+              `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+              `Delivery method: <b>${delivery}</b>`,
+              `Delivery address: <b>${order.delivery.address}</b>`,
+              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
+              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Pickup index: <b>${order.delivery.index}</b>`] : []),
+              '',
+              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+            ];
+        
+          return this.telegramService.sendMessage(adminText, tgId as string);
+        }));
       }
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);

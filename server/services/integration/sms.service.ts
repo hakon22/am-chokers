@@ -6,17 +6,18 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 @Singleton
 export class SmsService {
-  private TAG = 'SMS Service';
+  private readonly TAG = 'SMS Service';
 
   private readonly loggerService = Container.get(LoggerService);
 
   private readonly messageService = Container.get(MessageService);
 
-  public sendCode = async (phone: string): Promise<{ request_id: string, code: string }> => {
+  public sendCode = async (phone: string, lang: UserLangEnum): Promise<{ request_id: string, code: string }> => {
     try {
       const code = this.codeGen();
       const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
@@ -44,11 +45,13 @@ export class SmsService {
       }
     } catch (e) {
       this.loggerService.error(this.TAG, e);
-      throw new Error('Произошла ошибка при отправке SMS');
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Произошла ошибка при отправке SMS'
+        : 'There was an error sending SMS');
     }
   };
 
-  public sendPass = async (phone: string): Promise<string> => {
+  public sendPass = async (phone: string, lang: UserLangEnum): Promise<string> => {
     try {
       const password = passGen.generate({
         length: 7,
@@ -76,7 +79,9 @@ export class SmsService {
       return password;
     } catch (e) {
       this.loggerService.error(this.TAG, e);
-      throw Error('Произошла ошибка при отправке SMS');
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Произошла ошибка при отправке SMS'
+        : 'There was an error sending SMS');
     }
   };
 

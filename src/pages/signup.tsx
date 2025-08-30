@@ -17,6 +17,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import { fetchConfirmCode, fetchSignup } from '@/slices/userSlice';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { UserSignupInterface } from '@/types/user/User';
 
 const Signup = () => {
@@ -27,7 +28,7 @@ const Signup = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { key } = useAppSelector((state) => state.user);
+  const { key, lang } = useAppSelector((state) => state.user);
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -56,7 +57,7 @@ const Signup = () => {
 
   useEffect(() => {
     if (isConfirmed && user) {
-      dispatch(fetchSignup(user))
+      dispatch(fetchSignup({ ...user, lang: lang as UserLangEnum }))
         .then(() => { router.push(routes.profilePage); })
         .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit); });
     }

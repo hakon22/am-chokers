@@ -13,10 +13,11 @@ export class ItemController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const item = await this.itemService.findOne(params, query);
+      const item = await this.itemService.findOne(params, user.lang, query);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -66,7 +67,8 @@ export class ItemController extends BaseService {
 
   public getSpecials = async (req: Request, res: Response) => {
     try {
-      const specialItems = await this.itemService.getSpecials();
+      const user = this.getCurrentUser(req);
+      const specialItems = await this.itemService.getSpecials(!!user?.isAdmin);
 
       res.json({ code: 1, specialItems });
     } catch (e) {
@@ -76,9 +78,10 @@ export class ItemController extends BaseService {
 
   public getByName = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const query = await queryTranslateNameParams.validate(req.query);
 
-      const item = await this.itemService.getByName(query);
+      const item = await this.itemService.getByName(query, user.lang);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -100,11 +103,12 @@ export class ItemController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
       const { images, ...rest } = body;
 
-      const result = await this.itemService.createOne(rest as ItemEntity, images);
+      const result = await this.itemService.createOne(rest as ItemEntity, images, user.lang);
 
       res.json(result);
     } catch (e) {
@@ -114,12 +118,13 @@ export class ItemController extends BaseService {
 
   public updateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
-      const { item, url } = await this.itemService.updateOne(params, body);
+      const result = await this.itemService.updateOne(params, body, user.lang);
 
-      res.json({ code: 1, item, url });
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -127,12 +132,13 @@ export class ItemController extends BaseService {
 
   public partialUpdateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await partialUpdateItemValidation.serverValidator(req.body) as ItemEntity;
 
-      const { item, url } = await this.itemService.partialUpdateOne(params, body);
+      const result = await this.itemService.partialUpdateOne(params, body, user.lang);
 
-      res.json({ code: 1, item, url });
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -140,9 +146,10 @@ export class ItemController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.itemService.deleteOne(params);
+      const item = await this.itemService.deleteOne(params, user.lang);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -152,9 +159,10 @@ export class ItemController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.itemService.restoreOne(params);
+      const item = await this.itemService.restoreOne(params, user.lang);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -164,10 +172,11 @@ export class ItemController extends BaseService {
 
   public publishToTelegram = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await descriptionSchema.validate(req.body);
 
-      const item = await this.itemService.publishToTelegram(params, body.description);
+      const item = await this.itemService.publishToTelegram(params, user.lang, body.description);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -196,8 +205,8 @@ export class ItemController extends BaseService {
 
   public getListExcel = async (req: Request, res: Response) => {
     try {
-
-      const buffer = await this.itemService.getListExcel();
+      const user = this.getCurrentUser(req);
+      const buffer = await this.itemService.getListExcel(user.lang);
 
       res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.header('Content-Disposition', 'attachment; filename=item-register.xlsx');

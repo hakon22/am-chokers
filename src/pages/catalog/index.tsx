@@ -21,9 +21,10 @@ import { getCatalogServerSideProps as getServerSideProps } from '@/pages/catalog
 import { scrollTop } from '@/utilities/scrollTop';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { getWidth } from '@/utilities/screenExtension';
+import { scrollToElement } from '@/utilities/scrollToElement';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
-import { scrollToElement } from '@/utilities/scrollToElement';
 
 export interface CatalogFiltersInterface {
   itemGroups?: string[];
@@ -40,7 +41,7 @@ export interface CatalogFiltersInterface {
 
 export { getServerSideProps };
 
-const RenderCatalogItem = ({ width, height, className, item }: { width: number; height: number; className?: string; item?: ItemInterface; }) => {
+const RenderCatalogItem = ({ width, height, className, item, lang }: { width: number; height: number; className?: string; item?: ItemInterface; lang: UserLangEnum; }) => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   return item
@@ -52,7 +53,7 @@ const RenderCatalogItem = ({ width, height, className, item }: { width: number; 
         height={height}
         width={width}
         images={item.images}
-        name={item.name}
+        name={item?.translations.find((translation) => translation.lang === lang)?.name}
         rating={{ rating: item.rating, grades: item.grades }}
         description={tPrice('price', { price: item.price - item.discountPrice })}
       />
@@ -60,7 +61,7 @@ const RenderCatalogItem = ({ width, height, className, item }: { width: number; 
     : null;
 };
 
-const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface[]; i: number; isSkeleton?: boolean; }) => {
+const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInterface[]; i: number; isSkeleton?: boolean; lang: UserLangEnum; }) => {
   const { isMobile } = useContext(MobileContext);
 
   const isReverse = i % 2 !== 0;
@@ -133,13 +134,13 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} lang={lang} />
               </>
             )}
           </div>
           <div className="d-flex justify-content-center">
-            {isSkeleton ? <Skeleton.Image className="mt-5" style={{ width: lagerWidth, height: lagerHeight }} active /> : <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[2]} />}
+            {isSkeleton ? <Skeleton.Image className="mt-5" style={{ width: lagerWidth, height: lagerHeight }} active /> : <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[2]} lang={lang} />}
           </div>
           <div className="d-flex justify-content-between">
             {isSkeleton ? (
@@ -149,13 +150,13 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={width} height={height} item={chunkItems[3]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[4]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[3]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[4]} lang={lang} />
               </>
             )}
           </div>
           <div className="d-flex justify-content-center">
-            {isSkeleton ? <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active /> : <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[5]} />}
+            {isSkeleton ? <Skeleton.Image style={{ width: lagerWidth, height: lagerHeight }} active /> : <RenderCatalogItem width={lagerWidth} height={lagerHeight} className="d-flex align-items-center" item={chunkItems[5]} lang={lang} />}
           </div>
           <div className="d-flex justify-content-between">
             {isSkeleton ? (
@@ -165,8 +166,8 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[6]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[7]} lang={lang} />
               </>
             )}
           </div>
@@ -183,9 +184,9 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[2]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[2]} lang={lang} />
               </>
             )}
           </div>
@@ -197,8 +198,8 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[3]} />
-                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[3]} lang={lang} />
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} lang={lang} />
               </>
             )}
           </div>
@@ -211,9 +212,9 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={width} height={height} item={chunkItems[5]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[6]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[7]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[5]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[6]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[7]} lang={lang} />
               </>
             )}
           </div>
@@ -230,15 +231,15 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} />
-                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[0]} lang={lang} />
+                <RenderCatalogItem width={width} height={height} item={chunkItems[1]} lang={lang} />
               </>
             )}
           </div>
-          {isSkeleton ? <Skeleton.Image style={{ width, height }} active className={cn('mt-5 col-3', { 'align-items-end': !isReverse })} /> : <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} />}
+          {isSkeleton ? <Skeleton.Image style={{ width, height }} active className={cn('mt-5 col-3', { 'align-items-end': !isReverse })} /> : <RenderCatalogItem width={width} height={height} item={chunkItems[2]} className={cn('col-3', { 'align-items-end': !isReverse })} lang={lang} />}
         </div>
         <div className={cn('d-flex justify-content-between', { 'flex-row-reverse': isReverse })}>
-          {isSkeleton ? <Skeleton.Image style={{ width, height }} active className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} /> : <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} />}
+          {isSkeleton ? <Skeleton.Image style={{ width, height }} active className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} /> : <RenderCatalogItem width={width} height={height} item={chunkItems[3]} className={cn('col-3 align-self-end', { 'align-items-end': isReverse })} lang={lang} />}
           <div className={cn('d-flex col-8 gap-5', { 'justify-content-end': !isReverse })}>
             {isSkeleton ? (
               <>
@@ -247,8 +248,8 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
               </>
             ) : (
               <>
-                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} />
-                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} />
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[4]} lang={lang} />
+                <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[5]} lang={lang} />
               </>
             )}
           </div>
@@ -261,8 +262,8 @@ const CatalogItems = ({ chunkItems, i, isSkeleton }: { chunkItems: ItemInterface
             </>
           ) : (
             <>
-              <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} />
-              <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} />
+              <RenderCatalogItem width={lagerWidth} height={lagerHeight} item={chunkItems[6]} className={cn('col-6', { 'align-items-end': isReverse })} lang={lang} />
+              <RenderCatalogItem width={width} height={height} item={chunkItems[7]} className={cn('col-3 align-self-end', { 'align-items-end': !isReverse })} lang={lang} />
             </>
           )}
         </div>
@@ -277,6 +278,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const chunkNumber = 8;
 
   const { pagination } = useAppSelector((state) => state.app);
+  const { lang } = useAppSelector((state) => state.user);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isSearch } = useContext(SearchContext);
@@ -480,7 +482,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   
   return (
     <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
-      <Helmet title={itemGroup ? itemGroup.name : t('title')} description={itemGroup ? itemGroup.description : t('description')} />
+      <Helmet title={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.name as string : t('title')} description={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.description as string : t('description')} />
       <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
       <div className="d-flex col-12 col-xl-9">
         <div className="w-100">
@@ -488,13 +490,13 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
             dataLength={items.length}
             next={() => onFilters(initialValues, { limit: pagination.limit, offset: pagination.offset + chunkNumber })}
             hasMore={items.length < pagination.count}
-            loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton />}
+            loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton lang={lang as UserLangEnum} />}
             style={{ overflow: 'unset' }}
             className="w-100"
           >
             <div className="d-flex flex-column gap-5">
               {items.length
-                ? chunk(items, chunkNumber).map((chunkItems, i) => <CatalogItems chunkItems={chunkItems} i={i} key={i} />)
+                ? chunk(items, chunkNumber).map((chunkItems, i) => <CatalogItems chunkItems={chunkItems} i={i} key={i} lang={lang as UserLangEnum} />)
                 : (
                   <>
                     <NotFoundContent text={t('notFound')} />

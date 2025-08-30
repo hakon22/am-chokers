@@ -1,18 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, Unique } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, DeleteDateColumn, UpdateDateColumn, CreateDateColumn, OneToMany } from 'typeorm';
+
+import { ItemCollectionTranslateEntity } from '@server/db/entities/item.collection.translate.entity';
 
 /** Коллекции товаров */
 @Entity({
   name: 'item_collection',
 })
-@Unique(['name'])
 export class ItemCollectionEntity extends BaseEntity {
   /** Уникальный `id` коллекции */
   @PrimaryGeneratedColumn()
   public id: number;
-
-  /** Имя коллекции */
-  @Column('character varying')
-  public name: string;
 
   /** Дата создания коллекции */
   @CreateDateColumn()
@@ -29,4 +26,8 @@ export class ItemCollectionEntity extends BaseEntity {
   /** Описание коллекции */
   @Column('character varying')
   public description: string;
+
+  /** Локализации коллекции */
+  @OneToMany(() => ItemCollectionTranslateEntity, translate => translate.collection)
+  public translations: ItemCollectionTranslateEntity[];
 }

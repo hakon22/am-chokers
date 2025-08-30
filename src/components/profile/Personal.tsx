@@ -36,9 +36,7 @@ export const Personal = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const {
-    telegramId, key, name, phone,
-  } = useAppSelector((state) => state.user);
+  const { telegramId, key, name, phone } = useAppSelector((state) => state.user);
 
   const [updateValues, setUpdateValues] = useState<UserProfileType>();
   const [phoneConfirm, setPhoneConfirm] = useState<string>();
@@ -139,7 +137,7 @@ export const Personal = () => {
   const password = Form.useWatch('password', form);
 
   return phoneConfirm && !isConfirmed ? <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} /> : (
-    <Form name="user-profile" form={form} initialValues={initialValues} className="col-12 col-xl-8" onFinish={onFinish}>
+    <Form name="user-profile" autoComplete="off" form={form} initialValues={initialValues} className="col-12 col-xl-8" onFinish={onFinish}>
       {!telegramId && <TelegramButton telegramId={telegramId} t={t} telegramHandler={telegramHandler} />}
       <label htmlFor="user-profile_phone" className="label">{t('phone')}</label>
       <Form.Item<UserProfileType> name="phone" rules={[profileValidation]} className="mb-3">

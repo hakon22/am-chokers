@@ -40,7 +40,7 @@ const ItemList = () => {
   const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
 
   const { isMobile } = useContext(MobileContext);
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
@@ -224,7 +224,7 @@ const ItemList = () => {
                           {item.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
                         </div>
                         <div className="d-flex flex-column fs-5-5 gap-3">
-                          <span className="lh-1">{item.name}</span>
+                          <span className="lh-1">{item?.translations.find((translation) => translation.lang === lang)?.name}</span>
                           <span>{tPrice('price', { price: item.price })}</span>
                         </div>
                       </div>

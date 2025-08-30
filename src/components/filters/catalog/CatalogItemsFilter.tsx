@@ -12,10 +12,15 @@ import { useAppSelector } from '@/utilities/hooks';
 import { onFocus } from '@/utilities/onFocus';
 import { MobileContext } from '@/components/Context';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
 import type { ColorInterface } from '@/types/color/ColorInterface';
+import type { ItemCollectionTranslateEntity } from '@server/db/entities/item.collection.translate.entity';
+import type { ItemGroupTranslateEntity } from '@server/db/entities/item.group.translate.entity';
+import type { CompositionTranslateEntity } from '@server/db/entities/composition.translate.entity';
+import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 
 interface CatalogItemsPropsInterface {
   setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,13 +33,14 @@ interface CatalogItemsPropsInterface {
   itemGroup?: ItemGroupInterface;
 }
 
-const mapping = ({ id, name }: { id: number; name: string; }) => ({ label: <span className="fs-6">{name}</span>, value: id.toString() });
+const mapping = ({ id, lang, translations }: { id: number; lang: UserLangEnum; translations: (ItemGroupTranslateEntity | ItemCollectionTranslateEntity | CompositionTranslateEntity)[]; }) => ({ label: <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}</span>, value: id.toString() });
 
 export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup }: CatalogItemsPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog.filters' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
+  const { lang } = useAppSelector((state) => state.user);
 
   const { isMobile } = useContext(MobileContext);
 
@@ -43,14 +49,14 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   const [optionCompositions, setOptionCompositions] = useState<CompositionInterface[]>([]);
   const [optionColors, setOptionColors] = useState<ColorInterface[]>([]);
 
-  const itemGroupFilterOptions = itemGroups.map(mapping);
-  const itemCollectionsFilterOptions = itemCollections.map(mapping);
-  const compositionsFilterOptions = optionCompositions.map(mapping);
+  const itemGroupFilterOptions = itemGroups.map((item) => mapping({ ...item, lang: lang as UserLangEnum }));
+  const itemCollectionsFilterOptions = itemCollections.map((item) => mapping({ ...item as ItemCollectionEntity, lang: lang as UserLangEnum }));
+  const compositionsFilterOptions = optionCompositions.map((item) => mapping({ ...item, lang: lang as UserLangEnum }));
   const colorsFilterOptions = optionColors.map((color) => ({
     label: (
       <div className="d-flex align-items-center gap-2 fs-6">
         <span className="d-block" style={{ backgroundColor: color.hex, borderRadius: '50%', width: 20, height: 20 }} />
-        <span>{color.name}</span>
+        <span>{color.translations.find((translation) => translation.lang === lang)?.name}</span>
       </div>
     ),
     value: color.id.toString(),
@@ -58,7 +64,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
 
   const onChange = (str: string) => {
     if (str) {
-      setOptionCompositions(fullCompositions.filter(({ name }) => name.toLowerCase().includes(str.toLowerCase())));
+      setOptionCompositions(fullCompositions.filter(({ translations }) => translations.find((translation) => translation.lang === lang)?.name.toLowerCase().includes(str.toLowerCase())));
     } else {
       setOptionCompositions(fullCompositions);
     }

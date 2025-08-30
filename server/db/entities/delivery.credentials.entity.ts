@@ -1,5 +1,6 @@
-import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 
+import { DeliveryCredentialsTranslateEntity } from '@server/db/entities/delivery.credentials.translate.entity';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 
 /** Доступ к интеграциям служб доставки */
@@ -23,10 +24,6 @@ export class DeliveryCredentialsEntity extends BaseEntity {
   /** Дата удаления доступа */
   @DeleteDateColumn()
   public deleted: Date;
-
-  /** Имя службы доставки */
-  @Column('character varying')
-  public name: string;
 
   /** Логин доступа */
   @Column('character varying')
@@ -54,4 +51,8 @@ export class DeliveryCredentialsEntity extends BaseEntity {
   /** Ссылка на базовый API */
   @Column('character varying')
   public url: string;
+
+  /** Локализации службы доставки */
+  @OneToMany(() => DeliveryCredentialsTranslateEntity, translate => translate.deliveryCredentials)
+  public translations: DeliveryCredentialsTranslateEntity[];
 }

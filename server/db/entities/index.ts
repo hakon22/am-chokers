@@ -18,6 +18,12 @@ import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transa
 import { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';
 import { ColorEntity } from '@server/db/entities/color.entity';
+import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
+import { ColorTranslateEntity } from '@server/db/entities/color.translate.entity';
+import { ItemGroupTranslateEntity } from '@server/db/entities/item.group.translate.entity';
+import { CompositionTranslateEntity } from '@server/db/entities/composition.translate.entity';
+import { ItemCollectionTranslateEntity } from '@server/db/entities/item.collection.translate.entity';
+import { DeliveryCredentialsTranslateEntity } from '@server/db/entities/delivery.credentials.translate.entity';
 
 export const entities = [
   UserEntity,
@@ -40,4 +46,10 @@ export const entities = [
   DeliveryCredentialsEntity,
   DeliveryEntity,
   ColorEntity,
+  ItemTranslateEntity,
+  ColorTranslateEntity,
+  ItemGroupTranslateEntity,
+  CompositionTranslateEntity,
+  ItemCollectionTranslateEntity,
+  DeliveryCredentialsTranslateEntity,
 ];

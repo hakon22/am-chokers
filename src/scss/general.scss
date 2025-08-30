@@ -308,6 +308,10 @@ a {
   margin: 0;
 }
 
+.collapse-without-padding .ant-collapse-content-box:has(> .without-padding) {
+  padding: 0 !important;
+}
+
 .fs-5-5 {
   font-size: 1.1rem;
 }
@@ -332,7 +336,7 @@ a {
 .position-center {
   position: absolute;
   top: 50%;
-  right: -35%;
+  left: 50%;
   transform: translate(50%, -50%);
   -webkit-transform: translate(50%, -50%);
   -o-transform: translate(50%, -50%);

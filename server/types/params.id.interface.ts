@@ -1,3 +1,5 @@
+import type { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+
 export interface ParamsIdInterface {
   id: number;
 }
@@ -8,4 +10,5 @@ export interface ParamsIdStringInterface {
 
 export interface NullableParamsIdInterface {
   id: number | null;
+  lang: UserLangEnum;
 }

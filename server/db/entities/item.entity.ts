@@ -17,6 +17,7 @@ import { UserEntity } from '@server/db/entities/user.entity';
 import { CompositionEntity } from '@server/db/entities/composition.entity';
 import { ColorEntity } from '@server/db/entities/color.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
+import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
 
 /** Товар */
 @Entity({
@@ -26,14 +27,6 @@ export class ItemEntity extends BaseEntity {
   /** Уникальный `id` товара */
   @PrimaryGeneratedColumn()
   public id: number;
-
-  /** Имя товара */
-  @Column('character varying', { unique: true })
-  public name: string;
-
-  /** Описание товара */
-  @Column('character varying')
-  public description: string;
 
   /** Дата создания товара */
   @CreateDateColumn()
@@ -69,10 +62,6 @@ export class ItemEntity extends BaseEntity {
   /** Фотографии товара */
   @OneToMany(() => ImageEntity, image => image.item)
   public images: ImageEntity[];
-
-  /** Длина товара (в описании) */
-  @Column('character varying')
-  public length: string;
 
   /** Бестселлер */
   @Column('boolean', {
@@ -121,7 +110,7 @@ export class ItemEntity extends BaseEntity {
   @JoinColumn({
     name: 'collection_id',
   })
-  public collection?: ItemCollectionEntity;
+  public collection?: ItemCollectionEntity | null;
 
   /** Состав товара (в описании) */
   @ManyToMany(() => CompositionEntity, composition => composition.items)
@@ -176,4 +165,8 @@ export class ItemEntity extends BaseEntity {
     name: 'message_id',
   })
   public message?: MessageEntity;
+
+  /** Локализации товара */
+  @OneToMany(() => ItemTranslateEntity, translate => translate.item)
+  public translations: ItemTranslateEntity[];
 }

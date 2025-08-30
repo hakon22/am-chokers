@@ -4,6 +4,7 @@ import moment from 'moment';
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PromotionalQueryInterface } from '@server/types/promotional/promotional.query.interface';
 import type { PromotionalOptionsInterface } from '@server/types/promotional/promotional.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
@@ -71,14 +72,16 @@ export class PromotionalService extends BaseService {
     return { code: 1, promotional };
   };
 
-  public findOne = async (params: ParamsIdInterface, query?: PromotionalQueryInterface, options?: PromotionalOptionsInterface) => {
+  public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, query?: PromotionalQueryInterface, options?: PromotionalOptionsInterface) => {
     const builder = this.createQueryBuilder(query, options)
       .andWhere('promotional.id = :id', { id: params.id });
 
     const promotional = await builder.getOne();
 
     if (!promotional) {
-      throw new Error(`Промокода с номером #${params.id} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Промокода с номером #${params.id} не существует.`
+        : `Promo code with number #${params.id} does not exist.`);
     }
 
     return promotional;
@@ -92,8 +95,8 @@ export class PromotionalService extends BaseService {
     return promotional;
   };
 
-  public deactivated = async (params: ParamsIdInterface, query?: PromotionalQueryInterface) => {
-    const promotional = await this.findOne(params, query);
+  public deactivated = async (params: ParamsIdInterface, lang: UserLangEnum, query?: PromotionalQueryInterface) => {
+    const promotional = await this.findOne(params, lang, query);
 
     await PromotionalEntity.update(promotional.id, { active: false });
 
@@ -102,11 +105,13 @@ export class PromotionalService extends BaseService {
     return promotional;
   };
 
-  public activated = async (params: ParamsIdInterface, query?: PromotionalQueryInterface) => {
-    const promotional = await this.findOne(params, query);
+  public activated = async (params: ParamsIdInterface, lang: UserLangEnum, query?: PromotionalQueryInterface) => {
+    const promotional = await this.findOne(params, lang, query);
 
     if (!moment().isBetween(moment(promotional.start), moment(promotional.end), 'day', '[]')) {
-      throw new Error(`Промокод с №${promotional.id} нельзя активировать. Текущая дата: ${moment().format(DateFormatEnum.DD_MM_YYYY)}, дата завершения промокода: ${moment(promotional.end).format(DateFormatEnum.DD_MM_YYYY)}`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Промокод с №${promotional.id} нельзя активировать. Текущая дата: ${moment().format(DateFormatEnum.DD_MM_YYYY)}, дата завершения промокода: ${moment(promotional.end).format(DateFormatEnum.DD_MM_YYYY)}`
+        : `Promo code with №${promotional.id} cannot be activated. Current date: ${moment().format(DateFormatEnum.DD_MM_YYYY)}, promo code expiration date: ${moment(promotional.end).format(DateFormatEnum.DD_MM_YYYY)}`);
     }
 
     await PromotionalEntity.update(promotional.id, { active: true });
@@ -124,8 +129,8 @@ export class PromotionalService extends BaseService {
     return promotionals;
   };
 
-  public updateOne = async (params: ParamsIdInterface, body: PromotionalEntity) => {
-    const promotional = await this.findOne(params);
+  public updateOne = async (params: ParamsIdInterface, body: PromotionalEntity, lang: UserLangEnum) => {
+    const promotional = await this.findOne(params, lang);
 
     const newPromotional = { ...promotional, ...body } as PromotionalEntity;
       
@@ -134,8 +139,8 @@ export class PromotionalService extends BaseService {
     return newPromotional;
   };
 
-  public deleteOne = async (params: ParamsIdInterface) => {
-    const promotional = await this.findOne(params, {}, { withOrders: true });
+  public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const promotional = await this.findOne(params, lang, {}, { withOrders: true });
 
     if (promotional.orders.length) {
       throw new Error(`Нельзя удалить промокод ${promotional.name}. Имеются заказы в количестве: ${promotional.orders.length}`);
@@ -147,11 +152,11 @@ export class PromotionalService extends BaseService {
     return promotional.save();
   };
 
-  public restoreOne = async (params: ParamsIdInterface) => {
-    const deletedPromotional = await this.findOne(params, { withDeleted: true }, { withOrders: true });
+  public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const deletedPromotional = await this.findOne(params, lang, { withDeleted: true }, { withOrders: true });
 
     await deletedPromotional.recover();
 
-    return this.findOne(params);
+    return this.findOne(params, lang);
   };
 }

@@ -24,6 +24,7 @@ import { BackButton } from '@/components/BackButton';
 import { CropImage } from '@/components/CropImage';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { getHeight } from '@/utilities/screenExtension';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
@@ -31,6 +32,15 @@ import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from 
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { ColorInterface } from '@/types/color/ColorInterface';
 import type { ColorEntity } from '@server/db/entities/color.entity';
+import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
+
+interface ItemFormInterface extends Omit<Partial<ItemInterface>, 'translations' | 'group' | 'collection' | 'compositions' | 'colors'> {
+  translations: Record<UserLangEnum, { name?: string; description?: string; length?: string; }>,
+  group?: number | ItemInterface['group'];
+  collection?: number | ItemInterface['collection'];
+  compositions?: (number | CompositionEntity)[];
+  colors?: (number | ColorEntity)[];
+}
 
 export const getServerSideProps = async () => {
   const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }));
@@ -50,7 +60,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { isAdmin, token } = useAppSelector((state) => state.user);
+  const { isAdmin, token, lang } = useAppSelector((state) => state.user);
   const { itemGroups, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -82,14 +92,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     },
   };
 
-  const [breadcrumbs, setBreadcrumbs] = useState([
-    {
-      title: t('home'),
-    },
-    {
-      title: t('catalog'),
-    },
-  ]);
+  const [breadcrumbs, setBreadcrumbs] = useState([{ title: t('home') }, { title: t('catalog') }]);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -109,13 +112,33 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
 
-  const [form] = Form.useForm<ItemInterface>();
+  const [form] = Form.useForm<ItemFormInterface>();
 
-  const itemName: string = Form.useWatch('name', form);
+  const itemName: string = Form.useWatch(['translations', lang, 'name'], form);
 
   const sortImageHandler = () => setIsSortImage(!isSortImage);
 
   const [activeId, setActiveId] = useState(0);
+
+  const initialValues: ItemFormInterface = {
+    ...item,
+    group: itemGroup?.id,
+    collection: itemCollection?.id,
+    compositions: itemCompositions?.map((composition) => composition.id),
+    colors: itemColors?.map((color) => color.id),
+    translations: {
+      [UserLangEnum.RU]: {
+        name: item?.translations?.find((translation) => translation.lang === UserLangEnum.RU)?.name,
+        description: item?.translations?.find((translation) => translation.lang === UserLangEnum.RU)?.description,
+        length: item?.translations?.find((translation) => translation.lang === UserLangEnum.RU)?.length,
+      },
+      [UserLangEnum.EN]: {
+        name: item?.translations?.find((translation) => translation.lang === UserLangEnum.EN)?.name,
+        description: item?.translations?.find((translation) => translation.lang === UserLangEnum.EN)?.description,
+        length: item?.translations?.find((translation) => translation.lang === UserLangEnum.EN)?.length,
+      },
+    },
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -133,13 +156,14 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     setActiveId(+active.id);
   };
 
-  const onFinish = async (values: ItemInterface) => {
+  const onFinish = async (values: ItemInterface | ItemFormInterface) => {
     setIsSubmit(true);
     values.images = images;
     values.group = itemGroup as ItemGroupInterface;
     values.collection = itemCollection as ItemCollectionInterface;
     values.compositions = (itemCompositions ?? []).map((composition) => ({ id: typeof composition === 'number' ? composition : composition.id } as CompositionEntity));
     values.colors = (itemColors ?? []).map((color) => ({ id: typeof color === 'number' ? color : color.id } as ColorEntity));
+    values.translations = Object.entries(values.translations).map(([language, { name, description, length }]) => ({ name, description, length, lang: language } as ItemTranslateEntity));
 
     let code: number;
     if (oldItem) {
@@ -153,15 +177,15 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         setIsSubmit(false);
         return;
       }
-      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } })) as { payload: ItemWithUrlResponseInterface; };
+      const { payload } = await dispatch(updateItem({ id: oldItem.id, data: { ...oldItem, ...values } as ItemInterface })) as { payload: ItemWithUrlResponseInterface; };
       code = payload.code;
       if (code === 1 && updateStateItem) {
         updateStateItem(payload.item);
-        toast(tToast('itemUpdatedSuccess', { name: oldItem.name }), 'success');
+        toast(tToast('itemUpdatedSuccess', { name: oldItem.translations.find((translation) => translation.lang === lang)?.name }), 'success');
         router.push(payload.url);
       }
     } else {
-      const { payload } = await dispatch(addItem(values)) as { payload: ItemWithUrlResponseInterface; };
+      const { payload } = await dispatch(addItem(values as ItemInterface)) as { payload: ItemWithUrlResponseInterface; };
       code = payload.code;
       if (code === 1) {
         if (payload.item.new || payload.item.collection || payload.item.bestseller) {
@@ -184,8 +208,9 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     }
 
     if (code === 2) {
-      form.setFields([{ name: 'name', errors: [tToast('itemExist', { name: values.name })] }]);
-      toast(tToast('itemExist', { name: values.name }), 'error');
+      const name = values.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name;
+      form.setFields([{ name: ['translations', UserLangEnum.RU, 'name'], errors: [tToast('itemExist', { name })] }]);
+      toast(tToast('itemExist', { name }), 'error');
     }
     setIsSubmit(false);
   };
@@ -196,7 +221,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       const values = form.getFieldsValue();
 
       if (!(values.compositions?.length && images.length)) {
-        form.setFields([{ name: 'description', errors: [tToast('requiredFields')] }]);
+        form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [tToast('requiredFields')] }]);
         throw new Error(tToast('requiredFields'));
       }
 
@@ -206,8 +231,8 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       const { data } = await axios.post<{ code: number; description: string; }>(routes.generateDescriptionWithoutItem, values);
 
       if (data.code === 1) {
-        form.setFields([{ name: 'description', errors: [] }]);
-        form.setFieldValue('description', data.description);
+        form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [] }]);
+        form.setFieldValue(['translations', lang as UserLangEnum, 'description'], data.description);
       }
       setIsSubmit(false);
     } catch (e) {
@@ -216,24 +241,29 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   };
 
   useEffect(() => {
-    if (itemName) {
-      setBreadcrumbs((state) => [state[0], state[1], itemGroup ? state[2] : { title: '' }, { title: itemName }]);
-    } else if (!itemName && !itemGroup) {
-      setBreadcrumbs((state) => [state[0], state[1]]);
-    } else if (!itemName) {
-      setBreadcrumbs((state) => [state[0], state[1], itemGroup ? state[2] : { title: '' }]);
-    }
-  }, [itemName]);
+    setTimeout(() => {
+      if (itemName) {
+        setBreadcrumbs((state) => [{ title: t('home') }, { title: t('catalog') }, itemGroup ? state[2] : { title: '' }, { title: itemName }]);
+      } else if (!itemName && !itemGroup) {
+        setBreadcrumbs([{ title: t('home') }, { title: t('catalog') }]);
+      } else if (!itemName) {
+        setBreadcrumbs((state) => [{ title: t('home') }, { title: t('catalog') }, itemGroup ? state[2] : { title: '' }]);
+      }
+    }, 1);
+  }, [lang, itemName, itemGroup]);
 
   useEffect(() => {
-    if (itemGroup) {
-      setBreadcrumbs((state) => [state[0], state[1], ...(itemName ? [{ title: itemGroup.name }, { title: itemName }] : [{ title: itemGroup.name }])]);
-    } else if (!itemGroup && !itemName) {
-      setBreadcrumbs((state) => [state[0], state[1]]);
-    } else if (!itemGroup) {
-      setBreadcrumbs((state) => [state[0], state[1], { title: '' }, itemName ? state[3] : { title: '' }]);
-    }
-  }, [itemGroup]);
+    setTimeout(() => {
+      if (itemGroup) {
+        const name = itemGroup.translations.find((translation) => translation.lang === lang)?.name as string;
+        setBreadcrumbs([{ title: t('home') }, { title: t('catalog') }, ...(itemName ? [{ title: name }, { title: itemName }] : [{ title: name }])]);
+      } else if (!itemGroup && !itemName) {
+        setBreadcrumbs([{ title: t('home') }, { title: t('catalog') }]);
+      } else if (!itemGroup) {
+        setBreadcrumbs((state) => [{ title: t('home') }, { title: t('catalog') }, { title: '' }, itemName ? state[3] : { title: '' }]);
+      }
+    }, 1);
+  }, [lang, itemGroup, itemName]);
 
   useEffect(() => {
     if (axiosAuth) {
@@ -393,13 +423,18 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
           </CropImage>
         </div>
         <div style={{ width: isMobile ? '100%' : '55%' }}>
-          <Form name="create-item" initialValues={{ ...item, group: itemGroup?.id, collection: itemCollection?.id, compositions: itemCompositions?.map((composition) => composition.id), colors: itemColors?.map((color) => color.id) }} className="d-flex flex-column" onFinish={onFinish} form={form}>
+          <Form name="create-item" initialValues={initialValues} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
-              <Form.Item<typeof item> name="name" className="mb-4 large-input" rules={[newItemValidation]}>
-                <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
-              </Form.Item>
+              <div className="d-flex flex-column flex-xl-row">
+                <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'name']} className="mb-4 large-input col-12 col-xl-6" rules={[newItemValidation]}>
+                  <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
+                </Form.Item>
+                <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.EN, 'name']} className="mb-4 large-input col-12 col-xl-6" rules={[newItemValidation]}>
+                  <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.nameEn')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
+                </Form.Item>
+              </div>
               <div className="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center mb-4">
-                <Form.Item<typeof item> name="group" className="large-input mb-4 mb-xl-0" rules={[newItemValidation]}>
+                <Form.Item<ItemFormInterface> name="group" className="large-input mb-4 mb-xl-0" rules={[newItemValidation]}>
                   <Select
                     showSearch
                     allowClear
@@ -418,10 +453,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       setItem((state) => ({ ...state, group }));
                     }}
                     onClear={() => setItemGroup(null)}
-                    options={itemGroups.map(({ id, name }) => ({ value: id, label: name }))}
+                    options={itemGroups.map(({ id, translations }) => ({ value: id, label: translations.find((translation) => translation.lang === lang)?.name }))}
                   />
                 </Form.Item>
-                <Form.Item<typeof item> name="collection" className="large-input mb-4 mb-xl-0">
+                <Form.Item<ItemFormInterface> name="collection" className="large-input mb-4 mb-xl-0">
                   <Select
                     showSearch
                     allowClear
@@ -435,26 +470,26 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
                     }
                     onSelect={(collectionId: number) => {
-                      const collection = itemCollections.find(({ id }) => id === collectionId);
+                      const collection = itemCollections.find((value) => value?.id === collectionId);
                       setItemCollection(collection);
                       setItem((state) => ({ ...state, collection }));
                     }}
                     onClear={() => setItemCollection(null)}
-                    options={itemCollections.map(({ id, name }) => ({ value: id, label: name }))}
+                    options={itemCollections.map((value) => ({ value: value?.id, label: value?.translations.find((translation) => translation.lang === lang)?.name }))}
                   />
                 </Form.Item>
-                <Form.Item<typeof item> name="new" valuePropName="checked" className="large-input mb-3 mb-xl-0">
+                <Form.Item<ItemFormInterface> name="new" valuePropName="checked" className="large-input mb-3 mb-xl-0">
                   <Checkbox className={cn({ 'not-padding': isMobile })}>{t('new')}</Checkbox>
                 </Form.Item>
-                <Form.Item<typeof item> name="bestseller" valuePropName="checked" className="large-input mb-1 mb-xl-0">
+                <Form.Item<ItemFormInterface> name="bestseller" valuePropName="checked" className="large-input mb-1 mb-xl-0">
                   <Checkbox className={cn({ 'not-padding': isMobile })}>{t('bestseller')}</Checkbox>
                 </Form.Item>
               </div>
               <div className={cn('d-flex flex-column flex-xl-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>
-                <Form.Item<typeof item> name="price" rules={[newItemValidation]} className="col-6 col-xl-3">
+                <Form.Item<ItemFormInterface> name="price" rules={[newItemValidation]} className="col-6 col-xl-3">
                   <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                <Form.Item<typeof item> name="discountPrice" rules={[newItemValidation]} className="col-6 col-xl-3">
+                <Form.Item<ItemFormInterface> name="discountPrice" rules={[newItemValidation]} className="col-6 col-xl-3">
                   <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
               </div>
@@ -464,10 +499,13 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
               </div>)}
               <div className="position-relative">
-                <Form.Item<typeof item> name="description" className="lh-lg" rules={[newItemValidation]}>
+                <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'description']} className="lh-lg" rules={[newItemValidation]}>
                   <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
                 </Form.Item>
                 {!isMobile && <Button className="generate-button" onClick={generateDescription}>{t('generateDescription')}</Button>}
+                <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.EN, 'description']} className="lh-lg" rules={[newItemValidation]}>
+                  <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.descriptionEn')} style={{ letterSpacing: '0.5px' }} />
+                </Form.Item>
               </div>
               {isMobile && (
                 <div className="mb-4 text-center">
@@ -476,7 +514,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('composition')}</span>
-                  <Form.Item<typeof item> name="compositions" rules={[newItemValidation]}>
+                  <Form.Item<ItemFormInterface> name="compositions" rules={[newItemValidation]}>
                     <Select
                       mode="multiple"
                       allowClear
@@ -491,13 +529,13 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       }
                       onChange={(state) => setItemCompositions(state)}
                       onClear={() => setItemCompositions([])}
-                      options={compositions?.map(({ id, name }) => ({ value: id, label: name }))}
+                      options={compositions?.map(({ id, translations }) => ({ value: id, label: translations.find((translation) => translation.lang === lang)?.name }))}
                     />
                   </Form.Item>
                 </div>
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('color')}</span>
-                  <Form.Item<typeof item> name="colors" rules={[newItemValidation]}>
+                  <Form.Item<ItemFormInterface> name="colors" rules={[newItemValidation]}>
                     <Select
                       mode="multiple"
                       allowClear
@@ -512,10 +550,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       }
                       onChange={(state) => setItemColors(state)}
                       onClear={() => setItemColors([])}
-                      options={colors?.map(({ id, name, hex }) => ({ value: id, label: (
+                      options={colors?.map(({ id, translations, hex }) => ({ value: id, label: (
                         <div className="d-flex align-items-center gap-2">
                           <span className="d-block" style={{ backgroundColor: hex, borderRadius: '50%', width: 25, height: 25 }} />
-                          <span>{name}</span>
+                          <span>{translations.find((translation) => translation.lang === lang)?.name}</span>
                         </div>
                       ) }))}
                     />
@@ -523,8 +561,14 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </div>
                 <div className="d-flex flex-column gap-2">
                   <span className="font-oswald fs-6">{tCardItem('length')}</span>
-                  <Form.Item<typeof item> name="length" rules={[newItemValidation]}>
+                  <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'length']} rules={[newItemValidation]}>
                     <Input variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" placeholder={t('placeholders.length')} />
+                  </Form.Item>
+                </div>
+                <div className="d-flex flex-column gap-2">
+                  <span className="font-oswald fs-6">{tCardItem('lengthEn')}</span>
+                  <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.EN, 'length']} rules={[newItemValidation]}>
+                    <Input variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" placeholder={t('placeholders.lengthEn')} />
                   </Form.Item>
                 </div>
                 {isMobile && (

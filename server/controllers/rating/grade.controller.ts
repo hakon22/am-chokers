@@ -6,7 +6,6 @@ import { GradeService } from '@server/services/rating/grade.service';
 import { paramsIdSchema, queryOptionalSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
 import { newGradeValidation } from '@/validations/validations';
 import { GradeEntity } from '@server/db/entities/grade.entity';
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
 export class GradeController extends BaseService {
@@ -14,10 +13,11 @@ export class GradeController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const grade = await this.gradeService.findOne(params, query);
+      const grade = await this.gradeService.findOne(params, user.lang, query);
 
       res.json({ code: 1, grade });
     } catch (e) {
@@ -27,10 +27,10 @@ export class GradeController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const user = this.getCurrentUser(req);
       const { comment, ...body } = await newGradeValidation.serverValidator(req.body) as GradeEntity;
 
-      const grade = await this.gradeService.createOne(body, id, comment);
+      const grade = await this.gradeService.createOne(body, user, comment);
 
       res.json({ code: 1, grade });
     } catch (e) {
@@ -58,9 +58,10 @@ export class GradeController extends BaseService {
 
   public accept = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const grade = await this.gradeService.accept(params);
+      const grade = await this.gradeService.accept(params, user.lang);
 
       res.json({ code: 1, grade });
     } catch (e) {
@@ -70,9 +71,10 @@ export class GradeController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const grade = await this.gradeService.deleteOne(params);
+      const grade = await this.gradeService.deleteOne(params, user.lang);
 
       res.json({ code: 1, grade });
     } catch (e) {
@@ -82,9 +84,10 @@ export class GradeController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const grade = await this.gradeService.restoreOne(params);
+      const grade = await this.gradeService.restoreOne(params, user.lang);
 
       res.json({ code: 1, grade });
     } catch (e) {

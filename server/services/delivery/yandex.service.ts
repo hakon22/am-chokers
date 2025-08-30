@@ -6,6 +6,7 @@ import { DeliveryEntity } from '@server/db/entities/delivery.entity';
 import { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import type { YandexCreateOrderResponseInterface } from '@server/types/delivery/yandex/yandex.create.order.response.interface';
 import type { YandexCreateOrderInterface } from '@server/types/delivery/yandex/yandex.create.order.interface';
@@ -14,7 +15,7 @@ import type { YandexRequestOrderResponseInterface } from '@server/types/delivery
 @Singleton
 export class YandexService extends BaseService {
 
-  private TAG = 'YandexService';
+  private readonly TAG = 'YandexService';
 
   private isDevelopment = () => process.env.NODE_ENV === 'development';
 
@@ -61,8 +62,8 @@ export class YandexService extends BaseService {
       },
       items: order.positions.map((position => ({
         count: position.count,
-        name: position.item.name,
-        article: position.item.name,
+        name: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string,
+        article: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string,
         billing_details: {
           unit_price: ((position.price - position.discountPrice) * position.count) * 100,
           assessed_unit_price: ((position.price - position.discountPrice) * position.count) * 100,

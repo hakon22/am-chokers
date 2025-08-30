@@ -1,8 +1,10 @@
 export interface CompositionQueryInterface {
   /** `id` компонента */
   id?: number;
-  /** Имя компонента */
-  name?: string;
+  /** Имена компонента */
+  names?: string[];
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Исключить `ids` */
+  excludeIds?: number[];
 }

@@ -3,6 +3,7 @@ import passport from 'passport';
 import type { Request, Response, NextFunction } from 'express';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
@@ -73,7 +74,7 @@ export class MiddlewareService {
       if (err) {
         return next(err);
       }
-      req.user = user ?? { id: null };
+      req.user = user ?? { id: null, lang: req.query?.lang || UserLangEnum.RU };
       next();
     })(req, res, next);
   };

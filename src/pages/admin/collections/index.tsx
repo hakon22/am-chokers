@@ -17,11 +17,12 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemCollectionInterface } from '@/types/item/Item';
 
 interface ItemCollectionTableInterface {
   key: string;
-  name: string;
+  translations: Record<UserLangEnum, { name: string; }>;
   description: string;
   deleted?: Date;
 }
@@ -79,13 +80,19 @@ const CreateItemCollection = () => {
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
 
   const updateData = (itemCollection: ItemCollectionInterface, row?: ItemCollectionTableInterface) => {
-    const index = data.findIndex((collection) => collection.key.toString() === itemCollection.id.toString());
+    const index = data.findIndex((collection) => collection.key.toString() === itemCollection?.id.toString());
     if (index !== -1) {
       const newData = [...data];
       const item = newData[index];
       newData.splice(index, 1, {
         ...item,
         ...(row || itemCollection),
+        translations: Object.values(UserLangEnum)
+          .reduce((acc, lang) => ({ ...acc, [lang]: row?.translations?.[lang]
+            || {
+              name: itemCollection?.translations.find((translation) => translation.lang === lang)?.name,
+            },
+          }), {} as ItemCollectionTableInterface['translations']),
       });
       setData(newData);
       if (row) {
@@ -99,13 +106,13 @@ const CreateItemCollection = () => {
   const isEditing = (record: ItemCollectionTableInterface) => record.key === editingKey;
 
   const edit = (record: Partial<ItemCollectionTableInterface> & { key: React.Key }) => {
-    form.setFieldsValue({ name: '', description: '', ...record });
+    form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
   const restore = async (key: React.Key) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemCollection } } = await dispatch(restoreItemCollection(key)) as { payload: ItemCollectionResponseInterface };
+    const { payload: { code: payloadCode, itemCollection } } = await dispatch(restoreItemCollection(key)) as { payload: ItemCollectionResponseInterface; };
     if (payloadCode === 1) {
       updateData(itemCollection);
     }
@@ -113,7 +120,10 @@ const CreateItemCollection = () => {
   };
 
   const cancel = (record: ItemCollectionTableInterface) => {
-    if (!itemCollections.find(({ name }) => name === record.name)) {
+    const recordName = record.translations[UserLangEnum.RU].name;
+    const exists = itemCollections.some((item) => item?.translations.find(({ lang }) => lang === UserLangEnum.RU)?.name === recordName);
+
+    if (!exists) {
       setData(data.filter(({ key }) => key !== record.key));
     }
     setEditingKey('');
@@ -122,7 +132,7 @@ const CreateItemCollection = () => {
   const handleAdd = () => {
     const maxId = maxBy(itemCollections, 'id')?.id;
     const newData: ItemCollectionTableInterface = {
-      name: '',
+      translations: Object.values(UserLangEnum).reduce((acc, lang) => ({ ...acc, [lang]: { name: '' } }), {} as ItemCollectionTableInterface['translations']),
       description: '',
       key: ((maxId || 0) + 1).toString(),
     };
@@ -152,23 +162,30 @@ const CreateItemCollection = () => {
       return;
     }
 
-    const { name, description } = row;
+    const { translations, description } = row;
 
-    const exist = itemCollections.find((itemCollection) => itemCollection.id.toString() === key.toString());
+    const exist = itemCollections.find((itemCollection) => itemCollection?.id.toString() === key.toString());
+
+    let payloadCode: number;
+
     if (exist) {
-      const { payload: { code: payloadCode, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
+      const { payload: { code, itemCollection } } = await dispatch(updateItemCollection({ id: exist.id, description, translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang })) } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
+      payloadCode = code;
       if (payloadCode === 1) {
         updateData(itemCollection, row);
       }
     } else {
-      const { payload: { code: payloadCode, itemCollection } } = await dispatch(addItemCollection({ name, description } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
+      const { payload: { code, itemCollection } } = await dispatch(addItemCollection({ description, translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang })) } as ItemCollectionInterface)) as { payload: ItemCollectionResponseInterface; };
+      payloadCode = code;
       if (payloadCode === 1) {
         setItemCollections((state) => [...state, itemCollection]);
         setEditingKey('');
-      } else if (payloadCode === 2) {
-        form.setFields([{ name: 'name', errors: [tToast('itemCollectionExist', { name })] }]);
-        toast(tToast('itemCollectionExist', { name }), 'error');
       }
+    }
+    if (payloadCode === 2) {
+      const name = translations[UserLangEnum.RU].name;
+      form.setFields([{ name: ['translations', UserLangEnum.RU, 'name'], errors: [tToast('itemCollectionExist', { name })] }]);
+      toast(tToast('itemCollectionExist', { name }), 'error');
     }
     setIsSubmit(false);
   };
@@ -176,13 +193,24 @@ const CreateItemCollection = () => {
   const columns = [
     {
       title: t('columns.name'),
-      dataIndex: 'name',
-      width: '40%',
+      dataIndex: ['translations', UserLangEnum.RU, 'name'],
+      width: '25%',
       editable: true,
       render: (_: any, record: ItemCollectionTableInterface) => (
         <div className="d-flex align-items-center gap-3">
-          <span>{record.name}</span>
+          <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
+        </div>
+      ),
+    },
+    {
+      title: t('columns.nameEn'),
+      dataIndex: ['translations', UserLangEnum.EN, 'name'],
+      width: '25%',
+      editable: true,
+      render: (_: any, record: ItemCollectionTableInterface) => (
+        <div className="d-flex align-items-center gap-3">
+          <span>{record.translations[UserLangEnum.EN].name}</span>
         </div>
       ),
     },
@@ -256,7 +284,14 @@ const CreateItemCollection = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setItemCollections(response.itemCollections);
-            const newItemCollections: ItemCollectionTableInterface[] = response.itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() }));
+            const newItemCollections = response.itemCollections.map((itemCollection) => ({
+              ...itemCollection,
+              translations: {
+                [UserLangEnum.RU]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name },
+                [UserLangEnum.EN]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name },
+              },
+              key: itemCollection?.id.toString() as string,
+            } as ItemCollectionTableInterface));
             setData(newItemCollections);
           }
           setIsSubmit(false);
@@ -268,7 +303,14 @@ const CreateItemCollection = () => {
   }, [withDeleted, axiosAuth]);
 
   useEffect(() => {
-    setData(itemCollections.map((itemCollection) => ({ ...itemCollection, key: itemCollection.id.toString() })));
+    setData([...itemCollections].sort((a, b) => (b?.id ?? 0) - (a?.id ?? 0)).map((itemCollection) => ({
+      ...itemCollection,
+      translations: {
+        [UserLangEnum.RU]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name },
+        [UserLangEnum.EN]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name },
+      },
+      key: itemCollection?.id.toString() as string,
+    } as ItemCollectionTableInterface)));
   }, [itemCollections.length]);
 
   return isAdmin ? (
@@ -298,7 +340,7 @@ const CreateItemCollection = () => {
           }}
           columns={mergedColumns}
           rowClassName="editable-row"
-          pagination={{ position: ['none', 'none'] }}
+          pagination={false}
         />
       </Form>
     </div>

@@ -8,7 +8,11 @@
     "dev-prod": "cross-env DB='LOCAL' NODE_ENV=production tsx server/server.ts",
     "dev": "cross-env DB='LOCAL' tsx server/server.ts",
     "build": "next build --no-lint",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migration:create": "typeorm migration:create",
+    "migration:create:name": "tsx ./server/db/migrations/helpers/create.migration.helper.ts",
+    "migration:run": "cross-env CRON='TRUE' WITHOUT_CACHE='TRUE' tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
+    "migration:revert": "cross-env CRON='TRUE' WITHOUT_CACHE='TRUE' tsx ./node_modules/typeorm/cli.js migration:revert --dataSource ./server/db/database.service.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
@@ -32,6 +36,7 @@
     "react-bootstrap": "^2.9.1",
     "react-bootstrap-icons": "^1.10.3",
     "react-cookie-consent": "^9.0.0",
+    "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18",
     "react-i18next": "^14.0.5",
     "react-image-gallery": "^1.3.0",
@@ -60,6 +65,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/react": "^18",
     "@types/react-bootstrap": "^0.32.35",
+    "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "^18",
     "@types/react-image-gallery": "^1.2.4",
     "bcryptjs": "^2.4.3",

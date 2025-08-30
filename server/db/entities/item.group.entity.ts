@@ -4,7 +4,10 @@ import {
   Unique,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+
+import { ItemGroupTranslateEntity } from '@server/db/entities/item.group.translate.entity';
 
 /** Группы товаров */
 @Entity({
@@ -15,10 +18,6 @@ export class ItemGroupEntity extends BaseEntity {
   /** Уникальный `id` группы товара */
   @PrimaryGeneratedColumn()
   public id: number;
-
-  /** Имя группы товара */
-  @Column('character varying')
-  public name: string;
 
   /** Дата создания группы товара */
   @CreateDateColumn()
@@ -32,11 +31,11 @@ export class ItemGroupEntity extends BaseEntity {
   @DeleteDateColumn()
   public deleted: Date;
 
-  /** Описание группы товара */
-  @Column('character varying')
-  public description: string;
-
   /** Код группы товара (отображается в url) */
-  @Column('character varying')
+  @Column('character varying', { unique: true })
   public code: string;
+
+  /** Локализации группы товара */
+  @OneToMany(() => ItemGroupTranslateEntity, translate => translate.group)
+  public translations: ItemGroupTranslateEntity[];
 }

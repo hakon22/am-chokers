@@ -76,6 +76,11 @@ export const removeCartItem = createAsyncThunk(
       const response = await axios.delete<CartResponseInterface>(routes.removeCartItem(id));
       return response.data;
     } catch (e: any) {
+      const cartCache = window.localStorage.getItem(cartStorageKey);
+      if (cartCache) {
+        const parcedCartCache: CartItemInterface[] = JSON.parse(cartCache);
+        window.localStorage.setItem(cartStorageKey, JSON.stringify(parcedCartCache.filter((cartItem) => cartItem.id !== id)));
+      }
       return rejectWithValue(e.response.data);
     }
   },
@@ -108,6 +113,10 @@ const cartSlice = createSlice({
         state.cart = [];
       } else {
         state.cart = state.cart.filter(({ id }) => !payload.includes(id));
+      }
+      const cartStorage = window.localStorage.getItem(cartStorageKey);
+      if (cartStorage) {
+        window.localStorage.setItem(cartStorageKey, JSON.stringify((JSON.parse(cartStorage) as CartItemInterface[]).filter((cartItem) => !(payload || []).includes(cartItem.id))));
       }
     },
     addMany: (state) => {

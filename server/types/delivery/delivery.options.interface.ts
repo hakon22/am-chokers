@@ -13,6 +13,8 @@ export interface DeliveryOptionsInterface {
   withCredentials?: boolean;
   /** С удалёнными */
   withDeleted?: boolean;
-  /** Менеджер typeorm */
+  /** TypeORM Entity Manager */
   manager?: EntityManager;
+  /** Исключить `ids` */
+  excludeIds?: number[];
 }

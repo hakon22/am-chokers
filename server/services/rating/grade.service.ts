@@ -6,14 +6,18 @@ import { ImageService } from '@server/services/storage/image.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { GradeEntity } from '@server/db/entities/grade.entity';
+import { UserEntity } from '@server/db/entities/user.entity';
 import { routes } from '@/routes';
+import { hasJoin } from '@server/utilities/has.join';
 import type { GradeQueryInterface } from '@server/types/rating/grade.query.interface';
 import type { GradeOptionsInterface } from '@server/types/rating/grade.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
 export class GradeService extends BaseService {
@@ -51,8 +55,12 @@ export class GradeService extends BaseService {
         .leftJoin('grade.item', 'item')
         .addSelect([
           'item.id',
-          'item.name',
           'item.translateName',
+        ])
+        .leftJoin('item.translations', 'translations')
+        .addSelect([
+          'translations.name',
+          'translations.lang',
         ])
         .leftJoin('item.group', 'group')
         .addSelect([
@@ -127,10 +135,14 @@ export class GradeService extends BaseService {
     if (options?.userId) {
       builder.andWhere('grade.user_id = :userId', { userId: options.userId });
     }
-    if (options?.itemName) {
-      builder
-        .leftJoin('grade.item', 'item')
-        .andWhere('item.name = :itemName', { itemName: options.itemName });
+    if (options?.itemNames?.length) {
+      if (!hasJoin(builder, 'item')) {
+        builder.leftJoin('grade.item', 'item');
+      }
+      if (!hasJoin(builder, 'translations')) {
+        builder.leftJoin('item.translations', 'translations');
+      }
+      builder.andWhere('translations.name IN(:...names)', { names: options.itemNames });
     }
     if (options?.onlyChecked) {
       builder.andWhere('grade.checked = TRUE');
@@ -142,13 +154,15 @@ export class GradeService extends BaseService {
     return builder;
   };
 
-  public findOne = async (params: ParamsIdInterface, options?: GradeOptionsInterface) => {
+  public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, options?: GradeOptionsInterface) => {
     const builder = this.createQueryBuilder(params, options);
 
     const grade = await builder.getOne();
 
     if (!grade) {
-      throw new Error(`Оценки с номером #${params.id} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Оценки с номером #${params.id} не существует.`
+        : `There is no rating with number #${params.id}.`);
     }
 
     return grade;
@@ -202,12 +216,12 @@ export class GradeService extends BaseService {
     return [grades, count];
   };
 
-  public createOne = async (body: Partial<GradeEntity>, userId: number, comment?: CommentEntity) => {
+  public createOne = async (body: Partial<GradeEntity>, user: PassportRequestInterface, comment?: CommentEntity) => {
     const created = await this.databaseService.getManager().transaction(async (manager) => {
       const gradeRepo = manager.getRepository(GradeEntity);
       const commentRepo = manager.getRepository(CommentEntity);
 
-      const grade = { ...body, user: { id: userId } };
+      const grade = { ...body, user: { id: user.id } };
 
       if (comment?.text || comment?.images.length) {
         const { images, ...rest } = comment;
@@ -223,19 +237,33 @@ export class GradeService extends BaseService {
     });
 
     if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-      const adminText = [
-        `Вам оставлен новый отзыв с оценкой: <b>${body.grade}</b>`,
-        '',
-        `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.moderationOfReview}`,
-      ];
-      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+        const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+      
+        if (!adminUser) {
+          return;
+        }
+      
+        const adminText = adminUser.lang === UserLangEnum.RU
+          ? [
+            `Вам оставлен новый отзыв с оценкой: <b>${body.grade}</b>`,
+            '',
+            `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.moderationOfReview}`,
+          ] : [
+            `You have a new review with a rating of: <b>${body.grade}</b>`,
+            '',
+            `More details: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.moderationOfReview}`,
+          ];
+      
+        return this.telegramService.sendMessage(adminText, tgId as string);
+      }));
     }
 
-    return this.findOne({ id: created.id });
+    return this.findOne({ id: created.id }, user.lang);
   };
 
-  public accept = async (params: ParamsIdInterface) => {
-    const grade = await this.findOne(params);
+  public accept = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const grade = await this.findOne(params, lang);
 
     const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
 
@@ -246,8 +274,8 @@ export class GradeService extends BaseService {
     return grade;
   };
 
-  public deleteOne = async (params: ParamsIdInterface) => {
-    const grade = await this.findOne(params);
+  public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const grade = await this.findOne(params, lang);
 
     await GradeEntity.update(grade.id, { checked: false, deleted: new Date() });
 
@@ -257,13 +285,13 @@ export class GradeService extends BaseService {
     return grade;
   };
 
-  public restoreOne = async (params: ParamsIdInterface) => {
-    const deletedGrade = await this.findOne(params, { withDeleted: true });
+  public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const deletedGrade = await this.findOne(params, lang, { withDeleted: true });
 
     const gradeRepo = this.databaseService.getManager().getRepository(GradeEntity);
 
     await gradeRepo.recover(deletedGrade);
 
-    return this.findOne(params);
+    return this.findOne(params, lang);
   };
 }

@@ -21,6 +21,7 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { locale } from '@/locales/pickers.locale.ru';
 import type { PromotionalFormInterface, PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 
@@ -46,12 +47,13 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   title: string;
   record: PromotionalTableInterface;
   index: number;
-  tValidation: TFunction,
+  tValidation: TFunction;
+  lang: UserLangEnum;
 }
 
-const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, editing = true) => {
+const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, editing = true) => {
   if (['start', 'end'].includes(dataIndex)) {
-    return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={locale} />;
+    return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />;
   }
   if (['active', 'freeDelivery'].includes(dataIndex)) {
     return <Checkbox checked={dataIndex === 'active' ? record.active : record.freeDelivery} />;
@@ -66,6 +68,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   record,
   children,
   tValidation,
+  lang,
 }) => (
   <td className={['active', 'freeDelivery'].includes(dataIndex) ? 'text-center' : undefined}>
     {editing ? (
@@ -115,9 +118,9 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
             : [newPromotionalValidation]}
         valuePropName={['active', 'freeDelivery'].includes(dataIndex) ? 'checked' : undefined}
       >
-        {getFields(dataIndex, title, record)}
+        {getFields(dataIndex, title, record, lang)}
       </Form.Item>
-    ) : !dataIndex || ['name', 'description', 'discountPercent', 'discount'].includes(dataIndex) ? children : getFields(dataIndex, title, record, false)}
+    ) : !dataIndex || ['name', 'description', 'discountPercent', 'discount'].includes(dataIndex) ? children : getFields(dataIndex, title, record, lang, false)}
   </td>
 );
 
@@ -133,7 +136,7 @@ const CreatePromotional = () => {
   const withExpiredParams = urlParams.get('withExpired');
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -379,6 +382,7 @@ const CreatePromotional = () => {
         title: col.title,
         editing: isEditing(record),
         tValidation,
+        lang,
       }),
     };
   });

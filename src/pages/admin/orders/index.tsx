@@ -15,6 +15,7 @@ import { OrderHistory } from '@/components/profile/OrderHistory';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
 import { MobileContext } from '@/components/Context';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchOrdersInterface } from '@/types/order/Order';
 import type { OrderInterface } from '@/types/order/Order';
@@ -31,7 +32,7 @@ const Orders = () => {
   const userIdParams = urlParams.get('userId');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
@@ -80,7 +81,7 @@ const Orders = () => {
       <h1 className="font-good-vibes-pro text-center mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{t('title', { count: pagination.count })}</h1>
       <div className="d-flex flex-column flex-xl-row align-items-center gap-3 mb-5">
         <BackButton style={isMobile ? { alignSelf: 'start' } : {}} />
-        <OrderStatusFilter statuses={statuses} setStatuses={setStatuses} />
+        <OrderStatusFilter statuses={statuses} setStatuses={setStatuses} lang={lang as UserLangEnum} />
       </div>
       <InfiniteScroll
         dataLength={data.length}

@@ -1,9 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, Form, Input, Rate, Tag, type UploadFile } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useRef, useState } from 'react';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import axios from 'axios';
+import cn from 'classnames';
 import Link from 'next/link';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -20,6 +23,8 @@ import { newGradeValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
@@ -54,10 +59,11 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [commentImages, setCommentImages] = useState<ItemInterface['images']>([]);
   const [grade, setGrade] = useState<Partial<GradeFormInterface>>(newGrade);
+  const [isAnimating, setIsAnimating] = useState(false);
   
   const [form] = Form.useForm();
 
-  const { id: userId, isAdmin } = useAppSelector((state) => state.user);
+  const { id: userId, isAdmin, lang } = useAppSelector((state) => state.user);
   const { loadingStatus } = useAppSelector((state) => state.order);
 
   const order = useAppSelector((state) => orderParams || selectors.selectById(state, orderId));
@@ -68,6 +74,11 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   const height = width * coefficient;
 
   const gradeFormInit = (positionId: number) => setGrade({ ...newGrade, position: { id: positionId } });
+
+  const handlePhoneCopy = () => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 1000);
+  };
 
   const clearGradeForm = () => {
     setGrade(newGrade);
@@ -113,39 +124,56 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
 
   useEffect(() => {
     if (inputRef?.current) {
+      if (typeof inputRef.current.scrollIntoView === 'function') {
+        inputRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
       inputRef.current.focus();
     }
   }, [grade.position]);
 
   return order
     ? (
-      <div className="d-flex flex-column gap-4" style={{ ...(isMobile ? {} : { width: '90%' }) }}>
+      <div className="d-flex flex-column gap-4 without-padding" style={{ ...(isMobile || orderParams ? {} : { width: '90%' }) }}>
         <Badge.Ribbon text={tOrders(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
           <Card>
             <div className="d-flex col-12" style={{ ...(isMobile ? {} : { lineHeight: 0.5 }) }}>
               <div className="d-flex flex-column justify-content-between col-12">
                 <div className="d-flex flex-column font-oswald">
-                  <div className="d-flex flex-column flex-xl-row mb-4 mb-xl-5 justify-content-between">
-                    <span className="fs-5 fw-bold mb-2 mb-xl-0">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
-                    {orderParams && <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5 mb-2 mb-xl-0">{order.user.name}</Link>}
-                    <div className="d-flex flex-column gap-2" style={{ ...(isMobile ? { alignSelf: 'start', marginTop: '1rem' } : {}) }}>
+                  <div className="d-flex flex-column flex-xl-row mb-4 mb-xl-5 justify-content-between col-12">
+                    <div className="d-flex flex-column mb-2 mb-xl-0 col-12 col-xl-6 gap-5">
+                      <span className="fs-4 fw-bold font-oswald text-muted">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</span>
+                      {orderParams && (
+                        <div className="d-flex flex-column gap-4">
+                          <Link href={`${routes.userCard}/${order.user.id}`} className="fs-4">{order.user.name}</Link>
+                          <CopyToClipboard text={order.user.phone}>
+                            <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-4 col-12 col-xl-6', { 'animate__animated animate__headShake': isAnimating })} onClick={handlePhoneCopy}>
+                              <CopyOutlined className="fs-5" />{order.user.phone}
+                            </Button>
+                          </CopyToClipboard>
+                        </div>
+                      )}
+                    </div>
+                    <div className="d-flex flex-column gap-2 col-12 col-xl-6" style={{ ...(isMobile ? { alignSelf: 'start', marginTop: '1rem' } : {}) }}>
                       {order.promotional
                         ? <Tag color="#e3dcfa" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
                           <span>{tOrders('promotional')}</span>
                           <span className="fw-bold">{tOrders(order.promotional.freeDelivery ? 'promotionalName' : 'promotionalDiscount', { name: order.promotional.name, discount: getOrderDiscount(order) })}</span>
                         </Tag>
                         : null}
-                      <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
-                        <span>{tOrders('delivery')}</span>
-                        <span className="fw-bold">{tOrders('price', { price: order.deliveryPrice })}</span>
+                      <Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
+                        <span className="fw-bold">{`${getDeliveryStatusTranslate(order.delivery.type, lang as UserLangEnum)}: `}</span>
+                        <span>{order.delivery.address}</span>
                       </Tag>
                       {!order.isPayment
                         ? isAdmin && order.user.id !== userId ? (
-                          <Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                          <Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
                             <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
                           </Tag>
                         ) : order.status !== OrderStatusEnum.CANCELED ? <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button> : null
-                        : (<Tag color="#eaeef6" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>
+                        : (<Tag color="#eaeef6" className="fs-6 text-wrap w-100" style={{ padding: '5px 10px', color: '#69788e' }}>
                           <span>{tOrders('payment')}</span>
                           <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>
                         </Tag>)}
@@ -160,7 +188,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                   </div>
                   */}
                 </div>
-                <div className="d-flex flex-column gap-3">
+                <div className="d-flex flex-column gap-3 mb-2">
                   {order.positions.map((orderPosition) => (
                     <div key={orderPosition.id} className="d-flex flex-column">
                       <div className="d-flex flex-column flex-xl-row justify-content-between align-items-start align-items-xl-center gap-3">
@@ -172,7 +200,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                             images={orderPosition.item.images}
                           />
                           <div className="d-flex flex-column justify-content-between fs-6" style={{ height }}>
-                            <span className="font-oswald fs-6 lh-1" style={{ fontWeight: 500 }}>{orderPosition.item.name}</span>
+                            <span className="font-oswald fs-6 lh-1" style={{ fontWeight: 500 }}>{orderPosition.item.translations.find((translation) => translation.lang === lang)?.name}</span>
                             <span className="lh-1">{t('countPrice', { count: orderPosition.count, price: (orderPosition.price - orderPosition.discountPrice) * orderPosition.count })}</span>
                           </div>
                         </div>
@@ -201,6 +229,9 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                       ) : null}
                     </div>
                   ))}
+                </div>
+                <div className="d-flex justify-content-between fs-5 text-uppercase fw-bold mt-5">
+                  <span>{t('totalAmount', { price: getOrderPrice(order) } )}</span>
                 </div>
               </div>
             </div>

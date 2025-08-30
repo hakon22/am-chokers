@@ -14,10 +14,11 @@ export class PromotionalController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryPromotionalParams.validate(req.query);
 
-      const promotional = await this.promotionalService.findOne(params, query);
+      const promotional = await this.promotionalService.findOne(params, user.lang, query);
 
       res.json({ code: 1, promotional });
     } catch (e) {
@@ -73,10 +74,11 @@ export class PromotionalController extends BaseService {
 
   public updateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await newPromotionalValidation.serverValidator(req.body) as PromotionalEntity;
 
-      const promotional = await this.promotionalService.updateOne(params, body);
+      const promotional = await this.promotionalService.updateOne(params, body, user.lang);
 
       res.json({ code: 1, promotional });
     } catch (e) {
@@ -86,9 +88,10 @@ export class PromotionalController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const promotional = await this.promotionalService.deleteOne(params);
+      const promotional = await this.promotionalService.deleteOne(params, user.lang);
 
       res.json({ code: 1, promotional });
     } catch (e) {
@@ -98,9 +101,10 @@ export class PromotionalController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const promotional = await this.promotionalService.restoreOne(params);
+      const promotional = await this.promotionalService.restoreOne(params, user.lang);
 
       res.json({ code: 1, promotional });
     } catch (e) {

@@ -3,6 +3,7 @@ import * as yup from 'yup';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 export const userOptionalParamsSchema = yup.object().shape({
   userId: yup
@@ -140,3 +141,7 @@ export const queryMessageReportParams = queryPaginationSchema.concat(
     types: yup.array(yup.string().oneOf(Object.values(MessageTypeEnum)).defined()),
   })),
 );
+
+export const queryLanguageParams = yup.object().shape({
+  lang: yup.string().oneOf(Object.values(UserLangEnum)),
+});

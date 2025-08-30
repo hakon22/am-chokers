@@ -37,6 +37,15 @@
     max-height: 74px;
     width: 20%;
   }
+
+  &-lang {
+    position: absolute;
+    top: 17px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+  }
 }
 
 .ant-menu {

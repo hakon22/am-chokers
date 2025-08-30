@@ -26,8 +26,9 @@ import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enu
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { getOrderPrice, getOrderDiscount } from '@/utilities/order/getOrderPrice';
 import { MaskedInput } from '@/components/forms/MaskedInput';
-import { fetchConfirmCode } from '@/slices/userSlice';
+import { fetchConfirmCode, setRefreshToken } from '@/slices/userSlice';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
@@ -65,7 +66,7 @@ const Cart = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { name, phone, key } = useAppSelector((state) => state.user);
+  const { name, phone, key, lang } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
@@ -83,13 +84,14 @@ const Cart = () => {
   const [selectPromotionField, setSelectPromotionField] = useState(false);
   const [promotional, setPromotional] = useState<PromotionalInterface>();
   const [deliveryList, setDeliveryList] = useState<CheckboxGroupProps['options']>([]);
+  const [deliveryServices, setDeliveryServices] = useState<Pick<DeliveryCredentialsEntity, 'translations' | 'type'>[]>([]);
   const [deliveryType, setDeliveryType] = useState<DeliveryTypeEnum>();
   const [savedDeliveryPrice, setSavedDeliveryPrice] = useState(0);
   const [deliveryButton, setDeliveryButton] = useState(false);
   const [isOpenDeliveryWidget, setIsOpenDeliveryWidget] = useState(false);
   const [delivery, setDelivery] = useState(defaultDelivery);
-  const [user, setUser] = useState<Pick<UserSignupInterface, 'name' | 'phone'>>({ name: '', phone: '' });
-  const [tempUser, setTempUser] = useState<Pick<UserSignupInterface, 'name' | 'phone'>>({ name: '', phone: '' });
+  const [user, setUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
+  const [tempUser, setTempUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -169,7 +171,7 @@ const Cart = () => {
         // source_platform_station: 'ca56c850-d268-4c9e-9e52-5dc09b006a7d',
         physical_dims_weight_gross: items.length * 200,
         delivery_price: '300 руб',
-        delivery_term: 'от 2 до 7 дней',
+        delivery_term: lang === UserLangEnum.RU ? 'от 2 до 7 дней' : 'from 2 to 7 days',
         show_select_button: true,
         filter: {
           type: ['pickup_point', 'terminal'],
@@ -208,7 +210,7 @@ const Cart = () => {
     setDeliveryType(undefined);
   };
 
-  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone'> & { comment: string; }) => {
+  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone' | 'lang'> & { comment: string; }) => {
     setIsSubmit(true);
     if (!delivery.address) {
       toast(tValidation('notSelectedPVZ'), 'error');
@@ -217,7 +219,7 @@ const Cart = () => {
       const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
       if (code === 1) {
         setIsProcessConfirmed(true);
-        setTempUser({ name: values.name, phone: values.phone });
+        setTempUser({ name: values.name, phone: values.phone, lang: lang as UserLangEnum });
       }
       if (code === 4) {
         toast(tToast('timeNotOverForSms'), 'error');
@@ -226,11 +228,14 @@ const Cart = () => {
         form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
       }
     } else {
-      const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone  }  })) as { payload: OrderResponseInterface & { url: string; }; };
+      const { payload: { code, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
       if (code === 1) {
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));
+        if (refreshToken) {
+          dispatch(setRefreshToken(refreshToken));
+        }
         form.resetFields();
         setPromotional(undefined);
         resetPVZ();
@@ -252,10 +257,16 @@ const Cart = () => {
     setCartList(filteredCart);
     axios.get<{ code: number; deliveryList: DeliveryCredentialsEntity[]; }>(routes.delivery.findMany)
       .then(({ data }) => {
-        setDeliveryList(data.deliveryList.map((list) => ({ label: list.name, value: list.type })));
+        setDeliveryServices(data.deliveryList);
       })
       .catch((e) => axiosErrorHandler(e, tToast));
   }, []);
+
+  useEffect(() => {
+    if (lang && deliveryServices.length) {
+      setDeliveryList(deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })));
+    }
+  }, [lang, deliveryServices]);
 
   useEffect(() => {
     const handlePointSelected = (data: any) => {
@@ -366,7 +377,7 @@ const Cart = () => {
                     </Checkbox>
                     <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
                       <Link href={getHref(item.item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.item.deleted })}>
-                        <span className="lh-1">{item.item.name}</span>
+                        <span className="lh-1">{item.item.translations.find((translation) => translation.lang === lang)?.name}</span>
                         <span>{tPrice('price', { price: (item.item.price - item.item.discountPrice) * item.count })}</span>
                       </Link>
                       {!isMobile ? <ControlButtons item={item} setCartList={setCartList} /> : null}

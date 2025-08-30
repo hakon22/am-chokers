@@ -13,10 +13,11 @@ export class CompositionController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const composition = await this.compositionService.findOne(params, query);
+      const composition = await this.compositionService.findOne(params, user.lang, query);
 
       res.json({ code: 1, composition });
     } catch (e) {
@@ -50,12 +51,13 @@ export class CompositionController extends BaseService {
 
   public updateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await newCompositionValidation.serverValidator(req.body) as CompositionEntity;
 
-      const composition = await this.compositionService.updateOne(params, body);
+      const result = await this.compositionService.updateOne(params, body, user.lang);
 
-      res.json({ code: 1, composition });
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -63,9 +65,10 @@ export class CompositionController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const composition = await this.compositionService.deleteOne(params);
+      const composition = await this.compositionService.deleteOne(params, user.lang);
 
       res.json({ code: 1, composition });
     } catch (e) {
@@ -75,9 +78,10 @@ export class CompositionController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const composition = await this.compositionService.restoreOne(params);
+      const composition = await this.compositionService.restoreOne(params, user.lang);
 
       res.json({ code: 1, composition });
     } catch (e) {

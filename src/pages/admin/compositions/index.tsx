@@ -16,11 +16,12 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { CompositionFormInterface, CompositionInterface, CompositionResponseInterface } from '@/types/composition/CompositionInterface';
 
 interface CompositionTableInterface {
   key: string;
-  name: string;
+  translations: Record<UserLangEnum, { name: string; }>;
   deleted?: Date;
 }
 
@@ -83,6 +84,12 @@ const CreateComposition = () => {
       newData.splice(index, 1, {
         ...item,
         ...(row || composition),
+        translations: Object.values(UserLangEnum)
+          .reduce((acc, lang) => ({ ...acc, [lang]: row?.translations?.[lang]
+            || {
+              name: composition.translations.find((translation) => translation.lang === lang)?.name,
+            },
+          }), {} as CompositionTableInterface['translations']),
       });
       setData(newData);
       if (row) {
@@ -101,7 +108,10 @@ const CreateComposition = () => {
   };
 
   const cancel = (record: CompositionTableInterface) => {
-    if (!compositions.find(({ name }) => name === record.name)) {
+    const recordName = record.translations[UserLangEnum.RU].name;
+    const exists = compositions.some((composition) => composition.translations.find(({ lang }) => lang === UserLangEnum.RU)?.name === recordName);
+
+    if (!exists) {
       setData(data.filter(({ key }) => key !== record.key));
     }
     setEditingKey('');
@@ -110,7 +120,7 @@ const CreateComposition = () => {
   const handleAdd = () => {
     const maxId = maxBy(compositions, 'id')?.id;
     const newData: CompositionTableInterface = {
-      name: '',
+      translations: Object.values(UserLangEnum).reduce((acc, lang) => ({ ...acc, [lang]: { name: '' } }), {} as CompositionTableInterface['translations']),
       key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
@@ -157,23 +167,30 @@ const CreateComposition = () => {
         return;
       }
 
-      const { name } = row;
+      const { translations } = row;
 
       const exist = compositions.find((composition) => composition.id.toString() === record.key.toString());
+
+      let payloadCode: number;
+
       if (exist) {
-        const { data: { code, composition } } = await axios.put<CompositionResponseInterface>(routes.updateComposition(exist.id), { id: exist.id, name } as CompositionFormInterface);
-        if (code === 1) {
+        const { data: { code, composition } } = await axios.put<CompositionResponseInterface>(routes.updateComposition(exist.id), { id: exist.id, translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as CompositionInterface);
+        payloadCode = code;
+        if (payloadCode === 1) {
           updateData(composition, row);
         }
       } else {
-        const { data: { code, composition } } = await axios.post<CompositionResponseInterface>(routes.createComposition, { name } as CompositionFormInterface);
-        if (code === 1) {
+        const { data: { code, composition } } = await axios.post<CompositionResponseInterface>(routes.createComposition, { translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as CompositionFormInterface);
+        payloadCode = code;
+        if (payloadCode === 1) {
           setCompositions((state) => [...state, composition]);
           setEditingKey('');
-        } else if (code === 2) {
-          form.setFields([{ name: 'name', errors: [tToast('compositionExist', { name })] }]);
-          toast(tToast('compositionExist', { name }), 'error');
         }
+      }
+      if (payloadCode === 2) {
+        const name = translations[UserLangEnum.RU].name;
+        form.setFields([{ name: ['translations', UserLangEnum.RU, 'name'], errors: [tToast('compositionExist', { name })] }]);
+        toast(tToast('compositionExist', { name }), 'error');
       }
       setIsSubmit(false);
     } catch (e) {
@@ -184,15 +201,26 @@ const CreateComposition = () => {
   const columns = [
     {
       title: t('columns.name'),
-      dataIndex: 'name',
-      width: '70%',
+      dataIndex: ['translations', UserLangEnum.RU, 'name'],
+      width: '35%',
       editable: true,
       render: (_: any, record: CompositionTableInterface) => (
         <div className="d-flex align-items-center gap-3">
-          <span>{record.name}</span>
+          <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted
             ? <Tag color="volcano">{t('deleted')}</Tag>
             : null}
+        </div>
+      ),
+    },
+    {
+      title: t('columns.nameEn'),
+      dataIndex: ['translations', UserLangEnum.EN, 'name'],
+      width: '35%',
+      editable: true,
+      render: (_: any, record: CompositionTableInterface) => (
+        <div className="d-flex align-items-center gap-3">
+          <span>{record.translations[UserLangEnum.EN].name}</span>
         </div>
       ),
     },
@@ -268,7 +296,14 @@ const CreateComposition = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setCompositions(response.compositions);
-            const newCompositions: CompositionTableInterface[] = response.compositions.map((composition) => ({ ...composition, key: composition.id.toString() }));
+            const newCompositions: CompositionTableInterface[] = response.compositions.map((composition) => ({
+              ...composition,
+              translations: {
+                [UserLangEnum.RU]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
+                [UserLangEnum.EN]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
+              },
+              key: composition.id.toString(),
+            }));
             setData(newCompositions);
           }
           setIsSubmit(false);
@@ -280,7 +315,14 @@ const CreateComposition = () => {
   }, [withDeleted, axiosAuth]);
 
   useEffect(() => {
-    setData(compositions.map((composition) => ({ ...composition, key: composition.id.toString() })));
+    setData([...compositions].sort((a, b) => b.id - a.id).map((composition) => ({
+      ...composition,
+      translations: {
+        [UserLangEnum.RU]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
+        [UserLangEnum.EN]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
+      },
+      key: composition.id.toString(),
+    })));
   }, [compositions.length]);
 
   return isAdmin ? (

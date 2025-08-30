@@ -30,6 +30,7 @@ import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
+import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
 
 interface AdminControlGroupInterface {
   item: ItemInterface;
@@ -71,13 +72,13 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
 
   const dispatch = useAppDispatch();
 
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
+
   const [isPublish, setIsPublish] = useState(false);
-  const [description, setDescription] = useState(item.description);
+  const [description, setDescription] = useState(item.translations.find((translation) => translation.lang === lang)?.description as string);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
-
-  const { isAdmin } = useAppSelector((state) => state.user);
 
   const restoreItemHandler = async () => {
     setIsSubmit(true);
@@ -93,7 +94,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     const { payload } = await dispatch(deleteItem(item.id)) as { payload: ItemResponseInterface };
     if (payload.code === 1) {
       setItem(payload.item);
-      toast(tToast('itemDeletedSuccess', { name: item.name }), 'success');
+      toast(tToast('itemDeletedSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
     }
     setIsSubmit(false);
   };
@@ -109,7 +110,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     if (!payload?.error) {
       setItem(payload.item);
       setIsPublish(false);
-      toast(tToast('itemPublishSuccess', { name: item.name }), 'success');
+      toast(tToast('itemPublishSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
     }
     setIsSubmit(false);
   };
@@ -126,6 +127,10 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
   };
+
+  useEffect(() => {
+    setDescription(item.translations.find((translation) => translation.lang === lang)?.description as string);
+  }, [lang]);
 
   return isAdmin
     ? isMobile
@@ -162,7 +167,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
 };
 
 export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface; }) => {
-  const { id, collection, images, name, description, colors, price, discountPrice, compositions, length, rating } = fetchedItem;
+  const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
@@ -171,9 +176,15 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const dispatch = useAppDispatch();
 
-  const { isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
   const { specialItems, pagination } = useAppSelector((state) => state.app);
+
+  const position = rest.translations.find((translation) => translation.lang === lang) as ItemTranslateEntity;
+
+  const name = position?.name;
+  const description = position?.description;
+  const length = position?.length;
 
   const urlParams = useSearchParams();
   const editParams = urlParams.get('edit');
@@ -229,7 +240,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             <>
               <h1 className="mb-4 fs-3">{name}</h1>
               {collection
-                ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.name })}</Tag></div>
+                ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag></div>
                 : null}
             </>
           )
@@ -327,7 +338,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               ? (
                 <><h1 className="mb-4 mt-xl-0 fs-3">{name}</h1>
                   {collection
-                    ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.name })}</Tag></div>
+                    ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag></div>
                     : null}
                 </>)
               : null}
@@ -375,7 +386,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             <div className={cn('d-flex flex-column gap-3', { 'order-3': isMobile })}>
               <div className="d-flex flex-column gap-2">
                 <span className="fs-5">{t('composition')}</span>
-                <span>{compositions.map((composition) => composition.name).join(', ')}</span>
+                <span>{compositions.map((composition) => composition.translations.find((translation) => translation.lang === lang)?.name).join(', ')}</span>
               </div>
               <div className="d-flex flex-column gap-2">
                 <span className="fs-5">{t('color')}</span>
@@ -383,7 +394,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   {colors.map((color) => (
                     <div key={color.id} className="d-flex align-items-center gap-2">
                       <span className="d-block" style={{ backgroundColor: color.hex, borderRadius: '50%', width: 25, height: 25 }} />
-                      <span>{color.name}</span>
+                      <span>{color.translations.find((translation) => translation.lang === lang)?.name}</span>
                     </div>
                   ))}
                 </div>

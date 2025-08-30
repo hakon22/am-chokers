@@ -11,8 +11,8 @@ export interface GradeOptionsInterface {
   userId?: number;
   /** `ids` оценок */
   ids?: number[];
-  /** Имя товара */
-  itemName?: string;
+  /** Имена товара */
+  itemNames?: string[];
   /** С удалёнными */
   withDeleted?: boolean;
 }

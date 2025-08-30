@@ -15,6 +15,7 @@ import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { paramsIdSchema, queryUploadImageParams } from '@server/utilities/convertation.params';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { setCoverImageValidation } from '@/validations/validations';
@@ -58,13 +59,15 @@ export class ImageService extends BaseService {
     return builder;
   };
 
-  private findOne = async (query: ImageQueryInterface) => {
+  private findOne = async (query: ImageQueryInterface, lang: UserLangEnum) => {
     const builder = this.createQueryBuilder(query);
 
     const image = await builder.getOne();
 
     if (!image) {
-      throw new Error(`Изображения с номером #${query.id} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Изображения с номером #${query.id} не существует.`
+        : `Image with number #${query.id} does not exist.`);
     }
 
     return image;
@@ -80,9 +83,10 @@ export class ImageService extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const image = await this.findOne(params);
+      const image = await this.findOne(params, user.lang);
 
       await image.softRemove();
 
@@ -94,9 +98,10 @@ export class ImageService extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const deletedImage = await this.findOne(params);
+      const deletedImage = await this.findOne(params, user.lang);
 
       const image = await deletedImage.recover();
 
@@ -107,11 +112,13 @@ export class ImageService extends BaseService {
   };
 
   public uploadHandler = async (req: Request, res: Response) => {
+    const user = this.getCurrentUser(req);
+
     try {
       const { file, query: reqQuery } = req;
 
       if (!file) {
-        res.status(400).json({ code: 3, message: 'Изображение не найдено' });
+        res.status(400).json({ code: 3, message: user.lang === UserLangEnum.RU ? 'Изображение не найдено' : 'Image not found' });
         return;
       }
 
@@ -181,15 +188,16 @@ export class ImageService extends BaseService {
       }
     } catch (e) {
       this.loggerService.error(e);
-      res.status(500).json({ code: 2, message: 'Ошибка при обработке изображения' });
+      res.status(500).json({ code: 2, message: user.lang === UserLangEnum.RU ? 'Ошибка при обработке изображения' : 'Error while processing image' });
     }
   };
 
   public setCoverImage = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const { id, coverOrder } = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; };
   
-      const image = await this.findOne({ id });
+      const image = await this.findOne({ id }, user.lang);
 
       this.uploadPathService.moveFile(UploadPathEnum.COVER, 0, image.name);
 
@@ -208,9 +216,10 @@ export class ImageService extends BaseService {
 
   public removeCoverImage = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
   
-      const image = await this.findOne(params);
+      const image = await this.findOne(params, user.lang);
   
       await ImageEntity.delete(image.id);
 

@@ -17,12 +17,12 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemGroupInterface } from '@/types/item/Item';
 
 interface ItemGroupTableInterface {
   key: string;
-  name: string;
-  description: string;
+  translations: Record<UserLangEnum, { name: string; description: string; }>;
   code: string;
   deleted?: Date;
 }
@@ -86,6 +86,13 @@ const CreateItemGroup = () => {
       newData.splice(index, 1, {
         ...item,
         ...(row || itemGroup),
+        translations: Object.values(UserLangEnum)
+          .reduce((acc, lang) => ({ ...acc, [lang]: row?.translations?.[lang]
+            || {
+              name: itemGroup.translations.find((translation) => translation.lang === lang)?.name,
+              description: itemGroup.translations.find((translation) => translation.lang === lang)?.description,
+            },
+          }), {} as ItemGroupTableInterface['translations']),
       });
       setData(newData);
       if (row) {
@@ -99,13 +106,13 @@ const CreateItemGroup = () => {
   const isEditing = (record: ItemGroupTableInterface) => record.key === editingKey;
 
   const edit = (record: Partial<ItemGroupTableInterface> & { key: React.Key }) => {
-    form.setFieldsValue({ name: '', description: '', code: '', ...record });
+    form.setFieldsValue(record);
     setEditingKey(record.key);
   };
 
   const restore = async (key: React.Key) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemGroup } } = await dispatch(restoreItemGroup(key)) as { payload: ItemGroupResponseInterface };
+    const { payload: { code: payloadCode, itemGroup } } = await dispatch(restoreItemGroup(key)) as { payload: ItemGroupResponseInterface; };
     if (payloadCode === 1) {
       updateData(itemGroup);
     }
@@ -122,8 +129,7 @@ const CreateItemGroup = () => {
   const handleAdd = () => {
     const maxId = maxBy(itemGroups, 'id')?.id;
     const newData: ItemGroupTableInterface = {
-      name: '',
-      description: '',
+      translations: Object.values(UserLangEnum).reduce((acc, lang) => ({ ...acc, [lang]: { name: '', description: '' } }), {} as ItemGroupTableInterface['translations']),
       code: '',
       key: ((maxId || 0) + 1).toString(),
     };
@@ -133,7 +139,7 @@ const CreateItemGroup = () => {
 
   const handleDelete = async (record: ItemGroupTableInterface) => {
     setIsSubmit(true);
-    const { payload: { code: payloadCode, itemGroup } } = await dispatch(deleteItemGroup(record.key)) as { payload: ItemGroupResponseInterface };
+    const { payload: { code: payloadCode, itemGroup } } = await dispatch(deleteItemGroup(record.key)) as { payload: ItemGroupResponseInterface; };
     if (payloadCode === 1) {
       if (withDeleted) {
         updateData(itemGroup);
@@ -153,22 +159,28 @@ const CreateItemGroup = () => {
       return;
     }
 
-    const { name, description, code } = row;
+    const { translations, code } = row;
 
     const exist = itemGroups.find((itemGroup) => itemGroup.id.toString() === key.toString());
+
+    let responseCode: number;
+
     if (exist) {
-      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({ id: exist.id, name, description, code } as ItemGroupInterface)) as { payload: ItemGroupResponseInterface };
-      if (payloadCode === 1) {
+      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({ id: exist.id, code, translations: Object.entries(translations).map(([lang, { name, description }]) => ({ name, description, lang })) } as ItemGroupInterface)) as { payload: ItemGroupResponseInterface; };
+      responseCode = payloadCode;
+      if (responseCode === 1) {
         updateData(itemGroup, row);
       }
     } else {
-      const { payload: { code: payloadCode } } = await dispatch(addItemGroup({ name, description, code } as ItemGroupInterface)) as { payload: { code: number; } };
-      if (payloadCode === 1) {
+      const { payload: { code: payloadCode } } = await dispatch(addItemGroup({ code, translations: Object.entries(translations).map(([lang, { name, description }]) => ({ name, description, lang })) } as ItemGroupInterface)) as { payload: { code: number; } };
+      responseCode = payloadCode;
+      if (responseCode === 1) {
         setEditingKey('');
-      } else if (payloadCode === 2) {
-        form.setFields([{ name: 'code', errors: [tToast('itemGroupExist', { code })] }]);
-        toast(tToast('itemGroupExist', { code }), 'error');
       }
+    }
+    if (responseCode === 2) {
+      form.setFields([{ name: 'code', errors: [tToast('itemGroupExist', { code })] }]);
+      toast(tToast('itemGroupExist', { code }), 'error');
     }
     setIsSubmit(false);
   };
@@ -176,21 +188,48 @@ const CreateItemGroup = () => {
   const columns = [
     {
       title: t('columns.name'),
-      dataIndex: 'name',
-      width: '25%',
+      dataIndex: ['translations', UserLangEnum.RU, 'name'],
+      width: '15%',
       editable: true,
       render: (_: any, record: ItemGroupTableInterface) => (
         <div className="d-flex align-items-center gap-3">
-          <span>{record.name}</span>
+          <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
         </div>
       ),
     },
     {
-      title: t('columns.description'),
-      dataIndex: 'description',
-      width: '40%',
+      title: t('columns.nameEn'),
+      dataIndex: ['translations', UserLangEnum.EN, 'name'],
+      width: '15%',
       editable: true,
+      render: (_: any, record: ItemGroupTableInterface) => (
+        <div className="d-flex align-items-center gap-3">
+          <span>{record.translations[UserLangEnum.EN].name}</span>
+        </div>
+      ),
+    },
+    {
+      title: t('columns.description'),
+      dataIndex: ['translations', UserLangEnum.RU, 'description'],
+      width: '25%',
+      editable: true,
+      render: (_: any, record: ItemGroupTableInterface) => (
+        <div className="d-flex align-items-center gap-3">
+          <span>{record.translations[UserLangEnum.RU].description}</span>
+        </div>
+      ),
+    },
+    {
+      title: t('columns.descriptionEn'),
+      dataIndex: ['translations', UserLangEnum.EN, 'description'],
+      width: '25%',
+      editable: true,
+      render: (_: any, record: ItemGroupTableInterface) => (
+        <div className="d-flex align-items-center gap-3">
+          <span>{record.translations[UserLangEnum.EN].description}</span>
+        </div>
+      ),
     },
     {
       title: t('columns.code'),
@@ -261,7 +300,20 @@ const CreateItemGroup = () => {
       })
         .then(({ data: response }) => {
           if (response.code === 1) {
-            const newItemGroups: ItemGroupTableInterface[] = response.itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() }));
+            const newItemGroups: ItemGroupTableInterface[] = response.itemGroups.map((itemGroup) => ({
+              ...itemGroup,
+              translations: {
+                [UserLangEnum.RU]: {
+                  name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
+                  description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description,
+                },
+                [UserLangEnum.EN]: {
+                  name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name,
+                  description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.description,
+                },
+              },
+              key: itemGroup.id.toString(),
+            } as ItemGroupTableInterface));
             setData(newItemGroups);
           }
           setIsSubmit(false);
@@ -273,7 +325,20 @@ const CreateItemGroup = () => {
   }, [withDeleted]);
 
   useEffect(() => {
-    setData(itemGroups.map((itemGroup) => ({ ...itemGroup, key: itemGroup.id.toString() })));
+    setData([...itemGroups].sort((a, b) => b.id - a.id).map((itemGroup) => ({
+      ...itemGroup,
+      translations: {
+        [UserLangEnum.RU]: {
+          name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
+          description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description,
+        },
+        [UserLangEnum.EN]: {
+          name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name,
+          description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.description,
+        },
+      },
+      key: itemGroup.id.toString(),
+    } as ItemGroupTableInterface)));
   }, [itemGroups.length]);
 
   return isAdmin ? (

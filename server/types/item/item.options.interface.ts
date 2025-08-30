@@ -1,3 +1,5 @@
+import type { EntityManager } from 'typeorm';
+
 export interface ItemOptionsInterface {
   /** Только `id` товаров */
   onlyIds?: boolean;
@@ -7,4 +9,6 @@ export interface ItemOptionsInterface {
   ids?: number[];
   /** С оценками */
   withGrades?: boolean;
+  /** TypeORM Entity Manager */
+  manager?: EntityManager;
 }

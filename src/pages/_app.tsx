@@ -193,9 +193,9 @@ const Init = (props: InitPropsInterface) => {
 
 Init.getInitialProps = async (context: AppContext) => {
   const [{ data: { itemGroups } }, { data: { specialItems } }, { data: { coverImages } }] = await Promise.all([
-    axios.get<{ itemGroups: ItemGroupInterface[] }>(routes.getItemGroups({ isServer: false })),
-    axios.get<{ specialItems: ItemInterface[] }>(routes.getItemSpecials({ isServer: false })),
-    axios.get<{ coverImages: ImageEntity[] }>(routes.getCoverImages({ isServer: false })),
+    axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.getItemGroups({ isServer: false })),
+    axios.get<{ specialItems: ItemInterface[]; }>(routes.getItemSpecials({ isServer: false })),
+    axios.get<{ coverImages: ImageEntity[]; }>(routes.getCoverImages({ isServer: false })),
   ]);
 
   const { req } = context.ctx;

@@ -11,6 +11,7 @@ export const Footer = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
+  const { lang } = useAppSelector((state) => state.user);
 
   return (
     <div className="container d-flex col-12">
@@ -20,7 +21,7 @@ export const Footer = () => {
             <Link href={routes.catalog}>{t('jewelryCatalog')}</Link>
           </h6>
           <ul>
-            {itemGroups.map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.name}</Link></li>)}
+            {itemGroups.map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link></li>)}
           </ul>
         </div>
         <div className="col-12 col-xl-8">

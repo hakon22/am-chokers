@@ -4,7 +4,8 @@ import { Brackets, type EntityManager } from 'typeorm';
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
-import type { ParamsIdStringInterface } from '@server/types/params.id.interface';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import type { NullableParamsIdInterface, ParamsIdStringInterface } from '@server/types/params.id.interface';
 import type { CartQueryInterface } from '@server/types/cart/cart.query.interface';
 import type { CartOptionsInterface } from '@server/types/cart/cart.options.interface';
 import type { CartItemInterface } from '@/types/cart/Cart';
@@ -34,17 +35,22 @@ export class CartService extends BaseService {
         .leftJoin('cart.item', 'item')
         .addSelect([
           'item.id',
-          'item.name',
           'item.price',
           'item.discount',
           'item.discountPrice',
           'item.deleted',
           'item.translateName',
         ])
+        .leftJoin('item.translations', 'translations')
+        .addSelect([
+          'translations.name',
+          'translations.lang',
+        ])
         .leftJoin('cart.user', 'user')
         .addSelect([
           'user.id',
           'user.name',
+          'user.lang',
         ])
         .leftJoin('item.images', 'images', 'images.deleted IS NULL')
         .addSelect([
@@ -56,8 +62,6 @@ export class CartService extends BaseService {
         ])
         .leftJoin('item.group', 'group')
         .addSelect([
-          'group.id',
-          'group.name',
           'group.code',
         ]);
     }
@@ -75,67 +79,69 @@ export class CartService extends BaseService {
     return builder;
   };
 
-  public createOne = async (userId: number | null, body: CartEntity, options?: { manager?: EntityManager; }) => {
+  public createOne = async (user: NullableParamsIdInterface | null, body: CartEntity, options?: { manager?: EntityManager; }) => {
     const manager = options?.manager || this.databaseService.getManager();
 
     const cartRepo = manager.getRepository(CartEntity);
 
-    if (userId) {
-      body.user = { id: userId } as UserEntity;
+    if (user?.id) {
+      body.user = { id: user.id } as UserEntity;
     }
 
     const created = await cartRepo.save(body);
-    const cartItem = await this.findOne(userId, { id: created.id });
+    const cartItem = await this.findOne(user, { id: created.id });
 
     return { code: 1, cartItem };
   };
 
-  public createMany = async (userId: number, body: CartEntity[], options?: { manager?: EntityManager; }) => {
+  public createMany = async (user: NullableParamsIdInterface, body: CartEntity[], options?: { manager?: EntityManager; }) => {
     const entityManager = options?.manager || this.databaseService.getManager();
 
     return entityManager.transaction(async (manager) => {
       const cartRepo = manager.getRepository(CartEntity);
 
       body.forEach((cartItem) => {
-        cartItem.user = { id: userId } as UserEntity;
+        cartItem.user = { id: user.id } as UserEntity;
       });
 
-      const oldCartItems = await this.findMany(userId, undefined, undefined, { manager });
+      const oldCartItems = await this.findMany(user, undefined, undefined, { manager });
 
       const cart = await cartRepo.save(body);
 
-      await this.saveCartItems(cart, oldCartItems, userId, { manager });
+      await this.saveCartItems(cart, oldCartItems, user, { manager });
 
-      return this.findMany(userId, undefined, undefined, { manager });
+      return this.findMany(user, undefined, undefined, { manager });
     });
   };
 
-  private findOne = async (userId: number | null, params: ParamsIdStringInterface, options?: { manager?: EntityManager; }) => {
-    const builder = this.createQueryBuilder(userId, params, options);
+  private findOne = async (user: NullableParamsIdInterface | null, params: ParamsIdStringInterface, options?: { manager?: EntityManager; }) => {
+    const builder = this.createQueryBuilder(user?.id || null, params, options);
 
     const cartItem = await builder.getOne();
 
     if (!cartItem) {
-      throw new Error(`Позиции корзины с номером #${params.id} не существует.`);
+      throw new Error(user?.lang === UserLangEnum.RU
+        ? `Позиции корзины с номером #${params.id} не существует.`
+        : `Cart item with number #${params.id} does not exist.`);
     }
 
     return cartItem;
   };
 
-  public findMany = async (userId: number | null, oldCart?: CartItemInterface[], query?: CartQueryInterface, options?: CartOptionsInterface) => {
-    const builder = this.createQueryBuilder(userId, query, options);
+  public findMany = async (user: NullableParamsIdInterface | null, oldCart?: CartItemInterface[], query?: CartQueryInterface, options?: CartOptionsInterface) => {
+    const builder = this.createQueryBuilder(user?.id || null, query, options);
 
     const cart = await builder.getMany();
 
-    if (!oldCart?.length || !userId) {
+    if (!oldCart?.length || !user?.id) {
       return cart;
     }
 
-    return this.saveCartItems(cart, oldCart, userId, options);    
+    return this.saveCartItems(cart, oldCart, user, options);    
   };
 
-  public updateOne = async (userId: number | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement') => {
-    const item = await this.findOne(userId, params);
+  public updateOne = async (user: NullableParamsIdInterface | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement') => {
+    const item = await this.findOne(user, params);
 
     const newItem = { ...item, count: action === 'increment' ? item.count + 1 : item.count - 1 } as CartEntity;
       
@@ -144,31 +150,35 @@ export class CartService extends BaseService {
     return newItem;
   };
 
-  public updateMany = async (userId: number | null, body: CartEntity[], manager: EntityManager) => {
-    if (userId) {
+  public updateMany = async (user: NullableParamsIdInterface | null, body: CartEntity[], manager: EntityManager) => {
+    if (user?.id) {
       body.forEach((item) => {
-        item.user = { id: userId } as UserEntity;
+        item.user = { id: user.id } as UserEntity;
       });
     }
 
     const cartRepo = manager.getRepository(CartEntity);
     const created = await cartRepo.save(body);
 
-    const builder = this.createQueryBuilder(userId, { ids: created.map(({ id }) => id) }, { manager });
+    const builder = this.createQueryBuilder(user?.id || null, { ids: created.map(({ id }) => id) }, { manager });
 
     return created.length ? builder.getMany() : [];
   };
 
-  public deleteOne = async (userId: number | null, params: ParamsIdStringInterface) => {
-    const cartItem = await this.findOne(userId, params);
+  public deleteOne = async (user: NullableParamsIdInterface | null, params: ParamsIdStringInterface) => {
+    const cartItem = await this.findOne(user, params);
   
     await CartEntity.delete(cartItem.id);
 
     return cartItem;
   };
 
-  public deleteMany = async (userId: number | null, ids?: string[], options?: CartOptionsInterface) => {
-    const cart = await this.findMany(userId, undefined, { ids }, options);
+  public deleteMany = async (user: NullableParamsIdInterface | null, ids?: string[], options?: CartOptionsInterface) => {
+    const cart = await this.findMany(user, undefined, { ids }, options);
+
+    if (!cart.length) {
+      return;
+    }
 
     const manager = options?.manager || this.databaseService.getManager();
     const cartRepo = manager.getRepository(CartEntity);
@@ -176,7 +186,7 @@ export class CartService extends BaseService {
     await cartRepo.delete(cart.map(({ id }) => id));
   };
 
-  private saveCartItems = async (cart: CartEntity[], oldCart: CartItemInterface[], userId: number, options?: { manager?: EntityManager; }) => {
+  private saveCartItems = async (cart: CartEntity[], oldCart: CartItemInterface[], user: NullableParamsIdInterface, options?: { manager?: EntityManager; }) => {
     const matchCartItemIds = oldCart.reduce((acc, oldCartItem) => {
       const matchCartItem = cart.find(({ item }) => item.id === oldCartItem.item.id);
       if (matchCartItem) {
@@ -192,7 +202,7 @@ export class CartService extends BaseService {
         await cartRepo.delete(matchCartItemIds);
       }
 
-      return this.updateMany(userId, oldCart as CartEntity[], manager);
+      return this.updateMany(user, oldCart as CartEntity[], manager);
     });
 
     return [...cart.filter(({ id }) => !matchCartItemIds.includes(id)), ...updatedCartItems];

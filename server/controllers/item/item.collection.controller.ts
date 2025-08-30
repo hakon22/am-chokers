@@ -13,10 +13,11 @@ export class ItemCollectionController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const itemCollection = await this.itemCollectionService.findOne(params, query);
+      const itemCollection = await this.itemCollectionService.findOne(params, user.lang, query);
 
       res.json({ code: 1, itemCollection });
     } catch (e) {
@@ -50,12 +51,13 @@ export class ItemCollectionController extends BaseService {
 
   public updateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
-      const body = req.body as ItemCollectionEntity;
+      const body = await newItemCollectionValidation.serverValidator(req.body) as ItemCollectionEntity;
 
-      const itemCollection = await this.itemCollectionService.updateOne(params, body);
+      const result = await this.itemCollectionService.updateOne(params, body, user.lang);
 
-      res.json({ code: 1, itemCollection });
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -63,9 +65,10 @@ export class ItemCollectionController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const itemCollection = await this.itemCollectionService.deleteOne(params);
+      const itemCollection = await this.itemCollectionService.deleteOne(params, user.lang);
 
       res.json({ code: 1, itemCollection });
     } catch (e) {
@@ -75,9 +78,10 @@ export class ItemCollectionController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const itemCollection = await this.itemCollectionService.restoreOne(params);
+      const itemCollection = await this.itemCollectionService.restoreOne(params, user.lang);
 
       res.json({ code: 1, itemCollection });
     } catch (e) {

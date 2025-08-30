@@ -13,7 +13,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 export const Favorites = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  const { favorites } = useAppSelector((state) => state.user);
+  const { favorites, lang } = useAppSelector((state) => state.user);
 
   const coefficient = 1.3;
 
@@ -43,7 +43,7 @@ export const Favorites = () => {
             />
             <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
               <Link href={getHref(item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.deleted })}>
-                <span className="lh-1">{item.name}</span>
+                <span className="lh-1">{item.translations.find((translation) => translation.lang === lang)?.name}</span>
                 <span>{tPrice('price', { price: item.price - item.discountPrice })}</span>
               </Link>
               <div className="d-flex align-items-center gap-4">

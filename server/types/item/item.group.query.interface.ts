@@ -5,4 +5,6 @@ export interface ItemGroupQueryInterface {
   code?: string;
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Исключить `ids` */
+  excludeIds?: number[];
 }

@@ -1,16 +1,18 @@
 import axios from 'axios';
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
+import { routes } from '@/routes';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type {
   UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface,
 } from '@/types/user/User';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { InitialState } from '@/types/InitialState';
-import { routes } from '@/routes';
 
 type KeysUserInitialState = keyof UserInterface;
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
+const languageKey = process.env.NEXT_PUBLIC_LANGUAGE_KEY ?? '';
 
 export interface UserResponseInterface {
   code: number;
@@ -72,28 +74,15 @@ export const fetchConfirmCode = createAsyncThunk(
   },
 );
 
-export const updateTokens = createAsyncThunk(
-  'user/updateTokens',
-  async (refresh: string | undefined, { rejectWithValue }) => {
+export const changeLang = createAsyncThunk(
+  'user/changeLang',
+  async ({ lang, token }: { lang: UserLangEnum; token: boolean; }, { rejectWithValue }) => {
     try {
-      const refreshTokenStorage = window.localStorage.getItem(storageKey);
-      if (refreshTokenStorage) {
-        const { data } = await axios.get(routes.updateTokens, {
-          headers: { Authorization: `Bearer ${refreshTokenStorage}` },
-        });
-        if (data.user.refreshToken) {
-          window.localStorage.setItem(storageKey, data.user.refreshToken);
-          return data;
-        }
-      } else {
-        const { data } = await axios.get<UserResponseInterface>(routes.updateTokens, {
-          headers: { Authorization: `Bearer ${refresh}` },
-        });
-        if (data.user.refreshToken) {
-          return data;
-        }
+      window.localStorage.setItem(languageKey, lang);
+      if (token) {
+        await axios.get<{ code: number; }>(routes.changeLang, { params: { lang } });
       }
-      return null;
+      return lang;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
     }
@@ -124,9 +113,38 @@ export const removeFavorites = createAsyncThunk(
   },
 );
 
+export const updateTokens = createAsyncThunk(
+  'user/updateTokens',
+  async (refresh: string | undefined, { rejectWithValue }) => {
+    try {
+      const refreshTokenStorage = window.localStorage.getItem(storageKey);
+      if (refreshTokenStorage) {
+        const { data } = await axios.get(routes.updateTokens, {
+          headers: { Authorization: `Bearer ${refreshTokenStorage}` },
+        });
+        if (data.user.refreshToken) {
+          window.localStorage.setItem(storageKey, data.user.refreshToken);
+          return data;
+        }
+      } else {
+        const { data } = await axios.get<UserResponseInterface>(routes.updateTokens, {
+          headers: { Authorization: `Bearer ${refresh}` },
+        });
+        if (data.user.refreshToken) {
+          return data;
+        }
+      }
+      return null;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 const initialState: { [K in keyof (Partial<UserInterface> & InitialState)]: UserInterface[K] } = {
   loadingStatus: 'idle',
   error: null,
+  lang: undefined,
   favorites: [],
 };
 
@@ -137,13 +155,17 @@ const userSlice = createSlice({
     removeToken: (state) => {
       const entries = Object.keys(state) as KeysUserInitialState[];
       entries.forEach((key) => {
-        if (key !== 'loadingStatus' && key !== 'error') {
+        if (key !== 'loadingStatus' && key !== 'error' && key !== 'lang') {
           delete state[key];
         }
       });
     },
     setUrl: (state, { payload }: PayloadAction<string>) => {
       state.url = payload;
+    },
+    setRefreshToken: (state, { payload }: PayloadAction<string>) => {
+      window.localStorage.setItem(storageKey, payload);
+      state.refreshToken = payload;
     },
     removeUrl: (state) => {
       delete state.url;
@@ -284,12 +306,25 @@ const userSlice = createSlice({
       .addCase(removeFavorites.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(changeLang.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(changeLang.fulfilled, (state, { payload }) => {
+        state.lang = payload;
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(changeLang.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
       });
   },
 });
 
 export const {
-  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate,
+  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate, setRefreshToken,
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -5,9 +5,8 @@ import type { EntityManager } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
-import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation } from '@/validations/validations';
+import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation, profileServerSchema } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
-import { TokenService } from '@server/services/user/token.service';
 import { SmsService } from '@server/services/integration/sms.service';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
@@ -15,18 +14,16 @@ import { GradeService } from '@server/services/rating/grade.service';
 import { MessageService } from '@server/services/message/message.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
-import { paramsIdSchema, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { paramsIdSchema, queryLanguageParams, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import type { UserFormInterface, UserProfileType, UserCardInterface } from '@/types/user/User';
 import type { OrderInterface } from '@/types/order/Order';
 import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface';
 
 @Singleton
 export class UserService extends BaseService {
-  private readonly tokenService = Container.get(TokenService);
-
   private readonly smsService = Container.get(SmsService);
 
   private readonly itemService = Container.get(ItemService);
@@ -51,15 +48,20 @@ export class UserService extends BaseService {
         'user.deleted',
         'user.created',
         'user.updated',
+        'user.lang',
       ])
       .leftJoin('user.favorites', 'favorites')
       .addSelect([
         'favorites.id',
-        'favorites.name',
         'favorites.price',
         'favorites.discountPrice',
         'favorites.deleted',
         'favorites.translateName',
+      ])
+      .leftJoin('favorites.translations', 'favoritesTranslations')
+      .addSelect([
+        'favoritesTranslations.name',
+        'favoritesTranslations.lang',
       ])
       .leftJoin('favorites.images', 'images', 'images.deleted IS NULL')
       .addSelect([
@@ -69,8 +71,10 @@ export class UserService extends BaseService {
         'images.order',
         'images.deleted',
       ])
-      .leftJoinAndSelect('favorites.group', 'group')
-      .leftJoinAndSelect('favorites.collection', 'collection');
+      .leftJoin('favorites.group', 'group')
+      .addSelect([
+        'group.code',
+      ]);
 
     if (query?.id) {
       builder.andWhere('user.id = :id', { id: query.id });
@@ -115,8 +119,12 @@ export class UserService extends BaseService {
         .leftJoin('positions.item', 'item')
         .addSelect([
           'item.id',
-          'item.name',
           'item.translateName',
+        ])
+        .leftJoin('item.translations', 'itemTranslations')
+        .addSelect([
+          'itemTranslations.name',
+          'itemTranslations.lang',
         ])
         .leftJoin('item.group', 'orderItemGroup')
         .addSelect([
@@ -189,7 +197,7 @@ export class UserService extends BaseService {
 
       const { code, user, token, refreshToken } = await this.databaseService
         .getManager()
-        .transaction(async (manager) => this.createOne(body.name, body.phone, manager, body.password));
+        .transaction(async (manager) => this.createOne(body.name, body.phone, body.lang, manager, body.password));
 
       if (code === 2) {
         res.json({ code: 2 });
@@ -208,7 +216,7 @@ export class UserService extends BaseService {
   public confirmPhone = async (req: Request, res: Response) => {
     try {
       req.body.phone = phoneTransform(req.body.phone);
-      const { phone, key, code: userCode } = req.body as { phone: string, key?: string, code?: string };
+      const { phone, lang, key, code: userCode } = req.body as { phone: string, lang: UserLangEnum, key?: string, code?: string };
       await phoneValidation.serverValidator({ phone });
 
       const candidate = await this.findOne({ phone }, { withDeleted: true });
@@ -235,7 +243,7 @@ export class UserService extends BaseService {
         return;
       }
 
-      const { request_id, code } = await this.smsService.sendCode(phone);
+      const { request_id, code } = await this.smsService.sendCode(phone, lang);
       await this.redisService.setEx(request_id, { phone, code }, 3600);
       await this.redisService.setEx(phone, { phone }, 59);
 
@@ -247,10 +255,12 @@ export class UserService extends BaseService {
 
   public updateTokens = async (req: Request, res: Response) => {
     try {
-      const { token, refreshToken, ...user } = req.user as PassportRequestInterface;
+      const { token, refreshToken, ...user } = this.getCurrentUser(req);
       const oldRefreshToken = req.get('Authorization')?.split(' ')[1] || req.headers.authorization;
       if (!oldRefreshToken) {
-        throw new Error('Пожалуйста, авторизуйтесь!');
+        throw new Error(user.lang === UserLangEnum.RU
+          ? 'Пожалуйста, авторизуйтесь!'
+          : 'Please log in!');
       }
       const isRefresh = user.refreshTokens.includes(oldRefreshToken);
       if (isRefresh) {
@@ -260,7 +270,9 @@ export class UserService extends BaseService {
         await UserEntity.update(user.id, { refreshTokens: newRefreshTokens });
       } else {
         this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${user.refreshTokens.join(', ')}`);
-        throw new Error('Ошибка аутентификации. Войдите заново!');
+        throw new Error(user.lang === UserLangEnum.RU
+          ? 'Ошибка аутентификации. Войдите заново!'
+          : 'Authentication error. Please log in again!');
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -276,7 +288,7 @@ export class UserService extends BaseService {
 
   public logout = async (req: Request, res: Response) => {
     try {
-      const { ...user } = req.user as PassportRequestInterface;
+      const user = this.getCurrentUser(req);
       const { refreshToken } = req.body as { refreshToken: string };
 
       const refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
@@ -297,7 +309,7 @@ export class UserService extends BaseService {
         res.json({ code: 2 });
         return;
       }
-      const password = await this.smsService.sendPass(phone);
+      const password = await this.smsService.sendPass(phone, user.lang);
       const hashPassword = bcrypt.hashSync(password, 10);
       await UserEntity.update(user.id, { password: hashPassword });
       res.json({ code: 1 });
@@ -308,10 +320,8 @@ export class UserService extends BaseService {
 
   public changeUserProfile = async (req: Request, res: Response) => {
     try {
-      const { id, phone } = req.user as PassportRequestInterface;
-      const {
-        confirmPassword, oldPassword, key, ...values
-      } = req.body as UserProfileType;
+      const { id, phone, lang } = this.getCurrentUser(req);
+      const { confirmPassword, oldPassword, key, ...values } = await profileServerSchema.validate(req.body) as UserProfileType;
 
       if (values.password) {
         const fetchUser = await this.findOne({ phone }, { withPassword: true });
@@ -324,7 +334,9 @@ export class UserService extends BaseService {
           const hashPassword = bcrypt.hashSync(values.password, 10);
           values.password = hashPassword;
         } else {
-          throw new Error('Пароль не совпадает или не введён старый пароль');
+          throw new Error(lang === UserLangEnum.RU
+            ? 'Пароль не совпадает или не введён старый пароль'
+            : 'The password does not match or the old password is not entered');
         }
       }
       if (values?.name) {
@@ -338,7 +350,9 @@ export class UserService extends BaseService {
             await this.redisService.delete(data.phone);
           }
         } else {
-          throw new Error('Телефон не подтверждён');
+          throw new Error(lang === UserLangEnum.RU
+            ? 'Телефон не подтверждён'
+            : 'Phone not verified');
         }
       }
       await UserEntity.update(id, values);
@@ -351,10 +365,12 @@ export class UserService extends BaseService {
 
   public unlinkTelegram = async (req: Request, res: Response) => {
     try {
-      const { id, telegramId } = req.user as PassportRequestInterface;
+      const { id, telegramId, lang } = this.getCurrentUser(req);
 
       if (!telegramId) {
-        throw new Error('Телеграм-аккаунт не найден');
+        throw new Error(lang === UserLangEnum.RU
+          ? 'Телеграм-аккаунт не найден'
+          : 'Telegram account not found');
       }
 
       await UserEntity.update(id, { telegramId: null });
@@ -367,7 +383,7 @@ export class UserService extends BaseService {
 
   public getMyGrades = async (req: Request, res: Response) => {
     try {
-      const { id: userId } = req.user as PassportRequestInterface;
+      const { id: userId } = this.getCurrentUser(req);
 
       const query = await queryPaginationWithParams.validate(req.query);
       
@@ -387,10 +403,10 @@ export class UserService extends BaseService {
 
   public addFavorites = async (req: Request, res: Response) => {
     try {
-      const { ...user } = req.user as PassportRequestInterface;
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.itemService.findOne(params, { withDeleted: true });
+      const item = await this.itemService.findOne(params, user.lang, { withDeleted: true });
 
       await UserEntity.save({ ...user, favorites: [...user.favorites, item] });
 
@@ -402,13 +418,15 @@ export class UserService extends BaseService {
 
   public removeFavorites = async (req: Request, res: Response) => {
     try {
-      const { ...user } = req.user as PassportRequestInterface;
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
       const item = user.favorites.find((value) => value.id === params.id);
 
       if (!item) {
-        throw new Error(`Товар №${params.id} отсутствует в избранном`);
+        throw new Error(user.lang === UserLangEnum.RU
+          ? `Товар №${params.id} отсутствует в избранном`
+          : `Item №${params.id} is not in favorites`);
       }
 
       await UserEntity.save({ ...user, favorites: user.favorites.filter((value) => value.id !== item.id) });
@@ -419,10 +437,11 @@ export class UserService extends BaseService {
     }
   };
 
-  public createOne = async (name: string, phone: string, manager: EntityManager, password?: string) => {
+  public createOne = async (name: string, phone: string, lang: UserLangEnum, manager: EntityManager, password?: string) => {
     const user = {
       name: upperCase(name),
       phone: phoneTransform(phone),
+      lang,
     };
 
     const candidate = await this.findOne({ phone: user.phone }, { withDeleted: true });
@@ -435,7 +454,7 @@ export class UserService extends BaseService {
 
     const userRepo = manager.getRepository(UserEntity);
 
-    const userPassword = password || await this.smsService.sendPass(user.phone);
+    const userPassword = password || await this.smsService.sendPass(user.phone, user.lang);
 
     const createdUser = await userRepo.save({
       ...user,
@@ -452,17 +471,20 @@ export class UserService extends BaseService {
 
   public getUserCard = async (req: Request, res: Response) => {
     try {
+      const currentUser = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
       const [user, [, gradeCount], [, messageCount], cart] = await Promise.all([
         this.findOne(params, { withDeleted: true, withOrders: true }),
         this.gradeService.getMyGrades({} as FetchGradeInterface, params.id),
         this.messageService.messageReport({}, { userId: params.id }),
-        this.cartService.findMany(params.id, undefined, undefined, { withoutJoin: true }),
+        this.cartService.findMany(currentUser, undefined, undefined, { withoutJoin: true }),
       ]);
 
       if (!user) {
-        throw new Error(`Пользователь с ID #${params.id} не существует`);
+        throw new Error(currentUser.lang === UserLangEnum.RU
+          ? `Пользователь с ID #${params.id} не существует`
+          : `User with ID #${params.id} does not exist`);
       }
 
       user.refreshTokens = [];
@@ -511,6 +533,21 @@ export class UserService extends BaseService {
       };
 
       res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public changeLang = async (req: Request, res: Response) => {
+    try {
+      const user = this.getCurrentUser(req);
+      const query = await queryLanguageParams.validate(req.query);
+
+      if (user.lang !== query.lang) {
+        await UserEntity.update(user.id, { lang: query.lang });
+      }
+
+      res.json({ code: 1 });
     } catch (e) {
       this.errorHandler(e, res);
     }

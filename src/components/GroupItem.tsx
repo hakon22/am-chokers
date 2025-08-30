@@ -25,8 +25,9 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
   const dispatch = useAppDispatch();
 
   const { pagination } = useAppSelector((state) => state.app);
+  const { lang } = useAppSelector((state) => state.user);
 
-  const { name: title, description } = items?.[0]?.group ?? { name: tCatalog('title'), description: tCatalog('description') };
+  const translate = items?.[0]?.group?.translations.find((translation) => translation.lang === lang);
 
   const coefficient = 1.3;
 
@@ -69,18 +70,18 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
       style={{ overflow: 'unset' }}
     >
       <div className="d-grid col-12 row-gap-5" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center' }}>
-        <Helmet title={title} description={description} />
+        <Helmet title={translate?.name || tCatalog('title')} description={translate?.description || tCatalog('description')} />
         {data.map(({
-          id, name, price, images, group, deleted, translateName,
+          id, price, images, group, deleted, translateName, translations,
         }) => (
-          <Link href={getHref({ name, group, translateName } as ItemInterface)} key={id} className="position-relative" style={{ width }}>
+          <Link href={getHref({ group, translateName } as ItemInterface)} key={id} className="position-relative" style={{ width }}>
             {deleted ? <Tag color="volcano" className="m-0 py-1 px-2 z-1 top-0 end-0 position-absolute">{tCart('deleted')}</Tag> : null}
             <ImageHover
               className={cn('me-3', { 'opacity-50': deleted })}
               width={width}
               height={height}
               images={images}
-              name={name}
+              name={translations.find((translation) => translation.lang === lang)?.name}
               description={t('price', { price })}
             />
           </Link>

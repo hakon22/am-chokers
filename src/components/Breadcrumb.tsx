@@ -19,6 +19,7 @@ export const Breadcrumb = () => {
   const router = useRouter();
 
   const { itemGroups } = useAppSelector((state) => state.app);
+  const { lang } = useAppSelector((state) => state.user);
 
   const { item } = useContext(ItemContext);
   const { isMobile } = useContext(MobileContext);
@@ -26,6 +27,8 @@ export const Breadcrumb = () => {
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbState[]>([]);
+
+  const itemName = item?.translations.find((translation) => translation.lang === lang)?.name;
 
   useEffect(() => {
     const pathArray = pathname.replace('/', 'index/').split('/').filter(Boolean);
@@ -42,12 +45,12 @@ export const Breadcrumb = () => {
       const link = linkArray.reduce((acc, fold) => `${acc}/${fold}`, '');
       const page = folder === 'catalog'
         ? t('modules.navbar.menu.catalog')
-        : item && pathArray.length - 1 === index ? item.name : itemGroup?.name ?? '';
+        : item && pathArray.length - 1 === index ? itemName ?? '' : itemGroup?.translations.find((translation) => translation.lang === lang)?.name ?? '';
       return {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
       };
     }));
-  }, [pathname, itemGroups.length, item?.name]);
+  }, [pathname, itemGroups.length, itemName, lang]);
 
   return router.pathname.includes(catalogPath)
     ? <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: isMobile ? '25%' : '9%' }} />

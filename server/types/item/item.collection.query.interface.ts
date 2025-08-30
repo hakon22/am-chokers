@@ -1,8 +1,10 @@
 export interface ItemCollectionQueryInterface {
   /** `id` коллекции */
   id?: number;
-  /** Имя коллекции */
-  name?: string;
+  /** Имена коллекции */
+  names?: string[];
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Исключить `ids` */
+  excludeIds?: number[];
 }

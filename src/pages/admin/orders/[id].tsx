@@ -9,9 +9,9 @@ import { Order as OrderComponent } from '@/components/profile/Order';
 import { useAppSelector } from '@/utilities/hooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { Helmet } from '@/components/Helmet';
 import type { OrderInterface } from '@/types/order/Order';
 import type { OrderResponseInterface } from '@/slices/orderSlice';
-import { Helmet } from '@/components/Helmet';
 
 export const getServerSideProps = async ({ params }: { params: { id: string; } }) => {
   const { id } = params;

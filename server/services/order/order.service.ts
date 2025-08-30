@@ -17,6 +17,8 @@ import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { UserEntity } from '@server/db/entities/user.entity';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
@@ -25,6 +27,8 @@ import type { PassportRequestInterface } from '@server/types/user/user.request.i
 import type { FetchOrdersInterface, OrderInterface, CreateDeliveryInterface } from '@/types/order/Order';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartEntity } from '@server/db/entities/cart.entity';
+import type { OrderPositionInterface } from '@/types/order/OrderPosition';
+import { ItemInterface } from '@/types/item/Item';
 
 @Singleton
 export class OrderService extends BaseService {
@@ -73,6 +77,7 @@ export class OrderService extends BaseService {
         .addSelect([
           'user.id',
           'user.name',
+          'user.lang',
           'user.phone',
           'user.telegramId',
         ])
@@ -89,8 +94,12 @@ export class OrderService extends BaseService {
         .leftJoin('positions.item', 'item')
         .addSelect([
           'item.id',
-          'item.name',
           'item.translateName',
+        ])
+        .leftJoin('item.translations', 'translations')
+        .addSelect([
+          'translations.name',
+          'translations.lang',
         ])
         .leftJoin('item.group', 'group')
         .addSelect([
@@ -133,15 +142,19 @@ export class OrderService extends BaseService {
     return builder;
   };
 
-  public findOne = async (params: ParamsIdInterface, query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
+  public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const builder = this.createQueryBuilder(query, options)
       .andWhere('order.id = :id', { id: params.id });
 
     const order = await builder.getOne();
 
     if (!order) {
-      throw new Error(`Заказа с номером #${params.id} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Заказа с номером #${params.id} не существует.`
+        : `Order with number #${params.id} does not exist.`);
     }
+
+    this.createDeliveryPosition(order);
 
     return order;
   };
@@ -151,7 +164,7 @@ export class OrderService extends BaseService {
 
     const orders = await builder.getMany();
 
-    return orders;
+    return orders.map(this.createDeliveryPosition);
   };
 
   public getAllOrders = async (query: FetchOrdersInterface): Promise<[OrderEntity[], number]> => {
@@ -167,33 +180,39 @@ export class OrderService extends BaseService {
       orders = await builder.getMany();
     }
   
-    return [orders, count];
+    return [orders.map(this.createDeliveryPosition), count];
   };
 
   public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, comment?: string, promotional?: PromotionalInterface) => {
     const cartIds = body.map(({ id }) => id);
 
     if (promotional) {
-      const promo = await this.promotionalService.findOne({ id: promotional.id });
+      const promo = await this.promotionalService.findOne({ id: promotional.id }, user.lang);
 
       if (!moment().isBetween(moment(promo.start), moment(promo.end), 'day', '[]') || !promo.active) {
-        throw new Error(`Промокод "${promotional.name}" не активен или истёк`);
+        throw new Error(user.lang === UserLangEnum.RU
+          ? `Промокод "${promotional.name}" не активен или истёк`
+          : `Promo code "${promotional.name}" is not active or has expired`);
       }
     }
 
-    const order: OrderEntity = await this.databaseService.getManager().transaction(async (manager) => {
+    const [order, refreshToken]: [OrderEntity, string | undefined] = await this.databaseService.getManager().transaction(async (manager) => {
       const orderRepo = manager.getRepository(OrderEntity);
       const orderPositionRepo = manager.getRepository(OrderPositionEntity);
       const deliveryRepo = manager.getRepository(DeliveryEntity);
 
-      const { user: createdUser } = await this.userService.createOne(user?.name, user?.phone, manager);
+      const createdUser = await this.userService.createOne(user?.name, user?.phone, user?.lang, manager);
 
       const cart = await this.cartService.findMany(null, undefined, { ids: cartIds }, { manager });
 
       const deletedItem = cart.find(({ item }) => item.deleted);
 
       if (deletedItem) {
-        throw new Error(`Заказ не может быть оформлен: Товар ${deletedItem.item.name} закончился`);
+        const name = deletedItem.item.translations.find((translation) => translation.lang === user.lang)?.name;
+
+        throw new Error(user.lang === UserLangEnum.RU
+          ? `Заказ не может быть оформлен: Товар ${name} закончился`
+          : `Order cannot be placed: Item ${name} is out of stock`);
       }
 
       const preparedPositions = cart.map((value) => ({
@@ -209,7 +228,7 @@ export class OrderService extends BaseService {
 
       const created = await orderRepo.save({
         status: OrderStatusEnum.NOT_PAID,
-        user: { id: user.id || createdUser?.id },
+        user: { id: user.id || createdUser.user?.id },
         deliveryPrice: delivery.price,
         positions,
         promotional,
@@ -222,53 +241,76 @@ export class OrderService extends BaseService {
         }).save(),
       } as OrderEntity);
 
-      return this.findOne({ id: created.id }, {}, { manager });
+      const newOrder = await this.findOne({ id: created.id }, user.lang, {}, { manager });
+
+      return [this.createDeliveryPosition(newOrder), createdUser.refreshToken];
     });
 
     if (user?.telegramId) {
-      const text = [
-        `Создан заказ <b>№${order.id}</b>.`,
-        `Следите за статусами в личном кабинете: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.orderHistory}`,
-      ];
+      const text = user.lang === UserLangEnum.RU
+        ? [
+          `Создан заказ <b>№${order.id}</b>.`,
+          `Следите за статусами в личном кабинете: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.orderHistory}`,
+        ]
+        : [
+          `Order <b>№${order.id}</b> created.`,
+          `Follow the statuses in your personal account: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.orderHistory}`,
+        ];
       await this.telegramService.sendMessage(text, user.telegramId);
     }
 
     if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-      const adminText = [
-        `Создан заказ <b>№${order.id}</b>`,
-        '',
-        `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
-        ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
-        '',
-        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
-      ];
-      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+        const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+
+        if (!adminUser) {
+          return;
+        }
+
+        const adminText = adminUser.lang === UserLangEnum.RU ? [
+          `Создан заказ <b>№${order.id}</b>`,
+          '',
+          `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+          ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
+          '',
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+        ] : [
+          `Order <b>№${order.id}</b> created.`,
+          '',
+          `Amount: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+          ...(comment ? [`Comment: <b>${comment}</b>`] : []),
+          '',
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+        ];
+
+        return this.telegramService.sendMessage(adminText, tgId as string);
+      }));
     }
 
-    let url = '';
-
-    if (process.env.NODE_ENV === 'production') {
-      url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA) as string;
-    }
+    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, user.lang) as string;
 
     await this.redisService.setEx(`checkOrderPayment_${order.id}`, {}, 60 * 60);
 
-    return { order, url };
+    return { order, url, refreshToken };
   };
 
-  public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface) => {
-    const order = await this.findOne(params);
+  public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface, lang: UserLangEnum) => {
+    const order = await this.findOne(params, lang);
 
     const { back, next } = getNextOrderStatuses(order.status);
 
     if (![back, next].includes(status)) {
-      throw new Error(`Статус заказа №${order.id} со статусом ${order.status} нельзя поменять на статус ${status}. Доступные статусы: ${back}, ${next}`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Статус заказа №${order.id} со статусом ${order.status} нельзя поменять на статус ${status}. Доступные статусы: ${back}, ${next}`
+        : `Order status #${order.id} with status ${order.status} cannot be changed to status ${status}. Available statuses: ${back}, ${next}`);
     }
 
     await OrderEntity.update(order.id, { status });
 
     if (order.user.telegramId) {
-      await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status)}</b> на <b>${getOrderStatusTranslate(status)}</b>.`, order.user.telegramId);
+      await this.telegramService.sendMessage(lang === UserLangEnum.RU
+        ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, lang)}</b> на <b>${getOrderStatusTranslate(status, lang)}</b>.`
+        : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, lang)}</b> to <b>${getOrderStatusTranslate(status, lang)}</b>.`, order.user.telegramId);
     }
 
     order.status = status;
@@ -279,7 +321,7 @@ export class OrderService extends BaseService {
   public cancel = async (params: ParamsIdInterface, user?: PassportRequestInterface) => {
     const manager = this.databaseService.getManager();
 
-    const order = await this.findOne(params, undefined, { manager });
+    const order = await this.findOne(params, UserLangEnum.RU, undefined, { manager });
 
     const status = OrderStatusEnum.CANCELED;
 
@@ -287,14 +329,18 @@ export class OrderService extends BaseService {
       user = order.user as PassportRequestInterface;
     }
 
+    const lang = user.lang;
+
     if (!user.isAdmin && order.isPayment) {
-      throw new Error(`Заказ №${order.id} и статусом ${order.status} нельзя поменять на статус ${status}`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Заказ №${order.id} и статусом ${order.status} нельзя поменять на статус ${status}`
+        : `Order №${order.id} and status ${order.status} cannot be changed to status ${status}`);
     }
 
     const cart = await manager.transaction(async (entityManager) => {
       const orderRepo = manager.getRepository(OrderEntity);
 
-      const newCart = await this.cartService.createMany(user.id, order.positions.map((position) => ({ ...position, id: undefined } as unknown as CartEntity)), { manager: entityManager });
+      const newCart = await this.cartService.createMany(user, order.positions.map((position) => ({ ...position, id: undefined } as unknown as CartEntity)), { manager: entityManager });
 
       await orderRepo.update(order.id, { status });
 
@@ -302,45 +348,63 @@ export class OrderService extends BaseService {
     });
 
     if (user.telegramId) {
-      await this.telegramService.sendMessage(`Заказ <b>№${order.id}</b> был отменён.`, user.telegramId);
+      await this.telegramService.sendMessage(lang === UserLangEnum.RU
+        ? `Заказ <b>№${order.id}</b> был отменён.`
+        : `Order <b>№${order.id}</b> has been cancelled.`,
+      user.telegramId);
     }
 
     order.status = status;
 
     if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && !user.isAdmin) {
-      const adminText = [
-        `Отмена заказа <b>№${order.id}</b>`,
-        '',
-        `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
-        '',
-        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
-      ];
-      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(tgId => this.telegramService.sendMessage(adminText, tgId as string)));
+      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+        const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+
+        if (!adminUser) {
+          return;
+        }
+
+        const adminText = lang === UserLangEnum.RU ? [
+          `Отмена заказа <b>№${order.id}</b>`,
+          '',
+          `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+          '',
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+        ] : [
+          `Cancel order <b>№${order.id}</b>`,
+          '',
+          `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+          '',
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+        ];
+
+        return this.telegramService.sendMessage(adminText, tgId as string);
+      }));
     }
   
     return { order, cart };
   };
 
-  public pay = async (params: ParamsIdInterface) => {
-    const order = await this.findOne(params);
+  public pay = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const order = await this.findOne(params, lang);
 
     if (order.isPayment) {
-      throw new Error('Заказ уже оплачен');
+      throw new Error(lang === UserLangEnum.RU ? 'Заказ уже оплачен' : 'The order has already been paid');
     }
 
-    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA);
+    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, lang);
   
     return url;
   };
 
-  public deleteOne = async (params: ParamsIdInterface) => {
-    const order = await this.findOne(params);
+  public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const order = await this.findOne(params, lang);
 
     return order.softRemove();
   };
 
-  public restoreOne = async (params: ParamsIdInterface) => {
-    const deletedOrder = await this.findOne(params, {}, { withDeleted: true });
+  public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const deletedOrder = await this.findOne(params, lang, {}, { withDeleted: true });
 
     const order = await deletedOrder.recover();
 
@@ -358,5 +422,28 @@ export class OrderService extends BaseService {
       }
     });
     console.log('Подписка на события Redis выполнена успешно');
+  };
+
+  private createDeliveryPosition = (order: OrderEntity) => {
+    const deliveryPosition = {
+      id: Math.random() * -1,
+      count: 1,
+      price: order.deliveryPrice,
+      discountPrice: 0,
+      discount: 0,
+      grade: { id: 0, grade: 0 },
+      item: {
+        translations: [
+          { lang: UserLangEnum.RU, name: 'Доставка' },
+          { lang: UserLangEnum.EN, name: 'Delivery' },
+        ],
+        images: [] as ItemInterface['images'],
+      },
+    } as OrderPositionInterface;
+
+    if (order.deliveryPrice) {
+      order.positions.push(deliveryPosition as OrderPositionEntity);
+    }
+    return order;
   };
 }

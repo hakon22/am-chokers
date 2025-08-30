@@ -7,6 +7,7 @@ import i18n from '@/locales';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 const { t } = i18n;
 
@@ -32,7 +33,7 @@ setLocale({
 const validate: any = <T extends ObjectSchema<AnyObject>>(schema: ObjectSchema<T>) => ({
   async validator({ field }: { field: string }, value: unknown) {
     const obj = _.set({}, field, value);
-    await schema.validateSyncAt(field, obj);
+    return schema.validateSyncAt(field, obj);
   },
   async serverValidator(data: typeof schema) {
     return schema.validate(data);
@@ -89,6 +90,7 @@ const loginSchema = yup.object().shape({
 
 const signupSchema = yup.object().shape({
   phone: phoneSchema,
+  lang: yup.string().oneOf(Object.values(UserLangEnum)),
   name: stringSchema
     .trim()
     .min(3)
@@ -127,9 +129,66 @@ const profileSchema = yup.object().shape({
   ['password', 'password'],
 ]);
 
+export const profileServerSchema = yup.object().shape({
+  phone: phoneSchema.notRequired(),
+  name: stringSchema
+    .trim()
+    .min(3)
+    .max(20)
+    .optional(),
+  password: yup
+    .string()
+    .min(6, t('validation.passMin'))
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .notRequired(),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password')], t('validation.mastMatch'))
+    .when('password', ([password], schema) => {
+      return password ? schema.required() : schema.nullable().notRequired();
+    }),
+  oldPassword: yup
+    .string()
+    .min(6, t('validation.passMin'))
+    .when(['password'], ([password], schema) => {
+      return password ? schema.required() : schema.nullable().notRequired();
+    }),
+});
+
+const translationSchema = yup.lazy((value) => {
+  if (Array.isArray(value)) {
+    // Если это массив - валидируем как массив объектов
+    return yup.array(yup.object().shape({
+      lang: yup.string().oneOf(Object.values(UserLangEnum)),
+      name: stringSchema,
+      description: stringSchema.optional(),
+      length: stringSchema.optional(),
+    }))
+      .test('unique-langs', t('validation.uniqueLanguages'), function (arr) {
+        return !arr || new Set(arr.map(item => item.lang)).size === arr.length;
+      });
+  } else {
+    // Если это объект - валидируем как объект с языковыми полями
+    return yup.object()
+      .shape(
+        Object.values(UserLangEnum).reduce((acc, lang) => {
+          acc[lang] = yup.object().shape({
+            name: stringSchema.required(),
+            description: stringSchema.optional(),
+            length: stringSchema.optional(),
+          }).required();
+          return acc;
+        }, {} as Record<UserLangEnum, ObjectSchema<any>>))
+      .test('all-languages-required', t('validation.translationsRequired'), function (obj) {
+        return Object.values(UserLangEnum).every(lang => 
+          obj && obj[lang] && typeof obj[lang].name === 'string' && obj[lang].name.trim().length > 0,
+        );
+      });
+  }
+});
+
 const newItemSchema = yup.object().shape({
-  name: stringSchema,
-  description: stringSchema,
   group: idSchema,
   collection: idNullableSchema.optional(),
   new: booleanSchema,
@@ -138,13 +197,11 @@ const newItemSchema = yup.object().shape({
   discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).min(1).required(),
   colors: yup.array(idSchema).min(1).required(),
-  length: stringSchema,
   images: yup.array(requiredIdSchema).optional(),
+  translations: translationSchema,
 });
 
 const partialUpdateItemSchema = yup.object().shape({
-  name: stringSchema.optional(),
-  description: stringSchema.optional(),
   group: idSchema.optional(),
   collection: idNullableSchema.optional(),
   new: booleanSchema.optional(),
@@ -153,17 +210,17 @@ const partialUpdateItemSchema = yup.object().shape({
   discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).optional(),
   colors: yup.array(idSchema).optional(),
-  length: stringSchema.optional(),
   order: yup.number().optional().nullable(),
   images: yup.array(requiredIdSchema).optional(),
+  translations: translationSchema.optional(),
 });
 
 const newCompositionSchema = yup.object().shape({
-  name: stringSchema,
+  translations: translationSchema,
 });
 
 const newColorSchema = yup.object().shape({
-  name: stringSchema,
+  translations: translationSchema,
   hex: yup
     .lazy((value) => (typeof value === 'object'
       ? yup.object()
@@ -175,13 +232,14 @@ const newColorSchema = yup.object().shape({
 });
 
 const newItemCollectionSchema = yup.object().shape({
-  name: stringSchema,
   description: stringSchema,
+  translations: translationSchema,
 });
 
 const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
-}).concat(newItemCollectionSchema);
+  translations: translationSchema,
+});
 
 const newCartItemSchema = yup.object().shape({
   count: numberSchema,
@@ -205,6 +263,7 @@ const newOrderPositionSchema = yup.object().shape({
   user: yup.object().shape({
     name: stringSchema,
     phone: phoneSchema,
+    lang: yup.string().oneOf(Object.values(UserLangEnum)),
   }),
   comment: yup.string().optional(),
 });

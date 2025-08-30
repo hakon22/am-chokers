@@ -13,10 +13,11 @@ export class ItemGroupController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const itemGroup = await this.itemGroupService.findOne(params, query);
+      const itemGroup = await this.itemGroupService.findOne(params, user.lang, query);
 
       res.json({ code: 1, itemGroup });
     } catch (e) {
@@ -38,9 +39,10 @@ export class ItemGroupController extends BaseService {
 
   public getByCode = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const query = await queryCodeParams.validate(req.query);
   
-      const itemGroup = await this.itemGroupService.getByCode(query);
+      const itemGroup = await this.itemGroupService.getByCode(query, user.lang);
   
       res.json({ code: 1, itemGroup });
     } catch (e) {
@@ -62,12 +64,13 @@ export class ItemGroupController extends BaseService {
 
   public updateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await newItemGroupValidation.serverValidator(req.body) as ItemGroupEntity;
 
-      const itemGroup = await this.itemGroupService.updateOne(params, body);
+      const result = await this.itemGroupService.updateOne(params, body, user.lang);
 
-      res.json({ code: 1, itemGroup });
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -75,9 +78,10 @@ export class ItemGroupController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const itemGroup = await this.itemGroupService.deleteOne(params);
+      const itemGroup = await this.itemGroupService.deleteOne(params, user.lang);
 
       res.json({ code: 1, itemGroup });
     } catch (e) {
@@ -87,9 +91,10 @@ export class ItemGroupController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const itemGroup = await this.itemGroupService.restoreOne(params);
+      const itemGroup = await this.itemGroupService.restoreOne(params, user.lang);
 
       res.json({ code: 1, itemGroup });
     } catch (e) {

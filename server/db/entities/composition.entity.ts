@@ -1,27 +1,23 @@
 import {
-  Entity, Column, PrimaryGeneratedColumn, BaseEntity,
+  Entity, PrimaryGeneratedColumn, BaseEntity,
   DeleteDateColumn,
-  Unique,
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  OneToMany,
 } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { CompositionTranslateEntity } from '@server/db/entities/composition.translate.entity';
 
 /** Компоненты */
 @Entity({
   name: 'composition',
 })
-@Unique(['name'])
 export class CompositionEntity extends BaseEntity {
   /** Уникальный `id` компонента */
   @PrimaryGeneratedColumn()
   public id: number;
-
-  /** Имя компонента */
-  @Column('character varying')
-  public name: string;
 
   /** Дата создания компонента */
   @CreateDateColumn()
@@ -38,4 +34,8 @@ export class CompositionEntity extends BaseEntity {
   /** Товары, которые включают данный компонент */
   @ManyToMany(() => ItemEntity, item => item.compositions)
   public items: ItemEntity[];
+
+  /** Локализации компонента */
+  @OneToMany(() => CompositionTranslateEntity, translate => translate.composition)
+  public translations: CompositionTranslateEntity[];
 }

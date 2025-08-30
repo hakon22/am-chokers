@@ -53,7 +53,7 @@ const Cart = () => {
   const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
 
   const [data, setData] = useState<DataType[]>([]);
 
@@ -126,7 +126,7 @@ const Cart = () => {
           <Table.Column<DataType> title={() => <div className="text-center">{t('table.item')}</div>} dataIndex="item" render={(item: ItemInterface) => (
             <div className="d-flex flex-column flex-xl-row align-items-center gap-4 w-100">
               <ImageHover className="align-self-start" href={getHref(item)} images={item.images} height={height} width={width} />
-              <span>{item.name}</span>
+              <span>{item?.translations.find((translation) => translation.lang === lang)?.name}</span>
             </div>
           )} />
           <Table.Column<DataType> title={t('table.date')} dataIndex="date" render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />

@@ -51,8 +51,8 @@ class UpdateFidsCron {
     const data: YandexFidInterface[] = await manager.query(`
       SELECT
         "item"."id" AS "ID",
-        "item"."name" AS "Title",
-        "item"."description" AS "Description",
+        "translate"."name" AS "Title",
+        "translate"."description" AS "Description",
         TO_CHAR(("price" - "discount_price"), 'FM999999999.00') AS "Price",
         'RUB' AS "Currency",
         CONCAT(
@@ -68,12 +68,14 @@ class UpdateFidsCron {
           "image"."name"
         ) AS "Image"
       FROM "chokers"."item"
+        LEFT JOIN "chokers"."item_translate" AS "translate" ON "item"."id" = "translate"."item_id"
         LEFT JOIN "chokers"."item_group" AS "group" ON "group"."id" = "group_id"
         LEFT JOIN "chokers"."image" AS "image" ON "image"."item_id" = "item"."id"
       WHERE
         "item"."deleted" IS NULL
         AND "image"."deleted" IS NULL
         AND "image"."order" = 0
+        AND "translate"."lang" = 'RU'
       ORDER BY
         "item"."id" ASC
     `);

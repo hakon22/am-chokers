@@ -25,6 +25,7 @@ const Index = () => {
   const { isMobile } = useContext(MobileContext);
 
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
+  const { lang } = useAppSelector((state) => state.user);
 
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
 
@@ -187,7 +188,7 @@ const Index = () => {
                     height={isMobile ? 300 * coefficient : height}
                     width={isMobile ? 300 : width}
                     images={item.images}
-                    name={item.name}
+                    name={item.translations.find((translation) => translation.lang === lang)?.name}
                     rating={{ rating: item.rating, grades: item.grades }}
                     description={tPrice('price', { price: item.price - item.discountPrice })}
                   />
@@ -211,7 +212,7 @@ const Index = () => {
                     width={width}
                     href={getHref(bestseller1)}
                     images={bestseller1?.images ?? []}
-                    name={bestseller1?.name}
+                    name={bestseller1?.translations.find((translation) => translation.lang === lang)?.name}
                     rating={bestseller1 ? { rating: bestseller1.rating, grades: bestseller1.grades } : undefined}
                     description={tPrice('price', { price: bestseller1 ? bestseller1.price - bestseller1?.discountPrice : 0 })}
                   />
@@ -224,7 +225,7 @@ const Index = () => {
                     height={height}
                     width={width}
                     images={bestseller2?.images ?? []}
-                    name={bestseller2?.name}
+                    name={bestseller2?.translations.find((translation) => translation.lang === lang)?.name}
                     rating={bestseller2 ? { rating: bestseller2.rating, grades: bestseller2.grades } : undefined}
                     description={tPrice('price', { price: bestseller2 ? bestseller2.price - bestseller2.discountPrice : 0 })}
                   />
@@ -239,7 +240,7 @@ const Index = () => {
                     width={isMobile ? 300 : 551}
                     height={isMobile ? 300 * coefficient : 551 * coefficient}
                     images={bestseller3?.images ?? []}
-                    name={bestseller3?.name}
+                    name={bestseller3?.translations.find((translation) => translation.lang === lang)?.name}
                     rating={bestseller3 ? { rating: bestseller3.rating, grades: bestseller3.grades } : undefined}
                     description={tPrice('price', { price: bestseller3 ? bestseller3.price - bestseller3.discountPrice : 0 })}
                   />
@@ -292,7 +293,7 @@ const Index = () => {
                       height={height}
                       width={width}
                       images={collection5?.images ?? []}
-                      name={collection5?.name}
+                      name={collection5?.translations.find((translation) => translation.lang === lang)?.name}
                       rating={collection5 ? { rating: collection5.rating, grades: collection5.grades } : undefined}
                       description={tPrice('price', { price: collection5 ? collection5.price - collection5.discountPrice : 0 })}
                     />
@@ -308,7 +309,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection5 ? `${routes.catalog}?collectionIds=${collection5?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection5?.collection?.name}</Link>
+                <Link href={collection5 ? `${routes.catalog}?collectionIds=${collection5?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection5?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
@@ -322,7 +323,7 @@ const Index = () => {
                       height={height}
                       width={width}
                       images={collection1?.images ?? []}
-                      name={collection1?.name}
+                      name={collection1?.translations.find((translation) => translation.lang === lang)?.name}
                       rating={collection1 ? { rating: collection1.rating, grades: collection1.grades } : undefined}
                       description={tPrice('price', { price: collection1 ? collection1.price - collection1.discountPrice : 0 })}
                     />
@@ -338,7 +339,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection1?.collection?.name}</Link>
+                <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection1?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
@@ -352,7 +353,7 @@ const Index = () => {
                       height={height}
                       width={width}
                       images={collection2?.images ?? []}
-                      name={collection2?.name}
+                      name={collection2?.translations.find((translation) => translation.lang === lang)?.name}
                       rating={collection2 ? { rating: collection2.rating, grades: collection2.grades } : undefined}
                       description={tPrice('price', { price: collection2 ? collection2.price - collection2.discountPrice : 0 })}
                     />
@@ -368,7 +369,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection2 ? `${routes.catalog}?collectionIds=${collection2?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection2?.collection?.name}</Link>
+                <Link href={collection2 ? `${routes.catalog}?collectionIds=${collection2?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection2?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
@@ -382,7 +383,7 @@ const Index = () => {
                       height={height}
                       width={width}
                       images={collection3?.images ?? []}
-                      name={collection3?.name}
+                      name={collection3?.translations.find((translation) => translation.lang === lang)?.name}
                       rating={collection3 ? { rating: collection3.rating, grades: collection3.grades } : undefined}
                       description={tPrice('price', { price: collection3 ? collection3.price - collection3.discountPrice : 0 })}
                     />
@@ -398,7 +399,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection3 ? `${routes.catalog}?collectionIds=${collection3?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection3?.collection?.name}</Link>
+                <Link href={collection3 ? `${routes.catalog}?collectionIds=${collection3?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection3?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
@@ -412,7 +413,7 @@ const Index = () => {
                       height={height}
                       width={width}
                       images={collection4?.images ?? []}
-                      name={collection4?.name}
+                      name={collection4?.translations.find((translation) => translation.lang === lang)?.name}
                       rating={collection4 ? { rating: collection4.rating, grades: collection4.grades } : undefined}
                       description={tPrice('price', { price: collection4 ? collection4.price - collection4.discountPrice : 0 })}
                     />
@@ -428,7 +429,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection4 ? `${routes.catalog}?collectionIds=${collection4?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection4?.collection?.name}</Link>
+                <Link href={collection4 ? `${routes.catalog}?collectionIds=${collection4?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection4?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
           </section>

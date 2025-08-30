@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
 
@@ -90,6 +91,13 @@ export class UserEntity extends BaseEntity {
   /** Заказы */
   @OneToMany(() => OrderEntity, order => order.user)
   public orders: OrderEntity[];
+
+  /** Язык */
+  @Column('enum', {
+    enum: UserLangEnum,
+    default: UserLangEnum.RU,
+  })
+  public lang: UserLangEnum;
 
   /** Уровень доступа */
   public isAdmin: boolean;

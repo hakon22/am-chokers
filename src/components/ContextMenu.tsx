@@ -36,7 +36,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const router = useRouter();
 
-  const { isAdmin, token } = useAppSelector((state) => state.user);
+  const { isAdmin, token, lang } = useAppSelector((state) => state.user);
   const { specialItems } = useAppSelector((state) => state.app);
 
   const { bestsellers, collections } = specialItems.reduce((acc, value) => {
@@ -67,7 +67,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
     const { payload: { code: payloadCode, item: deletedItem } } = await dispatch(deleteItem(target.id)) as { payload: ItemResponseInterface; };
     if (payloadCode === 1) {
       dispatch(removeSpecialItem(deletedItem));
-      toast(tToast('itemDeletedSuccess', { name: deletedItem.name }), 'success');
+      toast(tToast('itemDeletedSuccess', { name: deletedItem.translations.find((translation) => translation.lang === lang)?.name }), 'success');
     }
     setIsSubmit(false);
   };
@@ -183,13 +183,13 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
                 filterOption={(input, option) => 
                   option?.label.props.title.toLowerCase().includes(input.toLowerCase())
                 }
-                options={(order < 4 ? bestsellers : collections).map(({ id, name, images }) => ({
+                options={(order < 4 ? bestsellers : collections).map(({ id, translations, images }) => ({
                   label: <Button
                     className="w-100 h-100 py-0 ps-0 pe-5 d-flex justify-content-between align-items-center"
-                    title={name}
+                    title={translations.find((translation) => translation.lang === lang)?.name}
                   >
-                    <Image alt={name} width={100} height={100} unoptimized src={images[0].src} />
-                    <span className="fs-6">{name}</span>
+                    <Image alt={translations.find((translation) => translation.lang === lang)?.name as string} width={100} height={100} unoptimized src={images[0].src} />
+                    <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}</span>
                   </Button>,
                   value: id,
                 }))}

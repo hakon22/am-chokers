@@ -16,7 +16,7 @@ export interface UserInterface extends OmitBase<UserEntity> {
   [key: string]: any;
 }
 
-export type UserFormInterface = Pick<UserEntity, 'name' | 'phone' | 'password'>;
+export type UserFormInterface = Pick<UserEntity, 'name' | 'phone' | 'password' | 'lang'>;
 
 export interface UserProfileType extends Partial<UserFormInterface> {
   confirmPassword?: string;

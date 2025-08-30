@@ -4,8 +4,8 @@ import type { PaginationQueryInterface } from '@server/types/pagination.query.in
 export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   /** `id` товара */
   id?: number;
-  /** "Имя" товара */
-  name?: string;
+  /** "Имена" товара */
+  names?: string[];
   /** "Транслейтное" имя товара */
   translateName?: string;
   /** С удалёнными */
@@ -36,4 +36,6 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   bestseller?: boolean;
   /** Сортировка */
   sort?: ItemSortEnum;
+  /** Исключить `ids` */
+  excludeIds?: number[];
 }

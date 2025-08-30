@@ -13,10 +13,11 @@ export class ColorController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const color = await this.colorService.findOne(params, query);
+      const color = await this.colorService.findOne(params, user.lang, query);
 
       res.json({ code: 1, color });
     } catch (e) {
@@ -50,12 +51,13 @@ export class ColorController extends BaseService {
 
   public updateOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await newColorValidation.serverValidator(req.body) as ColorEntity;
 
-      const color = await this.colorService.updateOne(params, body);
+      const result = await this.colorService.updateOne(params, body, user.lang);
 
-      res.json({ code: 1, color });
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -63,9 +65,10 @@ export class ColorController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const color = await this.colorService.deleteOne(params);
+      const color = await this.colorService.deleteOne(params, user.lang);
 
       res.json({ code: 1, color });
     } catch (e) {
@@ -75,9 +78,10 @@ export class ColorController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const color = await this.colorService.restoreOne(params);
+      const color = await this.colorService.restoreOne(params, user.lang);
 
       res.json({ code: 1, color });
     } catch (e) {

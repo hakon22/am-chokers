@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+import { routes } from '@/routes';
 import type { ItemGroupInterface, ItemCollectionInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
 import type { InitialState } from '@/types/InitialState';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
@@ -8,9 +9,8 @@ import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { CommentEntity } from '@server/db/entities/comment.entity';
 import type { PaginationEntityInterface, PaginationInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
-import { routes } from '@/routes';
 
-type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface };
+type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface; };
 
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
@@ -198,7 +198,7 @@ export const updateItemCollection = createAsyncThunk(
   'app/updateItemCollection',
   async (data: ItemCollectionInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.put<ItemCollectionResponseInterface>(routes.crudItemCollection(data.id), data);
+      const response = await axios.put<ItemCollectionResponseInterface>(routes.crudItemCollection(data?.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -300,6 +300,18 @@ export const removeCoverImage = createAsyncThunk(
   async (id: number, { rejectWithValue }) => {
     try {
       const response = await axios.delete<ImageResponseInterface>(routes.removeCoverImage(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const setSpecialItems = createAsyncThunk(
+  'app/setSpecialItems',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<{ code: number; specialItems: ItemInterface[]; }>(routes.getItemSpecials({ isServer: true }));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -439,6 +451,21 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(removeCoverImage.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(setSpecialItems.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(setSpecialItems.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.specialItems = payload.specialItems;
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(setSpecialItems.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       });

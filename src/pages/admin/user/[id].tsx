@@ -12,7 +12,6 @@ import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
-import { UserRoleEnum, translateUserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { BackButton } from '@/components/BackButton';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -34,7 +33,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
-  const { isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin, lang } = useAppSelector((state) => state.user);
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const coefficient = 1.3;
@@ -66,7 +65,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
     {
       key: '4',
       label: t('role'),
-      children: translateUserRoleEnum[user?.role as UserRoleEnum],
+      children: t(`roles.${user?.role}`),
     },
     {
       key: '5',
@@ -122,7 +121,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
               />
               <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
                 <Link href={getHref(value)} className={cn('d-flex flex-column gap-3', { 'opacity-50': value.deleted })}>
-                  <span className="lh-1">{value.name}</span>
+                  <span className="lh-1">{value.translations.find((translation) => translation.lang === lang)?.name}</span>
                   <span>{tPrice('price', { price: value.price - value.discountPrice })}</span>
                 </Link>
               </div>

@@ -1,13 +1,15 @@
 import { Container, Singleton } from 'typescript-ioc';
 
 import { CommentEntity } from '@server/db/entities/comment.entity';
-import type { CommentQueryInterface } from '@server/types/comment/comment.query.interface';
-import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
+import type { CommentQueryInterface } from '@server/types/comment/comment.query.interface';
+import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
 @Singleton
 export class CommentService extends BaseService {
@@ -70,7 +72,8 @@ export class CommentService extends BaseService {
         'images.id',
         'images.name',
         'images.path',
-      ]);
+      ])
+      .orderBy('comment.id', 'DESC');
 
     if (query?.withDeleted) {
       builder.withDeleted();
@@ -79,14 +82,16 @@ export class CommentService extends BaseService {
     return builder;
   };
 
-  public findOne = async (params: ParamsIdInterface, query?: CommentQueryInterface) => {
+  public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, query?: CommentQueryInterface) => {
     const builder = this.createQueryBuilder(query)
       .andWhere('comment.id = :id', { id: params.id });
 
     const comment = await builder.getOne();
 
     if (!comment) {
-      throw new Error(`Комментария с номером #${params.id} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Комментария с номером #${params.id} не существует.`
+        : `Comment with number #${params.id} does not exist.`);
     }
 
     return comment;
@@ -100,11 +105,11 @@ export class CommentService extends BaseService {
     return comments;
   };
 
-  public createOne = async (body: Partial<CommentEntity>, images: ImageEntity[], userId: number) => {
+  public createOne = async (body: Partial<CommentEntity>, images: ImageEntity[], user: PassportRequestInterface) => {
     const created = await this.databaseService.getManager().transaction(async (manager) => {
       const commentRepo = manager.getRepository(CommentEntity);
 
-      const comment = await commentRepo.save({ ...body, user: { id: userId } });
+      const comment = await commentRepo.save({ ...body, user: { id: user.id } });
 
       if (images?.length) {
         this.uploadPathService.checkFolder(UploadPathEnum.COMMENT, comment.id);
@@ -114,11 +119,11 @@ export class CommentService extends BaseService {
       return comment;
     });
 
-    return this.findOne({ id: created.id });
+    return this.findOne({ id: created.id }, user.lang);
   };
 
-  public deleteOne = async (params: ParamsIdInterface) => {
-    const comment = await this.findOne(params);
+  public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const comment = await this.findOne(params, lang);
 
     await comment.softRemove();
 
@@ -127,11 +132,11 @@ export class CommentService extends BaseService {
     return comment;
   };
 
-  public restoreOne = async (params: ParamsIdInterface) => {
-    const deletedComment = await this.findOne(params, { withDeleted: true });
+  public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const deletedComment = await this.findOne(params, lang, { withDeleted: true });
 
     await deletedComment.recover();
 
-    return this.findOne(params);
+    return this.findOne(params, lang);
   };
 }

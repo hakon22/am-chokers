@@ -4,19 +4,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { MouseEvent as ReactMouseEvent, useEffect, useState, useContext, useRef } from 'react';
 import { SearchOutlined, HeartOutlined, ShoppingCartOutlined, DownOutlined, UpOutlined, CloseOutlined } from '@ant-design/icons';
-import { AutoComplete, Badge, Button, Drawer, Input, Menu, Avatar, type MenuProps, type GetRef } from 'antd';
+import { AutoComplete, Badge, Button, Drawer, Input, Menu, Avatar, type MenuProps, type GetRef, Radio } from 'antd';
 import { useSearchParams } from 'next/navigation';
 import cn from 'classnames';
 
 import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { onFocus } from '@/utilities/onFocus';
-import { SearchContext, MobileContext, NavbarContext } from '@/components/Context';
+import { SearchContext, MobileContext, NavbarContext, SubmitContext } from '@/components/Context';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { changeLang } from '@/slices/userSlice';
 
 type NavigationKeys = {
-  key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home';
+  key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home' | 'lang';
 };
 
 type MenuItem = Required<MenuProps>['items'][number] & NavigationKeys;
@@ -130,16 +132,19 @@ export const NavBar = () => {
 
   const router = useRouter();
   const urlParams = useSearchParams();
+  const dispatch = useAppDispatch();
 
   const { isSearch, setIsSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
   const { isActive, setIsActive } = useContext(NavbarContext);
+  const { setIsSubmit } = useContext(SubmitContext);
 
   const searchRef = useRef<GetRef<typeof AutoComplete>>(null);
 
   const searchParams = urlParams.get('search');
 
   const { itemGroups } = useAppSelector((state) => state.app);
+  const { token, lang, isAdmin } = useAppSelector((state) => state.user);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>(isMobile ? '' : '108px');
@@ -163,6 +168,12 @@ export const NavBar = () => {
     setIsActive(!isActive);
   };
 
+  const changeLanguage = async (value: UserLangEnum) => {
+    setIsSubmit(true);
+    await dispatch(changeLang({ lang: value, token: !!token }));
+    setIsSubmit(false);
+  };
+
   const items: MenuItem[] = [
     ...(isMobile ? [{
       label: <Link href={routes.homePage}>{t('menu.home')}</Link>,
@@ -176,7 +187,7 @@ export const NavBar = () => {
       onTitleMouseLeave,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
       popupClassName: 'grid-submenu',
-      children: [...(isMobile ? [{ code: '', name: <span className="fw-bold">{t('menu.allItems')}</span> }, ...itemGroups] : itemGroups)].map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
+      children: [...(isMobile ? [{ code: '', translations: [], name: <span className="fw-bold">{t('menu.allItems')}</span> }, ...itemGroups] : itemGroups)].map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
     },
     {
       label: <Link href={routes.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,
@@ -202,6 +213,14 @@ export const NavBar = () => {
       ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'contacts',
     },
+    ...(isMobile && isAdmin ? [{
+      label: (
+        <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
+          {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
+        </Radio.Group>
+      ),
+      key: 'lang',
+    } as MenuItem] : []),
   ];
 
   const onSearch = async () => {
@@ -286,6 +305,9 @@ export const NavBar = () => {
           )
           : (
             <>
+              {isAdmin ? <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
+                {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
+              </Radio.Group> : null}
               <div className="nav-logo-container" data-aos="fade-down">
                 <Link href={routes.homePage}>
                   <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />

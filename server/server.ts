@@ -8,7 +8,6 @@ import { Telegraf } from 'telegraf';
 import { Container } from 'typescript-ioc';
 
 import { RouterService } from '@server/services/app/router.service';
-import { TokenService } from '@server/services/user/token.service';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderService } from '@server/services/order/order.service';
 import { routes } from '@/routes';
@@ -19,8 +18,6 @@ const {
 
 class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
-
-  private readonly tokenService = Container.get(TokenService);
 
   private readonly orderService = Container.get(OrderService);
 

@@ -8,7 +8,7 @@ import { AcquiringService } from '@server/services/acquiring/acquiring.service';
 export class AcquiringController extends BaseService {
   private readonly acquiringService = Container.get(AcquiringService);
 
-  private TAG = 'AcquiringController';
+  private readonly TAG = 'AcquiringController';
 
   public checkYookassaOrder = async (req: Request, res: Response) => {
     this.loggerService.info(this.TAG, `Уведомление от YooKassa: ${JSON.stringify(req.body)}`);

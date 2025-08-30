@@ -148,7 +148,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       ],
       } : null,
     { type: 'divider' },
-    { key: 'logout', label: <button type="button" className="button-link w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
+    { key: 'logout', label: <button type="button" className="button-link py-1 w-100 text-start" onClick={logOut}>{tMenu('menu.logout')}</button> },
   ];
 
   useEffect(() => {
@@ -171,6 +171,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                     defaultActiveKey={path[1] ? ['orders'] : path}
                     activeKey={activeKey}
                     className="mb-3 fs-5 font-oswald"
+                    rootClassName="collapse-without-padding"
                     accordion
                     ghost
                     onChange={onCollapse}

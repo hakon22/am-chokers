@@ -1,27 +1,42 @@
+import path from 'path';
+
 import { Container, Singleton } from 'typescript-ioc';
 
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
-import { BaseService } from '@server/services/app/base.service';
+import { ItemGroupTranslateEntity } from '@server/db/entities/item.group.translate.entity';
+import { TranslationHelper } from '@server/utilities/translation.helper';
 import { ItemService } from '@server/services/item/item.service';
+import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { catalogPath, routes } from '@/routes';
 import type { ItemGroupQueryInterface } from '@server/types/item/item.group.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import type { ItemGroupOptionsInterface } from '@server/types/item/item.group.options.interface';
 
 @Singleton
-export class ItemGroupService extends BaseService {
+export class ItemGroupService extends TranslationHelper {
   private readonly itemService = Container.get(ItemService);
 
-  private createQueryBuilder = (query?: ItemGroupQueryInterface) => {
-    const manager = this.databaseService.getManager();
+  private readonly uploadPathService = Container.get(UploadPathService);
+
+  private createQueryBuilder = (query?: ItemGroupQueryInterface, options?: ItemGroupOptionsInterface) => {
+    const manager = options?.manager || this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(ItemGroupEntity, 'itemGroup')
       .select([
         'itemGroup.id',
-        'itemGroup.name',
-        'itemGroup.description',
         'itemGroup.code',
         'itemGroup.deleted',
-      ]);
+      ])
+      .leftJoin('itemGroup.translations', 'translations')
+      .addSelect([
+        'translations.id',
+        'translations.name',
+        'translations.description',
+        'translations.lang',
+      ])
+      .orderBy('itemGroup.id', 'DESC');
 
     if (query?.withDeleted) {
       builder.withDeleted();
@@ -29,12 +44,15 @@ export class ItemGroupService extends BaseService {
     if (query?.code) {
       builder.andWhere('itemGroup.code = :code', { code: query.code });
     }
+    if (query?.excludeIds?.length) {
+      builder.andWhere('itemGroup.id NOT IN(:...excludeIds)', { excludeIds: query.excludeIds });
+    }
 
     return builder;
   };
 
-  public exist = async (query: ItemGroupQueryInterface) => {
-    const builder = this.createQueryBuilder(query).withDeleted();
+  public exist = async (query: ItemGroupQueryInterface, options?: ItemGroupOptionsInterface) => {
+    const builder = this.createQueryBuilder(query, options).withDeleted();
 
     const isExist = await builder.getExists();
 
@@ -48,19 +66,23 @@ export class ItemGroupService extends BaseService {
       return { code: 2 };
     }
 
-    const itemGroup = await ItemGroupEntity.save(body);
+    const itemGroup = await this.createEntityWithTranslations(ItemGroupEntity, ItemGroupTranslateEntity, body, 'group');
+
+    this.uploadPathService.createSitemap(this.getUrl(itemGroup), true);
 
     return { code: 1, itemGroup };
   };
 
-  public findOne = async (params: ParamsIdInterface, query?: ItemGroupQueryInterface) => {
-    const builder = this.createQueryBuilder(query)
+  public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, query?: ItemGroupQueryInterface, options?: ItemGroupOptionsInterface) => {
+    const builder = this.createQueryBuilder(query, options)
       .andWhere('itemGroup.id = :id', { id: params.id });
 
     const itemGroup = await builder.getOne();
 
     if (!itemGroup) {
-      throw new Error(`Группы товаров с номером #${params.id} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Группы товаров с номером #${params.id} не существует.`
+        : `Item group with number #${params.id} does not exist.`);
     }
 
     return itemGroup;
@@ -69,35 +91,54 @@ export class ItemGroupService extends BaseService {
   public findMany = async (query?: ItemGroupQueryInterface) => {
     const builder = this.createQueryBuilder(query);
 
-    const itemGroups = await builder.getMany();
-
-    return itemGroups;
+    return builder.getMany();
   };
 
-  public getByCode = async (query: ItemGroupQueryInterface) => {
+  public getByCode = async (query: ItemGroupQueryInterface, lang: UserLangEnum) => {
     const builder = this.createQueryBuilder(query);
   
     const itemGroup = await builder.getOne();
   
     if (!itemGroup) {
-      throw new Error(`Группы товаров с кодом ${query.code} не существует.`);
+      throw new Error(lang === UserLangEnum.RU
+        ? `Группы товаров с кодом ${query.code} не существует.`
+        : `Item group with code ${query.code} does not exist.`);
     }
   
     return itemGroup;
   };
 
-  public updateOne = async (params: ParamsIdInterface, body: ItemGroupEntity) => {
-    const itemGroup = await this.findOne(params);
+  public updateOne = async (params: ParamsIdInterface, body: ItemGroupEntity, lang: UserLangEnum) => {
+    const { translations: oldTranslations, ...itemGroup } = await this.findOne(params, lang, { withDeleted: true });
 
-    const newItemGroup = { ...itemGroup, ...body } as ItemGroupEntity;
+    const isExist = await this.exist({ code: body.code, excludeIds: [itemGroup.id] });
 
-    await ItemGroupEntity.save(newItemGroup);
+    if (isExist) {
+      return { code: 2 };
+    }
 
-    return itemGroup;
+    const updated = await this.databaseService.getManager().transaction(async (manager) => {
+      const itemGroupRepo = manager.getRepository(ItemGroupEntity);
+      const itemGroupTranslateRepo = manager.getRepository(ItemGroupTranslateEntity);
+
+      const { translations, ...rest } = body;
+
+      await this.syncTranslations(itemGroupTranslateRepo, translations, oldTranslations, itemGroup, 'group');
+
+      await itemGroupRepo.update(params, rest);
+
+      return this.findOne(params, lang, undefined, { manager });
+    });
+
+    if (itemGroup.code !== updated.code) {
+      this.uploadPathService.updateSitemap(this.getUrl(itemGroup), this.getUrl(updated), true);
+    }
+
+    return { code: 1, itemGroup: updated };
   };
 
-  public deleteOne = async (params: ParamsIdInterface) => {
-    const itemGroup = await this.findOne(params);
+  public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const itemGroup = await this.findOne(params, lang);
 
     const items = await this.itemService.findMany({ itemGroupId: itemGroup.id, withDeleted: true });
 
@@ -118,8 +159,8 @@ export class ItemGroupService extends BaseService {
     return deletedItemGroup;
   };
 
-  public restoreOne = async (params: ParamsIdInterface) => {
-    const deletedItemGroup = await this.findOne(params, { withDeleted: true });
+  public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+    const deletedItemGroup = await this.findOne(params, lang, { withDeleted: true });
 
     const items = await this.itemService.findMany({ itemGroupId: deletedItemGroup.id, withDeleted: true });
 
@@ -139,4 +180,6 @@ export class ItemGroupService extends BaseService {
 
     return itemGroup;
   };
+
+  private getUrl = (itemGroup: Pick<ItemGroupEntity, 'code'>) => path.join(routes.homePage, catalogPath.slice(1), itemGroup.code).replaceAll('\\', '/');
 }

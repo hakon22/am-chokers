@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  OneToMany,
 } from 'typeorm';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { ColorTranslateEntity } from '@server/db/entities/color.translate.entity';
 
 /** Компоненты */
 @Entity({
@@ -18,10 +20,6 @@ export class ColorEntity extends BaseEntity {
   /** Уникальный `id` цвета */
   @PrimaryGeneratedColumn()
   public id: number;
-
-  /** Имя цвета */
-  @Column('character varying')
-  public name: string;
 
   /** Код цвета */
   @Column('character varying')
@@ -42,4 +40,8 @@ export class ColorEntity extends BaseEntity {
   /** Товары, которые включают данный цвет */
   @ManyToMany(() => ItemEntity, item => item.compositions)
   public items: ItemEntity[];
+
+  /** Локализации цвета */
+  @OneToMany(() => ColorTranslateEntity, translate => translate.color)
+  public translations: ColorTranslateEntity[];
 }

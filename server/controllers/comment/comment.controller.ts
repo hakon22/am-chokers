@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
-import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 import { BaseService } from '@server/services/app/base.service';
 import { CommentService } from '@server/services/comment/comment.service';
 import { paramsIdSchema, queryOptionalSchema } from '@server/utilities/convertation.params';
@@ -14,10 +13,11 @@ export class CommentController extends BaseService {
 
   public findOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const query = await queryOptionalSchema.validate(req.query);
 
-      const comment = await this.commentService.findOne(params, query);
+      const comment = await this.commentService.findOne(params, user.lang, query);
 
       res.json({ code: 1, comment });
     } catch (e) {
@@ -39,10 +39,10 @@ export class CommentController extends BaseService {
 
   public createOne = async (req: Request, res: Response) => {
     try {
-      const { id } = req.user as PassportRequestInterface;
+      const user = this.getCurrentUser(req);
       const { images, ...body } = await newCommentValidation.serverValidator(req.body) as CommentEntity;
 
-      const comment = await this.commentService.createOne(body, images, id);
+      const comment = await this.commentService.createOne(body, images, user);
 
       res.json({ code: 1, comment });
     } catch (e) {
@@ -52,9 +52,10 @@ export class CommentController extends BaseService {
 
   public deleteOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const comment = await this.commentService.deleteOne(params);
+      const comment = await this.commentService.deleteOne(params, user.lang);
 
       res.json({ code: 1, comment });
     } catch (e) {
@@ -64,9 +65,10 @@ export class CommentController extends BaseService {
 
   public restoreOne = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const comment = await this.commentService.restoreOne(params);
+      const comment = await this.commentService.restoreOne(params, user.lang);
 
       res.json({ code: 1, comment });
     } catch (e) {
