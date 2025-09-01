@@ -2,7 +2,7 @@ import type { OrderInterface } from '@/types/order/Order';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 
-export const getPositionsPrice = (positions: OrderInterface['positions'], deliveryPrice: number) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (position.discountPrice * 100)) * position.count, deliveryPrice * 100) / 100).toFixed(2);
+export const getPositionsPrice = (positions: OrderInterface['positions'], deliveryPrice = 0, withoutDiscount = false) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (withoutDiscount ? 0 : position.discountPrice * 100)) * position.count, deliveryPrice * 100) / 100).toFixed(2);
 
 export const getPositionPrice = (position: OrderPositionInterface) => +(((position.price * 100) - (position.discountPrice * 100)) * position.count / 100).toFixed(2);
 

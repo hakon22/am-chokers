@@ -22,7 +22,7 @@ import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
-import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
+import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -203,7 +203,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                 <div className="d-flex flex-column gap-2 col-12 col-xl-4">
                   <div>
                     <Tag color="#eaeef6" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
-                      <span className="fw-bold">{getDeliveryStatusTranslate(order.delivery.type, lang as UserLangEnum)}</span>
+                      <span className="fw-bold">{getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}</span>
                     </Tag>
                   </div>
                   {!setData && !order.positions.some((position) => position.grade) && order.status === OrderStatusEnum.COMPLETED &&

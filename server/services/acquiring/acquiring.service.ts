@@ -18,8 +18,8 @@ import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTransla
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
-import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
-import { russianPostMailTypeTranslateEnum } from '@/types/delivery/russian.post.delivery.interface';
+import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
+import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
 import type { OrderInterface } from '@/types/order/Order';
 import type { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 
@@ -271,7 +271,7 @@ export class AcquiringService extends BaseService {
             return;
           }
 
-          const delivery = getDeliveryStatusTranslate(order.delivery.type, adminUser.lang);
+          const delivery = getDeliveryTypeTranslate(order.delivery.type, adminUser.lang);
         
           const adminText = adminUser.lang === UserLangEnum.RU
             ? [
@@ -280,7 +280,7 @@ export class AcquiringService extends BaseService {
               `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
               `Способ доставки: <b>${delivery}</b>`,
               `Адрес доставки: <b>${order.delivery.address}</b>`,
-              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
+              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, adminUser.lang)}</b>`] : []),
               ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
               '',
               `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
@@ -291,7 +291,7 @@ export class AcquiringService extends BaseService {
               `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
               `Delivery method: <b>${delivery}</b>`,
               `Delivery address: <b>${order.delivery.address}</b>`,
-              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${russianPostMailTypeTranslateEnum[order.delivery.mailType]}</b>`] : []),
+              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, adminUser.lang)}</b>`] : []),
               ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Pickup index: <b>${order.delivery.index}</b>`] : []),
               '',
               `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,

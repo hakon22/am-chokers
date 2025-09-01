@@ -150,6 +150,10 @@ h2 {
 a {
   color: inherit;
   text-decoration: inherit;
+
+  &:hover {
+    color: $button-background-active !important
+  }
 }
 
 .button {
@@ -330,7 +334,7 @@ a {
 
 .disabled {
   border-color: #ced3dd !important;
-  color: #69788e !important;;
+  color: $grey-dark-font !important;;
 }
 
 .position-center {
@@ -340,6 +344,11 @@ a {
   transform: translate(50%, -50%);
   -webkit-transform: translate(50%, -50%);
   -o-transform: translate(50%, -50%);
+}
+
+.ant-menu-light .ant-menu-item-selected {
+  color: $dark-blue;
+  background-color: $grey-light;
 }
 
 .ant-input-affix-wrapper-lg {

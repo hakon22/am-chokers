@@ -183,7 +183,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
               )
               : (
                 <>
-                  <div className="col-4">
+                  <div className="col-3">
                     <Menu
                       mode="inline"
                       className="fs-5 font-oswald"
@@ -191,7 +191,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                       items={items}
                     />
                   </div>
-                  <div className="col-12 col-xl-8 d-flex justify-content-center">{getPage()}</div>
+                  <div className="col-12 col-xl-9 d-flex justify-content-center">{getPage()}</div>
                 </>
               )}
           </div>
