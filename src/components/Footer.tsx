@@ -21,7 +21,7 @@ export const Footer = () => {
             <Link href={routes.catalog}>{t('jewelryCatalog')}</Link>
           </h6>
           <ul>
-            {itemGroups.map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link></li>)}
+            {[...itemGroups].sort((a, b) => a.order - b.order).map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link></li>)}
           </ul>
         </div>
         <div className="col-12 col-xl-8">

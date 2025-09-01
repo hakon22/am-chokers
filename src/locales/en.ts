@@ -787,7 +787,7 @@ export default {
         price: '{{ price }} ₽',
         composition: 'Materials:',
         color: 'Color:',
-        length: 'Длина:',
+        length: 'Length:',
         lengthEn: 'Length:',
         warrantyAndCare: 'Warranty & care',
         deliveryAndPayment: 'Delivery & payment',

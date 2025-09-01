@@ -16,5 +16,6 @@ export class ItemGroupRoute extends BaseRouter {
     router.get(this.routes.getItemGroups({ isServer: true }), this.itemGroupController.findMany);
     router.get(this.routes.getItemGroupByCode({ isServer: true }), this.middlewareService.optionalJwtAuth, this.itemGroupController.getByCode);
     router.post(this.routes.createItemGroup, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.createOne);
+    router.post(this.routes.sortItemGroup, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemGroupController.sort);
   };
 }

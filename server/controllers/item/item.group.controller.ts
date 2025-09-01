@@ -3,7 +3,7 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
-import { newItemGroupValidation } from '@/validations/validations';
+import { itemGroupSchema, newItemGroupValidation } from '@/validations/validations';
 import { ItemGroupService } from '@server/services/item/item.group.service';
 import { paramsIdSchema, queryCodeParams, queryOptionalSchema } from '@server/utilities/convertation.params';
 
@@ -97,6 +97,19 @@ export class ItemGroupController extends BaseService {
       const itemGroup = await this.itemGroupService.restoreOne(params, user.lang);
 
       res.json({ code: 1, itemGroup });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public sort = async (req: Request, res: Response) => {
+    try {
+      const query = await queryOptionalSchema.validate(req.query);
+      const body = await itemGroupSchema.validate(req.body);
+
+      const itemGroups = await this.itemGroupService.sort(body, query);
+
+      res.json({ code: 1, itemGroups });
     } catch (e) {
       this.errorHandler(e, res);
     }

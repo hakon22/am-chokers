@@ -241,6 +241,8 @@ const newItemGroupSchema = yup.object().shape({
   translations: translationSchema,
 });
 
+export const itemGroupSchema = yup.array(requiredIdSchema).required();
+
 const newCartItemSchema = yup.object().shape({
   count: numberSchema,
   item: requiredIdSchema,

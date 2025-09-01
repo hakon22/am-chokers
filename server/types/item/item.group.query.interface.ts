@@ -7,4 +7,6 @@ export interface ItemGroupQueryInterface {
   withDeleted?: boolean;
   /** Исключить `ids` */
   excludeIds?: number[];
+  /** Включить только эти `ids` */
+  includeIds?: number[];
 }

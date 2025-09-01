@@ -187,7 +187,7 @@ export const NavBar = () => {
       onTitleMouseLeave,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
       popupClassName: 'grid-submenu',
-      children: [...(isMobile ? [{ code: '', translations: [{ name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.RU }, { name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.EN }] }, ...itemGroups] : itemGroups)].map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
+      children: [...(isMobile ? [{ code: '', order: -1, translations: [{ name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.RU }, { name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.EN }] }, ...itemGroups] : itemGroups)].sort((a, b) => a.order - b.order).map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
     },
     {
       label: <Link href={routes.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,

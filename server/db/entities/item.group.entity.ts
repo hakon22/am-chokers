@@ -35,6 +35,12 @@ export class ItemGroupEntity extends BaseEntity {
   @Column('character varying', { unique: true })
   public code: string;
 
+  /** Очерёдность сортировки */
+  @Column('smallint', {
+    default: 0,
+  })
+  public order: number;
+
   /** Локализации группы товара */
   @OneToMany(() => ItemGroupTranslateEntity, translate => translate.group)
   public translations: ItemGroupTranslateEntity[];

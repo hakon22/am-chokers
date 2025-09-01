@@ -182,6 +182,18 @@ export const restoreItemGroup = createAsyncThunk(
   },
 );
 
+export const sortItemGroup = createAsyncThunk(
+  'app/sortItemGroup',
+  async (data: { id: number; }[], { rejectWithValue }) => {
+    try {
+      const response = await axios.post<{ code: number; itemGroups: ItemGroupInterface[]; }>(routes.sortItemGroup, data);
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response.data);
+    }
+  },
+);
+
 export const addItemCollection = createAsyncThunk(
   'app/addItemCollection',
   async (data: ItemCollectionInterface, { rejectWithValue }) => {
@@ -349,7 +361,7 @@ const appSlice = createSlice({
       })
       .addCase(addItemGroup.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          state.itemGroups = [...state.itemGroups, payload.itemGroup];
+          state.itemGroups = [payload.itemGroup, ...state.itemGroups];
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -466,6 +478,21 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(setSpecialItems.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(sortItemGroup.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(sortItemGroup.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          state.itemGroups = payload.itemGroups;
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(sortItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       });

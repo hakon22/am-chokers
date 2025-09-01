@@ -1,4 +1,4 @@
-const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.1.61:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+const serverHost = process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://localhost:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 interface ServerClientInterface {
@@ -81,6 +81,7 @@ export const routes = {
   getItemGroupByCode: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-by-code'].join('/'),
   crudItemGroup: (id?: number | React.Key) => [apiPath, 'item', 'group', id ?? ':id'].join('/'),
   createItemGroup: [apiPath, 'item', 'groups', 'new'].join('/'),
+  sortItemGroup: [apiPath, 'item', 'groups', 'sort'].join('/'),
 
   // itemCollections
   getItemCollections: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'collections'].join('/'),

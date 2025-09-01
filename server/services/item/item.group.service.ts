@@ -27,6 +27,7 @@ export class ItemGroupService extends TranslationHelper {
       .select([
         'itemGroup.id',
         'itemGroup.code',
+        'itemGroup.order',
         'itemGroup.deleted',
       ])
       .leftJoin('itemGroup.translations', 'translations')
@@ -36,7 +37,7 @@ export class ItemGroupService extends TranslationHelper {
         'translations.description',
         'translations.lang',
       ])
-      .orderBy('itemGroup.id', 'DESC');
+      .orderBy('itemGroup.order', 'ASC');
 
     if (query?.withDeleted) {
       builder.withDeleted();
@@ -46,6 +47,9 @@ export class ItemGroupService extends TranslationHelper {
     }
     if (query?.excludeIds?.length) {
       builder.andWhere('itemGroup.id NOT IN(:...excludeIds)', { excludeIds: query.excludeIds });
+    }
+    if (query?.includeIds?.length) {
+      builder.andWhere('itemGroup.id IN(:...includeIds)', { includeIds: query.includeIds });
     }
 
     return builder;
@@ -60,11 +64,16 @@ export class ItemGroupService extends TranslationHelper {
   };
 
   public createOne = async (body: ItemGroupEntity) => {
-    const isExist = await this.exist({ code: body.code });
+    const [isExist, count] = await Promise.all([
+      this.exist({ code: body.code }),
+      ItemGroupEntity.count({ withDeleted: true }),
+    ]);
 
     if (isExist) {
       return { code: 2 };
     }
+
+    body.order = count;
 
     const itemGroup = await this.createEntityWithTranslations(ItemGroupEntity, ItemGroupTranslateEntity, body, 'group');
 
@@ -179,6 +188,18 @@ export class ItemGroupService extends TranslationHelper {
     });
 
     return itemGroup;
+  };
+
+  public sort = async (body: { id: number; }[], query: ItemGroupQueryInterface) => {
+    const updated: Pick<ItemGroupEntity, 'id' | 'order'>[] = [];
+
+    body.forEach(({ id }, order) => {
+      updated.push({ id, order });
+    });
+
+    await ItemGroupEntity.save(updated as ItemGroupEntity[]);
+
+    return this.findMany({ includeIds: body.map(({ id }) => id), ...query });
   };
 
   private getUrl = (itemGroup: Pick<ItemGroupEntity, 'code'>) => path.join(routes.homePage, catalogPath.slice(1), itemGroup.code).replaceAll('\\', '/');

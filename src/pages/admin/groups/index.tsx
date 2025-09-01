@@ -1,17 +1,23 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
 import axios from 'axios';
 import { maxBy } from 'lodash';
+import { HolderOutlined } from '@ant-design/icons';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DndContext, type DragEndEvent } from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newItemGroupValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItemGroup, deleteItemGroup, type ItemGroupResponseInterface, restoreItemGroup, updateItemGroup } from '@/slices/appSlice';
+import { addItemGroup, deleteItemGroup, type ItemGroupResponseInterface, restoreItemGroup, sortItemGroup, updateItemGroup } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
@@ -24,6 +30,7 @@ interface ItemGroupTableInterface {
   key: string;
   translations: Record<UserLangEnum, { name: string; description: string; }>;
   code: string;
+  order?: number;
   deleted?: Date;
 }
 
@@ -33,6 +40,20 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   title: string;
   record: ItemGroupTableInterface;
   index: number;
+}
+
+interface RowContextProps {
+  setActivatorNodeRef?: (element: HTMLElement | null) => void;
+  listeners?: SyntheticListenerMap;
+}
+
+interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  'data-row-key': string;
+}
+
+interface RowContextProps {
+  setActivatorNodeRef?: (element: HTMLElement | null) => void;
+  listeners?: SyntheticListenerMap;
 }
 
 const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
@@ -56,6 +77,23 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   </td>
 );
 
+const RowContext = createContext<RowContextProps>({});
+
+const UseDragHandle = () => {
+  const { setActivatorNodeRef, listeners } = useContext(RowContext);
+  return (
+    <Button
+      type="text"
+      size="small"
+      className="border-0"
+      icon={<HolderOutlined />}
+      style={{ cursor: 'move' }}
+      ref={setActivatorNodeRef}
+      {...listeners}
+    />
+  );
+};
+
 const CreateItemGroup = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.itemGroup' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -75,8 +113,48 @@ const CreateItemGroup = () => {
   const [form] = Form.useForm();
 
   const [data, setData] = useState<ItemGroupTableInterface[]>([]);
+  const [isSorting, setIsSorting] = useState(false);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
+
+  const Row: React.FC<RowProps> = (props) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      setActivatorNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: props['data-row-key'] });
+
+    const style: React.CSSProperties = {
+      ...props.style,
+      transform: CSS.Translate.toString(transform),
+      transition,
+      cursor: 'unset',
+      ...(isDragging ? { position: 'relative', zIndex: 9999 } : {}),
+    };
+
+    const contextValue = useMemo<RowContextProps>(() => ({ setActivatorNodeRef, listeners }), [setActivatorNodeRef, listeners]);
+
+    return (
+      <RowContext.Provider value={contextValue}>
+        <tr {...props} ref={setNodeRef} style={style} {...attributes} />
+      </RowContext.Provider>
+    );
+  };
+
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    if (active.id !== over?.id) {
+      setData((prevState) => {
+        const activeIndex = prevState.findIndex((record) => record.key === active?.id);
+        const overIndex = prevState.findIndex((record) => record.key === over?.id);
+        return arrayMove(prevState, activeIndex, overIndex);
+      });
+    }
+    setIsSorting(true);
+  };
 
   const updateData = (itemGroup: ItemGroupInterface, row?: ItemGroupTableInterface) => {
     const index = data.findIndex((group) => group.key.toString() === itemGroup.id.toString());
@@ -185,7 +263,47 @@ const CreateItemGroup = () => {
     setIsSubmit(false);
   };
 
+  const sort = async () => {
+    setIsSubmit(true);
+    const { hasUpdate, notSaved } = data.reduce((acc, itemGroup) => {
+      if (!itemGroup.code) {
+        acc.notSaved.push(itemGroup);
+      } else {
+        acc.hasUpdate.push({ id: +itemGroup.key });
+      }
+      return acc;
+    }, { hasUpdate: [], notSaved: [] } as { hasUpdate: { id: number; }[], notSaved: ItemGroupTableInterface[]; });
+
+    const { payload } = await dispatch(sortItemGroup(hasUpdate)) as { payload: { code: number; itemGroups: ItemGroupInterface[]; } };
+
+    setData([...(notSaved.length ? notSaved : []), ...payload.itemGroups].sort((a, b) => (a.order || 0) - (b.order || 0)).map((itemGroup) => {
+      if (!itemGroup.code) {
+        return itemGroup as ItemGroupTableInterface;
+      }
+      return {
+        ...itemGroup,
+        translations: {
+          [UserLangEnum.RU]: {
+            name: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
+            description: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.RU)?.description,
+          },
+          [UserLangEnum.EN]: {
+            name: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.EN)?.name,
+            description: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.EN)?.description,
+          },
+        },
+        key: (itemGroup as ItemGroupInterface).id.toString(),
+      } as ItemGroupTableInterface;
+    }));
+    setIsSubmit(false);
+  };
+
   const columns = [
+    {
+      key: 'sort',
+      width: 80,
+      render: () => <UseDragHandle />,
+    },
     {
       title: t('columns.name'),
       dataIndex: ['translations', UserLangEnum.RU, 'name'],
@@ -325,7 +443,7 @@ const CreateItemGroup = () => {
   }, [withDeleted]);
 
   useEffect(() => {
-    setData([...itemGroups].sort((a, b) => b.id - a.id).map((itemGroup) => ({
+    setData(itemGroups.map((itemGroup) => ({
       ...itemGroup,
       translations: {
         [UserLangEnum.RU]: {
@@ -340,6 +458,13 @@ const CreateItemGroup = () => {
       key: itemGroup.id.toString(),
     } as ItemGroupTableInterface)));
   }, [itemGroups.length]);
+
+  useEffect(() => {
+    if (isSorting) {
+      sort();
+      setIsSorting(false);
+    }
+  }, [isSorting]);
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
@@ -357,19 +482,23 @@ const CreateItemGroup = () => {
         </div>
       </div>
       <Form form={form} component={false} className="d-flex flex-column gap-3" style={{ width: '40%' }}>
-        <Table<ItemGroupTableInterface>
-          components={{
-            body: { cell: EditableCell },
-          }}
-          bordered
-          dataSource={data}
-          locale={{
-            emptyText: <NotFoundContent />,
-          }}
-          columns={mergedColumns}
-          rowClassName="editable-row"
-          pagination={false}
-        />
+        <DndContext modifiers={[restrictToVerticalAxis]} onDragEnd={onDragEnd}>
+          <SortableContext items={data.map(({ key }) => key)} strategy={verticalListSortingStrategy}>
+            <Table<ItemGroupTableInterface>
+              components={{
+                body: { cell: EditableCell, row: Row },
+              }}
+              bordered
+              dataSource={data}
+              locale={{
+                emptyText: <NotFoundContent />,
+              }}
+              columns={mergedColumns}
+              rowClassName="editable-row"
+              pagination={false}
+            />
+          </SortableContext>
+        </DndContext>
       </Form>
     </div>
   ) : null;
