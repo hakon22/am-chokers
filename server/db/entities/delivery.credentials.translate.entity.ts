@@ -18,7 +18,7 @@ export class DeliveryCredentialsTranslateEntity extends BaseEntity {
   public name: string;
 
   /** Служба доставки */
-  @Index()
+  @Index('delivery_credentials_translate__delivery_credentials_idx')
   @ManyToOne(() => DeliveryCredentialsEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

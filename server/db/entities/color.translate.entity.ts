@@ -18,7 +18,7 @@ export class ColorTranslateEntity extends BaseEntity {
   public name: string;
 
   /** Цвет */
-  @Index()
+  @Index('color_translate__color_idx')
   @ManyToOne(() => ColorEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

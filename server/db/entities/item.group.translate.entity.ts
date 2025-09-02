@@ -22,7 +22,7 @@ export class ItemGroupTranslateEntity extends BaseEntity {
   public description: string;
 
   /** Группа товара */
-  @Index()
+  @Index('item_group_translate__group_idx')
   @ManyToOne(() => ItemGroupEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

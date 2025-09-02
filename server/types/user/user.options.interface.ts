@@ -7,4 +7,6 @@ export interface UserOptionsInterface extends Partial<PaginationQueryInterface> 
   withDeleted?: boolean;
   /** С заказами */
   withOrders?: boolean;
+  /** Вместе с токенами */
+  withTokens?: boolean;
 }

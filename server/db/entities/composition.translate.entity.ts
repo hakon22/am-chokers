@@ -18,7 +18,7 @@ export class CompositionTranslateEntity extends BaseEntity {
   public name: string;
 
   /** Компонент */
-  @Index()
+  @Index('composition_translate__composition_idx')
   @ManyToOne(() => CompositionEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

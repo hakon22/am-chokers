@@ -26,7 +26,7 @@ export class ItemTranslateEntity extends BaseEntity {
   public length: string;
 
   /** Товар */
-  @Index()
+  @Index('item_translate__item_idx')
   @ManyToOne(() => ItemEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

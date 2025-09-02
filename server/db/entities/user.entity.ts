@@ -12,6 +12,7 @@ import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
+import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
 
 /** Пользователь */
 @Entity({
@@ -51,14 +52,6 @@ export class UserEntity extends BaseEntity {
   })
   public phone: string;
 
-  /** Refresh токены пользователя */
-  @Column('character varying', {
-    array: true,
-    name: 'refresh_token',
-    default: [],
-  })
-  public refreshTokens: string[];
-
   /** Уникальный id пользователя в Telegram */
   @Column('character varying', {
     name: 'telegram_id',
@@ -91,6 +84,10 @@ export class UserEntity extends BaseEntity {
   /** Заказы */
   @OneToMany(() => OrderEntity, order => order.user)
   public orders: OrderEntity[];
+
+  /** Refresh токены пользователя */
+  @OneToMany(() => UserRefreshTokenEntity, userRefreshToken => userRefreshToken.user)
+  public refreshTokens: UserRefreshTokenEntity[];
 
   /** Язык */
   @Column('enum', {

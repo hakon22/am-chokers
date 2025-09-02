@@ -18,7 +18,7 @@ export class ItemCollectionTranslateEntity extends BaseEntity {
   public name: string;
 
   /** Коллекция товара */
-  @Index()
+  @Index('item_collection_translate__collection_idx')
   @ManyToOne(() => ItemCollectionEntity, {
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',

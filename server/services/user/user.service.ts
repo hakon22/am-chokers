@@ -4,6 +4,7 @@ import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
+import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
 import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation, profileServerSchema } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
@@ -43,7 +44,6 @@ export class UserService extends BaseService {
         'user.name',
         'user.phone',
         'user.telegramId',
-        'user.refreshTokens',
         'user.role',
         'user.deleted',
         'user.created',
@@ -84,6 +84,13 @@ export class UserService extends BaseService {
     }
     if (options?.withPassword) {
       builder.addSelect('user.password');
+    }
+    if (options?.withTokens) {
+      builder
+        .leftJoin('user.refreshTokens', 'refreshTokens')
+        .addSelect([
+          'refreshTokens.refreshToken',
+        ]);
     }
     if (options?.withOrders) {
       builder
@@ -156,7 +163,7 @@ export class UserService extends BaseService {
         return;
       }
 
-      const { password, refreshTokens, ...rest } = user;
+      const { password, ...rest } = user;
 
       const isValidPassword = bcrypt.compareSync(body.password, password);
       if (!isValidPassword) {
@@ -167,13 +174,7 @@ export class UserService extends BaseService {
       const token = this.tokenService.generateAccessToken(user.id, user.phone);
       const refreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
 
-      if (!refreshTokens.length || refreshTokens.length > 4) {
-        user.refreshTokens = [refreshToken];
-      } else {
-        user.refreshTokens.push(refreshToken);
-      }
-
-      await UserEntity.update(user.id, { refreshTokens: user.refreshTokens });
+      await UserRefreshTokenEntity.insert({ refreshToken, user });
 
       res.json({
         code: 1,
@@ -204,7 +205,7 @@ export class UserService extends BaseService {
         return;
       } else if (code === 1 && user) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, refreshTokens, ...rest } = user;
+        const { password, ...rest } = user;
 
         res.json({ code: 1, user: { ...rest, token, refreshToken } });
       }
@@ -257,19 +258,37 @@ export class UserService extends BaseService {
     try {
       const { token, refreshToken, ...user } = this.getCurrentUser(req);
       const oldRefreshToken = req.get('Authorization')?.split(' ')[1] || req.headers.authorization;
+
       if (!oldRefreshToken) {
         throw new Error(user.lang === UserLangEnum.RU
           ? 'Пожалуйста, авторизуйтесь!'
           : 'Please log in!');
       }
-      const isRefresh = user.refreshTokens.includes(oldRefreshToken);
-      if (isRefresh) {
-        const newRefreshTokens = user.refreshTokens.filter((key) => key !== oldRefreshToken);
-        newRefreshTokens.push(refreshToken);
 
-        await UserEntity.update(user.id, { refreshTokens: newRefreshTokens });
+      const userRefreshTokens = user.refreshTokens.map(({ refreshToken: refresh }) => refresh);
+
+      const hasRefresh = userRefreshTokens.includes(oldRefreshToken);
+
+      if (hasRefresh) {
+        await this.databaseService
+          .getManager()
+          .transaction(async (manager) => {
+            const userRefreshTokenRepo = manager.getRepository(UserRefreshTokenEntity);
+
+            await userRefreshTokenRepo.insert({ refreshToken, user });
+
+            const userToken = await userRefreshTokenRepo.findOne({ where: { refreshToken: oldRefreshToken, user: { id: user.id } } });
+
+            if (!userToken) {
+              throw new Error(user.lang === UserLangEnum.RU
+                ? 'Токена не существует!'
+                : 'Token does not exist!');
+            }
+
+            await userRefreshTokenRepo.delete(userToken.id);
+          });
       } else {
-        this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${user.refreshTokens.join(', ')}`);
+        this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${userRefreshTokens.join(', ')}`);
         throw new Error(user.lang === UserLangEnum.RU
           ? 'Ошибка аутентификации. Войдите заново!'
           : 'Authentication error. Please log in again!');
@@ -289,11 +308,19 @@ export class UserService extends BaseService {
   public logout = async (req: Request, res: Response) => {
     try {
       const user = this.getCurrentUser(req);
-      const { refreshToken } = req.body as { refreshToken: string };
+      const { refreshToken } = req.body as { refreshToken: string; };
 
-      const refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken);
-      await UserEntity.update(user.id, { refreshTokens });
-      res.json({ status: 'Tokens has been deleted' });
+      const userToken = await UserRefreshTokenEntity.findOne({ where: { refreshToken, user: { id: user.id } } });
+
+      if (!userToken) {
+        throw new Error(user.lang === UserLangEnum.RU
+          ? 'Токена не существует!'
+          : 'Token does not exist!');
+      }
+
+      await UserRefreshTokenEntity.delete(userToken.id);
+
+      res.json({ code: 1 });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -453,6 +480,7 @@ export class UserService extends BaseService {
     }
 
     const userRepo = manager.getRepository(UserEntity);
+    const userRefreshTokenRepo = manager.getRepository(UserRefreshTokenEntity);
 
     const userPassword = password || await this.smsService.sendPass(user.phone, user.lang);
 
@@ -464,7 +492,7 @@ export class UserService extends BaseService {
     const createdToken = this.tokenService.generateAccessToken(createdUser.id, createdUser.phone);
     const createdRefreshToken = this.tokenService.generateRefreshToken(createdUser.id, createdUser.phone);
 
-    await userRepo.update(createdUser.id, { refreshTokens: [createdRefreshToken] });
+    await userRefreshTokenRepo.insert({ refreshToken: createdRefreshToken, user: createdUser });
 
     return { code: 1, user: createdUser, token: createdToken, refreshToken: createdRefreshToken };
   };
@@ -483,11 +511,9 @@ export class UserService extends BaseService {
 
       if (!user) {
         throw new Error(currentUser.lang === UserLangEnum.RU
-          ? `Пользователь с ID #${params.id} не существует`
-          : `User with ID #${params.id} does not exist`);
+          ? `Пользователь с номером #${params.id} не существует`
+          : `User with number #${params.id} does not exist`);
       }
-
-      user.refreshTokens = [];
 
       const result: UserCardInterface = {
         ...user,
