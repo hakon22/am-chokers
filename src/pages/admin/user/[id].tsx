@@ -70,12 +70,12 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
     {
       key: '5',
       label: t('signupDate'),
-      children: moment(user?.created).format(DateFormatEnum.DD_MM_YYYY),
+      children: moment(user?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
     },
     {
       key: '6',
       label: t('lastActivity'),
-      children: moment(user?.updated).format(DateFormatEnum.DD_MM_YYYY),
+      children: moment(user?.updated).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
     },
     {
       key: '7',

@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
+import moment from 'moment';
 import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
 
@@ -89,6 +90,7 @@ export class UserService extends BaseService {
       builder
         .leftJoin('user.refreshTokens', 'refreshTokens')
         .addSelect([
+          'refreshTokens.created',
           'refreshTokens.refreshToken',
         ]);
     }
@@ -503,7 +505,7 @@ export class UserService extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
 
       const [user, [, gradeCount], [, messageCount], cart] = await Promise.all([
-        this.findOne(params, { withDeleted: true, withOrders: true }),
+        this.findOne(params, { withDeleted: true, withOrders: true, withTokens: true }),
         this.gradeService.getMyGrades({} as FetchGradeInterface, params.id),
         this.messageService.messageReport({}, { userId: params.id }),
         this.cartService.findMany({ ...params, lang: currentUser.lang }, undefined, undefined, { withoutJoin: true }),
@@ -514,6 +516,9 @@ export class UserService extends BaseService {
           ? `Пользователь с номером #${params.id} не существует`
           : `User with number #${params.id} does not exist`);
       }
+
+      user.updated = moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate();
+      user.refreshTokens = [];
 
       const result: UserCardInterface = {
         ...user,
@@ -542,6 +547,10 @@ export class UserService extends BaseService {
           'user.created',
           'user.updated',
         ])
+        .leftJoin('user.refreshTokens', 'refreshTokens')
+        .addSelect([
+          'refreshTokens.created',
+        ])
         .orderBy('user.created', 'DESC');
 
       if (query?.limit && query?.offset) {
@@ -551,6 +560,10 @@ export class UserService extends BaseService {
       }
     
       const [items, count] = await builder.getManyAndCount();
+
+      items.forEach((user) => {
+        user.updated = moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate();
+      });
 
       const paginationParams = {
         count,

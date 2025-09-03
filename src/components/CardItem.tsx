@@ -215,23 +215,48 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
   const responsive = {
     desktop: {
       breakpoint: { max: 5000, min: 1400 },
-      items: 7,
+      items: 5,
+      partialVisibilityGutter: 50,
     },
-    midleDesktop: {
+    middleDesktop: {
       breakpoint: { max: 1400, min: 1200 },
       items: 6,
+      partialVisibilityGutter: 5,
+    },
+    largeTv: {
+      breakpoint: { max: 1200, min: 991 },
+      items: 5,
+      partialVisibilityGutter: 10,
     },
     tv: {
-      breakpoint: { max: 1200, min: 1024 },
-      items: 5,
+      breakpoint: { max: 991, min: 800 },
+      items: 4,
+      partialVisibilityGutter: 5,
+    },
+    largeTablet: {
+      breakpoint: { max: 800, min: 767 },
+      items: 3,
+      partialVisibilityGutter: 50,
+    },
+    middleTablet: {
+      breakpoint: { max: 767, min: 700 },
+      items: 3,
+      partialVisibilityGutter: 2,
     },
     tablet: {
-      breakpoint: { max: 1024, min: 700 },
-      items: 3,
+      breakpoint: { max: 700, min: 520 },
+      items: 2,
+      partialVisibilityGutter: 75,
+    },
+    largeMobile: {
+      breakpoint: { max: 520, min: 450 },
+      items: 2,
+      partialVisibilityGutter: 30,
     },
     mobile: {
-      breakpoint: { max: 700, min: 0 },
+      breakpoint: { max: 450, min: 0 },
       items: 2,
+      partialVisibilityGutter: 3,
     },
   };
 
@@ -523,48 +548,45 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
       <GradeList item={item} setItem={setItem} />
       {collectionItems?.length ? (
         <div className="d-flex flex-column align-items-start align-items-xl-end mt-5">
-          <h3 className="col-11 mb-5 text-uppercase">{t('otherItem')}</h3>
-          <div style={{ width: '98%' }}>
-            <Carousel
-              autoPlaySpeed={2000}
-              centerMode={false}
-              containerClass="col-12"
-              draggable={false}
-              focusOnSelect={false}
-              infinite
-              arrows={isMobile}
-              minimumTouchDrag={80}
-              partialVisible={false}
-              renderArrowsWhenDisabled={false}
-              renderButtonGroupOutside={false}
-              renderDotsOutside={false}
-              partialVisbile={false}
-              responsive={responsive}
-              rewind={false}
-              rewindWithAnimation={false}
-              rtl={false}
-              shouldResetAutoplay
-              showDots={false}
-              slidesToSlide={1}
-              swipeable
-              ssr
-              autoPlay
-            >
-              {collectionItems.map((collectionItem) => (
-                <ImageHover
-                  key={collectionItem.id}
-                  className="align-items-center"
-                  href={getHref(collectionItem)}
-                  height={height}
-                  width={width}
-                  images={collectionItem.images}
-                  name={collectionItem.translations.find((translation) => translation.lang === lang)?.name}
-                  rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
-                  description={tPrice('price', { price: collectionItem.price - collectionItem.discountPrice })}
-                />
-              ))}
-            </Carousel>
-          </div>
+          <h4 className="col-11 mb-5 text-uppercase">{t('otherItem')}</h4>
+          <Carousel
+            autoPlaySpeed={2000}
+            centerMode={false}
+            containerClass="col-12 col-xl-11"
+            draggable={false}
+            focusOnSelect={false}
+            infinite
+            arrows={true}
+            minimumTouchDrag={80}
+            partialVisible={false}
+            renderArrowsWhenDisabled={false}
+            renderButtonGroupOutside={false}
+            renderDotsOutside={false}
+            partialVisbile={true}
+            responsive={responsive}
+            rewind={false}
+            rewindWithAnimation={false}
+            rtl={false}
+            shouldResetAutoplay
+            showDots={false}
+            slidesToSlide={1}
+            swipeable
+            ssr
+            autoPlay
+          >
+            {collectionItems.map((collectionItem) => (
+              <ImageHover
+                key={collectionItem.id}
+                href={getHref(collectionItem)}
+                height={height}
+                width={width}
+                images={collectionItem.images}
+                name={collectionItem.translations.find((translation) => translation.lang === lang)?.name}
+                rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
+                description={tPrice('price', { price: collectionItem.price - collectionItem.discountPrice })}
+              />
+            ))}
+          </Carousel>
         </div>
       ) : null}
     </div>
