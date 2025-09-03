@@ -81,9 +81,9 @@ export class ItemController extends BaseService {
       const user = this.getCurrentUser(req);
       const query = await queryTranslateNameParams.validate(req.query);
 
-      const item = await this.itemService.getByName(query, user.lang);
+      const { item, collectionItems } = await this.itemService.getByName(query, user.lang);
 
-      res.json({ code: 1, item });
+      res.json({ code: 1, item, collectionItems });
     } catch (e) {
       this.errorHandler(e, res);
     }

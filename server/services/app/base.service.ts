@@ -37,10 +37,10 @@ export abstract class BaseService {
             return;
           }
           const adminText = adminUser.lang === UserLangEnum.RU ? [
-            `Ошибка на сервере <b>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}</b>:`,
+            `Ошибка на сервере <b>${process.env.NEXT_PUBLIC_APP_NAME}</b>:`,
             `<pre><code class="language-typescript">${e.stack}</code></pre>`,
           ] : [
-            `Error on <b>${process.env.NEXT_PUBLIC_PRODUCTION_HOST}</b> server:`,
+            `Error on <b>${process.env.NEXT_PUBLIC_APP_NAME}</b> server:`,
             `<pre><code class="language-typescript">${e.stack}</code></pre>`,
           ];
 

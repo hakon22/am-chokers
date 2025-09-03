@@ -495,6 +495,18 @@ const appSlice = createSlice({
       .addCase(sortItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(publishItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(publishItem.fulfilled, (state) => {
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(publishItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
       });
   },
 });

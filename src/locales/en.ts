@@ -802,6 +802,7 @@ export default {
         cancel: 'Cancel',
         publish: 'Published {{ date }}',
         collection: '{{ name }}',
+        otherItem: 'Other items in this collection',
         grades: {
           gradeCount_zero: 'No reviews',
           gradeCount_one: '{{ count }} review',

@@ -265,8 +265,8 @@ export class ItemService extends TranslationHelper {
     return item;
   };
 
-  public findMany = async (query?: ItemQueryInterface) => {
-    const builder = this.createQueryBuilder({ ...query, withDeleted: true });
+  public findMany = async (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true }, options);
 
     return builder.getMany();
   };
@@ -508,7 +508,13 @@ export class ItemService extends TranslationHelper {
         : `There is no item named ${query.translateName}.`);
     }
 
-    return item;
+    let collectionItems: ItemEntity[] = [];
+
+    if (item.collection) {
+      collectionItems = await this.findMany({ collectionIds: [item.collection.id], excludeIds: [item.id] }, { withGrades: true });
+    }
+
+    return { item, collectionItems };
   };
 
   public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {

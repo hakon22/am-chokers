@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 import moment from 'moment';
 import Image from 'next/image';
 import { Telegram } from 'react-bootstrap-icons';
+import Carousel from 'react-multi-carousel';
 import axios from 'axios';
 
 import telegramIcon from '@/images/icons/telegram.svg';
@@ -28,6 +29,8 @@ import { ItemContext, MobileContext, SubmitContext } from '@/components/Context'
 import { getHeight } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { ImageHover } from '@/components/ImageHover';
+import { getHref } from '@/utilities/getHref';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
@@ -166,11 +169,12 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       ) : null;
 };
 
-export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface; }) => {
+export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams }: { item: ItemInterface; collectionItems?: ItemInterface[]; paginationParams: PaginationInterface; }) => {
   const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
+  const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   const galleryRef = useRef<ImageGallery>(null);
 
@@ -185,6 +189,11 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const name = position?.name;
   const description = position?.description;
   const length = position?.length;
+
+  const coefficient = 1.3;
+
+  const width = 150;
+  const height = width * coefficient;
 
   const urlParams = useSearchParams();
   const editParams = urlParams.get('edit');
@@ -202,6 +211,29 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
 
   const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
+
+  const responsive = {
+    desktop: {
+      breakpoint: { max: 5000, min: 1400 },
+      items: 7,
+    },
+    midleDesktop: {
+      breakpoint: { max: 1400, min: 1200 },
+      items: 6,
+    },
+    tv: {
+      breakpoint: { max: 1200, min: 1024 },
+      items: 5,
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 700 },
+      items: 3,
+    },
+    mobile: {
+      breakpoint: { max: 700, min: 0 },
+      items: 2,
+    },
+  };
 
   const updateItem = (value: ItemInterface) => {
     setItem(value);
@@ -483,6 +515,52 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
         </div>
       </div>
       <GradeList item={item} setItem={setItem} />
+      {collectionItems?.length ? (
+        <div className="d-flex flex-column align-items-start align-items-xl-end mt-5">
+          <h3 className="col-11 mb-5 text-uppercase">{t('otherItem')}</h3>
+          <div style={{ width: '98%' }}>
+            <Carousel
+              autoPlaySpeed={2000}
+              centerMode={false}
+              containerClass="col-12"
+              draggable={false}
+              focusOnSelect={false}
+              infinite
+              arrows={isMobile}
+              minimumTouchDrag={80}
+              partialVisible={false}
+              renderArrowsWhenDisabled={false}
+              renderButtonGroupOutside={false}
+              renderDotsOutside={false}
+              partialVisbile={false}
+              responsive={responsive}
+              rewind={false}
+              rewindWithAnimation={false}
+              rtl={false}
+              shouldResetAutoplay
+              showDots={false}
+              slidesToSlide={1}
+              swipeable
+              ssr
+              autoPlay
+            >
+              {collectionItems.map((collectionItem) => (
+                <ImageHover
+                  key={collectionItem.id}
+                  className="align-items-center"
+                  href={getHref(collectionItem)}
+                  height={height}
+                  width={width}
+                  images={collectionItem.images}
+                  name={collectionItem.translations.find((translation) => translation.lang === lang)?.name}
+                  rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
+                  description={tPrice('price', { price: collectionItem.price - collectionItem.discountPrice })}
+                />
+              ))}
+            </Carousel>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

@@ -102,7 +102,14 @@ export class TelegramService {
         return { ...data, text, history: messageHistory };
       }
     } catch (e) {
-      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
+      let errorMessage;
+      if (axios.isAxiosError(e)) {
+        errorMessage = e.response?.data?.description;
+      } else {
+        errorMessage = e;
+      }
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
@@ -134,7 +141,14 @@ export class TelegramService {
         return { ...data, text, history: messageHistory };
       }
     } catch (e) {
-      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
+      let errorMessage;
+      if (axios.isAxiosError(e)) {
+        errorMessage = e.response?.data?.description;
+      } else {
+        errorMessage = e;
+      }
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, errorMessage);
+      throw new Error(errorMessage);
     }
   };
 

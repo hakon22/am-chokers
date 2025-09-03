@@ -802,6 +802,7 @@ export default {
         cancel: 'Отменить',
         publish: 'Опубликовано {{ date }}',
         collection: '{{ name }}',
+        otherItem: 'Другие товары этой коллекции',
         grades: {
           gradeCount_zero: 'Отзывов нет',
           gradeCount_one: '{{ count }} отзыв',
