@@ -256,12 +256,18 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
   }, [paginationParams]);
 
   useEffect(() => {
+    if (item.id !== id) {
+      setItem(fetchedItem);
+    }
+  }, [id]);
+
+  useEffect(() => {
     setContextItem(item);
 
     return () => {
       setContextItem(undefined);
     };
-  }, []);
+  }, [item.translateName]);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
     <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>

@@ -511,7 +511,8 @@ export class ItemService extends TranslationHelper {
     let collectionItems: ItemEntity[] = [];
 
     if (item.collection) {
-      collectionItems = await this.findMany({ collectionIds: [item.collection.id], excludeIds: [item.id] }, { withGrades: true });
+      const itemCollectionBuilder = this.createQueryBuilder({ collectionIds: [item.collection.id], excludeIds: [item.id] }, { withGrades: true });
+      collectionItems = await itemCollectionBuilder.getMany();
     }
 
     return { item, collectionItems };
