@@ -4,9 +4,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 import { OrderEntity } from '@server/db/entities/order.entity';
+import { ItemEntity } from '@server/db/entities/item.entity';
 
 /** Промокоды */
 @Entity({
@@ -70,6 +73,21 @@ export class PromotionalEntity extends BaseEntity {
     default: true,
   })
   public active: boolean;
+
+  /** Товары, на которых действует данный промокод */
+  @ManyToMany(() => ItemEntity, item => item.promotionals)
+  @JoinTable({
+    name: 'promotional_item',
+    joinColumn: {
+      name: 'promotional_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'item_id',
+      referencedColumnName: 'id',
+    },
+  })
+  public items: ItemEntity[];
 
   /** Заказы */
   @OneToMany(() => OrderEntity, order => order.promotional)

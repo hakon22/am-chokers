@@ -142,13 +142,13 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       classNames: { header: 'pt-1' },
       label: (
         <div className="d-flex align-items-center justify-content-between">
-          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('type')}</span>
+          <span className="font-oswald text-uppercase fw-400">{t('type')}</span>
           {initialValues.itemGroups?.length ? <Badge count={initialValues.itemGroups.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="itemGroups">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" style={{ fontWeight: 300 }} options={itemGroup && !isMobile ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={itemGroup && !isMobile ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
         </Form.Item>
       ),
     },
@@ -156,7 +156,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       key: '2',
       label: (
         <div className="d-flex align-items-center justify-content-between">
-          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('materials')}</span>
+          <span className="font-oswald text-uppercase fw-400">{t('materials')}</span>
           {initialValues.compositions?.length ? <Badge count={initialValues.compositions.length} color="#69788e" /> : null}
         </div>
       ),
@@ -175,7 +175,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
               }
             }} />
           <Form.Item<CatalogFiltersInterface>>
-            <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" value={initialValues.compositions} onChange={setValueCompositions} style={{ fontWeight: 300 }} options={compositionsFilterOptions} />
+            <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" value={initialValues.compositions} onChange={setValueCompositions} options={compositionsFilterOptions} />
           </Form.Item>
         </div>
       ),
@@ -184,13 +184,13 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       key: '3',
       label: (
         <div className="d-flex align-items-center justify-content-between">
-          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('collections')}</span>
+          <span className="font-oswald text-uppercase fw-400">{t('collections')}</span>
           {initialValues.itemCollections?.length ? <Badge count={initialValues.itemCollections.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="itemCollections">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" style={{ fontWeight: 300 }} options={itemCollectionsFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={itemCollectionsFilterOptions} />
         </Form.Item>
       ),
     },
@@ -198,7 +198,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       key: '4',
       label: (
         <div className="d-flex align-items-center justify-content-between">
-          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('price.title')}</span>
+          <span className="font-oswald text-uppercase fw-400">{t('price.title')}</span>
           {initialValues.from || initialValues.to ? <Badge count={(initialValues.from ? 1 : 0) + (initialValues.to ? 1 : 0)} color="#69788e" /> : null}
         </div>
       ),
@@ -217,17 +217,17 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       key: '5',
       label: (
         <div className="d-flex align-items-center justify-content-between">
-          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('additionally.title')}</span>
+          <span className="font-oswald text-uppercase fw-400">{t('additionally.title')}</span>
           {initialValues.new || initialValues.bestseller ? <Badge count={(initialValues.new ? 1 : 0) + (initialValues.bestseller ? 1 : 0)} color="#69788e" /> : null}
         </div>
       ),
       children: (
         <>
           <Form.Item<CatalogFiltersInterface> name="new" className="mb-2" valuePropName="checked">
-            <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.new')}</Checkbox>
+            <Checkbox className="d-flex align-items-center gap-2 custom-size fw-300">{t('additionally.new')}</Checkbox>
           </Form.Item>
           <Form.Item<CatalogFiltersInterface> name="bestseller" valuePropName="checked">
-            <Checkbox className="d-flex align-items-center gap-2 custom-size" style={{ fontWeight: 300 }}>{t('additionally.bestseller')}</Checkbox>
+            <Checkbox className="d-flex align-items-center gap-2 custom-size fw-300">{t('additionally.bestseller')}</Checkbox>
           </Form.Item>
         </>
       ),
@@ -236,13 +236,13 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       key: '6',
       label: (
         <div className="d-flex align-items-center justify-content-between">
-          <span className="font-oswald text-uppercase" style={{ fontWeight: 400 }}>{t('colors')}</span>
+          <span className="font-oswald text-uppercase fw-400">{t('colors')}</span>
           {initialValues.colors?.length ? <Badge count={initialValues.colors.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="colors">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center" style={{ fontWeight: 300 }} options={colorsFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={colorsFilterOptions} />
         </Form.Item>
       ),
     },

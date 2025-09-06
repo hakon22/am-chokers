@@ -111,6 +111,8 @@ export class OrderService extends BaseService {
           'promotional.discountPercent',
           'promotional.freeDelivery',
         ])
+        .leftJoin('promotional.items', 'items')
+        .addSelect('items.id')
         .leftJoin('order.transactions', 'transactions')
         .addSelect([
           'transactions.id',

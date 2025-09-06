@@ -4,13 +4,16 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import { BaseService } from '@server/services/app/base.service';
-import { newPromotionalValidation } from '@/validations/validations';
+import { CartService } from '@server/services/cart/cart.service';
+import { newPromotionalValidation, queryActivatePromotionalParams } from '@/validations/validations';
 import { PromotionalService } from '@server/services/promotional/promotional.service';
-import { paramsIdSchema, queryPromotionalParams, queryNameParams } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryPromotionalParams } from '@server/utilities/convertation.params';
 
 @Singleton
 export class PromotionalController extends BaseService {
   private readonly promotionalService = Container.get(PromotionalService);
+
+  private readonly cartService = Container.get(CartService);
 
   public findOne = async (req: Request, res: Response) => {
     try {
@@ -28,7 +31,7 @@ export class PromotionalController extends BaseService {
 
   public findByName = async (req: Request, res: Response) => {
     try {
-      const query = await queryNameParams.validate(req.query);
+      const query = await queryActivatePromotionalParams.validate(req.query);
 
       const promotional = await this.promotionalService.findByName(query);
 
@@ -40,6 +43,17 @@ export class PromotionalController extends BaseService {
       if (!moment().isBetween(moment(promotional.start), moment(promotional.end), 'day', '[]') || !promotional.active) {
         res.json({ code: 3 });
         return;
+      }
+
+      if (promotional.items.length) {
+        const cart = await this.cartService.findMany(null, undefined, { ids: query.cartIds });
+
+        const cartItemIds = cart.map(({ item }) => item.id);
+
+        if (!promotional.items.some(({ id }) => cartItemIds.includes(id))) {
+          res.json({ code: 4 });
+          return;
+        }
       }
 
       res.json({ code: 1, promotional });

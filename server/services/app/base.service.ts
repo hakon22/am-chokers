@@ -29,7 +29,7 @@ export abstract class BaseService {
       error = `${e?.name}: "${e?.path}" ${e?.message}`;
     }
 
-    if (e instanceof Error && e.stack && process.env.TELEGRAM_CHAT_ID) {
+    if (e instanceof Error && e.stack && process.env.TELEGRAM_CHAT_ID && process.env.NODE_ENV === 'production') {
       UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: process.env.TELEGRAM_CHAT_ID } })
         .then((adminUser) => adminUser)
         .then((adminUser) => {

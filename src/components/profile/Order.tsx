@@ -151,7 +151,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                           images={orderPosition.item.images}
                         />
                         <div className="d-flex flex-column justify-content-between fs-6" style={{ height }}>
-                          <span className="font-oswald fs-6 lh-1" style={{ fontWeight: 500 }}>{orderPosition.item.translations.find((translation) => translation.lang === lang)?.name}</span>
+                          <span className="font-oswald fs-6 lh-1 fw-500">{orderPosition.item.translations.find((translation) => translation.lang === lang)?.name}</span>
                           <span className="lh-1">{t('countPrice', { count: orderPosition.count, price: (orderPosition.price - orderPosition.discountPrice) * orderPosition.count })}</span>
                         </div>
                       </div>
@@ -195,48 +195,48 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                   <div className="d-flex flex-column gap-4 fs-6 font-oswald lh-1">
                     <div className="d-flex justify-content-between">
                       <span>{tCart('deliveryType')}</span>
-                      <span className="fw-bold">{getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}</span>
+                      <span className="fw-500">{getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}</span>
                     </div>
                     <div className="d-flex justify-content-between">
                       <span className="col-5">{t('deliveryAddress')}</span>
-                      <span className="text-end fw-bold col-7 text-wrap">{order.delivery.address}</span>
+                      <span className="text-end fw-500 col-7 text-wrap">{order.delivery.address}</span>
                     </div>
                     {order.delivery.index && (
                       <div className="d-flex justify-content-between">
                         <span>{t('mailIndex')}</span>
-                        <span className="fw-bold">{order.delivery.index}</span>
+                        <span className="fw-500">{order.delivery.index}</span>
                       </div>
                     )}
                     {order.delivery.mailType && (
                       <div className="d-flex justify-content-between">
                         <span>{t('deliveryType')}</span>
-                        <span className="fw-bold">{getRussianPostRussianPostTranslate(order.delivery.mailType, lang as UserLangEnum)}</span>
+                        <span className="fw-500">{getRussianPostRussianPostTranslate(order.delivery.mailType, lang as UserLangEnum)}</span>
                       </div>
                     )}
                     <div className="d-flex justify-content-between">
                       <span>{t('deliveryAmount')}</span>
-                      <span className="fw-bold">{order.deliveryPrice ? tOrders('price', { price: order.deliveryPrice }) : tCart('free')}</span>
+                      <span className="fw-500">{order.deliveryPrice ? tOrders('price', { price: order.deliveryPrice }) : tCart('free')}</span>
                     </div>
                     <div className="d-flex justify-content-between">
                       <span>{t('itemsAmount')}</span>
-                      <span className="fw-bold">{tOrders('price', { price: getPositionsPrice(order.positions, 0, true) })}</span>
+                      <span className="fw-500">{tOrders('price', { price: getPositionsPrice(order.positions, 0, true) })}</span>
                     </div>
                     {order.positions.some((position) => position.discountPrice) && (
                       <div className="d-flex justify-content-between">
                         <span>{t('discount')}</span>
-                        <span className="fw-bold text-danger">{`- ${tOrders('price', { price: order.positions.reduce((acc, { discountPrice }) => acc + discountPrice, 0) })}`}</span>
+                        <span className="fw-500 text-danger">{`- ${tOrders('price', { price: order.positions.reduce((acc, { discountPrice }) => acc + discountPrice, 0) })}`}</span>
                       </div>
                     )}
                     {order.promotional && (
                       <div className="d-flex justify-content-between">
                         <span>{tOrders('promotional')}</span>
-                        <span className="fw-bold text-danger">{`- ${tOrders('price', { price: getOrderDiscount(order) })}`}</span>
+                        <span className="fw-500 text-danger">{`- ${tOrders('price', { price: getOrderDiscount(order) })}`}</span>
                       </div>
                     )}
                   </div>
                   <div className="d-flex justify-content-between fs-5 font-oswald fw-bold">
                     <span>{tCart('total')}</span>
-                    <span className="fw-bold">{tOrders('price', { price: getOrderPrice(order) })}</span>
+                    <span>{tOrders('price', { price: getOrderPrice(order) })}</span>
                   </div>
                 </div>
               </div>

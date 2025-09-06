@@ -17,6 +17,7 @@ import { UserEntity } from '@server/db/entities/user.entity';
 import { CompositionEntity } from '@server/db/entities/composition.entity';
 import { ColorEntity } from '@server/db/entities/color.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
+import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
 
 /** Товар */
@@ -146,6 +147,10 @@ export class ItemEntity extends BaseEntity {
   @ManyToMany(() => UserEntity, user => user.favorites)
   public users: UserEntity[];
 
+  /** Промокоды, которые действуют на данную позицию */
+  @ManyToMany(() => PromotionalEntity, promotional => promotional.items)
+  public promotionals: PromotionalEntity[];
+
   /** Рейтинг товара */
   @OneToOne(() => RatingEntity, rating => rating.item)
   public rating?: RatingEntity;
@@ -164,7 +169,7 @@ export class ItemEntity extends BaseEntity {
   @JoinColumn({
     name: 'message_id',
   })
-  public message?: MessageEntity;
+  public message?: MessageEntity | null;
 
   /** Локализации товара */
   @OneToMany(() => ItemTranslateEntity, translate => translate.item)

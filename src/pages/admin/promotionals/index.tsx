@@ -1,14 +1,16 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag, DatePicker, InputNumber } from 'antd';
+import { Button, Form, Input, Select, type TableProps, Table, Popconfirm, Checkbox, Tag, DatePicker, InputNumber, type SelectProps, Spin, type FormInstance } from 'antd';
 import axios from 'axios';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import moment, { type Moment } from 'moment';
-import { maxBy } from 'lodash';
+import { debounce, maxBy } from 'lodash';
 import type { TFunction } from 'i18next';
 import type { ValidationError } from 'yup';
+import type { LabeledValue } from 'antd/lib/select';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/utilities/hooks';
@@ -24,6 +26,9 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { locale } from '@/locales/pickers.locale.ru';
 import type { PromotionalFormInterface, PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
+import type { ItemInterface } from '@/types/item/Item';
+import type { PaginationEntityInterface } from '@/types/PaginationInterface';
+import type { ItemEntity } from '@server/db/entities/item.entity';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
@@ -37,6 +42,7 @@ interface PromotionalTableInterface {
   start: Date | Moment | string | null;
   end: Date | Moment | string | null;
   active: boolean;
+  items: (ItemEntity | LabeledValue)[];
   orders?: { id: number; }[];
   deleted?: Date;
 }
@@ -47,16 +53,93 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   title: string;
   record: PromotionalTableInterface;
   index: number;
+  t: TFunction;
   tValidation: TFunction;
   lang: UserLangEnum;
+  form: FormInstance;
+  items: ItemInterface[];
+  setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>;
+  fetchItems: (search: string) => any;
 }
 
-const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, editing = true) => {
+interface DebounceSelectProps<ValueType = any> extends Omit<SelectProps<ValueType | ValueType[]>, 'options' | 'children'> {
+  t: TFunction;
+  fetchOptions: (search: string) => Promise<ValueType[]>;
+  debounceTimeout?: number;
+}
+
+const DebounceSelect = <ValueType extends LabeledValue & { id: number; button?: JSX.Element; } = any>({ fetchOptions, t, debounceTimeout = 300, ...props }: DebounceSelectProps<ValueType>) => {
+  const [fetching, setFetching] = useState(false);
+  const [options, setOptions] = useState<ValueType[]>([]);
+  const fetchRef = useRef(0);
+
+  const debounceFetcher = useMemo(() => {
+    const loadOptions = (value: string) => {
+      fetchRef.current += 1;
+      const fetchId = fetchRef.current;
+      setOptions([]);
+      setFetching(true);
+
+      fetchOptions(value).then((newOptions) => {
+        if (fetchId !== fetchRef.current) {
+          return;
+        }
+
+        setOptions(newOptions);
+        setFetching(false);
+      });
+    };
+
+    return debounce(loadOptions, debounceTimeout);
+  }, [fetchOptions, debounceTimeout]);
+
+  return (
+    <Select
+      labelInValue
+      filterOption={false}
+      onSearch={debounceFetcher}
+      notFoundContent={fetching ? <Spin size="small" /> : t('searchNotFound')}
+      options={options}
+      optionRender={(option) => option.data.button}
+      {...props}
+    />
+  );
+};
+
+const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, form: FormInstance, items: ItemInterface[], t: TFunction, setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>, fetchItems: (search: string) => any, editing = true) => {
   if (['start', 'end'].includes(dataIndex)) {
     return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />;
   }
   if (['active', 'freeDelivery'].includes(dataIndex)) {
     return <Checkbox checked={dataIndex === 'active' ? record.active : record.freeDelivery} />;
+  }
+  if (['items'].includes(dataIndex)) {
+    const source = editing ? items : record.items as ItemEntity[];
+    const values = source.map((item) => ({
+      key: item.id.toString(),
+      label: item.translations.find((translation) => translation.lang === lang)?.name as string,
+      value: item.id,
+      id: item.id,
+    }));
+    return editing ? (
+      <DebounceSelect
+        mode="multiple"
+        value={values}
+        t={t}
+        placeholder={t('itemsPlaceholder')}
+        fetchOptions={fetchItems}
+        onChange={(newValue) => {
+          if (Array.isArray(newValue)) {
+            const newItems = newValue.map((item) => ({
+              id: item.value,
+              translations: [{ name: item.label, lang }],
+            } as ItemInterface));
+            setItems(newItems);
+            form.setFieldValue('items', newValue);
+          }
+        }}
+      />
+    ) : <Select className="w-100" mode="multiple" disabled value={values} />;
   }
   return ['discount', 'discountPercent'].includes(dataIndex) ? <InputNumber placeholder={title} /> : <Input placeholder={title} />;
 };
@@ -67,8 +150,13 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   title,
   record,
   children,
+  t,
   tValidation,
   lang,
+  form,
+  items,
+  setItems,
+  fetchItems,
 }) => (
   <td className={['active', 'freeDelivery'].includes(dataIndex) ? 'text-center' : undefined}>
     {editing ? (
@@ -118,9 +206,9 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
             : [newPromotionalValidation]}
         valuePropName={['active', 'freeDelivery'].includes(dataIndex) ? 'checked' : undefined}
       >
-        {getFields(dataIndex, title, record, lang)}
+        {getFields(dataIndex, title, record, lang, form, items, t, setItems, fetchItems)}
       </Form.Item>
-    ) : !dataIndex || ['name', 'description', 'discountPercent', 'discount'].includes(dataIndex) ? children : getFields(dataIndex, title, record, lang, false)}
+    ) : !dataIndex || ['name', 'description', 'discountPercent', 'discount'].includes(dataIndex) ? children : getFields(dataIndex, title, record, lang, form, items, t, setItems, fetchItems, false)}
   </td>
 );
 
@@ -145,6 +233,7 @@ const CreatePromotional = () => {
 
   const [promotionals, setPromotionals] = useState<PromotionalInterface[]>([]);
   const [data, setData] = useState<PromotionalTableInterface[]>([]);
+  const [items, setItems] = useState<ItemInterface[]>([]);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
   const [withExpired, setWithExpired] = useState<boolean | undefined>(booleanSchema.validateSync(withExpiredParams));
@@ -171,6 +260,12 @@ const CreatePromotional = () => {
   const isEditing = (record: PromotionalTableInterface) => record.key === editingKey;
 
   const edit = (record: Partial<PromotionalTableInterface> & { key: React.Key }) => {
+    setItems(record.items as ItemEntity[]);
+    record.items = (record.items as ItemEntity[]).map(item => ({
+      key: item.id.toString(),
+      label: item.translations.find((translation) => translation.lang === lang)?.name as string,
+      value: item.id,
+    }));
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
@@ -193,6 +288,7 @@ const CreatePromotional = () => {
       end: null,
       active: true,
       freeDelivery: false,
+      items: [],
       key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
@@ -232,6 +328,12 @@ const CreatePromotional = () => {
 
   const save = async (record: PromotionalTableInterface) => {
     try {
+      form.setFieldValue('items', items.map((item) => ({
+        key: item.id.toString(),
+        label: item.translations.find((translation) => translation.lang === lang)?.name as string,
+        value: item.id,
+        ...item,
+      })));
       setIsSubmit(true);
       const row = await form.validateFields().catch(() => setIsSubmit(false)) as PromotionalTableInterface;
 
@@ -246,18 +348,18 @@ const CreatePromotional = () => {
         row.end = row.end.format(DateFormatEnum.YYYY_MM_DD);
       }
 
-      const { name, description, discount, discountPercent, freeDelivery, start, end, active } = row;
+      const { name, description, discount, discountPercent, freeDelivery, start, end, active, items: rowItems } = row;
 
       const exist = promotionals.find((promotional) => promotional.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.updatePromotional(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.updatePromotional(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
         if (code === 1) {
           updateData(promotional, row);
         }
       } else {
-        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.createPromotional, { name, description, discount, discountPercent, start, end, active, freeDelivery } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.createPromotional, { name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
         if (code === 1) {
-          setPromotionals((state) => [...state, promotional]);
+          setPromotionals((state) => [promotional, ...state]);
           setEditingKey('');
         } else if (code === 2) {
           form.setFields([{ name: 'name', errors: [tToast('promotionalExist', { name })] }]);
@@ -270,11 +372,40 @@ const CreatePromotional = () => {
     }
   };
 
+  const fetchItems = async (search: string) => {
+    let result: { label: string; value: number; }[] = [];
+    try {
+      const response = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: true }), {
+        params: { search, limit: 10, offset: 0 },
+      });
+      if (response.data.code === 1) {
+        result = response.data.items.map((item) => ({
+          label: item.translations.find((translation) => translation.lang === lang)?.name as string,
+          value: item.id,
+          button: (
+            <Button
+              className="w-100 h-100 py-0 ps-0 pe-5 d-flex justify-content-between align-items-center"
+              title={item.translations.find((translation) => translation.lang === lang)?.name}
+            >
+              {item.images[0].src.endsWith('.mp4')
+                ? <video src={item.images[0].src} width={60} height={60} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
+                : <Image alt={item.translations.find((translation) => translation.lang === lang)?.name as string} width={60} height={60} unoptimized src={item.images[0].src} />
+              }
+              <span className="fs-6 text-wrap">{item.translations.find((translation) => translation.lang === lang)?.name}</span>
+            </Button>
+          ),
+        }));
+      }
+    } catch (e) {
+      axiosErrorHandler(e, tToast);
+    }
+    return result;
+  };
+
   const columns = [
     {
       title: t('columns.name'),
       dataIndex: 'name',
-      width: '20%',
       editable: true,
       render: (_: any, record: PromotionalTableInterface) => (
         <div className="d-flex align-items-center gap-3">
@@ -292,43 +423,42 @@ const CreatePromotional = () => {
     {
       title: t('columns.description'),
       dataIndex: 'description',
-      width: '20%',
       editable: true,
     },
     {
       title: t('columns.discountPercent'),
       dataIndex: 'discountPercent',
-      width: '10%',
       editable: true,
     },
     {
       title: t('columns.discount'),
       dataIndex: 'discount',
-      width: '10%',
       editable: true,
     },
     {
       title: t('columns.freeDelivery'),
       dataIndex: 'freeDelivery',
-      width: '5%',
       editable: true,
     },
     {
       title: t('columns.start'),
       dataIndex: 'start',
-      width: '20%',
       editable: true,
     },
     {
       title: t('columns.end'),
       dataIndex: 'end',
-      width: '20%',
+      editable: true,
+    },
+    {
+      title: t('columns.items'),
+      dataIndex: 'items',
+      width: '300px',
       editable: true,
     },
     {
       title: t('columns.active'),
       dataIndex: 'active',
-      width: '5%',
       editable: true,
     },
     {
@@ -381,8 +511,13 @@ const CreatePromotional = () => {
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record),
+        t,
         tValidation,
         lang,
+        form,
+        items,
+        setItems,
+        fetchItems,
       }),
     };
   });
@@ -471,6 +606,7 @@ const CreatePromotional = () => {
           locale={{
             emptyText: <NotFoundContent />,
           }}
+          scroll={{ x: 'max-content' }}
           columns={mergedColumns}
           rowClassName="editable-row"
           pagination={false}

@@ -427,10 +427,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
             <div className="d-flex flex-column">
               <div className="d-flex flex-column flex-xl-row">
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'name']} className="mb-4 large-input col-12 col-xl-6" rules={[newItemValidation]}>
-                  <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.name')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
+                  <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.name')} className="fw-500" style={{ fontSize: '1.75rem !important' }} />
                 </Form.Item>
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.EN, 'name']} className="mb-4 large-input col-12 col-xl-6" rules={[newItemValidation]}>
-                  <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.nameEn')} style={{ fontSize: '1.75rem !important', fontWeight: 500 }} />
+                  <Input variant={isMobile ? 'outlined' : 'borderless'} size="large" placeholder={t('placeholders.nameEn')} className="fw-500" style={{ fontSize: '1.75rem !important' }} />
                 </Form.Item>
               </div>
               <div className="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center mb-4">

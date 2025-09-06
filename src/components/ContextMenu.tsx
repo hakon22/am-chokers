@@ -188,7 +188,10 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
                     className="w-100 h-100 py-0 ps-0 pe-5 d-flex justify-content-between align-items-center"
                     title={translations.find((translation) => translation.lang === lang)?.name}
                   >
-                    <Image alt={translations.find((translation) => translation.lang === lang)?.name as string} width={100} height={100} unoptimized src={images[0].src} />
+                    {images[0].src.endsWith('.mp4')
+                      ? <video src={images[0].src} width={100} height={100} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
+                      : <Image alt={translations.find((translation) => translation.lang === lang)?.name as string} width={100} height={100} unoptimized src={images[0].src} />
+                    }
                     <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}</span>
                   </Button>,
                   value: id,

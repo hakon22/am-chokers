@@ -91,10 +91,6 @@ export const queryOrderParams = queryPaginationSchema.concat(
   })),
 );
 
-export const queryNameParams = yup.object().shape({
-  name: yup.string().required(),
-});
-
 export const queryPromotionalParams = yup.object().shape({
   withDeleted: booleanSchema,
   withExpired: booleanSchema,

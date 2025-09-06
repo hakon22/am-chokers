@@ -26,9 +26,13 @@ export const getPositionPriceWithDiscount = (position: OrderPositionInterface, p
 export const getOrderDiscount = (order: OrderInterface) => {
   const percent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
-  const totalDiscount = order.positions.reduce((acc, position) => acc + (getPositionPrice(position) - (getPositionPriceWithDiscount(position, percent))), 0);
+  const totalDiscount = order.positions
+    .filter(({ item }) => order.promotional?.items?.length ? order.promotional.items.map(({ id }) => id).includes(item.id) : true )
+    .reduce((acc, position) => acc + (getPositionPrice(position) - (getPositionPriceWithDiscount(position, percent))), 0);
 
-  const orderDiscount = totalDiscount + ((order.deliveryPrice * 100) - ((order.deliveryPrice * 100) - ((order.deliveryPrice * 100 * percent) / 100))) / 100;
+  const deliveryDiscount = ((order.deliveryPrice * 100) - ((order.deliveryPrice * 100) - ((order.deliveryPrice * 100 * percent) / 100))) / 100;
+
+  const orderDiscount = totalDiscount + (order.promotional?.items?.length ? 0 : deliveryDiscount);
 
   return +orderDiscount.toFixed(2);
 };

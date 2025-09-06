@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag } from 'antd';
-import { DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem, partialUpdateItem } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import CreateItem from '@/pages/admin/item';
@@ -118,6 +118,13 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     setIsSubmit(false);
   };
 
+  const onMessageRemove = async () => {
+    setIsSubmit(true);
+    const { payload } = await dispatch(partialUpdateItem({ id: item.id, data: { message: null } })) as { payload: ItemResponseInterface; };
+    setItem(payload.item);
+    setIsSubmit(false);
+  };
+
   const generateDescription = async () => {
     try {
       setIsSubmit(true);
@@ -164,7 +171,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
             )}
           {!item.message?.send
             ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsPublish(true)}>{t('publishToTelegram')}</Button>
-            : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
+            : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }} closeIcon={<CloseOutlined className="fs-6-5" />} onClose={onMessageRemove}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
         </>
       ) : null;
 };

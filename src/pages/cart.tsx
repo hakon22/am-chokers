@@ -43,11 +43,16 @@ const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItem
 
   const dispatch = useAppDispatch();
 
+  const remove = () => {
+    dispatch(removeCartItem(item.id));
+    setCartList((state) => state.filter(({ id }) => id !== item.id));
+  };
+
   return (
     <div className="d-flex gap-4" style={isMobile ? { marginLeft: '2.77rem' } : {}}>
       <CartControl id={item.item.id} width={width} setCartList={setCartList} />
       <div className="d-flex gap-3">
-        <button className="icon-button" type="button" onClick={() => dispatch(removeCartItem(item.id))} title={t('delete')}>
+        <button className="icon-button" type="button" onClick={remove} title={t('delete')}>
           <DeleteOutlined className="icon fs-5" />
           <span className="visually-hidden">{t('delete')}</span>
         </button>
@@ -96,7 +101,7 @@ const Cart = () => {
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
-  const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count }));
+  const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count, item }));
 
   const getPreparedOrder = (items: OrderPositionInterface[], deliveryPrice: number, promo?: PromotionalInterface) => ({ positions: items, deliveryPrice, promotional: promo }) as OrderInterface;
 
@@ -119,8 +124,12 @@ const Cart = () => {
 
   const [form] = Form.useForm();
 
-  const onChange = (cartItems: CartItemInterface[]) => {
-    setCartList(cartItems);
+  const onPromotionalRemove = () => {
+    if (promotional && promotional.freeDelivery) {
+      setDelivery((state) => ({ ...state, price: savedDeliveryPrice }));
+    }
+    setPromotional(undefined);
+    form.setFieldValue('promotional', undefined);
   };
 
   const onCheckAllChange: CheckboxProps['onChange'] = async ({ target }) => {
@@ -134,7 +143,7 @@ const Cart = () => {
         return;
       }
       setIsSubmit(true);
-      const { data } = await axios.get<PromotionalResponseInterface>(routes.getPromotionalByName, { params: { name: value } });
+      const { data } = await axios.get<PromotionalResponseInterface>(routes.getPromotionalByName, { params: { name: value, cartIds: cartList.map(({ id }) => id) } });
       if (data.code === 1) {
         setPromotional(data.promotional);
         if (data.promotional.freeDelivery) {
@@ -142,21 +151,26 @@ const Cart = () => {
         }
         setSelectPromotionField(false);
         toast(tToast('addPromotionalSuccess', { name: data.promotional.name }), 'success');
-      } else if ([2, 3].includes(data.code)) {
-        form.setFields([{ name: 'promotional', errors: [tValidation(data.code === 2 ? 'promotionalNotExist' : 'promotionalExpired')] }]);
+      } else if ([2, 3, 4].includes(data.code)) {
+        let validationCode = '';
+
+        switch (data.code) {
+        case 2:
+          validationCode = 'promotionalNotExist';
+          break;
+        case 3:
+          validationCode = 'promotionalExpired';
+          break;
+        case 4:
+          validationCode = 'promotionalConditionsNotMet';
+          break;
+        }
+        form.setFields([{ name: 'promotional', errors: [tValidation(validationCode)] }]);
       }
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
-  };
-
-  const onPromotionalRemove = () => {
-    if (promotional && promotional.freeDelivery) {
-      setDelivery((state) => ({ ...state, price: savedDeliveryPrice }));
-    }
-    setPromotional(undefined);
-    form.setFieldValue('promotional', undefined);
   };
 
   const openYanderDeliveryWidget = (items: CartItemInterface[]) => {
@@ -191,7 +205,7 @@ const Cart = () => {
       callbackFunction: (result: RussianPostDeliveryDataInterface) => {
         setSavedDeliveryPrice(result.cashOfDelivery / 100);
         setDelivery({
-          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery) ? 0 : result.cashOfDelivery / 100,
+          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : result.cashOfDelivery / 100,
           address: `${result.cityTo}, ${result.addressTo}`,
           type: deliveryType,
           indexTo: result.indexTo,
@@ -273,7 +287,7 @@ const Cart = () => {
       const detail = data.detail as YandexDeliveryDataInterface;
       setSavedDeliveryPrice(300);
       setDelivery({
-        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery) ? 0 : 300,
+        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : 300,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });
@@ -313,8 +327,15 @@ const Cart = () => {
   }, [isConfirmed, tempUser.phone]);
 
   useEffect(() => {
-    setDelivery((state) => ({ ...state, price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) >= priceForFreeDelivery ? 0 : savedDeliveryPrice }));
-  }, [count]);
+    if (promotional?.items?.length) {
+      const cartItemIds = cartList.map(({ item }) => item.id);
+
+      if (!promotional.items.some(({ id }) => cartItemIds.includes(id))) {
+        onPromotionalRemove();
+      }
+    }
+    setDelivery((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
+  }, [count, promotional]);
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
@@ -355,7 +376,7 @@ const Cart = () => {
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
           </Checkbox>
-          <Checkbox.Group value={cartList} onChange={onChange}>
+          <Checkbox.Group value={cartList} onChange={setCartList}>
             <List
               dataSource={cart}
               className="w-100"
@@ -399,7 +420,7 @@ const Cart = () => {
             : null}
           {delivery.address
             ? (
-              <div className="d-flex flex-column fs-5 mb-4" style={{ fontWeight: 300 }}>
+              <div className="d-flex flex-column fs-5 mb-4 fw-300">
                 <span className="text-uppercase fw-bold">{t('selectedPVZ.title')}</span>
                 <span>{t('selectedPVZ.address', { address: delivery.address })}</span>
               </div>
@@ -418,15 +439,15 @@ const Cart = () => {
           <Form.Item<CreateOrderInterface['comment']> name="comment" className="custom-placeholder" rules={[newOrderPositionValidation]}>
             <Input.TextArea rows={3} className="border border-secondary" size="small" variant="borderless" placeholder={t('comment')} />
           </Form.Item>
-          <div className="d-flex justify-content-between fs-5 mb-2" style={{ fontWeight: 300 }}>
+          <div className="d-flex justify-content-between fs-5 mb-2 fw-300">
             <span>{t('itemCount', { count })}</span>
             <span>{tPrice('price', { price })}</span>
           </div>
-          <div className="d-flex justify-content-between fs-5 mb-4" style={{ fontWeight: 300 }}>
+          <div className="d-flex justify-content-between fs-5 mb-4 fw-300">
             <span>{t('delivery')}</span>
-            <span>{(promotional && promotional.freeDelivery) || (price >= priceForFreeDelivery) ? t('free') : tPrice('price', { price: delivery.price })}</span>
+            <span>{(promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? t('free') : tPrice('price', { price: delivery.price })}</span>
           </div>
-          <div className="d-flex justify-content-between align-items-center fs-5 mb-4" style={{ fontWeight: 300, color: '#ff9500' }}>
+          <div className="d-flex justify-content-between align-items-center fs-5 mb-4 fw-300" style={{ color: '#ff9500' }}>
             <span>{t('promotional')}</span>
             {promotional
               ? <div className="d-flex">

@@ -99,7 +99,7 @@ const signupSchema = yup.object().shape({
     .string()
     .required()
     .min(6, t('validation.passMin')),
-  confirmPassword: yup.string().required(),
+  confirmPassword: stringSchema,
 }, [
   ['password', 'password'],
 ]);
@@ -123,8 +123,8 @@ const profileSchema = yup.object().shape({
       .nullable()
       .optional();
   }),
-  confirmPassword: yup.string().required(),
-  oldPassword: yup.string().required().min(6, t('validation.passMin')),
+  confirmPassword: stringSchema,
+  oldPassword: stringSchema.min(6, t('validation.passMin')),
 }, [
   ['password', 'password'],
 ]);
@@ -212,7 +212,7 @@ const partialUpdateItemSchema = yup.object().shape({
   colors: yup.array(idSchema).optional(),
   order: yup.number().optional().nullable(),
   images: yup.array(requiredIdSchema).optional(),
-  translations: translationSchema.optional(),
+  message: yup.number().min(1).nullable().optional(),
 });
 
 const newCompositionSchema = yup.object().shape({
@@ -249,6 +249,11 @@ const newCartItemSchema = yup.object().shape({
 });
 
 const cartItemsSchema = yup.array(newCartItemSchema.concat(uuidSchema));
+
+export const queryActivatePromotionalParams = yup.object().shape({
+  name: stringSchema,
+  cartIds: yup.array(uuidStringSchema).min(1).required(),
+});
 
 const newOrderPositionSchema = yup.object().shape({
   cart: yup.array(newCartItemSchema.concat(uuidSchema)).min(1),
@@ -340,6 +345,7 @@ export const discountAndDiscountPercentSchema = yup.object().shape({
 const newPromotionalSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
+  items: yup.array(requiredIdSchema).optional(),
   active: yup
     .boolean()
     .test('is-expired', t('validation.isExpired'), function (value) {

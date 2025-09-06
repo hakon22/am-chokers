@@ -28,6 +28,13 @@ export class PromotionalService extends BaseService {
         'promotional.active',
         'promotional.deleted',
       ])
+      .leftJoin('promotional.items', 'items')
+      .addSelect('items.id')
+      .leftJoin('items.translations', 'translations')
+      .addSelect([
+        'translations.name',
+        'translations.lang',
+      ])
       .orderBy('promotional.active', 'DESC')
       .addOrderBy('promotional.end', 'DESC');
 
