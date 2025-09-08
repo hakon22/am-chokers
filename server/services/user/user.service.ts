@@ -517,7 +517,7 @@ export class UserService extends BaseService {
           : `User with number #${params.id} does not exist`);
       }
 
-      user.updated = moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate();
+      user.updated = user.refreshTokens.length ? moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate() : user.created;
       user.refreshTokens = [];
 
       const result: UserCardInterface = {

@@ -8,8 +8,9 @@ import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/cor
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
-import { isEqual } from 'lodash';
+import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, Modal, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
+import { isEqual, some, isEmpty, omit } from 'lodash';
+import moment from 'moment';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -25,7 +26,8 @@ import { CropImage } from '@/components/CropImage';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { getHeight } from '@/utilities/screenExtension';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import type { ImageEntity } from '@server/db/entities/image.entity';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { ImageEntity } from '@server/db/entities/image.entity';
 import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
@@ -108,6 +110,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [itemColors, setItemColors] = useState<ColorInterface[] | undefined>(item?.colors);
   const [colors, setColors] = useState<ColorInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
+  const [lastProgress, setLastProgress] = useState('');
 
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
@@ -115,6 +118,24 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [form] = Form.useForm<ItemFormInterface>();
 
   const itemName: string = Form.useWatch(['translations', lang, 'name'], form);
+
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+
+  const handleModalOk = () => {
+    const savedProgress = window.localStorage.getItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
+    if (savedProgress) {
+      const parsedSavedProgress = JSON.parse(savedProgress) as { data: ItemFormInterface; images: ImageEntity[]; lastProgress: Date; };
+      form.setFieldsValue(parsedSavedProgress.data);
+      setImages(parsedSavedProgress.images);
+    }
+    setLastProgress('');
+  };
+
+  const handleModalCancel = () => {
+    window.localStorage.removeItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
+    setLastProgress('');
+  };
 
   const sortImageHandler = () => setIsSortImage(!isSortImage);
 
@@ -203,6 +224,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         form.setFieldValue('collection', undefined);
         form.setFieldValue('compositions', undefined);
         form.setFieldValue('colors', undefined);
+        window.localStorage.removeItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
         window.open(payload.url, '_blank');
       }
     }
@@ -305,9 +327,50 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     }
   }, [isSortImage]);
 
+  useEffect(() => {
+    if (!oldItem) {
+      const savedProgress = window.localStorage.getItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
+      if (savedProgress) {
+        const parsedSavedProgress = JSON.parse(savedProgress) as { data: ItemFormInterface; lastProgress: Date; };
+        setLastProgress(moment(parsedSavedProgress.lastProgress).format(DateFormatEnum.DD_MM_YYYY_HH_MM));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!oldItem) {
+      const saveProgress = () => {
+        const formValues = form.getFieldsValue();
+
+        const rootValues = some(omit(formValues, 'translations'), value => typeof value === 'object' ? !isEmpty(value) : !!value);
+        const nestedValues = some(formValues.translations, (langObj) => some(langObj, (value) => !isEmpty(value)));
+
+        if (rootValues || nestedValues || imagesRef.current.length) {
+          window.localStorage.setItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '', JSON.stringify({ data: formValues, images: imagesRef.current, lastProgress: moment() }));
+        }
+      };
+      const timeAlive = setInterval(saveProgress, 10000);
+      return () => clearInterval(timeAlive);
+    }
+  }, []);
+
   return isAdmin ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
+      <Modal
+        title={t('modal.title')}
+        closable={{ 'aria-label': t('modal.cancelText') }}
+        classNames={{ footer: 'ant-input-group-addon' }}
+        centered
+        open={!!lastProgress}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        okText={t('modal.okText')}
+        cancelText={t('modal.cancelText')}
+      >
+        <p>{t('modal.body1', { date: lastProgress })}</p>
+        <p>{t('modal.body2')}</p>
+      </Modal>
       {oldItem ? null : isMobile ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
       <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '100px' } : {}}>
         {isMobile ? (

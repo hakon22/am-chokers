@@ -231,6 +231,13 @@ export default {
           length: 'Введите длину товара (см)',
           lengthEn: 'Enter the length of the item (cm)',
         },
+        modal: {
+          title: 'Найден незавершённый процесс добавления позиции',
+          okText: 'Да',
+          cancelText: 'Нет',
+          body1: 'Последнее сохранение было в {{ date }}',
+          body2: 'Желаете восстановить?',
+        },
       },
       itemGroup: {
         title: 'Группы товаров',
