@@ -21,7 +21,7 @@ export const fetchOrders = createAsyncThunk(
   'order/fetchOrders',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number, orders: OrderInterface[] }>(routes.getOrders);
+      const response = await axios.get<{ code: number, orders: OrderInterface[] }>(routes.order.getUserOrders);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -33,7 +33,7 @@ export const createOrder = createAsyncThunk(
   'order/createOrder',
   async ({ cart, promotional, delivery, comment, user }: CreateOrderInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<OrderResponseInterface>(routes.createOrder, { cart, promotional, delivery, comment, user });
+      const response = await axios.post<OrderResponseInterface>(routes.order.createOne, { cart, promotional, delivery, comment, user });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -45,7 +45,7 @@ export const updateOrder = createAsyncThunk(
   'order/updateOrder',
   async ({ id, data }: { id: number; data: Partial<OrderInterface>; }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<OrderResponseInterface>(routes.crudOrder(id), data);
+      const response = await axios.patch<OrderResponseInterface>(routes.order.updateStatus(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -57,7 +57,7 @@ export const cancelOrder = createAsyncThunk(
   'order/cancelOrder',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.get<OrderResponseInterface & { cart: CartItemInterface[]; }>(routes.cancelOrder(id));
+      const response = await axios.get<OrderResponseInterface & { cart: CartItemInterface[]; }>(routes.order.cancel(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -69,7 +69,7 @@ export const createGrade = createAsyncThunk(
   'order/createGrade',
   async (data: GradeFormInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; grade: ItemGradeEntity; }>(routes.createGrade(data.position.id), data);
+      const response = await axios.post<{ code: number; grade: ItemGradeEntity; }>(routes.grade.createOne(data.position.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

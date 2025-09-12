@@ -101,7 +101,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
 
   useEffect(() => {
     if (loadingStatus === 'finish' && !order) {
-      router.replace(routes.orderHistory);
+      router.replace(routes.page.profile.orderHistory);
       setIsLoaded(false);
     } else if (order) {
       setIsLoaded(false);
@@ -130,7 +130,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                 <h3 className="fs-4 fw-bold font-oswald text-muted">{t('orderDate', { number: orderId, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}</h3>
                 {isAdmin && (
                   <div className={cn('d-flex flex-xl-row align-items-xl-center gap-2', { 'position-absolute top-0': !isMobile })}>
-                    <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
+                    <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
                     <CopyToClipboard text={order.user.phone}>
                       <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order.id)}>
                         <CopyOutlined className="fs-5" />{order.user.phone}
@@ -159,7 +159,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                         {!orderParams && !orderPosition.grade && order.status === OrderStatusEnum.COMPLETED
                           ? grade.position && orderPosition.id === grade.position.id
                             ? <Button className="button border-button py-2 fs-6" title={t('cancel')} onClick={clearGradeForm}>{t('cancel')}</Button>
-                            : <Button className="button border-button py-2 fs-6" title={t('rateItem')} onClick={() => gradeFormInit(orderPosition.id)}>{t('rateItem')}</Button>
+                            : <Button className="button border-button py-2 mb-3 fs-6" title={t('rateItem')} onClick={() => gradeFormInit(orderPosition.id)}>{t('rateItem')}</Button>
                           : null}
                       </div>
                       {grade.position && orderPosition.id === grade.position.id ? (
@@ -173,9 +173,9 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                           <Form.Item<GradeFormInterface> name={['comment', 'text']} className="mb-4 large-input" rules={[newGradeValidation]}>
                             <Input.TextArea ref={inputRef} variant="borderless" size="large" placeholder={t('enterComment')} rows={2} />
                           </Form.Item>
-                          <div className="d-flex flex-column flex-xl-row gap-3 gap-xl-0 flex-column-reverse justify-content-between align-items-center">
-                            <Button className="button border-button py-2 fs-6" title={t('rateSubmit')} htmlType="submit">{t('rateSubmit')}</Button>
+                          <div className="d-flex flex-column gap-3 justify-content-between align-items-center">
                             <UploadImage crop preview filelist={fileList} setFileList={setFileList} previewImage={previewImage} previewOpen={previewOpen} setCommentImages={setCommentImages} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
+                            <Button className="button border-button py-2 fs-6" title={t('rateSubmit')} htmlType="submit">{t('rateSubmit')}</Button>
                           </div>
                         </Form>
                       ) : null}

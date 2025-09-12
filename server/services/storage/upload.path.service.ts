@@ -50,16 +50,16 @@ export class UploadPathService {
 
     switch (folder) {
     case UploadPathEnum.TEMP:
-      path = join(routes.homePage, UploadPathEnum.TEMP);
+      path = join(routes.page.base.homePage, UploadPathEnum.TEMP);
       break;
     case UploadPathEnum.ITEM:
-      path = join(routes.homePage, UploadPathEnum.ITEM, id.toString());
+      path = join(routes.page.base.homePage, UploadPathEnum.ITEM, id.toString());
       break;
     case UploadPathEnum.COMMENT:
-      path = join(routes.homePage, UploadPathEnum.COMMENT, id.toString());
+      path = join(routes.page.base.homePage, UploadPathEnum.COMMENT, id.toString());
       break;
     case UploadPathEnum.COVER:
-      path = join(routes.homePage, UploadPathEnum.COVER);
+      path = join(routes.page.base.homePage, UploadPathEnum.COVER);
       break;
     }
     return path;

@@ -9,11 +9,11 @@ export class CartRoute extends BaseRouter {
   private readonly cartController = Container.get(CartController);
 
   public set = (router: Router) => {
-    router.post(this.routes.createCartItem, this.middlewareService.optionalJwtAuth, this.cartController.createOne);
-    router.get(this.routes.incrementCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.incrementOne);
-    router.get(this.routes.decrementCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.decrementOne);
-    router.delete(this.routes.removeCartItem(), this.middlewareService.optionalJwtAuth, this.cartController.deleteOne);
-    router.post(this.routes.removeManyCartItems, this.middlewareService.optionalJwtAuth, this.cartController.deleteMany);
-    router.post(this.routes.getCart, this.middlewareService.jwtToken, this.cartController.findMany);
+    router.post(this.routes.cart.createOne, this.middlewareService.optionalJwtAuth, this.cartController.createOne);
+    router.get(this.routes.cart.incrementOne(), this.middlewareService.optionalJwtAuth, this.cartController.incrementOne);
+    router.get(this.routes.cart.decrementOne(), this.middlewareService.optionalJwtAuth, this.cartController.decrementOne);
+    router.delete(this.routes.cart.deleteOne(), this.middlewareService.optionalJwtAuth, this.cartController.deleteOne);
+    router.post(this.routes.cart.deleteMany, this.middlewareService.optionalJwtAuth, this.cartController.deleteMany);
+    router.post(this.routes.cart.findMany, this.middlewareService.jwtToken, this.cartController.findMany);
   };
 }

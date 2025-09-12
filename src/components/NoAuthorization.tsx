@@ -23,8 +23,8 @@ export const NoAuthorization = () => {
   return (
     <div className="d-flex flex-column flex-xl-row justify-content-center align-items-center fs-5" style={{ letterSpacing: '0.5px', marginTop: isMobile ? '230px' : '22%', ...(isMobile ? { marginBottom: '-120px' } : {}) }}>
       {t('entrace1')}
-      <Link href={routes.loginPage} className="px-2 text-monospace text-decoration-underline">{t('entrace')}</Link>
+      <Link href={routes.page.base.loginPage} className="px-2 text-monospace text-decoration-underline">{t('entrace')}</Link>
       {t('entrace2')}
-      <Link href={routes.signupPage} className="ps-2 text-monospace text-decoration-underline">{t('signup')}</Link>
+      <Link href={routes.page.base.signupPage} className="ps-2 text-monospace text-decoration-underline">{t('signup')}</Link>
     </div>
   );};

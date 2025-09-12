@@ -41,7 +41,7 @@ class Server extends BaseService {
         command: 'start',
         description: '🔃 Запуск бота',
       }]);
-      await this.telegramBot.telegram.setWebhook(`${NEXT_PUBLIC_PRODUCTION_HOST}${routes.telegram}`);
+      await this.telegramBot.telegram.setWebhook(`${NEXT_PUBLIC_PRODUCTION_HOST}${routes.integration.telegram.webhook}`);
     }
   };
 

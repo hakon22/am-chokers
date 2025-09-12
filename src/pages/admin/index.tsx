@@ -3,7 +3,7 @@ import { routes } from '@/routes';
 export const getServerSideProps = () => ({
   redirect: {
     permanent: false,
-    destination: routes.homePage,
+    destination: routes.page.base.homePage,
   },
 });
 

@@ -2,10 +2,12 @@ import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
-import { descriptionSchema, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
+import { publishTelegramValidation, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams } from '@server/utilities/convertation.params';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
+import type { PublishTelegramInterface } from '@/slices/appSlice';
 
 @Singleton
 export class ItemController extends BaseService {
@@ -68,7 +70,8 @@ export class ItemController extends BaseService {
   public getSpecials = async (req: Request, res: Response) => {
     try {
       const user = this.getCurrentUser(req);
-      const specialItems = await this.itemService.getSpecials(!!user?.isAdmin);
+      const query = await isFullParams.validate(req.query);
+      const specialItems = await this.itemService.getSpecials(!!user?.isAdmin, query?.isFull);
 
       res.json({ code: 1, specialItems });
     } catch (e) {
@@ -174,7 +177,13 @@ export class ItemController extends BaseService {
     try {
       const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
-      const body = await descriptionSchema.validate(req.body);
+      const body = await publishTelegramValidation.serverValidator(req.body) as PublishTelegramInterface;
+
+      if ([body.date, body.time].filter(Boolean).length === 1) {
+        throw new Error(user.lang === UserLangEnum.RU
+          ? 'Для отложенной публикации дата и время должны быть заполнены'
+          : 'For delayed publication, date and time must be filled in');
+      }
 
       const item = await this.itemService.publishToTelegram(params, user.lang, body.description);
 

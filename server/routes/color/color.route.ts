@@ -9,11 +9,11 @@ export class ColorRoute extends BaseRouter {
   private readonly colorController = Container.get(ColorController);
 
   public set = (router: Router) => {
-    router.get(this.routes.getColors, this.colorController.findMany);
-    router.get(this.routes.getColor(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.findOne);
-    router.post(this.routes.createColor, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.createOne);
-    router.put(this.routes.updateColor(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.updateOne);
-    router.delete(this.routes.removeColor(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.deleteOne);
-    router.patch(this.routes.restoreColor(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.restoreOne);
+    router.get(this.routes.color.findMany, this.colorController.findMany);
+    router.get(this.routes.color.findOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.findOne);
+    router.post(this.routes.color.createOne, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.createOne);
+    router.put(this.routes.color.updateOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.updateOne);
+    router.delete(this.routes.color.deleteOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.deleteOne);
+    router.patch(this.routes.color.restoreOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.colorController.restoreOne);
   };
 }

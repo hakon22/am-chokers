@@ -283,7 +283,7 @@ export class AcquiringService extends BaseService {
               ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, adminUser.lang)}</b>`] : []),
               ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
               '',
-              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
             ]
             : [
               `‼️Paid order <b>№${order.id}</b>‼️`,
@@ -294,7 +294,7 @@ export class AcquiringService extends BaseService {
               ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, adminUser.lang)}</b>`] : []),
               ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Pickup index: <b>${order.delivery.index}</b>`] : []),
               '',
-              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
             ];
         
           return this.telegramService.sendMessage(adminText, tgId as string);

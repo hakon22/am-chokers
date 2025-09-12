@@ -157,7 +157,7 @@ export class OrderService extends BaseService {
     return order;
   };
 
-  public findMany = async (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
+  public getUserOrders = async (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const builder = this.createQueryBuilder(query, options);
 
     return builder.getMany();
@@ -246,11 +246,11 @@ export class OrderService extends BaseService {
       const text = user.lang === UserLangEnum.RU
         ? [
           `Создан заказ <b>№${order.id}</b>.`,
-          `Следите за статусами в личном кабинете: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.orderHistory}`,
+          `Следите за статусами в личном кабинете: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.profile.orderHistory}`,
         ]
         : [
           `Order <b>№${order.id}</b> created.`,
-          `Follow the statuses in your personal account: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.orderHistory}`,
+          `Follow the statuses in your personal account: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.profile.orderHistory}`,
         ];
       await this.telegramService.sendMessage(text, user.telegramId);
     }
@@ -269,14 +269,14 @@ export class OrderService extends BaseService {
           `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
           ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
           '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
         ] : [
           `Order <b>№${order.id}</b> created.`,
           '',
           `Amount: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
           ...(comment ? [`Comment: <b>${comment}</b>`] : []),
           '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
         ];
 
         return this.telegramService.sendMessage(adminText, tgId as string);
@@ -365,13 +365,13 @@ export class OrderService extends BaseService {
           '',
           `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
           '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
         ] : [
           `Cancel order <b>№${order.id}</b>`,
           '',
           `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
           '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.allOrders}/${order.id}`,
+          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
         ];
 
         return this.telegramService.sendMessage(adminText, tgId as string);

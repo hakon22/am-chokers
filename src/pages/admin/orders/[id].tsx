@@ -34,7 +34,7 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
   const fetchOrder = async () => {
     try {
       setIsSubmit(true);
-      const { data } = await axios.get<OrderResponseInterface>(routes.crudOrder(+id));
+      const { data } = await axios.get<OrderResponseInterface>(routes.order.findOne(+id));
       if (data.code === 1) {
         setOrder(data.order);
       }

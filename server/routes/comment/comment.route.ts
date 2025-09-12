@@ -9,7 +9,7 @@ export class CommentRoute extends BaseRouter {
   private readonly commentController = Container.get(CommentController);
 
   public set = (router: Router) => {
-    router.post(this.routes.createComment, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.commentController.createOne);
-    router.delete(this.routes.removeComment(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.commentController.deleteOne);
+    router.post(this.routes.comment.createOne, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.commentController.createOne);
+    router.delete(this.routes.comment.deleteOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.commentController.deleteOne);
   };
 }

@@ -57,7 +57,7 @@ const ItemList = () => {
         return;
       }
       setIsSubmit(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: true }), {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
         params,
       });
       if (code === 1) {
@@ -74,7 +74,7 @@ const ItemList = () => {
     try {
       setIsSubmit(true);
 
-      const response = await axios.get(routes.getItemListExcel, { responseType: 'blob' });
+      const response = await axios.get(routes.item.getListExcel, { responseType: 'blob' });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
     
@@ -204,7 +204,7 @@ const ItemList = () => {
                   actions={
                     [item.deleted
                       ? <a key="restore" title={t('restore')} onClick={() => onItemRestore(item.id)}>{t('restore')}</a>
-                      : <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => onItemRemove(item.id)}>
+                      : <Popconfirm key="remove" rootClassName="ant-input-group-addon" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => onItemRemove(item.id)}>
                         <a>{t('remove')}</a>
                       </Popconfirm>]
                   }>

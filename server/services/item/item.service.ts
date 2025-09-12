@@ -480,16 +480,21 @@ export class ItemService extends TranslationHelper {
     return [...links];
   };
 
-  public getSpecials = async (isAdmin: boolean) => {
+  public getSpecials = async (isAdmin: boolean, isFull?: boolean) => {
     const builder = this.createQueryBuilder({}, { withGrades: true })
       .andWhere(new Brackets(qb => {
         qb
           .orWhere('item.new')
-          .orWhere('item.bestseller')
           .orWhere(new Brackets(qb2 => {
-            qb2.andWhere('item.collection IS NOT NULL');
-            if (!isAdmin) {
+            qb2.andWhere('item.bestseller');
+            if (!isAdmin || (isAdmin && !isFull)) {
               qb2.andWhere('item.order IS NOT NULL');
+            }
+          }))
+          .orWhere(new Brackets(qb3 => {
+            qb3.andWhere('item.collection IS NOT NULL');
+            if (!isAdmin || (isAdmin && !isFull)) {
+              qb3.andWhere('item.order IS NOT NULL');
             }
           }));
       }));
@@ -655,5 +660,5 @@ export class ItemService extends TranslationHelper {
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
 
-  private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');
+  private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');
 }

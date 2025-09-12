@@ -129,7 +129,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const onPay = async (id: number) => {
     try {
       setIsSubmit(true);
-      const response = await axios.get<{ code: number; url: string; }>(routes.payOrder(id));
+      const response = await axios.get<{ code: number; url: string; }>(routes.order.pay(id));
       if (response.data.code === 1) {
         router.push(response.data.url);
       }
@@ -174,7 +174,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
               actions={getActions(order, order.id)}
             >
               <div className="d-flex flex-column flex-xl-row justify-content-xl-between align-items-xl-center mb-2 mb-xl-4 gap-2">
-                <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="fs-5 fw-bold font-oswald text-decoration-underline text-primary text-muted fw-light text-center text-xl-start">
+                <Link href={`${setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory}/${order.id}`} className="fs-5 fw-bold font-oswald text-decoration-underline text-primary text-muted fw-light text-center text-xl-start">
                   {t('orderDate', { number: order.id, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}
                 </Link>
                 {!order.isPayment
@@ -191,7 +191,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
               </div>
               {isAdmin && (
                 <div className={cn('d-flex flex-xl-row gap-2 mb-3 mb-xl-0 mt-3 mt-xl-0', { 'position-absolute top-0': !isMobile })}>
-                  <Link href={`${routes.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
+                  <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
                   <CopyToClipboard text={order.user.phone}>
                     <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order.id)}>
                       <CopyOutlined className="fs-5" />{order.user.phone}
@@ -208,8 +208,8 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                   </div>
                   {!setData && !order.positions.some((position) => position.grade) && order.status === OrderStatusEnum.COMPLETED &&
                     <div>
-                      <Button className="button mt-2">
-                        <Link href={`${setData ? routes.allOrders : routes.orderHistory}/${order.id}`} className="fs-5">{t('rateYourOrder')}</Link>
+                      <Button className="button mt-2 fs-5" onClick={() => router.push(`${setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory}/${order.id}`)}>
+                        {t('rateYourOrder')}
                       </Button>
                     </div>
                   }

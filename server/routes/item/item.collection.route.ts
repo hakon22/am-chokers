@@ -10,10 +10,10 @@ export class ItemCollectionRoute extends BaseRouter {
 
   public set = (router: Router) => {
     router
-      .put(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.updateOne)
-      .patch(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.restoreOne)
-      .delete(this.routes.crudItemCollection(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.deleteOne);
-    router.get(this.routes.getItemCollections({ isServer: true }), this.itemCollectionController.findMany);
-    router.post(this.routes.createItemCollection, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.createOne);
+      .put(this.routes.itemCollection.updateOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.updateOne)
+      .patch(this.routes.itemCollection.restoreOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.restoreOne)
+      .delete(this.routes.itemCollection.deleteOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.deleteOne);
+    router.get(this.routes.itemCollection.findMany({ isServer: true }), this.itemCollectionController.findMany);
+    router.post(this.routes.itemCollection.createOne, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemCollectionController.createOne);
   };
 }

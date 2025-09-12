@@ -24,11 +24,11 @@ export class OrderController extends BaseService {
     }
   };
 
-  public findMany = async (req: Request, res: Response) => {
+  public getUserOrders = async (req: Request, res: Response) => {
     try {
       const { id: userId } = this.getCurrentUser(req);
 
-      const orders = await this.orderService.findMany({}, { userId });
+      const orders = await this.orderService.getUserOrders({}, { userId });
 
       res.json({ code: 1, orders });
     } catch (e) {

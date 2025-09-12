@@ -49,7 +49,7 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
       }
       const timeout = setTimeout(async () => {
         setIsLoading(true);
-        const { data } = await axios.get<{ code: number; search: { name: string; image: string; }[] }>(routes.searchItem, {
+        const { data } = await axios.get<{ code: number; search: { name: string; image: string; }[] }>(routes.item.search, {
           params: {
             search: value,
             withDeleted,

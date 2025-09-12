@@ -58,7 +58,7 @@ const Signup = () => {
   useEffect(() => {
     if (isConfirmed && user) {
       dispatch(fetchSignup({ ...user, lang: lang as UserLangEnum }))
-        .then(() => { router.push(routes.profilePage); })
+        .then(() => { router.push(routes.page.base.profilePage); })
         .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit); });
     }
   }, [isConfirmed, user]);
@@ -106,7 +106,7 @@ const Signup = () => {
                   <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
-                  <Link className="text-primary fw-light"href={routes.loginPage}>
+                  <Link className="text-primary fw-light"href={routes.page.base.loginPage}>
                     {t('haveAccount')}
                   </Link>
                 </div>
@@ -115,7 +115,7 @@ const Signup = () => {
                     {t('next')}
                   </Button>
                 </div>
-                <p className="text-muted text-center">{t('accept', { submitButton: t('next') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
+                <p className="text-muted text-center">{t('accept', { submitButton: t('next') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
               </Form>
             </>
           )}

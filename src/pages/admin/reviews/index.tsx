@@ -86,7 +86,7 @@ const Reviews = () => {
   const onGradeRemove = async (gradeId: number) => {
     try {
       setIsLoading(true);
-      const { data: result } = await axios.delete<GradeResponseInterface>(routes.removeGrade(gradeId));
+      const { data: result } = await axios.delete<GradeResponseInterface>(routes.grade.deleteOne(gradeId));
       handleUpdate(result);
       setIsLoading(false);
     } catch (e) {
@@ -97,7 +97,7 @@ const Reviews = () => {
   const onGradeRestore = async (gradeId: number) => {
     try {
       setIsLoading(true);
-      const { data: result } = await axios.get<GradeResponseInterface>(routes.restoreGrade(gradeId));
+      const { data: result } = await axios.get<GradeResponseInterface>(routes.grade.restoreOne(gradeId));
       handleUpdate(result);
       setIsLoading(false);
     } catch (e) {
@@ -108,7 +108,7 @@ const Reviews = () => {
   const onGradeAccept = async (gradeId: number) => {
     try {
       setIsLoading(true);
-      const { data: result } = await axios.get<GradeResponseInterface>(routes.acceptGrade(gradeId));
+      const { data: result } = await axios.get<GradeResponseInterface>(routes.grade.accept(gradeId));
       handleUpdate(result);
       toast(tToast('gradeAcceptSuccess'), 'success');
       setIsLoading(false);
@@ -128,7 +128,7 @@ const Reviews = () => {
     try {
       values.images = commentImages;
       setIsLoading(true);
-      const { data: result } = await axios.post<CommentResponseInterface>(routes.createComment, { ...reply, ...values });
+      const { data: result } = await axios.post<CommentResponseInterface>(routes.comment.createOne, { ...reply, ...values });
       if (result.code === 1) {
         clearReplyComment();
         setData((state) => {
@@ -154,7 +154,7 @@ const Reviews = () => {
         return;
       }
       setIsLoading(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getUnchekedGrades, {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.grade.getUnchekedGrades, {
         params,
       });
       if (code === 1) {
@@ -233,7 +233,7 @@ const Reviews = () => {
                     : []),
                   ...[(value.deleted
                     ? <a key="restore" title={t('restore')} onClick={() => onGradeRestore(value.id)}>{t('restore')}</a>
-                    : <Popconfirm key="decline" title={t('declineTitle')} description={t('declineDescription')} okText={t('decline')} cancelText={t('cancel')} onConfirm={() => onGradeRemove(value.id)}>
+                    : <Popconfirm key="decline" rootClassName="ant-input-group-addon" title={t('declineTitle')} description={t('declineDescription')} okText={t('decline')} cancelText={t('cancel')} onConfirm={() => onGradeRemove(value.id)}>
                       <a>{t('decline')}</a>
                     </Popconfirm>)]]}
                 >

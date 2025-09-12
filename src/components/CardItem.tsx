@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag } from 'antd';
+import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag, DatePicker, TimePicker, Form } from 'antd';
 import { CloseOutlined, DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
@@ -7,7 +7,8 @@ import Link from 'next/link';
 import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
-import moment from 'moment';
+import momentGenerateConfig from 'rc-picker/lib/generate/moment';
+import moment, { type Moment } from 'moment';
 import Image from 'next/image';
 import { Telegram } from 'react-bootstrap-icons';
 import Carousel from 'react-multi-carousel';
@@ -17,13 +18,14 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { deleteItem, type ItemResponseInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem, partialUpdateItem } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, type PublishTelegramInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem, partialUpdateItem } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { toast } from '@/utilities/toast';
 import { ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import { getHeight } from '@/utilities/screenExtension';
@@ -31,38 +33,78 @@ import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
+import { locale } from '@/locales/pickers.locale.ru';
+import { publishTelegramValidation } from '@/validations/validations';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
+
+const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
 interface AdminControlGroupInterface {
   item: ItemInterface;
   setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
 }
 
-const PublishModal = ({ description, isPublish, setIsPublish, setDescription, onPublish, generateDescription }: { description: string; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; setDescription: React.Dispatch<React.SetStateAction<string>>; onPublish: () => void; generateDescription: () => void; }) => {
+const PublishModal = ({ publishData, isPublish, setIsPublish, onPublish, generateDescription, lang }: { publishData: PublishTelegramInterface; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; onPublish: (values: PublishTelegramInterface) => void; generateDescription: () => void; lang: UserLangEnum; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
+
+  const [form] = Form.useForm<PublishTelegramInterface>();
+
+  const date = Form.useWatch('date', form);
+  const time = Form.useWatch('time', form);
+
+  const onFinish = () => {
+    form.validateFields()
+      .then((values) => {
+        if ([date, time].filter(Boolean).length === 1) {
+          const name = date ? 'time' : 'date';
+          form.setFields([{ name, errors: [tValidation('required')] }]);
+        } else {
+          onPublish(values);
+        }
+      });
+  };
+
+  
+  useEffect(() => {
+    form.setFieldValue('description', publishData.description);
+  }, [publishData.description]);
 
   return (
     <Modal
-      title={t('enterDescription')}
+      title={t('publishTitle')}
       centered
+      classNames={{ header: 'text-center', footer: 'ant-input-group-addon' }}
       zIndex={10000}
       open={isPublish}
-      onOk={onPublish}
-      okText={t('publishToTelegram')}
+      onOk={onFinish}
+      okText={t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
       cancelText={t('cancel')}
       onClose={() => setIsPublish(false)}
       onCancel={() => setIsPublish(false)}
       footer={(_, { OkBtn, CancelBtn }) => (
-        <div className="d-flex flex-column flex-xl-row justify-content-end gap-2">
+        <div className="d-flex flex-column flex-xl-row justify-content-end gap-2 mt-4">
           <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button>
           <CancelBtn />
           <OkBtn />
         </div>
       )}
     >
-      <Input.TextArea value={description} onChange={(({ target }) => setDescription(target.value))} rows={6} placeholder={t('enterDescription')} />
+      <Form form={form} className="mt-4" initialValues={publishData}>
+        <div className="d-flex justify-content-around">
+          <Form.Item<PublishTelegramInterface> name="date" rules={[publishTelegramValidation]}>
+            <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
+          </Form.Item>
+          <Form.Item<PublishTelegramInterface> name="time" rules={[publishTelegramValidation]}>
+            <TimePicker placeholder={t('placeholderTime')} showNow={false} format={DateFormatEnum.HH_MM} />
+          </Form.Item>
+        </div>
+        <Form.Item<PublishTelegramInterface> name="description" rules={[publishTelegramValidation]}>
+          <Input.TextArea rows={6} placeholder={t('enterDescription')} />
+        </Form.Item>
+      </Form>
     </Modal>
   );
 };
@@ -78,7 +120,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const { isAdmin, lang } = useAppSelector((state) => state.user);
 
   const [isPublish, setIsPublish] = useState(false);
-  const [description, setDescription] = useState(item.translations.find((translation) => translation.lang === lang)?.description as string);
+  const [publishData, setPublishData] = useState<PublishTelegramInterface>({ description: item.translations.find((translation) => translation.lang === lang)?.description as string });
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -107,9 +149,9 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     query: { ...router.query, edit: true },
   }, undefined, { shallow: true });
 
-  const onPublish = async () => {
+  const onPublish = async (values: PublishTelegramInterface) => {
     setIsSubmit(true);
-    const { payload } = await dispatch(publishItem({ id: item.id, description })) as { payload: ItemResponseInterface & { error: string; } };
+    const { payload } = await dispatch(publishItem({ id: item.id, ...values })) as { payload: ItemResponseInterface & { error: string; } };
     if (!payload?.error) {
       setItem(payload.item);
       setIsPublish(false);
@@ -128,9 +170,9 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const generateDescription = async () => {
     try {
       setIsSubmit(true);
-      const { data } = await axios.get<{ code: number; description: string; }>(routes.generateDescription(item.id));
+      const { data } = await axios.get<{ code: number; description: string; }>(routes.integration.gpt.generateDescription(item.id));
       if (data.code === 1) {
-        setDescription(data.description);
+        setPublishData((state) => ({ ...state, description: data.description }));
       }
       setIsSubmit(false);
     } catch (e) {
@@ -139,14 +181,14 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   };
 
   useEffect(() => {
-    setDescription(item.translations.find((translation) => translation.lang === lang)?.description as string);
+    setPublishData((state) => ({ ...state, description: item.translations.find((translation) => translation.lang === lang)?.description as string }));
   }, [lang]);
 
   return isAdmin
     ? isMobile
       ? (
         <>
-          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} generateDescription={generateDescription} />
+          <PublishModal publishData={publishData} isPublish={isPublish} setIsPublish={setIsPublish} onPublish={onPublish} generateDescription={generateDescription} lang={lang as UserLangEnum} />
           <FloatButton.Group
             trigger="click"
             style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
@@ -160,18 +202,35 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       )
       : (
         <>
-          <PublishModal description={description} isPublish={isPublish} setIsPublish={setIsPublish} setDescription={setDescription} onPublish={onPublish} generateDescription={generateDescription} />
+          <PublishModal publishData={publishData} isPublish={isPublish} setIsPublish={setIsPublish} onPublish={onPublish} generateDescription={generateDescription} lang={lang as UserLangEnum} />
           <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
           {item.deleted
             ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
             : (
-              <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
+              <Popconfirm rootClassName="ant-input-group-addon" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
                 <Button type="text" className="action-button remove">{t('remove')}</Button>
               </Popconfirm>
             )}
           {!item.message?.send
             ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsPublish(true)}>{t('publishToTelegram')}</Button>
-            : <Tag color="success" className="fs-6" style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }} closeIcon={<CloseOutlined className="fs-6-5" />} onClose={onMessageRemove}>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</Tag>}
+            : (
+              <Tag
+                color="success"
+                className="fs-6 d-flex gap-2"
+                style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
+              >
+                {t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
+                <Popconfirm rootClassName="ant-input-group-addon" title={t('removeMessageTitle')} description={t('removeMessageDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onMessageRemove}>
+                  <button
+                    className="icon-button text-muted d-flex align-items-center"
+                    type="button"
+                    title={t('removeMessageTitle')}
+                  >
+                    <CloseOutlined className="fs-6-5" />
+                  </button>
+                </Popconfirm>
+              </Tag>
+            )}
         </>
       ) : null;
 };
@@ -420,14 +479,17 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
               <div className="d-flex align-items-center gap-2">
                 <LikeOutlined />
                 {pagination.count
-                  ? <button
-                    className="icon-button text-muted"
-                    style={{ color: '#393644' }}
-                    type="button"
-                    title={t('grades.gradeCount', { count: pagination.count })}
-                    onClick={() => scrollToElement('grades', 120)}>
-                    {t('grades.gradeCount', { count: pagination.count })}
-                  </button>
+                  ? (
+                    <button
+                      className="icon-button text-muted"
+                      style={{ color: '#393644' }}
+                      type="button"
+                      title={t('grades.gradeCount', { count: pagination.count })}
+                      onClick={() => scrollToElement('grades', 120)}
+                    >
+                      {t('grades.gradeCount', { count: pagination.count })}
+                    </button>
+                  )
                   : <span>{t('grades.gradeCount', { count: pagination.count })}</span>}
               </div>
             </div>
@@ -505,7 +567,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
               </div>
               <p className="my-4">
                 {t('warranty.11')}
-                <b><Link href={routes.jewelryCarePage} title={t('warranty.12')}>{t('warranty.12')}</Link></b>
+                <b><Link href={routes.page.base.jewelryCarePage} title={t('warranty.12')}>{t('warranty.12')}</Link></b>
                 .
               </p>
               <div>
@@ -515,7 +577,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
                 {' '}
                 {t('warranty.14')}
                 {' '}
-                <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
+                <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
                 .
                 <br />
                 {t('warranty.15')}

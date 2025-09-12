@@ -35,7 +35,7 @@ const Recovery = () => {
   const onFinish = async (values: RecoveryType) => {
     try {
       setIsSubmit(true);
-      const { data: { code } } = await axios.post(routes.recoveryPassword, values);
+      const { data: { code } } = await axios.post(routes.user.recoveryPassword, values);
       if (code === 1) {
         setIsSend(true);
       } else if (code === 2) {
@@ -56,7 +56,7 @@ const Recovery = () => {
           title={t('resultTitle')}
           subTitle={t('resultSubTitle')}
           style={{ marginTop: isMobile ? '100px' : '15%' }}
-          extra={<Button className="button col-xl-2 mx-auto" onClick={() => router.push(routes.loginPage)}>{t('home')}</Button>}
+          extra={<Button className="button col-xl-2 mx-auto" onClick={() => router.push(routes.page.base.loginPage)}>{t('home')}</Button>}
         />
       ) : (
         <div className="d-flex justify-content-center" style={{ marginTop: '15%' }}>
@@ -68,7 +68,7 @@ const Recovery = () => {
                   <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
                 </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
-                  <Link className="text-primary fw-light" href={routes.loginPage}>
+                  <Link className="text-primary fw-light" href={routes.page.base.loginPage}>
                     {t('rememberPassword')}
                   </Link>
                 </div>
@@ -77,7 +77,7 @@ const Recovery = () => {
                     {t('submitButton')}
                   </Button>
                 </div>
-                <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
+                <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
               </Form>
             </div>
           </div>

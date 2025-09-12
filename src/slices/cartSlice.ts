@@ -25,7 +25,7 @@ export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (data: CartItemInterface[], { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number, cart: CartItemInterface[] }>(routes.getCart, data);
+      const response = await axios.post<{ code: number, cart: CartItemInterface[] }>(routes.cart.findMany, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -37,7 +37,7 @@ export const addCartItem = createAsyncThunk(
   'cart/addCartItem',
   async (data: CartItemFormInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<CartResponseInterface>(routes.createCartItem, data);
+      const response = await axios.post<CartResponseInterface>(routes.cart.createOne, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -49,7 +49,7 @@ export const incrementCartItem = createAsyncThunk(
   'cart/incrementCartItem',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<CartResponseInterface>(routes.incrementCartItem(id));
+      const response = await axios.get<CartResponseInterface>(routes.cart.incrementOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -61,7 +61,7 @@ export const decrementCartItem = createAsyncThunk(
   'cart/decrementCartItem',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<CartResponseInterface>(routes.decrementCartItem(id));
+      const response = await axios.get<CartResponseInterface>(routes.cart.decrementOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -73,7 +73,7 @@ export const removeCartItem = createAsyncThunk(
   'cart/removeCartItem',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<CartResponseInterface>(routes.removeCartItem(id));
+      const response = await axios.delete<CartResponseInterface>(routes.cart.deleteOne(id));
       return response.data;
     } catch (e: any) {
       const cartCache = window.localStorage.getItem(cartStorageKey);
@@ -90,7 +90,7 @@ export const removeManyCartItems = createAsyncThunk(
   'cart/removeCartItems',
   async (data: string[], { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; }>(routes.removeManyCartItems, data);
+      const response = await axios.post<{ code: number; }>(routes.cart.deleteMany, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

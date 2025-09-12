@@ -8,7 +8,7 @@ import type { MenuProps } from 'antd';
 
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
-import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage, setSpecialItems } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
 import { NotFoundContent } from '@/components/NotFoundContent';
@@ -94,7 +94,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
     setIsSubmit(false);
   };
 
-  const getAction = (type?: 'cover' | 'coverCollection') => `${routes.imageUpload({ isServer: false })}?${type}=true`;
+  const getAction = (type?: 'cover' | 'coverCollection') => `${routes.storage.image.upload({ isServer: false })}?${type}=true`;
 
   const menu: MenuProps['items'] = order
     ? [
@@ -104,7 +104,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
         onClick: () => router.push({ pathname: getHref(item), query: { edit: true } }),
       },
       {
-        label: (<Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(item)}>{t('remove')}</Popconfirm>),
+        label: (<Popconfirm rootClassName="ant-input-group-addon" title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(item)}>{t('remove')}</Popconfirm>),
         key: '2',
       },
       {
@@ -115,7 +115,10 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
       ...(!item ? [{
         label: t('addInCell'),
         key: '4',
-        onClick: () => setIsSelect(true),
+        onClick: () => {
+          dispatch(setSpecialItems({ isFull: true }));
+          setIsSelect(true);
+        },
       }] : []),
     ]
     : !order && cover
@@ -126,7 +129,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
           onClick: () => setIsUpload(true),
         }] : []),
         ...(image ? [{
-          label: (<Popconfirm title={t('deleteCoverConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => removeCover(image)}>{t('removeCover')}</Popconfirm>),
+          label: (<Popconfirm rootClassName="ant-input-group-addon" title={t('deleteCoverConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => removeCover(image)}>{t('removeCover')}</Popconfirm>),
           key: '2',
         }] : []),
       ]

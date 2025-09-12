@@ -202,5 +202,5 @@ export class ItemGroupService extends TranslationHelper {
     return this.findMany({ includeIds: body.map(({ id }) => id), ...query });
   };
 
-  private getUrl = (itemGroup: Pick<ItemGroupEntity, 'code'>) => path.join(routes.homePage, catalogPath.slice(1), itemGroup.code).replaceAll('\\', '/');
+  private getUrl = (itemGroup: Pick<ItemGroupEntity, 'code'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), itemGroup.code).replaceAll('\\', '/');
 }

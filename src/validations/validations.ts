@@ -51,10 +51,6 @@ export const uuidArraySchema = yup.array(yup.string().uuid().required()).require
 const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
 
-export const descriptionSchema = yup.object().shape({
-  description: stringSchema.optional(),
-});
-
 const requiredIdSchema = yup.object().shape({ id: numberSchema });
 
 const phoneSchema = yup.string().trim().required().transform((value) => value.replace(/[^\d]/g, ''))
@@ -355,6 +351,12 @@ const newPromotionalSchema = yup.object().shape({
     }),
 }).concat(periodSchema).concat(discountAndDiscountPercentSchema);
 
+const publishTelegramSchema = yup.object().shape({
+  date: yup.date().optional().nullable(),
+  time: yup.date().optional().nullable(),
+  description: stringSchema,
+});
+
 const setCoverImageSchema = yup.object().shape({
   coverOrder: numberSchema,
 }).concat(requiredIdSchema);
@@ -379,3 +381,4 @@ export const orderChangeStatusValidation = validate(orderChangeStatusSchema);
 export const newCompositionValidation = validate(newCompositionSchema);
 export const setCoverImageValidation = validate(setCoverImageSchema);
 export const newColorValidation = validate(newColorSchema);
+export const publishTelegramValidation = validate(publishTelegramSchema);

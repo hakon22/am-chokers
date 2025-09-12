@@ -230,7 +230,7 @@ const CreateItemCollection = () => {
             <Button color="default" variant="text" onClick={() => save(record.key)} style={{ marginInlineEnd: 8 }}>
               {t('save')}
             </Button>
-            <Popconfirm title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
+            <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
               <Button color="default" variant="text">
                 {t('cancel')}
               </Button>
@@ -244,7 +244,7 @@ const CreateItemCollection = () => {
               </Button>
               : null}
             {!record.deleted
-              ? <Popconfirm title={t('deleteConfirm')} description={t('deleteConfirm2')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
+              ? <Popconfirm rootClassName="ant-input-group-addon" title={t('deleteConfirm')} description={t('deleteConfirm2')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
                 <Button color="default" variant="text">
                   {t('delete')}
                 </Button>
@@ -278,7 +278,7 @@ const CreateItemCollection = () => {
       router.push(`?withDeleted=${withDeleted}`, undefined, { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number, itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }), {
+      axios.get<{ code: number, itemCollections: ItemCollectionInterface[]; }>(routes.itemCollection.findMany({ isServer: false }), {
         params: { withDeleted },
       })
         .then(({ data: response }) => {

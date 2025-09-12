@@ -133,7 +133,7 @@ const CreateColor = () => {
   const handleDelete = async (record: ColorTableInterface) => {
     try {
       setIsSubmit(true);
-      const { data: { code, color } } = await axios.delete<ColorResponseInterface>(routes.removeColor(+record.key));
+      const { data: { code, color } } = await axios.delete<ColorResponseInterface>(routes.color.deleteOne(+record.key));
       if (code === 1) {
         if (withDeleted) {
           updateData(color);
@@ -151,7 +151,7 @@ const CreateColor = () => {
   const restore = async (key: string) => {
     try {
       setIsSubmit(true);
-      const { data: { code, color } } = await axios.patch<ColorResponseInterface>(routes.restoreColor(+key));
+      const { data: { code, color } } = await axios.patch<ColorResponseInterface>(routes.color.restoreOne(+key));
       if (code === 1) {
         updateData(color);
       }
@@ -177,13 +177,13 @@ const CreateColor = () => {
       let payloadCode: number;
 
       if (exist) {
-        const { data: { code, color } } = await axios.put<ColorResponseInterface>(routes.updateColor(exist.id), { id: exist.id, hex: typeof hex === 'string' ? hex : (hex as Color).toHexString(), translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as ColorInterface);
+        const { data: { code, color } } = await axios.put<ColorResponseInterface>(routes.color.updateOne(exist.id), { id: exist.id, hex: typeof hex === 'string' ? hex : (hex as Color).toHexString(), translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as ColorInterface);
         payloadCode = code;
         if (payloadCode === 1) {
           updateData(color, row);
         }
       } else {
-        const { data: { code, color } } = await axios.post<ColorResponseInterface>(routes.createColor, { hex: (hex as Color).toHexString(), translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang })) } as ColorFormInterface);
+        const { data: { code, color } } = await axios.post<ColorResponseInterface>(routes.color.createOne, { hex: (hex as Color).toHexString(), translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang })) } as ColorFormInterface);
         payloadCode = code;
         if (payloadCode === 1) {
           setColors((state) => [...state, color]);
@@ -243,7 +243,7 @@ const CreateColor = () => {
             <Button color="default" variant="text" onClick={() => save(record)}>
               {t('save')}
             </Button>
-            <Popconfirm title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
+            <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
               <Button color="default" variant="text">
                 {t('cancel')}
               </Button>
@@ -257,7 +257,7 @@ const CreateColor = () => {
               </Button>
               : null}
             {!record.deleted
-              ? <Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
+              ? <Popconfirm rootClassName="ant-input-group-addon" title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
                 <Button color="default" variant="text">
                   {t('delete')}
                 </Button>
@@ -299,7 +299,7 @@ const CreateColor = () => {
       { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number; colors: ColorInterface[]; }>(routes.getColors, {
+      axios.get<{ code: number; colors: ColorInterface[]; }>(routes.color.findMany, {
         params: { withDeleted },
       })
         .then(({ data: response }) => {

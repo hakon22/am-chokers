@@ -51,10 +51,10 @@ const AboutBrand = () => {
           <p>{t('5')}</p>
           <p className="mb-5">{t('6')}</p>
           <div className="d-flex align-items-center justify-content-center gap-3">
-            <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} title={t('telegram')} target="_blank">
+            <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} title={t('telegram')} target="_blank">
               <Image src={telegramIcon} width="35" priority alt={t('telegram')} />
             </Link>
-            <Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.homePage} className="instagram" title={t('instagram')} target="_blank">
+            <Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.page.base.homePage} className="instagram" title={t('instagram')} target="_blank">
               <Image src={instagramIcon} width="35" priority alt={t('instagram')} />
             </Link>
           </div>

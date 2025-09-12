@@ -28,7 +28,7 @@ export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
   async (data: UserLoginInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<UserResponseInterface>(routes.login, data);
+      const response = await axios.post<UserResponseInterface>(routes.user.login, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -40,7 +40,7 @@ export const fetchSignup = createAsyncThunk(
   'user/fetchSignup',
   async (data: UserSignupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<UserResponseInterface>(routes.signup, data);
+      const response = await axios.post<UserResponseInterface>(routes.user.signup, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -52,7 +52,7 @@ export const fetchTokenStorage = createAsyncThunk(
   'user/fetchTokenStorage',
   async (refreshTokenStorage: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<UserResponseInterface>(routes.updateTokens, {
+      const response = await axios.get<UserResponseInterface>(routes.user.updateTokens, {
         headers: { Authorization: `Bearer ${refreshTokenStorage}` },
       });
       return response.data;
@@ -66,7 +66,7 @@ export const fetchConfirmCode = createAsyncThunk(
   'user/fetchConfirmCode',
   async (data: { phone: string, key?: string, code?: string }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number, key: string, phone: string }>(routes.confirmPhone, data);
+      const response = await axios.post<{ code: number, key: string, phone: string }>(routes.user.confirmPhone, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -80,7 +80,7 @@ export const changeLang = createAsyncThunk(
     try {
       window.localStorage.setItem(languageKey, lang);
       if (token) {
-        await axios.get<{ code: number; }>(routes.changeLang, { params: { lang } });
+        await axios.get<{ code: number; }>(routes.user.changeLang, { params: { lang } });
       }
       return lang;
     } catch (e: any) {
@@ -93,7 +93,7 @@ export const addFavorites = createAsyncThunk(
   'user/addFavorites',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.get<FavoritesResponseInterface>(routes.addFavorites(id));
+      const response = await axios.get<FavoritesResponseInterface>(routes.user.addFavorites(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -105,7 +105,7 @@ export const removeFavorites = createAsyncThunk(
   'user/removeFavorites',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<FavoritesResponseInterface>(routes.removeFavorites(id));
+      const response = await axios.delete<FavoritesResponseInterface>(routes.user.removeFavorites(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -119,7 +119,7 @@ export const updateTokens = createAsyncThunk(
     try {
       const refreshTokenStorage = window.localStorage.getItem(storageKey);
       if (refreshTokenStorage) {
-        const { data } = await axios.get(routes.updateTokens, {
+        const { data } = await axios.get(routes.user.updateTokens, {
           headers: { Authorization: `Bearer ${refreshTokenStorage}` },
         });
         if (data.user.refreshToken) {
@@ -127,7 +127,7 @@ export const updateTokens = createAsyncThunk(
           return data;
         }
       } else {
-        const { data } = await axios.get<UserResponseInterface>(routes.updateTokens, {
+        const { data } = await axios.get<UserResponseInterface>(routes.user.updateTokens, {
           headers: { Authorization: `Bearer ${refresh}` },
         });
         if (data.user.refreshToken) {

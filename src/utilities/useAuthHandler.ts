@@ -8,7 +8,7 @@ import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { fetchCart, addMany } from '@/slices/cartSlice';
-import { setAxiosAuth, setSpecialItems } from '@/slices/appSlice';
+import { setAxiosAuth } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
@@ -22,7 +22,7 @@ export const useAuthHandler = () => {
 
   const { logIn, loggedIn } = useContext(AuthContext);
 
-  const { token, refreshToken, url, lang, isAdmin } = useAppSelector((state) => state.user);
+  const { token, refreshToken, url, lang } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   useEffect(() => {
@@ -45,8 +45,8 @@ export const useAuthHandler = () => {
       if (url) {
         router.push(url);
         dispatch(removeUrl());
-      } else if (router.asPath === routes.loginPage) {
-        router.push(routes.homePage);
+      } else if (router.asPath === routes.page.base.loginPage) {
+        router.push(routes.page.base.homePage);
       }
       dispatch(fetchOrders());
       dispatch(fetchCart(cart));
@@ -67,12 +67,6 @@ export const useAuthHandler = () => {
       i18n.changeLanguage(lang.toLowerCase());
     }
   }, [lang, token]);
-
-  useEffect(() => {
-    if (isAdmin) {
-      dispatch(setSpecialItems());
-    }
-  }, [isAdmin]);
 
   useEffect(() => {
     if (refreshToken) {

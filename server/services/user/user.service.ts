@@ -562,7 +562,8 @@ export class UserService extends BaseService {
       const [items, count] = await builder.getManyAndCount();
 
       items.forEach((user) => {
-        user.updated = moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate();
+        user.updated = user.refreshTokens.length ? moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate() : user.created;
+        user.refreshTokens = [];
       });
 
       const paginationParams = {

@@ -54,19 +54,19 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
         <SearchOutlined className="icon" />
         <span className="visually-hidden">{t('search')}</span>
       </Button>
-      <Link href={routes.favorites} title={t('favorites')}>
+      <Link href={routes.page.profile.favorites} title={t('favorites')}>
         <Badge count={favorites?.length} offset={[0, 23]}>
           <HeartOutlined className="icon" />
           <span className="visually-hidden">{t('favorites')}</span>
         </Badge>
       </Link>
-      <Link href={routes.cartPage} title={t('cart')}>
+      <Link href={routes.page.base.cartPage} title={t('cart')}>
         <Badge count={cart.reduce((acc, { count }) => acc + count, 0)} offset={[3, 23]}>
           <ShoppingCartOutlined className="icon" />
           <span className="visually-hidden">{t('cart')}</span>
         </Badge>
       </Link>
-      <Link href={routes.profilePage} title={t('profile')}>
+      <Link href={routes.page.base.profilePage} title={t('profile')}>
         {name
           ? (
             <Avatar style={{ backgroundColor: '#62c2d8ff', width: 28.8, height: 30, verticalAlign: 'middle' }}>
@@ -176,12 +176,12 @@ export const NavBar = () => {
 
   const items: MenuItem[] = [
     ...(isMobile ? [{
-      label: <Link href={routes.homePage}>{t('menu.home')}</Link>,
+      label: <Link href={routes.page.base.homePage}>{t('menu.home')}</Link>,
       key: 'home',
       onClick: onChangeHandler,
     } as MenuItem] : []),
     {
-      label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.catalog} isOpen={isMobile ? isOpen : submenu === 'catalog'} />,
+      label: <LabelWithIcon label={t('menu.catalog')} href={isMobile ? undefined : routes.page.base.catalog} isOpen={isMobile ? isOpen : submenu === 'catalog'} />,
       key: 'catalog',
       onTitleMouseEnter,
       onTitleMouseLeave,
@@ -190,25 +190,25 @@ export const NavBar = () => {
       children: [...(isMobile ? [{ code: '', order: -1, translations: [{ name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.RU }, { name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.EN }] }, ...itemGroups] : itemGroups)].sort((a, b) => a.order - b.order).map((itemGroup) => ({ label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>, className: 'navbar-padding', key: itemGroup.code, type: 'item' })),
     },
     {
-      label: <Link href={routes.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,
+      label: <Link href={routes.page.base.aboutBrandPage}>{t('menu.aboutBrand')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
       ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'about-brand',
     },
     {
-      label: <Link href={routes.deliveryPage}>{t('menu.delivery')}</Link>,
+      label: <Link href={routes.page.base.deliveryPage}>{t('menu.delivery')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
       ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'delivery',
     },
     {
-      label: <Link href={routes.jewelryCarePage}>{t('menu.jewelryCaring')}</Link>,
+      label: <Link href={routes.page.base.jewelryCarePage}>{t('menu.jewelryCaring')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
       ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'jewelry-care',
     },
     {
-      label: <Link href={routes.contactsPage}>{t('menu.contacts')}</Link>,
+      label: <Link href={routes.page.base.contactsPage}>{t('menu.contacts')}</Link>,
       ...(isMobile ? { onClick: onChangeHandler } : {}),
       ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'contacts',
@@ -231,7 +231,7 @@ export const NavBar = () => {
     if (router.query?.path) {
       delete router.query.path;
     }
-    router.push({ query: search ? { ...router.query, search } : router.query, pathname: routes.catalog });
+    router.push({ query: search ? { ...router.query, search } : router.query, pathname: routes.page.base.catalog });
     onFocus();
   };
 
@@ -309,7 +309,7 @@ export const NavBar = () => {
                 {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
               </Radio.Group> : null}
               <div className="nav-logo-container" data-aos="fade-down">
-                <Link href={routes.homePage}>
+                <Link href={routes.page.base.homePage}>
                   <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
                 </Link>
               </div>

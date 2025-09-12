@@ -41,7 +41,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
   const [groupCode] = path;
 
   const [{ data: { items: payloadItems, paginationParams } }, { data: { itemGroup } }] = await Promise.all([
-    axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: false }), {
+    axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: false }), {
       params: {
         limit: +(query?.page || 1) * 8,
         offset: 0,
@@ -58,7 +58,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
         ...(query?.sort ? { sort: query.sort } : {}),
       },
     }),
-    ...(groupCode ? [axios.get<ItemGroupResponseInterface>(routes.getItemGroupByCode({ isServer: false }), {
+    ...(groupCode ? [axios.get<ItemGroupResponseInterface>(routes.itemGroup.getByCode({ isServer: false }), {
       params: { code: groupCode },
     })] : [{ data: { itemGroup: null } }]),
   ]);
@@ -73,7 +73,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
 };
 
 export const getServerSideProps = async ({ params, query }: GetServerSidePropsInterface) => {
-  const { data: { links } } = await axios.get<{ links: string[]; }>(routes.getItemLinks({ isServer: false }));
+  const { data: { links } } = await axios.get<{ links: string[]; }>(routes.item.getLinks({ isServer: false }));
 
   const { path } = params;
 
@@ -83,18 +83,18 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
     return {
       redirect: {
         permanent: false,
-        destination: routes.homePage,
+        destination: routes.page.base.homePage,
       },
     };
   }
 
   if (itemName) {
-    const { data: { item, collectionItems } } = await axios.get<ItemResponseInterface & { collectionItems: ItemInterface[]; }>(routes.getItemByName({ isServer: false }), {
+    const { data: { item, collectionItems } } = await axios.get<ItemResponseInterface & { collectionItems: ItemInterface[]; }>(routes.item.getByName({ isServer: false }), {
       params: { translateName: itemName },
     });
   
     if (item) {
-      const { data: { items: grades, paginationParams } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getGrades({ isServer: false, id: item.id }), {
+      const { data: { items: grades, paginationParams } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.item.getGrades({ isServer: false, id: item.id }), {
         params: {
           limit: 10,
           offset: 0,

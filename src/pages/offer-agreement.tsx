@@ -21,7 +21,7 @@ const OfferAgreement = () => {
         <p>{t('3')}</p>
         <p>{t('4')}</p>
         <p>{t('5')}</p>
-        <p>{t('6')}<Link href={routes.privacyPolicy} title={t('6.1')}>{t('6.1')}</Link>{t('6.2')}</p>
+        <p>{t('6')}<Link href={routes.page.base.privacyPolicy} title={t('6.1')}>{t('6.1')}</Link>{t('6.2')}</p>
         <p>{t('7')}</p>
         <p>{t('8')}</p>
         <p>{t('9')}</p>
@@ -48,13 +48,13 @@ const OfferAgreement = () => {
         <p className="fs-5 fw-bold text-uppercase">{t('30')}</p>
         <p>{t('31')}</p>
         <p>{t('32')}</p>
-        <p>{t('33')}<Link href={routes.deliveryPage} title={t('34')}>{t('34')}</Link></p>
+        <p>{t('33')}<Link href={routes.page.base.deliveryPage} title={t('34')}>{t('34')}</Link></p>
         <p>{t('35')}</p>
         <p className="fs-5 fw-bold text-uppercase">{t('36')}</p>
         <p>{t('37')}</p>
         <p>{t('38')}</p>
         <p className="fs-5 fw-bold text-uppercase">{t('39')}</p>
-        <p>{t('40')}<Link href={routes.deliveryPage} title={t('34')}>{t('34')}</Link></p>
+        <p>{t('40')}<Link href={routes.page.base.deliveryPage} title={t('34')}>{t('34')}</Link></p>
         <p>{t('41')}</p>
         <p>{t('42')}</p>
         <p>{t('43')}</p>

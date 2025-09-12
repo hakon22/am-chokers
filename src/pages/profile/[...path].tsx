@@ -46,8 +46,8 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
 
   const titleProps = {
     id: path[1],
-    ...(routes.favorites === router.asPath ? { count: favorites?.length } : {}),
-    ...(routes.myReviews === router.asPath ? { count: pagination.count } : {}),
+    ...(routes.page.profile.favorites === router.asPath ? { count: favorites?.length } : {}),
+    ...(routes.page.profile.myReviews === router.asPath ? { count: pagination.count } : {}),
   };
 
   const pages: Record<string, JSX.Element> = {
@@ -68,15 +68,15 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const onCollapse = (keys: string[]) => {
     setActiveKey(keys);
     if (keys.includes('personal')) {
-      router.push(routes.personalData);
+      router.push(routes.page.profile.personalData);
     } else if (keys.includes('orders')) {
-      router.push(routes.orderHistory);
+      router.push(routes.page.profile.orderHistory);
     } else if (keys.includes('favorites')) {
-      router.push(routes.favorites);
+      router.push(routes.page.profile.favorites);
     } else if (keys.includes('reviews')) {
-      router.push(routes.myReviews);
+      router.push(routes.page.profile.myReviews);
     } else if (keys.includes('settings')) {
-      router.push(routes.settings);
+      router.push(routes.page.profile.settings);
     }
   };
 
@@ -96,55 +96,55 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
             accordion
             ghost
             items={[
-              { key: routes.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
           { key: 'reports', label: tMenu('menu.admin.reports.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0, paddingLeft: '2.5rem' } }, children: <Collapse
             accordion
             ghost
             items={[
-              { key: routes.reports.users, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.userList}>{tMenu('menu.admin.reports.users')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.reports.cart, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.cartReport}>{tMenu('menu.admin.reports.cart')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
-              { key: routes.reports.message, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.messageReport}>{tMenu('menu.admin.reports.message')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.users, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.userList}>{tMenu('menu.admin.reports.users')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.cart, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.cartReport}>{tMenu('menu.admin.reports.cart')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.message, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.messageReport}>{tMenu('menu.admin.reports.message')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
-          { key: routes.allOrders, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.compositionsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.colorsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.allOrders, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.compositionsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.colorsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
         ]}
       /> }]
       : []),
   ];
 
   const items: MenuItem[] = [
-    { key: 'personal', label: <Link href={routes.personalData}>{tMenu('menu.personal')}</Link> },
-    { key: 'orders', label: <Link href={routes.orderHistory}>{tMenu('menu.orders')}</Link> },
-    { key: 'favorites', label: <Link href={routes.favorites}>{tMenu('menu.favorites')}</Link> },
-    { key: 'reviews', label: <Link href={routes.myReviews}>{tMenu('menu.reviews')}</Link> },
-    // { key: 'settings', label: <Link href={routes.settings}>{tMenu('menu.settings')}</Link> },
+    { key: 'personal', label: <Link href={routes.page.profile.personalData}>{tMenu('menu.personal')}</Link> },
+    { key: 'orders', label: <Link href={routes.page.profile.orderHistory}>{tMenu('menu.orders')}</Link> },
+    { key: 'favorites', label: <Link href={routes.page.profile.favorites}>{tMenu('menu.favorites')}</Link> },
+    { key: 'reviews', label: <Link href={routes.page.profile.myReviews}>{tMenu('menu.reviews')}</Link> },
+    // { key: 'settings', label: <Link href={routes.page.profile.settings}>{tMenu('menu.settings')}</Link> },
     isAdmin
       ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
         { key: 'items', label: tMenu('menu.admin.items.title'), children: [
-          { key: routes.newItem, label: <Link href={routes.newItem}>{tMenu('menu.admin.items.newItem')}</Link> },
-          { key: routes.itemGroupsControl, label: <Link href={routes.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link> },
-          { key: routes.itemCollectionsControl, label: <Link href={routes.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link> },
-          { key: routes.itemList, label: <Link href={routes.itemList}>{tMenu('menu.admin.items.itemList')}</Link> },
+          { key: routes.page.admin.newItem, label: <Link href={routes.page.admin.newItem}>{tMenu('menu.admin.items.newItem')}</Link> },
+          { key: routes.page.admin.itemGroupsControl, label: <Link href={routes.page.admin.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link> },
+          { key: routes.page.admin.itemCollectionsControl, label: <Link href={routes.page.admin.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link> },
+          { key: routes.page.admin.itemList, label: <Link href={routes.page.admin.itemList}>{tMenu('menu.admin.items.itemList')}</Link> },
         ] },
         { key: 'reports', label: tMenu('menu.admin.reports.title'), children: [
-          { key: routes.reports.users, label: <Link href={routes.userList}>{tMenu('menu.admin.reports.users')}</Link> },
-          { key: routes.reports.cart, label: <Link href={routes.cartReport}>{tMenu('menu.admin.reports.cart')}</Link> },
-          { key: routes.reports.message, label: <Link href={routes.messageReport}>{tMenu('menu.admin.reports.message')}</Link> },
+          { key: routes.reports.users, label: <Link href={routes.page.admin.userList}>{tMenu('menu.admin.reports.users')}</Link> },
+          { key: routes.reports.cart, label: <Link href={routes.page.admin.cartReport}>{tMenu('menu.admin.reports.cart')}</Link> },
+          { key: routes.reports.message, label: <Link href={routes.page.admin.messageReport}>{tMenu('menu.admin.reports.message')}</Link> },
         ] },
-        { key: routes.allOrders, label: <Link href={routes.allOrders}>{tMenu('menu.admin.orders')}</Link> },
-        { key: routes.moderationOfReview, label: <Link href={routes.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
-        { key: routes.promotionalCodes, label: <Link href={routes.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },
-        { key: routes.compositionsControl, label: <Link href={routes.compositionsControl}>{tMenu('menu.admin.compositions')}</Link> },
-        { key: routes.colorsControl, label: <Link href={routes.colorsControl}>{tMenu('menu.admin.colors')}</Link> },
+        { key: routes.page.admin.allOrders, label: <Link href={routes.page.admin.allOrders}>{tMenu('menu.admin.orders')}</Link> },
+        { key: routes.page.admin.moderationOfReview, label: <Link href={routes.page.admin.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },
+        { key: routes.page.admin.promotionalCodes, label: <Link href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },
+        { key: routes.page.admin.compositionsControl, label: <Link href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Link> },
+        { key: routes.page.admin.colorsControl, label: <Link href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Link> },
       ],
       } : null,
     { type: 'divider' },

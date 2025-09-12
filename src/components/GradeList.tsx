@@ -54,7 +54,7 @@ export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTi
         <div className="d-flex gap-3">
           <Rate disabled allowHalf value={grade.grade} />
           {withLinkToOrder
-            ? <Link href={`${routes.allOrders}/${grade.position.order.id}`}>{grade.user.name}</Link>
+            ? <Link href={`${routes.page.admin.allOrders}/${grade.position.order.id}`}>{grade.user.name}</Link>
             : <span>{grade.user.name}</span>}
         </div>
         <div>
@@ -238,7 +238,7 @@ export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: Rea
                       : {}}>{t('reply')}</a>,
                 ]
                 : []),
-              <Popconfirm key="remove" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => onGradeRemove(value.id)}>
+              <Popconfirm key="remove" rootClassName="ant-input-group-addon" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={() => onGradeRemove(value.id)}>
                 <a>{t('remove')}</a>
               </Popconfirm>]
               : undefined}

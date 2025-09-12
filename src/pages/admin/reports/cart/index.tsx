@@ -131,7 +131,7 @@ const Cart = () => {
           )} />
           <Table.Column<DataType> title={t('table.date')} dataIndex="date" render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />
           <Table.Column<DataType> title={t('table.count')} dataIndex="count" width={'10%'} />
-          <Table.Column<DataType> title={t('table.username')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.userCard}/${user?.id}`}>{user?.name}</Link>} />
+          <Table.Column<DataType> title={t('table.username')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.page.admin.userCard}/${user?.id}`}>{user?.name}</Link>} />
         </Table>
       </InfiniteScroll>
     </div>

@@ -85,22 +85,22 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
     {
       key: '8',
       label: t('orders'),
-      children: <Link href={`${routes.allOrders}?userId=${id}`}>{user?.orders.length}</Link>,
+      children: <Link href={`${routes.page.admin.allOrders}?userId=${id}`}>{user?.orders.length}</Link>,
     },
     {
       key: '9',
       label: t('reviews'),
-      children: <Link href={`${routes.moderationOfReview}?showAccepted=true&userId=${id}`}>{user?.gradeCount}</Link>,
+      children: <Link href={`${routes.page.admin.moderationOfReview}?showAccepted=true&userId=${id}`}>{user?.gradeCount}</Link>,
     },
     {
       key: '10',
       label: t('messages'),
-      children: <Link href={`${routes.messageReport}?userId=${id}`}>{user?.messageCount}</Link>,
+      children: <Link href={`${routes.page.admin.messageReport}?userId=${id}`}>{user?.messageCount}</Link>,
     },
     {
       key: '11',
       label: t('cart'),
-      children: <Link href={`${routes.cartReport}?userId=${id}`}>{user?.cartCount}</Link>,
+      children: <Link href={`${routes.page.admin.cartReport}?userId=${id}`}>{user?.cartCount}</Link>,
     },
   ];
 
@@ -135,7 +135,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
   const fetchUser = async (params: ParamsIdInterface) => {
     try {
       setIsSubmit(true);
-      const { data: { user: fetchedUser, code } } = await axios.get<{ code: number; user: UserCardInterface; }>(routes.getUserCard(params.id));
+      const { data: { user: fetchedUser, code } } = await axios.get<{ code: number; user: UserCardInterface; }>(routes.user.getUserCard(params.id));
       if (code === 1) {
         setUser(fetchedUser);
       }

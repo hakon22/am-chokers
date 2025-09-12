@@ -130,7 +130,7 @@ const CreateComposition = () => {
   const handleDelete = async (record: CompositionTableInterface) => {
     try {
       setIsSubmit(true);
-      const { data: { code, composition } } = await axios.delete<CompositionResponseInterface>(routes.removeComposition(+record.key));
+      const { data: { code, composition } } = await axios.delete<CompositionResponseInterface>(routes.composition.deleteOne(+record.key));
       if (code === 1) {
         if (withDeleted) {
           updateData(composition);
@@ -148,7 +148,7 @@ const CreateComposition = () => {
   const restore = async (key: string) => {
     try {
       setIsSubmit(true);
-      const { data: { code, composition } } = await axios.patch<CompositionResponseInterface>(routes.restoreComposition(+key));
+      const { data: { code, composition } } = await axios.patch<CompositionResponseInterface>(routes.composition.restoreOne(+key));
       if (code === 1) {
         updateData(composition);
       }
@@ -174,13 +174,13 @@ const CreateComposition = () => {
       let payloadCode: number;
 
       if (exist) {
-        const { data: { code, composition } } = await axios.put<CompositionResponseInterface>(routes.updateComposition(exist.id), { id: exist.id, translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as CompositionInterface);
+        const { data: { code, composition } } = await axios.put<CompositionResponseInterface>(routes.composition.updateOne(exist.id), { id: exist.id, translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as CompositionInterface);
         payloadCode = code;
         if (payloadCode === 1) {
           updateData(composition, row);
         }
       } else {
-        const { data: { code, composition } } = await axios.post<CompositionResponseInterface>(routes.createComposition, { translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as CompositionFormInterface);
+        const { data: { code, composition } } = await axios.post<CompositionResponseInterface>(routes.composition.createOne, { translations: Object.entries(translations).map(([lang, { name }]) => ({ name, lang } )) } as CompositionFormInterface);
         payloadCode = code;
         if (payloadCode === 1) {
           setCompositions((state) => [...state, composition]);
@@ -234,7 +234,7 @@ const CreateComposition = () => {
             <Button color="default" variant="text" onClick={() => save(record)}>
               {t('save')}
             </Button>
-            <Popconfirm title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
+            <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
               <Button color="default" variant="text">
                 {t('cancel')}
               </Button>
@@ -248,11 +248,13 @@ const CreateComposition = () => {
               </Button>
               : null}
             {!record.deleted
-              ? <Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
-                <Button color="default" variant="text">
-                  {t('delete')}
-                </Button>
-              </Popconfirm>
+              ? (
+                <Popconfirm rootClassName="ant-input-group-addon" title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
+                  <Button color="default" variant="text">
+                    {t('delete')}
+                  </Button>
+                </Popconfirm>
+              )
               : null}
             {record.deleted && <Button color="default" variant="text" disabled={editingKey !== ''} onClick={() => restore(record.key)}>
               {t('restore')}
@@ -290,7 +292,7 @@ const CreateComposition = () => {
       { shallow: true });
 
       setIsSubmit(true);
-      axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.getCompositions, {
+      axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.composition.findMany, {
         params: { withDeleted },
       })
         .then(({ data: response }) => {

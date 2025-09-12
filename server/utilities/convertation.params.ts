@@ -126,6 +126,10 @@ export const queryTranslateNameParams = yup.object().shape({
   translateName: yup.string().required(),
 });
 
+export const isFullParams = yup.object().shape({
+  isFull: booleanSchema,
+});
+
 export const queryCodeParams = yup.object().shape({
   code: yup.string().required(),
 });

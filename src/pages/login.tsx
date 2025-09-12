@@ -59,10 +59,10 @@ const Login = () => {
               <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('password')} />
             </Form.Item>
             <div className="d-flex justify-content-between mb-3-5">
-              <Link className="text-primary fw-light" href={routes.signupPage}>
+              <Link className="text-primary fw-light" href={routes.page.base.signupPage}>
                 {t('noAccount')}
               </Link>
-              <Link className="text-primary fw-light" href={routes.recoveryPage}>
+              <Link className="text-primary fw-light" href={routes.page.base.recoveryPage}>
                 {t('forgotPassword')}
               </Link>
             </div>
@@ -71,7 +71,7 @@ const Login = () => {
                 {t('submitButton')}
               </Button>
             </div>
-            <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
+            <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
           </Form>
         </div>
       </div>

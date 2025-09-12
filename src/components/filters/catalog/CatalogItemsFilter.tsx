@@ -87,9 +87,9 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     try {
       setIsSubmit(true);
       const [{ data: response1 }, { data: response2 }, { data: response3 }] = await Promise.all([
-        axios.get<{ code: number; itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false })),
-        axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.getCompositions),
-        axios.get<{ code: number; colors: ColorInterface[]; }>(routes.getColors),
+        axios.get<{ code: number; itemCollections: ItemCollectionInterface[]; }>(routes.itemCollection.findMany({ isServer: false })),
+        axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.composition.findMany),
+        axios.get<{ code: number; colors: ColorInterface[]; }>(routes.color.findMany),
       ]);
       if (response1.code === 1) {
         setItemCollections(response1.itemCollections);

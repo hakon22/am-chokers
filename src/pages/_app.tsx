@@ -59,7 +59,7 @@ const Init = (props: InitPropsInterface) => {
     if (refreshTokenStorage) {
       localStorage.removeItem(storageKey);
     }
-    await axios.post(routes.logout, { id, refreshToken });
+    await axios.post(routes.user.logout, { id, refreshToken });
     setLoggedIn(false);
     dispatch(removeUserToken());
     dispatch(removeMany());
@@ -174,7 +174,7 @@ const Init = (props: InitPropsInterface) => {
                     >
                       <>
                         {i18n.t('cookieConsent.contentText')}
-                        <Link className="text-decoration-underline" href={routes.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
+                        <Link className="text-decoration-underline" href={routes.page.base.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
                       </>
                     </CookieConsent>
                     <App>
@@ -193,9 +193,9 @@ const Init = (props: InitPropsInterface) => {
 
 Init.getInitialProps = async (context: AppContext) => {
   const [{ data: { itemGroups } }, { data: { specialItems } }, { data: { coverImages } }] = await Promise.all([
-    axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.getItemGroups({ isServer: false })),
-    axios.get<{ specialItems: ItemInterface[]; }>(routes.getItemSpecials({ isServer: false })),
-    axios.get<{ coverImages: ImageEntity[]; }>(routes.getCoverImages({ isServer: false })),
+    axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.findMany({ isServer: false })),
+    axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
+    axios.get<{ coverImages: ImageEntity[]; }>(routes.storage.image.getCoverImages({ isServer: false })),
   ]);
 
   const { req } = context.ctx;

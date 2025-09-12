@@ -89,7 +89,7 @@ const UserList = () => {
           bordered
           className="td-padding-unset"
           onRow={(record) => ({
-            onClick: () => router.push(`${routes.userCard}/${record.id}`),
+            onClick: () => router.push(`${routes.page.admin.userCard}/${record.id}`),
             style: { cursor: 'pointer' },
           })}
           locale={{

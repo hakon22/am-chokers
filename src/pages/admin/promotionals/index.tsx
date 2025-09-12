@@ -298,7 +298,7 @@ const CreatePromotional = () => {
   const handleDelete = async (record: PromotionalTableInterface) => {
     try {
       setIsSubmit(true);
-      const { data: { code, promotional } } = await axios.delete<PromotionalResponseInterface>(routes.removePromotional(+record.key));
+      const { data: { code, promotional } } = await axios.delete<PromotionalResponseInterface>(routes.promotional.deleteOne(+record.key));
       if (code === 1) {
         if (withDeleted) {
           updateData(promotional);
@@ -316,7 +316,7 @@ const CreatePromotional = () => {
   const restore = async (key: string) => {
     try {
       setIsSubmit(true);
-      const { data: { code, promotional } } = await axios.patch<PromotionalResponseInterface>(routes.restorePromotional(+key));
+      const { data: { code, promotional } } = await axios.patch<PromotionalResponseInterface>(routes.promotional.restoreOne(+key));
       if (code === 1) {
         updateData(promotional);
       }
@@ -352,12 +352,12 @@ const CreatePromotional = () => {
 
       const exist = promotionals.find((promotional) => promotional.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.updatePromotional(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
         if (code === 1) {
           updateData(promotional, row);
         }
       } else {
-        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.createPromotional, { name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
         if (code === 1) {
           setPromotionals((state) => [promotional, ...state]);
           setEditingKey('');
@@ -375,7 +375,7 @@ const CreatePromotional = () => {
   const fetchItems = async (search: string) => {
     let result: { label: string; value: number; }[] = [];
     try {
-      const response = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: true }), {
+      const response = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
         params: { search, limit: 10, offset: 0 },
       });
       if (response.data.code === 1) {
@@ -471,7 +471,7 @@ const CreatePromotional = () => {
             <Button color="default" variant="text" onClick={() => save(record)}>
               {t('save')}
             </Button>
-            <Popconfirm title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
+            <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => cancel(record)}>
               <Button color="default" variant="text">
                 {t('cancel')}
               </Button>
@@ -485,7 +485,7 @@ const CreatePromotional = () => {
               </Button>
               : null}
             {!record.deleted && !record.orders?.length
-              ? <Popconfirm title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
+              ? <Popconfirm rootClassName="ant-input-group-addon" title={t('deleteConfirm')} okText={t('okText')} cancelText={t('cancel')} onConfirm={() => handleDelete(record)}>
                 <Button color="default" variant="text">
                   {t('delete')}
                 </Button>
@@ -559,7 +559,7 @@ const CreatePromotional = () => {
       }
 
       setIsSubmit(true);
-      axios.get<{ code: number, promotionals: PromotionalInterface[] }>(routes.getPromotionals, {
+      axios.get<{ code: number, promotionals: PromotionalInterface[] }>(routes.promotional.findMany, {
         params: { withDeleted, withExpired },
       })
         .then(({ data: response }) => {

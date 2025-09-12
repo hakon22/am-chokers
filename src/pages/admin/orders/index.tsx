@@ -46,7 +46,7 @@ const Orders = () => {
         return;
       }
       setIsLoading(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<OrderInterface>>(routes.getAllOrders, {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<OrderInterface>>(routes.order.getAllOrders, {
         params,
       });
       if (code === 1) {

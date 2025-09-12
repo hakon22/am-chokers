@@ -167,7 +167,7 @@ const Message = () => {
           <Table.Column<DataType> title={t('table.send')} dataIndex="send" width={'3%'} render={(checked) => <Checkbox className="d-flex justify-content-center" checked={checked} />} />
           <Table.Column<DataType> title={t('table.phone')} dataIndex="phone" width={'10%'} />
           <Table.Column<DataType> title={t('table.telegramId')} dataIndex="telegramId" width={'10%'} />
-          <Table.Column<DataType> title={t('table.user')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.userCard}/${user?.id}`}>{user?.name}</Link>} />
+          <Table.Column<DataType> title={t('table.user')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.page.admin.userCard}/${user?.id}`}>{user?.name}</Link>} />
         </Table>
       </InfiniteScroll>
     </div>

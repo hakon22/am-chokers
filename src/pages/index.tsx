@@ -142,14 +142,14 @@ const Index = () => {
   return (
     <div className="d-flex justify-content-center" onWheel={handleWheel}>
       <Helmet title={t('title')} description={t('description')} />
-      {!isMobile && <Link href={routes.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem', zIndex: 1 }}>{t('seeCatalog')}</Link>}
+      {!isMobile && <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem', zIndex: 1 }}>{t('seeCatalog')}</Link>}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
           <section className="mb-5 position-relative">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
                 <h2 className="text-center text-xl-start">{t('newItems')}</h2>
-                <Link href={`${routes.catalog}?new=true`} className="see-all color-dark-blue icon-button">
+                <Link href={`${routes.page.base.catalog}?new=true`} className="see-all color-dark-blue icon-button">
                   <span>{t('seeAll')}</span>
                   <ArrowRight />
                 </Link>
@@ -199,7 +199,7 @@ const Index = () => {
           <section className="d-flex flex-column position-relative col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
             <div className="d-flex flex-column justify-content-center justify-content-xl-start">
               <h2>{t('bestsellers')}</h2>
-              <Link href={`${routes.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
+              <Link href={`${routes.page.base.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
                 <span>{t('seeAll')}</span>
                 <ArrowRight />
               </Link>
@@ -263,7 +263,7 @@ const Index = () => {
                   <ul className="d-flex flex-column gap-2 mb-4">
                     <li>
                       {t('slogan.1')}
-                      <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} target="_blank" className="fw-bold">{t('slogan.1.1')}</Link>
+                      <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">{t('slogan.1.1')}</Link>
                       {t('slogan.1.2')}
                     </li>
                     <li>{t('slogan.2')}</li>
@@ -272,7 +272,7 @@ const Index = () => {
                     <li>{t('slogan.5')}</li>
                   </ul>
                   <div className="d-flex justify-content-center">
-                    <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.homePage} target="_blank" title={t('slogan.wantButton')} className="button border-button" style={{ borderRadius: '7px', padding: '0.5rem 0.7rem' }}>{t('slogan.wantButton')}</Link>
+                    <Link href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" title={t('slogan.wantButton')} className="button border-button" style={{ borderRadius: '7px', padding: '0.5rem 0.7rem' }}>{t('slogan.wantButton')}</Link>
                   </div>
                 </div>
               </div>
@@ -309,7 +309,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection5 ? `${routes.catalog}?collectionIds=${collection5?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection5?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={collection5 ? `${routes.page.base.catalog}?collectionIds=${collection5?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{collection5?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
@@ -339,7 +339,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection1 ? `${routes.catalog}?collectionIds=${collection1?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection1?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={collection1 ? `${routes.page.base.catalog}?collectionIds=${collection1?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{collection1?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
@@ -369,7 +369,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection2 ? `${routes.catalog}?collectionIds=${collection2?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection2?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={collection2 ? `${routes.page.base.catalog}?collectionIds=${collection2?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{collection2?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
@@ -399,7 +399,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection3 ? `${routes.catalog}?collectionIds=${collection3?.collection?.id}` : routes.catalog} className="h2 text-with-arrow">{collection3?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={collection3 ? `${routes.page.base.catalog}?collectionIds=${collection3?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{collection3?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
@@ -429,7 +429,7 @@ const Index = () => {
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection4 ? `${routes.catalog}?collectionIds=${collection4?.collection?.id}` : routes.catalog} className="h2 text-with-arrow-reverse">{collection4?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={collection4 ? `${routes.page.base.catalog}?collectionIds=${collection4?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{collection4?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
           </section>
@@ -441,17 +441,17 @@ const Index = () => {
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage1 ? [coverImage1] : [])}
-                  href={`${routes.catalog}?groupIds=1&groupIds=2`}
+                  href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
-              <Link href={`${routes.catalog}?groupIds=1&groupIds=2`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('necklacesAndChokers')}</Link>
+              <Link href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('necklacesAndChokers')}</Link>
               <ContextMenu className="col-12 col-xl-4" image={coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage2 ? [coverImage2] : [])}
-                  href={`${routes.catalog}?groupIds=1&groupIds=2`}
+                  href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
             </div>
@@ -462,17 +462,17 @@ const Index = () => {
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage3 ? [coverImage3] : [])}
-                  href={`${routes.catalog}/bracelet`}
+                  href={`${routes.page.base.catalog}/bracelet`}
                 />
               </ContextMenu>
-              <Link href={`${routes.catalog}/bracelet`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('bracelets')}</Link>
+              <Link href={`${routes.page.base.catalog}/bracelet`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('bracelets')}</Link>
               <ContextMenu className="col-12 col-xl-4" image={coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage4 ? [coverImage4] : [])}
-                  href={`${routes.catalog}/bracelet`}
+                  href={`${routes.page.base.catalog}/bracelet`}
                 />
               </ContextMenu>
             </div>
@@ -483,17 +483,17 @@ const Index = () => {
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage5 ? [coverImage5] : [])}
-                  href={`${routes.catalog}/earrings`}
+                  href={`${routes.page.base.catalog}/earrings`}
                 />
               </ContextMenu>
-              <Link href={`${routes.catalog}/earrings`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('earrings')}</Link>
+              <Link href={`${routes.page.base.catalog}/earrings`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('earrings')}</Link>
               <ContextMenu className="col-12 col-xl-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
                   images={(coverImage6 ? [coverImage6] : [])}
-                  href={`${routes.catalog}/earrings`}
+                  href={`${routes.page.base.catalog}/earrings`}
                 />
               </ContextMenu>
             </div>
@@ -502,7 +502,7 @@ const Index = () => {
             <div className="font-good-vibes-pro mb-5" style={isMobile ? { fontSize: '24px' } : {}}>{t('iEmphasizeYourIndividuality')}</div>
             <p className="d-flex flex-column fw-light fs-5 mb-1">
               <span className="mb-1">{t('subscribe')}</span>
-              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
+              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} className="color-dark-blue icon-button ms-1" target="_blank">@AMChokers</Link>
             </p>
             <p className="fw-light fs-5">{t('getUpdates')}</p>
           </section>

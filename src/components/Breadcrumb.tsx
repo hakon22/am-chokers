@@ -37,7 +37,7 @@ export const Breadcrumb = () => {
     setBreadcrumbs(pathArray.map((folder, index) => {
       if (index === 0) {
         return {
-          title: pathArray.length === 1 ? '' : <Link href={routes.homePage}>{t('modules.navbar.menu.home')}</Link>,
+          title: pathArray.length === 1 ? '' : <Link href={routes.page.base.homePage}>{t('modules.navbar.menu.home')}</Link>,
         };
       }
       linkArray.push(folder);

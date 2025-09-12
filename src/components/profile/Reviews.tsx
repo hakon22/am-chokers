@@ -45,7 +45,7 @@ export const Reviews = () => {
         return;
       }
       setIsLoading(true);
-      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getMyGrades, {
+      const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.user.getMyGrades, {
         params,
       });
       if (code === 1) {

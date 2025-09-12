@@ -62,11 +62,17 @@ export interface ImageResponseInterface {
   image: ImageEntity;
 }
 
+export interface PublishTelegramInterface {
+  date?: Date;
+  time?: Date;
+  description: string;
+}
+
 export const addItem = createAsyncThunk(
   'app/addItem',
   async (data: ItemInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ItemWithUrlResponseInterface>(routes.createItem, data);
+      const response = await axios.post<ItemWithUrlResponseInterface>(routes.item.createOne, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -76,9 +82,9 @@ export const addItem = createAsyncThunk(
 
 export const updateItem = createAsyncThunk(
   'app/updateItem',
-  async ({ id, data }: { id: number, data: ItemInterface; }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number; data: ItemInterface; }, { rejectWithValue }) => {
     try {
-      const response = await axios.put<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
+      const response = await axios.put<ItemWithUrlResponseInterface>(routes.item.updateOne(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -90,7 +96,7 @@ export const partialUpdateItem = createAsyncThunk(
   'app/partialUpdateItem',
   async ({ id, data }: { id: number, data: Partial<ItemInterface>; }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<ItemWithUrlResponseInterface>(routes.crudItem(id), data);
+      const response = await axios.patch<ItemWithUrlResponseInterface>(routes.item.partialUpdateOne(id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -102,7 +108,7 @@ export const deleteItem = createAsyncThunk(
   'app/deleteItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<ItemResponseInterface>(routes.crudItem(id));
+      const response = await axios.delete<ItemResponseInterface>(routes.item.deleteOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -114,7 +120,7 @@ export const restoreItem = createAsyncThunk(
   'app/restoreItem',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.get<ItemResponseInterface>(routes.restoreItem(id));
+      const response = await axios.get<ItemResponseInterface>(routes.item.restoreOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -124,9 +130,9 @@ export const restoreItem = createAsyncThunk(
 
 export const publishItem = createAsyncThunk(
   'app/publishItem',
-  async ({ id, description }: { id: number; description?: string; }, { rejectWithValue }) => {
+  async ({ id, description, date, time }: PublishTelegramInterface & { id: number; }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ItemResponseInterface>(routes.publishToTelegram(id), { description });
+      const response = await axios.post<ItemResponseInterface>(routes.item.publishToTelegram(id), { description, date, time });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -138,7 +144,7 @@ export const addItemGroup = createAsyncThunk(
   'app/addItemGroup',
   async (data: ItemGroupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ItemGroupResponseInterface>(routes.createItemGroup, data);
+      const response = await axios.post<ItemGroupResponseInterface>(routes.itemGroup.createOne, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -150,7 +156,7 @@ export const updateItemGroup = createAsyncThunk(
   'app/updateItemGroup',
   async (data: ItemGroupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.put<ItemGroupResponseInterface>(routes.crudItemGroup(data.id), data);
+      const response = await axios.put<ItemGroupResponseInterface>(routes.itemGroup.updateOne(data.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -162,7 +168,7 @@ export const deleteItemGroup = createAsyncThunk(
   'app/deleteItemGroup',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<ItemGroupResponseInterface>(routes.crudItemGroup(id));
+      const response = await axios.delete<ItemGroupResponseInterface>(routes.itemGroup.deleteOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -174,7 +180,7 @@ export const restoreItemGroup = createAsyncThunk(
   'app/restoreItemGroup',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<ItemGroupResponseInterface>(routes.crudItemGroup(id));
+      const response = await axios.patch<ItemGroupResponseInterface>(routes.itemGroup.restoreOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -186,7 +192,7 @@ export const sortItemGroup = createAsyncThunk(
   'app/sortItemGroup',
   async (data: { id: number; }[], { rejectWithValue }) => {
     try {
-      const response = await axios.post<{ code: number; itemGroups: ItemGroupInterface[]; }>(routes.sortItemGroup, data);
+      const response = await axios.post<{ code: number; itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.sort, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -198,7 +204,7 @@ export const addItemCollection = createAsyncThunk(
   'app/addItemCollection',
   async (data: ItemCollectionInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ItemCollectionResponseInterface>(routes.createItemCollection, data);
+      const response = await axios.post<ItemCollectionResponseInterface>(routes.itemCollection.createOne, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -210,7 +216,7 @@ export const updateItemCollection = createAsyncThunk(
   'app/updateItemCollection',
   async (data: ItemCollectionInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.put<ItemCollectionResponseInterface>(routes.crudItemCollection(data?.id), data);
+      const response = await axios.put<ItemCollectionResponseInterface>(routes.itemCollection.updateOne(data?.id), data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -222,7 +228,7 @@ export const deleteItemCollection = createAsyncThunk(
   'app/deleteItemCollection',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<ItemCollectionResponseInterface>(routes.crudItemCollection(id));
+      const response = await axios.delete<ItemCollectionResponseInterface>(routes.itemCollection.deleteOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -234,7 +240,7 @@ export const restoreItemCollection = createAsyncThunk(
   'app/restoreItemCollection',
   async (id: number | React.Key, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<ItemCollectionResponseInterface>(routes.crudItemCollection(id));
+      const response = await axios.patch<ItemCollectionResponseInterface>(routes.itemCollection.restoreOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -246,7 +252,7 @@ export const deleteItemImage = createAsyncThunk(
   'app/deleteItemImage',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<{ code: number; image: ImageEntity; }>(routes.imageDelete(id));
+      const response = await axios.delete<{ code: number; image: ImageEntity; }>(routes.storage.image.deleteOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -258,7 +264,7 @@ export const getItemGrades = createAsyncThunk(
   'app/getItemGrades',
   async ({ id, limit, offset }: PaginationSearchInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.getGrades({ isServer: false, id }), {
+      const response = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.item.getGrades({ isServer: false, id }), {
         params: {
           limit,
           offset,
@@ -275,7 +281,7 @@ export const createComment = createAsyncThunk(
   'app/createComment',
   async (data: ReplyComment, { rejectWithValue }) => {
     try {
-      const response = await axios.post<CommentResponseInterface>(routes.createComment, data);
+      const response = await axios.post<CommentResponseInterface>(routes.comment.createOne, data);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -287,7 +293,7 @@ export const removeGrade = createAsyncThunk(
   'app/removeGrade',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<GradeResponseInterface>(routes.removeGrade(id));
+      const response = await axios.delete<GradeResponseInterface>(routes.grade.deleteOne(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -297,9 +303,9 @@ export const removeGrade = createAsyncThunk(
 
 export const setCoverImage = createAsyncThunk(
   'app/setCoverImage',
-  async ({ id, coverOrder }: {id: number; coverOrder: number; }, { rejectWithValue }) => {
+  async ({ id, coverOrder }: { id: number; coverOrder: number; }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ImageResponseInterface>(routes.setCoverImage, { id, coverOrder });
+      const response = await axios.post<ImageResponseInterface>(routes.storage.image.setCoverImage, { id, coverOrder });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -311,7 +317,7 @@ export const removeCoverImage = createAsyncThunk(
   'app/removeCoverImage',
   async (id: number, { rejectWithValue }) => {
     try {
-      const response = await axios.delete<ImageResponseInterface>(routes.removeCoverImage(id));
+      const response = await axios.delete<ImageResponseInterface>(routes.storage.image.removeCoverImage(id));
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -321,9 +327,9 @@ export const removeCoverImage = createAsyncThunk(
 
 export const setSpecialItems = createAsyncThunk(
   'app/setSpecialItems',
-  async (_, { rejectWithValue }) => {
+  async ({ isFull }: { isFull?: boolean; }, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ code: number; specialItems: ItemInterface[]; }>(routes.getItemSpecials({ isServer: true }));
+      const response = await axios.get<{ code: number; specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: true }), { params: { isFull } });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

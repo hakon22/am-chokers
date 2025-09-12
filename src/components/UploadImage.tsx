@@ -2,14 +2,15 @@ import { useTranslation } from 'react-i18next';
 import { Button, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import cn from 'classnames';
 import type { GetProp, UploadFile, UploadProps } from 'antd/lib';
 
 import { routes } from '@/routes';
 import { useAppSelector } from '@/utilities/hooks';
 import { PreviewImage } from '@/components/PreviewImage';
 import { CropImage } from '@/components/CropImage';
-import type { ItemInterface } from '@/types/item/Item';
 import { toast } from '@/utilities/toast';
+import type { ItemInterface } from '@/types/item/Item';
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
@@ -55,8 +56,9 @@ export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist
             name="file"
             listType="picture"
             fileList={filelist}
+            rootClassName={cn('text-center', { 'w-100': filelist.length })}
             accept="image/png,image/jpg,image/jpeg"
-            action={routes.imageUpload({ isServer: false })}
+            action={routes.storage.image.upload({ isServer: false })}
             headers={{ Authorization: `Bearer ${token}` }}
             onPreview={async (file: UploadFile) => {
               if (!file.url && !file.preview) {
@@ -94,8 +96,9 @@ export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist
           multiple
           listType="picture"
           fileList={filelist}
+          rootClassName={cn('text-center', { 'w-100': filelist.length })}
           accept="image/png,image/jpg,image/jpeg"
-          action={routes.imageUpload({ isServer: false })}
+          action={routes.storage.image.upload({ isServer: false })}
           headers={{ Authorization: `Bearer ${token}` }}
           onPreview={async (file: UploadFile) => {
             if (!file.url && !file.preview) {

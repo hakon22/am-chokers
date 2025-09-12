@@ -45,7 +45,7 @@ interface ItemFormInterface extends Omit<Partial<ItemInterface>, 'translations' 
 }
 
 export const getServerSideProps = async () => {
-  const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }));
+  const { data: { itemCollections } } = await axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.itemCollection.findMany({ isServer: false }));
 
   return {
     props: {
@@ -72,7 +72,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     name: 'file',
     fileList,
     accept: 'image/png,image/jpg,image/jpeg,video/mp4',
-    action: routes.imageUpload({ isServer: false }),
+    action: routes.storage.image.upload({ isServer: false }),
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -250,7 +250,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       values.images = images;
       values.compositions = compositions.filter((composition) => itemCompositions?.find((value) => (typeof value === 'number' && value === composition.id) || value.id === composition.id)) as CompositionEntity[];
 
-      const { data } = await axios.post<{ code: number; description: string; }>(routes.generateDescriptionWithoutItem, values);
+      const { data } = await axios.post<{ code: number; description: string; }>(routes.integration.gpt.generateDescriptionWithoutItem, values);
 
       if (data.code === 1) {
         form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [] }]);
@@ -290,8 +290,8 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   useEffect(() => {
     if (axiosAuth) {
       Promise.all([
-        axios.get(routes.getCompositions),
-        axios.get(routes.getColors),
+        axios.get(routes.composition.findMany),
+        axios.get(routes.color.findMany),
       ])
         .then(([{ data: response1 }, { data: response2 }]) => {
           if (response1.code === 1) {
@@ -309,7 +309,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   useEffect(() => {
     if (!fetchedItemCollections) {
-      axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.getItemCollections({ isServer: false }))
+      axios.get<{ itemCollections: ItemCollectionInterface[]; }>(routes.itemCollection.findMany({ isServer: false }))
         .then(({ data }) => {
           setItemCollections(data.itemCollections);
         })

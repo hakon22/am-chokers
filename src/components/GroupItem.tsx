@@ -43,7 +43,7 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
         return;
       }
       setIsLoading(true);
-      const { data: payload } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.getItemList({ isServer: true }), {
+      const { data: payload } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
         params: { ...params, groupCode: itemGroup.code },
       });
       if (payload.code === 1) {

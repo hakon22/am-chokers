@@ -41,10 +41,6 @@ export const App = ({ children }: { children: JSX.Element }) => {
   useMobileContext();
 
   useEffect(() => {
-    setTimeout(setIsLoaded, 1000, true);
-  }, []);
-
-  useEffect(() => {
     const handleResize = () => {
       if (footerRef.current) {
         const height = footerRef.current.getBoundingClientRect().height;
@@ -66,27 +62,32 @@ export const App = ({ children }: { children: JSX.Element }) => {
     let timeoutId: NodeJS.Timeout | null = null;
 
     const handleStart = () => {
-    // Устанавливаем таймаут на 1 секунду перед показом спиннера
+      // Устанавливаем таймаут на 1 секунду перед показом спиннера
       timeoutId = setTimeout(() => {
         setIsLoaded(false);
       }, 1000);
     };
 
     const handleComplete = () => {
-    // Отменяем таймаут, если переход завершился до истечения 1 секунды
+      // Отменяем таймаут, если переход завершился до истечения 1 секунды
       if (timeoutId) {
         clearTimeout(timeoutId);
         timeoutId = null;
       }
+
       setIsLoaded(true);
     };
+
+    setTimeout(handleComplete, 1000);
 
     router.events.on('routeChangeStart', handleStart);
     router.events.on('routeChangeComplete', handleComplete);
     router.events.on('routeChangeError', handleComplete);
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       router.events.off('routeChangeStart', handleStart);
       router.events.off('routeChangeComplete', handleComplete);
       router.events.off('routeChangeError', handleComplete);
@@ -100,7 +101,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         <NavBar />
         {isMobile ? null : <Breadcrumb />}
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.homePage })} style={{ paddingBottom: footerHeight }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: footerHeight }}>
         <FloatButton.BackTop />
         <main className="container">
           {children}

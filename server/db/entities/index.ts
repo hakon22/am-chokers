@@ -25,6 +25,7 @@ import { CompositionTranslateEntity } from '@server/db/entities/composition.tran
 import { ItemCollectionTranslateEntity } from '@server/db/entities/item.collection.translate.entity';
 import { DeliveryCredentialsTranslateEntity } from '@server/db/entities/delivery.credentials.translate.entity';
 import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
+import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 
 export const entities = [
   UserEntity,
@@ -54,4 +55,5 @@ export const entities = [
   ItemCollectionTranslateEntity,
   DeliveryCredentialsTranslateEntity,
   UserRefreshTokenEntity,
+  DeferredPublicationEntity,
 ];

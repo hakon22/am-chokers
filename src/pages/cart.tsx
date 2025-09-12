@@ -143,7 +143,7 @@ const Cart = () => {
         return;
       }
       setIsSubmit(true);
-      const { data } = await axios.get<PromotionalResponseInterface>(routes.getPromotionalByName, { params: { name: value, cartIds: cartList.map(({ id }) => id) } });
+      const { data } = await axios.get<PromotionalResponseInterface>(routes.promotional.findOneByName, { params: { name: value, cartIds: cartList.map(({ id }) => id) } });
       if (data.code === 1) {
         setPromotional(data.promotional);
         if (data.promotional.freeDelivery) {
@@ -466,7 +466,7 @@ const Cart = () => {
             ? <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100 mb-3" onClick={onPromotional}>{t('acceptPromotional')}</Button>
             : <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100 mb-3" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
           }
-          <p className="text-muted text-center">{t('accept', { submitButton: t(!name && !user.phone ? 'confirmPhone' : 'submitPay') })}<Link className="text-primary fw-light" href={routes.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
+          <p className="text-muted text-center">{t('accept', { submitButton: t(!name && !user.phone ? 'confirmPhone' : 'submitPay') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
         </div>
       </Form>
     </div>

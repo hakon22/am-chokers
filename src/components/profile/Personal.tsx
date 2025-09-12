@@ -57,7 +57,7 @@ export const Personal = () => {
   const updateProfile = async (changedValues: UserProfileType) => {
     try {
       setIsSubmit(true);
-      const { data } = await axios.post(routes.changeUserProfile, { ...changedValues, key }) as { data: { code: number } };
+      const { data } = await axios.post(routes.user.changeUserProfile, { ...changedValues, key }) as { data: { code: number } };
       if (data.code === 1) {
         setUpdateValues(undefined);
         setPhoneConfirm(undefined);
@@ -82,7 +82,7 @@ export const Personal = () => {
     try {
       if (telegramId) {
         setIsSubmit(true);
-        const { data } = await axios.get(routes.unlinkTelegram) as { data: { code: number } };
+        const { data } = await axios.get(routes.user.unlinkTelegram) as { data: { code: number } };
         if (data.code === 1) {
           dispatch(removeTelegramId());
           toast(tToast('unlinkTelegramSuccess'), 'success');
