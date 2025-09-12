@@ -248,11 +248,11 @@ export class GradeService extends BaseService {
           ? [
             `Вам оставлен новый отзыв с оценкой: <b>${body.grade}</b>`,
             '',
-            `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.moderationOfReview}`,
+            `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.moderationOfReview}`,
           ] : [
             `You have a new review with a rating of: <b>${body.grade}</b>`,
             '',
-            `More details: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.moderationOfReview}`,
+            `More details: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.moderationOfReview}`,
           ];
       
         return this.telegramService.sendMessage(adminText, tgId as string);
