@@ -9,7 +9,7 @@ import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortab
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, Modal, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
-import { isEqual, some, isEmpty, omit } from 'lodash';
+import { isEqual, some, isEmpty, omit, cloneDeep } from 'lodash';
 import moment from 'moment';
 
 import { Helmet } from '@/components/Helmet';
@@ -18,7 +18,7 @@ import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
-import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface, addSpecialItem } from '@/slices/appSlice';
+import { addItem, updateItem, deleteItemImage, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { BackButton } from '@/components/BackButton';
@@ -188,13 +188,18 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
     let code: number;
     if (oldItem) {
-      if (item?.compositions?.length) {
-        item.compositions = item.compositions.map((composition) => ({ id: composition.id } as  CompositionEntity));
+      const cloneItem = cloneDeep(item);
+      const cloneOldItem = cloneDeep(oldItem);
+      cloneOldItem.translations = cloneOldItem.translations.map(({ name, description, length, lang: language }) => ({ name, description, length, lang: language } as ItemTranslateEntity));
+      if (cloneItem?.compositions?.length) {
+        cloneItem.compositions = cloneItem.compositions.map((composition) => ({ id: composition.id } as  CompositionEntity));
+        cloneOldItem.compositions = cloneOldItem.compositions.map((composition) => ({ id: composition.id } as  CompositionEntity));
       }
-      if (item?.colors?.length) {
-        item.colors = item.colors.map((color) => ({ id: color.id } as  ColorEntity));
+      if (cloneItem?.colors?.length) {
+        cloneItem.colors = cloneItem.colors.map((color) => ({ id: color.id } as  ColorEntity));
+        cloneOldItem.colors = cloneOldItem.colors.map((color) => ({ id: color.id } as  ColorEntity));
       }
-      if (isEqual(oldItem, { ...item, ...values })) {
+      if (isEqual(cloneOldItem, { ...cloneItem, ...values })) {
         setIsSubmit(false);
         return;
       }
@@ -209,9 +214,6 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       const { payload } = await dispatch(addItem(values as ItemInterface)) as { payload: ItemWithUrlResponseInterface; };
       code = payload.code;
       if (code === 1) {
-        if (payload.item.new || payload.item.collection || payload.item.bestseller) {
-          dispatch(addSpecialItem(payload.item));
-        }
         setItem(undefined);
         setItemGroup(undefined);
         setItemCollection(undefined);

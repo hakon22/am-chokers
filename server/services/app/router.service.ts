@@ -17,6 +17,7 @@ import { CompositionRoute } from '@server/routes/composition/composition.route';
 import { DeliveryRoute } from '@server/routes/delivery/delivery.route';
 import { ColorRoute } from '@server/routes/color/color.route';
 import { ReportRoute } from '@server/routes/report/report.route';
+import { DeferredPublicationRoute } from '@server/routes/deferred-publication/deferred.publication.route';
 
 @Singleton
 export class RouterService extends BaseRouter {
@@ -35,6 +36,7 @@ export class RouterService extends BaseRouter {
   private readonly deliveryRoute = Container.get(DeliveryRoute);
   private readonly colorRoute = Container.get(ColorRoute);
   private readonly reportRoute = Container.get(ReportRoute);
+  private readonly deferredPublicationRoute = Container.get(DeferredPublicationRoute);
 
   private router = express.Router();
 
@@ -54,6 +56,7 @@ export class RouterService extends BaseRouter {
     this.deliveryRoute,
     this.colorRoute,
     this.reportRoute,
+    this.deferredPublicationRoute,
   ];
 
   public set = () => this.routesArray.forEach((route) => route.set(this.router));

@@ -7,10 +7,12 @@ import moment from 'moment';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
+import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { TranslationHelper } from '@server/utilities/translation.helper';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
+import { DeferredPublicationService } from '@server/services/deferred-publication/deferred-publication.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { GradeService } from '@server/services/rating/grade.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -25,6 +27,7 @@ import type { ItemOptionsInterface } from '@server/types/item/item.options.inter
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { FetchItemInterface } from '@/types/item/Item';
+import type { PublishTelegramInterface } from '@/slices/appSlice';
 
 @Singleton
 export class ItemService extends TranslationHelper {
@@ -35,6 +38,8 @@ export class ItemService extends TranslationHelper {
   private readonly uploadPathService = Container.get(UploadPathService);
 
   private readonly telegramService = Container.get(TelegramService);
+
+  private readonly deferredPublicationService = Container.get(DeferredPublicationService);
 
   private createQueryBuilder = (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -143,24 +148,6 @@ export class ItemService extends TranslationHelper {
           'groupTranslations.description',
           'groupTranslations.lang',
         ])
-        .leftJoinAndSelect('item.collection', 'collection')
-        .leftJoin('collection.translations', 'collectionTranslations')
-        .addSelect([
-          'collectionTranslations.name',
-          'collectionTranslations.lang',
-        ])
-        .leftJoinAndSelect('item.compositions', 'compositions')
-        .leftJoin('compositions.translations', 'compositionsTranslations')
-        .addSelect([
-          'compositionsTranslations.name',
-          'compositionsTranslations.lang',
-        ])
-        .leftJoinAndSelect('item.colors', 'colors')
-        .leftJoin('colors.translations', 'colorsTranslations')
-        .addSelect([
-          'colorsTranslations.name',
-          'colorsTranslations.lang',
-        ])
         .addOrderBy('item.deleted IS NOT NULL', 'ASC');
     }
 
@@ -239,6 +226,33 @@ export class ItemService extends TranslationHelper {
         .leftJoin('item.grades', 'grades', 'grades.checked = true')
         .addSelect('grades.id');
     }
+    if (options?.fullItem) {
+      builder
+        .leftJoinAndSelect('item.collection', 'collection')
+        .leftJoin('collection.translations', 'collectionTranslations')
+        .addSelect([
+          'collectionTranslations.name',
+          'collectionTranslations.lang',
+        ])
+        .leftJoinAndSelect('item.compositions', 'compositions')
+        .leftJoin('compositions.translations', 'compositionsTranslations')
+        .addSelect([
+          'compositionsTranslations.name',
+          'compositionsTranslations.lang',
+        ])
+        .leftJoinAndSelect('item.colors', 'colors')
+        .leftJoin('colors.translations', 'colorsTranslations')
+        .addSelect([
+          'colorsTranslations.name',
+          'colorsTranslations.lang',
+        ])
+        .leftJoin('item.deferredPublication', 'deferredPublication')
+        .addSelect([
+          'deferredPublication.id',
+          'deferredPublication.date',
+          'deferredPublication.isPublished',
+        ]);
+    }
 
     return builder;
   };
@@ -252,7 +266,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
-    const builder = this.createQueryBuilder({ ...query, id: params.id }, options);
+    const builder = this.createQueryBuilder({ ...query, id: params.id }, { ...options, fullItem: true });
 
     const item = await builder.getOne();
 
@@ -285,7 +299,7 @@ export class ItemService extends TranslationHelper {
     let items: ItemEntity[] = [];
 
     if (ids.length) {
-      const builder = this.createQueryBuilder(query, { withGrades: true, ids: ids.map(({ id }) => id) });
+      const builder = this.createQueryBuilder({}, { withGrades: true, ids: ids.map(({ id }) => id) });
 
       items = await builder.getMany();
     }
@@ -348,7 +362,7 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, rest.id, manager);
 
-      return this.findOne(params, lang, undefined, { manager });
+      return this.findOne(params, lang, undefined, { manager, fullItem: true });
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -379,6 +393,7 @@ export class ItemService extends TranslationHelper {
     const updated = await this.databaseService.getManager().transaction(async (manager) => {
       const itemRepo = manager.getRepository(ItemEntity);
       const itemTranslateRepo = manager.getRepository(ItemTranslateEntity);
+      const deferredPublicationRepo = manager.getRepository(DeferredPublicationEntity);
 
       if (body.translations?.length) {
         const oldNameRu = oldTranslations.find((translation) => translation.lang === UserLangEnum.RU)?.name;
@@ -391,11 +406,15 @@ export class ItemService extends TranslationHelper {
         await this.syncTranslations(itemTranslateRepo, body.translations, oldTranslations, item, 'item');
       }
 
+      if (body.message === null && item.deferredPublication) {
+        await deferredPublicationRepo.softRemove(item.deferredPublication);
+      }
+
       await itemRepo.update(params, body);
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, item.id, manager);
 
-      return this.findOne(params, lang, undefined, { manager });
+      return this.findOne(params, lang, undefined, { manager, fullItem: true });
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -412,7 +431,7 @@ export class ItemService extends TranslationHelper {
     return { code: 1, item: updated, url };
   };
 
-  public publishToTelegram = async (params: ParamsIdInterface, lang: UserLangEnum, description?: string, value?: ItemEntity) => {
+  public publishToTelegram = async (params: ParamsIdInterface, lang: UserLangEnum, body?: PublishTelegramInterface, value?: ItemEntity) => {
     const isRu = lang === UserLangEnum.RU;
 
     if (!process.env.TELEGRAM_GROUP_ID) {
@@ -421,7 +440,7 @@ export class ItemService extends TranslationHelper {
         : 'No group specified for sending to Telegram');
     }
 
-    const item = value || await this.findOne(params, lang);
+    const item = value || await this.findOne(params, lang, {}, { fullItem: true });
 
     if (item.images.length < 2) {
       throw new Error(isRu
@@ -435,24 +454,25 @@ export class ItemService extends TranslationHelper {
         : 'The item has already been published!');
     }
 
-    const url = this.getUrl(item);
+    if (body && body.date && body.time && body.description) {
+      const deferredPublicationBody = {
+        date: moment(body.date).set({
+          hour: moment(body.time).hour(),
+          minute: moment(body.time).minute(),
+        }).toDate(),
+        item: { id: item.id },
+        description: body.description,
+      } as DeferredPublicationEntity;
 
-    const values: string[] = (description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string).split('\n');
+      if (moment(deferredPublicationBody.date).isBefore(moment())) {
+        throw new Error(isRu
+          ? 'Дата публикации не должна быть в прошедшем времени'
+          : 'The publication date must not be in the past tense');
+      }
 
-    const text = [
-      ...values,
-      '',
-      ...(item?.collection ? [`Коллекция: <b>${item.collection.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name}</b>`] : []),
-      `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
-      '',
-      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
-    ];
-
-    const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
-
-    if (message?.history) {
-      await ItemEntity.update(item.id, { message: message.history });
-      item.message = message.history;
+      item.deferredPublication = await this.deferredPublicationService.createOne(deferredPublicationBody, lang);
+    } else {
+      await this.publishProcess(item, body?.description);
     }
 
     return item;
@@ -482,6 +502,13 @@ export class ItemService extends TranslationHelper {
 
   public getSpecials = async (isAdmin: boolean, isFull?: boolean) => {
     const builder = this.createQueryBuilder({}, { withGrades: true })
+      .leftJoin('item.collection', 'collection')
+      .addSelect('collection.id')
+      .leftJoin('collection.translations', 'collectionTranslations')
+      .addSelect([
+        'collectionTranslations.name',
+        'collectionTranslations.lang',
+      ])
       .andWhere(new Brackets(qb => {
         qb
           .orWhere('item.new')
@@ -503,7 +530,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public getByName = async (query: ItemQueryInterface, lang: UserLangEnum) => {
-    const builder = this.createQueryBuilder({ ...query, withDeleted: true });
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true }, { fullItem: true });
 
     const item = await builder.getOne();
 
@@ -516,7 +543,7 @@ export class ItemService extends TranslationHelper {
     let collectionItems: ItemEntity[] = [];
 
     if (item.collection) {
-      const itemCollectionBuilder = this.createQueryBuilder({ collectionIds: [item.collection.id], excludeIds: [item.id] }, { withGrades: true });
+      const itemCollectionBuilder = this.createQueryBuilder({ collectionIds: [item.collection.id], excludeIds: [item.id] }, { withGrades: true, fullItem: true });
       collectionItems = await itemCollectionBuilder.getMany();
     }
 
@@ -524,11 +551,15 @@ export class ItemService extends TranslationHelper {
   };
 
   public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
-    const item = await this.findOne(params, lang, {}, { withGrades: true });
+    const item = await this.findOne(params, lang, {}, { withGrades: true, fullItem: true });
 
     await ItemEntity.update(item.id, { deleted: new Date() });
 
     item.deleted = new Date();
+
+    if (item.deferredPublication) {
+      item.deferredPublication = null;
+    }
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
     item.grades = grades;
@@ -537,7 +568,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
-    const deletedItem = await this.findOne(params, lang, { withDeleted: true }, { withGrades: true });
+    const deletedItem = await this.findOne(params, lang, { withDeleted: true }, { withGrades: true, fullItem: true });
 
     await ItemEntity.update(deletedItem.id, { deleted: null });
 
@@ -550,7 +581,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public getListExcel = async (lang: UserLangEnum) => {
-    const data = await this.findMany({ withDeleted: true });
+    const data = await this.findMany({ withDeleted: true }, { fullItem: true });
 
     const items = await Promise.all(data.map(async (item) => ({ ...item, image: item.images[0] ? await fetch(`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${item.images[0].src}`).then(res => res.arrayBuffer()) : null } as ItemEntity & { image: ArrayBuffer; })));
 
@@ -565,10 +596,10 @@ export class ItemService extends TranslationHelper {
 
     const workbook = new ExcelJS.Workbook();
 
-    const worksheet = workbook.addWorksheet('Актуальные');
-    const worksheet2 = workbook.addWorksheet('Удалённые');
-
     const isRu = lang === UserLangEnum.RU;
+
+    const worksheet = workbook.addWorksheet(isRu ? 'Актуальные' : 'Actual');
+    const worksheet2 = workbook.addWorksheet(isRu ? 'Удалённые' : 'Deleted');
 
     [worksheet, worksheet2].forEach((ws) => {
       ws.columns = [
@@ -659,6 +690,32 @@ export class ItemService extends TranslationHelper {
   };
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
+
+  private publishProcess = async (item: ItemEntity, description?: string) => {
+    if (!process.env.TELEGRAM_GROUP_ID) {
+      return;
+    }
+
+    const url = this.getUrl(item);
+
+    const values: string[] = (description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string).split('\n');
+
+    const text = [
+      ...values,
+      '',
+      ...(item?.collection ? [`Коллекция: <b>${item.collection.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name}</b>`] : []),
+      `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
+      '',
+      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
+    ];
+
+    const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
+
+    if (message?.history) {
+      await ItemEntity.update(item.id, { message: message.history });
+      item.message = message.history;
+    }
+  };
 
   private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');
 }

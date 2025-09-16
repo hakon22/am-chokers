@@ -185,7 +185,7 @@ export class ItemController extends BaseService {
           : 'For delayed publication, date and time must be filled in');
       }
 
-      const item = await this.itemService.publishToTelegram(params, user.lang, body.description);
+      const item = await this.itemService.publishToTelegram(params, user.lang, body);
 
       res.json({ code: 1, item });
     } catch (e) {

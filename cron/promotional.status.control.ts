@@ -4,7 +4,7 @@ import 'dotenv/config';
 
 import { PromotionalEntity } from '@server/db/entities/promotional.entity'; 
 import { LoggerService } from '@server/services/app/logger.service';
-import { DatabaseService } from '@server/db/database.service'; 
+import { DatabaseService } from '@server/db/database.service';
 
 const TAG = 'PromotionalStatusControl';
 

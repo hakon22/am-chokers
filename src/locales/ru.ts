@@ -816,8 +816,11 @@ export default {
         removeDescription: 'Вы действительно хотите удалить товар?',
         removeMessageTitle: 'Удаление публикации',
         removeMessageDescription: 'Вы действительно хотите удалить публикацию?',
+        cancelDeferredPublicationTitle: 'Отмена отложенной публикации',
+        cancelDeferredPublicationDescription: 'Вы действительно хотите отменить отложенную публикацию?',
         cancel: 'Отменить',
         publish: 'Опубликовано {{ date }}',
+        planned: 'Запланировано {{ date }}',
         collection: '{{ name }}',
         otherItem: 'Другие товары этой коллекции',
         grades: {

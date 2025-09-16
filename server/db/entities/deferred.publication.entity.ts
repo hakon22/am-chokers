@@ -35,6 +35,10 @@ export class DeferredPublicationEntity extends BaseEntity {
   @Column('timestamp without time zone')
   public date: Date;
 
+  /** Описание товара */
+  @Column('character varying')
+  public description: string;
+
   /** Статус отложенной публикации */
   @Column('boolean', {
     name: 'is_published',

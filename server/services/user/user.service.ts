@@ -278,7 +278,7 @@ export class UserService extends BaseService {
             const userRefreshTokenRepo = manager.getRepository(UserRefreshTokenEntity);
 
             await userRefreshTokenRepo.insert({ refreshToken, user });
-
+            /*
             const userToken = await userRefreshTokenRepo.findOne({ where: { refreshToken: oldRefreshToken, user: { id: user.id } } });
 
             if (!userToken) {
@@ -288,6 +288,7 @@ export class UserService extends BaseService {
             }
 
             await userRefreshTokenRepo.delete(userToken.id);
+            */
           });
       } else {
         this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${userRefreshTokens.join(', ')}`);

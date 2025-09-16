@@ -351,6 +351,11 @@ const newPromotionalSchema = yup.object().shape({
     }),
 }).concat(periodSchema).concat(discountAndDiscountPercentSchema);
 
+export const deferredPublicationSchema = yup.object().shape({
+  date: yup.date().required(),
+  item: requiredIdSchema,
+});
+
 const publishTelegramSchema = yup.object().shape({
   date: yup.date().optional().nullable(),
   time: yup.date().optional().nullable(),

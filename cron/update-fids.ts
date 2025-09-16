@@ -5,7 +5,7 @@ import XLSX from 'xlsx';
 import 'dotenv/config';
 
 import { LoggerService } from '@server/services/app/logger.service';
-import { DatabaseService } from '@server/db/database.service'; 
+import { DatabaseService } from '@server/db/database.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 
 const TAG = 'UpdateFids';

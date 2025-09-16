@@ -11,4 +11,6 @@ export interface ItemOptionsInterface {
   withGrades?: boolean;
   /** TypeORM Entity Manager */
   manager?: EntityManager;
+  /** Полная сущность со всеми связями */
+  fullItem?: boolean;
 }

@@ -816,8 +816,11 @@ export default {
         removeDescription: 'Are you sure you want to delete item?',
         removeMessageTitle: 'Deleting a publish',
         removeMessageDescription: 'Are you sure you want to delete this publish?',
+        cancelDeferredPublicationTitle: 'Cancel a deferred publication',
+        cancelDeferredPublicationDescription: 'Are you sure you want to cancel the scheduled publication?',
         cancel: 'Cancel',
         publish: 'Published {{ date }}',
+        planned: 'Planned {{ date }}',
         collection: '{{ name }}',
         otherItem: 'Other items in this collection',
         grades: {

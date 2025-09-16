@@ -2,12 +2,17 @@ import { Container, Singleton } from 'typescript-ioc';
 import type { Router } from 'express';
 
 import { BaseRouter } from '@server/routes/base.route';
-import { ReportController } from '@server/controllers/report/report.controller';
+import { DeferredPublicationController } from '@server/controllers/deferred-publication/deferred-publication.controller';
 
 @Singleton
 export class DeferredPublicationRoute extends BaseRouter {
-  private readonly reportController = Container.get(ReportController);
+  private readonly deferredPublicationController = Container.get(DeferredPublicationController);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public set = (router: Router) => {};
+  public set = (router: Router) => {
+    router.get(this.routes.deferredPublication.telegram.findMany, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.deferredPublicationController.findMany);
+    router.get(this.routes.deferredPublication.telegram.findOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.deferredPublicationController.findOne);
+    router.put(this.routes.deferredPublication.telegram.updateOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.deferredPublicationController.updateOne);
+    router.delete(this.routes.deferredPublication.telegram.deleteOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.deferredPublicationController.deleteOne);
+    router.patch(this.routes.deferredPublication.telegram.restoreOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.deferredPublicationController.restoreOne);
+  };
 }

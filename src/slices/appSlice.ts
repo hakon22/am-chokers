@@ -7,6 +7,7 @@ import type { InitialState } from '@/types/InitialState';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { CommentEntity } from '@server/db/entities/comment.entity';
+import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import type { PaginationEntityInterface, PaginationInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 
@@ -66,6 +67,11 @@ export interface PublishTelegramInterface {
   date?: Date;
   time?: Date;
   description: string;
+}
+
+export interface DeferredPublicationIResponsenterface {
+  code: number;
+  deferredPublication: DeferredPublicationEntity;
 }
 
 export const addItem = createAsyncThunk(
@@ -421,6 +427,48 @@ const appSlice = createSlice({
         state.error = null;
       })
       .addCase(restoreItemGroup.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(updateItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(updateItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          if (payload.item.new || payload.item.collection || payload.item.bestseller) {
+            const itemIndex = state.specialItems.findIndex((item) => item.id === payload.item.id);
+            if (itemIndex !== -1) {
+              state.specialItems[itemIndex] = payload.item;
+            } else {
+              state.specialItems = [...state.specialItems, payload.item];
+            }
+          } else {
+            const specialItem = state.specialItems.find((item) => item.id === payload.item.id);
+            if (specialItem) {
+              state.specialItems = state.specialItems.filter((item) => item.id !== specialItem.id);
+            }
+          }
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(updateItem.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = payload.error;
+      })
+      .addCase(addItem.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(addItem.fulfilled, (state, { payload }) => {
+        if (payload.code === 1 && (payload.item.new || payload.item.collection || payload.item.bestseller)) {
+          state.specialItems = [...state.specialItems, payload.item];
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(addItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })

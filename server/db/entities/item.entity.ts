@@ -19,6 +19,7 @@ import { ColorEntity } from '@server/db/entities/color.entity';
 import { MessageEntity } from '@server/db/entities/message.entity';
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
+import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 
 /** Товар */
 @Entity({
@@ -170,6 +171,10 @@ export class ItemEntity extends BaseEntity {
     name: 'message_id',
   })
   public message?: MessageEntity | null;
+
+  /** Отложенная публикация товара в группу Telegram */
+  @OneToOne(() => DeferredPublicationEntity, deferredPublication => deferredPublication.item)
+  public deferredPublication?: DeferredPublicationEntity | null;
 
   /** Локализации товара */
   @OneToMany(() => ItemTranslateEntity, translate => translate.item)

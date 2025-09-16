@@ -18,7 +18,7 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { deleteItem, type ItemResponseInterface, type PublishTelegramInterface, removeSpecialItem, publishItem, restoreItem, setPaginationParams, addSpecialItem, partialUpdateItem } from '@/slices/appSlice';
+import { deleteItem, type ItemResponseInterface, type PublishTelegramInterface, publishItem, restoreItem, setPaginationParams, partialUpdateItem, type DeferredPublicationIResponsenterface } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import CreateItem from '@/pages/admin/item';
@@ -98,7 +98,7 @@ const PublishModal = ({ publishData, isPublish, setIsPublish, onPublish, generat
             <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
           </Form.Item>
           <Form.Item<PublishTelegramInterface> name="time" rules={[publishTelegramValidation]}>
-            <TimePicker placeholder={t('placeholderTime')} showNow={false} format={DateFormatEnum.HH_MM} />
+            <TimePicker placeholder={t('placeholderTime')} minuteStep={10} showNow={false} format={DateFormatEnum.HH_MM} />
           </Form.Item>
         </div>
         <Form.Item<PublishTelegramInterface> name="description" rules={[publishTelegramValidation]}>
@@ -167,6 +167,22 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     setIsSubmit(false);
   };
 
+  const onPublicationRemove = async () => {
+    try {
+      if (!item.deferredPublication) {
+        return;
+      }
+      setIsSubmit(true);
+      const { data } = await axios.delete<DeferredPublicationIResponsenterface>(routes.deferredPublication.telegram.deleteOne(item.deferredPublication.id));
+      if (data.code === 1) {
+        setItem({ ...item, deferredPublication: null });
+      }
+      setIsSubmit(false);
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    }
+  };
+
   const generateDescription = async () => {
     try {
       setIsSubmit(true);
@@ -211,26 +227,43 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
                 <Button type="text" className="action-button remove">{t('remove')}</Button>
               </Popconfirm>
             )}
-          {!item.message?.send
+          {!item.message?.send && !item.deferredPublication?.date
             ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsPublish(true)}>{t('publishToTelegram')}</Button>
-            : (
-              <Tag
-                color="success"
+            : item.deferredPublication && !item.deferredPublication.isPublished
+              ? <Tag
+                color="purple"
                 className="fs-6 d-flex gap-2"
                 style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
               >
-                {t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
-                <Popconfirm rootClassName="ant-input-group-addon" title={t('removeMessageTitle')} description={t('removeMessageDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onMessageRemove}>
+                {t('planned', { date: moment(item.deferredPublication.date).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
+                <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationRemove}>
                   <button
                     className="icon-button text-muted d-flex align-items-center"
                     type="button"
-                    title={t('removeMessageTitle')}
+                    title={t('cancelDeferredPublicationTitle')}
                   >
                     <CloseOutlined className="fs-6-5" />
                   </button>
                 </Popconfirm>
               </Tag>
-            )}
+              : (
+                <Tag
+                  color="success"
+                  className="fs-6 d-flex gap-2"
+                  style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
+                >
+                  {t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
+                  <Popconfirm rootClassName="ant-input-group-addon" title={t('removeMessageTitle')} description={t('removeMessageDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onMessageRemove}>
+                    <button
+                      className="icon-button text-muted d-flex align-items-center"
+                      type="button"
+                      title={t('removeMessageTitle')}
+                    >
+                      <CloseOutlined className="fs-6-5" />
+                    </button>
+                  </Popconfirm>
+                </Tag>
+              )}
         </>
       ) : null;
 };
@@ -248,7 +281,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
 
   const { isAdmin, lang } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
-  const { specialItems, pagination } = useAppSelector((state) => state.app);
+  const { pagination } = useAppSelector((state) => state.app);
 
   const position = rest.translations.find((translation) => translation.lang === lang) as ItemTranslateEntity;
 
@@ -329,11 +362,6 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
   const updateItem = (value: ItemInterface) => {
     setItem(value);
     setContextItem(value);
-    if (!value.new && !value.collection && !value.bestseller) {
-      dispatch(removeSpecialItem(value));
-    } else if ((value.new || value.collection || value.bestseller) && !specialItems.find((specialItem) => specialItem.id === value.id)) {
-      dispatch(addSpecialItem(value));
-    }
   };
 
   useEffect(() => {
@@ -369,7 +397,11 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
             <>
               <h1 className="mb-4 fs-3">{name}</h1>
               {collection
-                ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag></div>
+                ? (
+                  <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
+                    <Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                  </Link>
+                )
                 : null}
             </>
           )
@@ -467,7 +499,11 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
               ? (
                 <><h1 className="mb-4 mt-xl-0 fs-3">{name}</h1>
                   {collection
-                    ? <div><Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag></div>
+                    ? (
+                      <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
+                        <Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                      </Link>
+                    )
                     : null}
                 </>)
               : null}
