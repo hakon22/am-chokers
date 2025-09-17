@@ -96,6 +96,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
             accordion
             ghost
             items={[
+              { key: routes.page.admin.deferredPublication, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.deferredPublication}>{tMenu('menu.admin.items.deferredPublication')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
               { key: routes.page.admin.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
               { key: routes.page.admin.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
               { key: routes.page.admin.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
@@ -130,6 +131,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     isAdmin
       ? { key: 'admin', label: tMenu('menu.admin.title'), children: [
         { key: 'items', label: tMenu('menu.admin.items.title'), children: [
+          { key: routes.page.admin.deferredPublication, label: <Link href={routes.page.admin.deferredPublication}>{tMenu('menu.admin.items.deferredPublication')}</Link> },
           { key: routes.page.admin.newItem, label: <Link href={routes.page.admin.newItem}>{tMenu('menu.admin.items.newItem')}</Link> },
           { key: routes.page.admin.itemGroupsControl, label: <Link href={routes.page.admin.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Link> },
           { key: routes.page.admin.itemCollectionsControl, label: <Link href={routes.page.admin.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Link> },

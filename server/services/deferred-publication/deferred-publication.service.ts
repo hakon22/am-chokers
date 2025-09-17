@@ -20,7 +20,10 @@ export class DeferredPublicationService extends BaseService {
         'deferredPublication.isPublished',
       ])
       .leftJoin('deferredPublication.item', 'item')
-      .addSelect('item.id')
+      .addSelect([
+        'item.id',
+        'item.translateName',
+      ])
       .leftJoin('item.translations', 'translations')
       .addSelect([
         'translations.name',
@@ -28,10 +31,23 @@ export class DeferredPublicationService extends BaseService {
         'translations.length',
         'translations.lang',
       ])
+      .leftJoin('item.images', 'images', 'images.deleted IS NULL')
+      .addSelect([
+        'images.id',
+        'images.name',
+        'images.path',
+        'images.order',
+        'images.deleted',
+      ])
+      .leftJoin('item.group', 'group')
+      .addSelect('group.code')
       .orderBy('deferredPublication.date', 'ASC');
 
     if (options?.withDeleted) {
       builder.withDeleted();
+    }
+    if (options?.onlyNotPublished) {
+      builder.andWhere('NOT deferredPublication.isPublished');
     }
     if (options?.id) {
       builder.andWhere('deferredPublication.id = :id', { id: options.id });
@@ -63,7 +79,7 @@ export class DeferredPublicationService extends BaseService {
   };
 
   public findMany = async (options?: DeferredPublicationOptionsInterface) => {
-    const builder = this.createQueryBuilder(options);
+    const builder = this.createQueryBuilder({ ...options, onlyNotPublished: true });
 
     return builder.getMany();
   };

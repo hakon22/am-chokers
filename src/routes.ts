@@ -48,6 +48,7 @@ export const routes = {
       messageReport: [adminPath, 'reports', 'message'].join('/'),
       userList: [adminPath, 'user', 'list'].join('/'),
       userCard: [adminPath, 'user'].join('/'),
+      deferredPublication: [adminPath, 'deferred-publications'].join('/'),
     },
   },
 

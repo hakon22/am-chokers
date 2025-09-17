@@ -36,6 +36,7 @@ export const ImageHover = ({
   ...props
 }: ImageHoverType) => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
 
   const [index, setIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -139,11 +140,16 @@ export const ImageHover = ({
     :  (
       <div className={`d-flex flex-column ${className}`} {...props}>
         <div
-          className={cn('image-hover', { 'image-label': deleted })}
+          className={cn('image-hover')}
           style={{ width, height, ...style }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
+          {deleted && (
+            <div className="image-label">
+              {tCart('deleted')}
+            </div>
+          )}
           {images.length
             ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
               <div key={image.id} style={i === index ? { width, height } : {}}>

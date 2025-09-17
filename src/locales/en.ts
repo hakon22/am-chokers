@@ -59,6 +59,7 @@ export default {
             title: 'Admn Panel',
             items: {
               title: 'Items',
+              deferredPublication: 'Deferred publications',
               newItem: 'Add item',
               itemGroups: 'Groups of items',
               itemCollections: 'Collections',
@@ -392,10 +393,10 @@ export default {
         promotionalName: '{{ name }}',
         promotionalDiscount: '-{{ discount }} ₽',
         notFoundContent: 'No items in cart',
-        itemCount_zero: '{{ count }} items for a total of',
         itemCount_one: '{{ count }} item for a total of',
-        itemCount_few: '{{ count }} items for a total of',
-        itemCount_many: '{{ count }} items for a total of',
+        itemCount_other: '{{ count }} items for a total of',
+        //
+        //
       },
       reviews: {
         title: 'Moderation of reviews ({{ count }})',
@@ -718,6 +719,17 @@ export default {
             lastActivity: 'Last activity',
           },
           finish: 'No more data 🤐',
+        },
+      },
+      deferredPublication: {
+        title: 'Deferred publications',
+        titleWithCount: 'Deferred publications: ({{ count }})',
+        description: 'Register of deferred publications',
+        toTelegram: 'To Telegram',
+        toSite: 'To site',
+        table: {
+          item: 'Jewelry',
+          date: 'Publication date',
         },
       },
     },

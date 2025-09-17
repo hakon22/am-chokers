@@ -273,7 +273,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
-  const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
 
   const galleryRef = useRef<ImageGallery>(null);
 
@@ -396,20 +396,27 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
           ? (
             <>
               <h1 className="mb-4 fs-3">{name}</h1>
-              {collection
-                ? (
-                  <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
-                    <Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
-                  </Link>
-                )
-                : null}
+              <div className="d-flex mb-4">
+                {collection
+                  ? (
+                    <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
+                      <Tag color="#eaeef6" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                    </Link>
+                  )
+                  : null}
+                {item.deleted && (
+                  <Tag color="volcano" className="py-1 px-2 fs-6 border-0">
+                    {tCart('deleted')}
+                  </Tag>
+                )}
+              </div>
             </>
           )
           : null}
         <div className="d-flex flex-column align-items-center gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'image-label': !!item.deleted, 'd-flex align-items-center': isMobile })}
+            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'd-flex align-items-center': isMobile })}
             showIndex
             items={images.sort((a, b) => a.order - b.order).map((image) => ({
               original: image.src,
@@ -497,14 +504,22 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
           <div className="d-flex flex-column">
             {!isMobile
               ? (
-                <><h1 className="mb-4 mt-xl-0 fs-3">{name}</h1>
-                  {collection
-                    ? (
-                      <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
-                        <Tag color="#eaeef6" className="mb-4 py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
-                      </Link>
-                    )
-                    : null}
+                <>
+                  <h1 className="mb-4 mt-xl-0 fs-3">{name}</h1>
+                  <div className="d-flex mb-4">
+                    {collection
+                      ? (
+                        <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
+                          <Tag color="#eaeef6" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                        </Link>
+                      )
+                      : null}
+                    {item.deleted && (
+                      <Tag color="volcano" className="py-1 px-2 fs-6 border-0">
+                        {tCart('deleted')}
+                      </Tag>
+                    )}
+                  </div>
                 </>)
               : null}
             <div className={cn('d-flex align-items-center gap-4 mb-4', { 'order-1': isMobile })}>
@@ -688,7 +703,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
                 images={collectionItem.images}
                 name={collectionItem.translations.find((translation) => translation.lang === lang)?.name}
                 rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
-                description={tPrice('price', { price: collectionItem.price - collectionItem.discountPrice })}
+                description={t('price', { price: collectionItem.price - collectionItem.discountPrice })}
               />
             ))}
           </Carousel>

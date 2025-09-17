@@ -5,6 +5,8 @@ export interface DeferredPublicationOptionsInterface {
   id?: number;
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Только не опубликованные */
+  onlyNotPublished?: boolean;
   /** TypeORM Entity Manager */
   manager?: EntityManager;
 }

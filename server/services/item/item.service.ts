@@ -598,6 +598,9 @@ export class ItemService extends TranslationHelper {
 
     const isRu = lang === UserLangEnum.RU;
 
+    const yes = isRu ? 'Да' : 'Yes';
+    const no = isRu ? 'Нет' : 'No';
+
     const worksheet = workbook.addWorksheet(isRu ? 'Актуальные' : 'Actual');
     const worksheet2 = workbook.addWorksheet(isRu ? 'Удалённые' : 'Deleted');
 
@@ -639,8 +642,8 @@ export class ItemService extends TranslationHelper {
         price: item.price - item.discountPrice,
         discount: item.discountPrice,
         length: translateItem?.length,
-        new: item.new ? 'Да' : 'Нет',
-        bestseller: item.bestseller ? 'Да' : 'Нет',
+        new: item.new ? yes : no,
+        bestseller: item.bestseller ? yes : no,
         created: moment(item.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
       });
 
