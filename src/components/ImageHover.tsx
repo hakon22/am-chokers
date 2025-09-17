@@ -118,7 +118,7 @@ export const ImageHover = ({
         </Link>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-            {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+            {marker ? [...images].sort((a, b) => a.order - b.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
             {name ? <div className={cn('title lh-sm mb-2', { 'mb-3': !rating })} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width }}>{name}</div> : null}
             {rating ? (
               <div className="d-flex align-items-center gap-3 mb-3 text-muted">
@@ -188,7 +188,7 @@ export const ImageHover = ({
         </div>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-            {marker ? [...images].sort((a, b) => b.order - a.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+            {marker ? [...images].sort((a, b) => a.order - b.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
             {name ? <div className="title lh-sm mb-3" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width }}>{name}</div> : null}
             {description ? <div className="description">{description}</div> : null}
           </div>

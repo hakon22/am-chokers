@@ -39,7 +39,6 @@ export const Favorites = () => {
               width={width}
               deleted={!!item.deleted}
               images={item.images ?? []}
-              className={cn({ 'opacity-50': item.deleted })}
             />
             <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
               <Link href={getHref(item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.deleted })}>

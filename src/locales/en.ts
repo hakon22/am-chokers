@@ -838,8 +838,8 @@ export default {
         grades: {
           gradeCount_zero: 'No reviews',
           gradeCount_one: '{{ count }} review',
-          gradeCount_few: '{{ count }} review',
-          gradeCount_many: '{{ count }} reviews',
+          gradeCount_other: '{{ count }} reviews',
+          //
         },
         warranty: {
           1: 'We provide a 1-month warranty on all decorations purchased in our store from the date of purchase, provided you follow our recommendations.',
