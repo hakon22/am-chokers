@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag, DatePicker, TimePicker, Form } from 'antd';
-import { CloseOutlined, DeleteOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, LikeOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import { useEffect, useRef, useState, useContext } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
@@ -43,7 +43,7 @@ const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig)
 
 interface AdminControlGroupInterface {
   item: ItemInterface;
-  setItem: React.Dispatch<React.SetStateAction<ItemInterface>>;
+  setItem: (value: ItemInterface) => void;
 }
 
 const PublishModal = ({ publishData, isPublish, setIsPublish, onPublish, generateDescription, lang }: { publishData: PublishTelegramInterface; isPublish: boolean; setIsPublish: React.Dispatch<React.SetStateAction<boolean>>; onPublish: (values: PublishTelegramInterface) => void; generateDescription: () => void; lang: UserLangEnum; }) => {
@@ -94,10 +94,10 @@ const PublishModal = ({ publishData, isPublish, setIsPublish, onPublish, generat
     >
       <Form form={form} className="mt-4" initialValues={publishData}>
         <div className="d-flex justify-content-around">
-          <Form.Item<PublishTelegramInterface> name="date" rules={[publishTelegramValidation]}>
+          <Form.Item<PublishTelegramInterface> name="date" getValueProps={(value) => ({ value: value ? moment(value) : value })} rules={[publishTelegramValidation]}>
             <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
           </Form.Item>
-          <Form.Item<PublishTelegramInterface> name="time" rules={[publishTelegramValidation]}>
+          <Form.Item<PublishTelegramInterface> name="time" getValueProps={(value) => ({ value: value ? moment(value) : value })} rules={[publishTelegramValidation]}>
             <TimePicker placeholder={t('placeholderTime')} minuteStep={10} showNow={false} format={DateFormatEnum.HH_MM} />
           </Form.Item>
         </div>
@@ -120,7 +120,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   const { isAdmin, lang } = useAppSelector((state) => state.user);
 
   const [isPublish, setIsPublish] = useState(false);
-  const [publishData, setPublishData] = useState<PublishTelegramInterface>({ description: item.translations.find((translation) => translation.lang === lang)?.description as string });
+  const [publishData, setPublishData] = useState<PublishTelegramInterface>({ date: new Date(), time: new Date(), description: item.translations.find((translation) => translation.lang === lang)?.description as string });
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -151,11 +151,33 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
 
   const onPublish = async (values: PublishTelegramInterface) => {
     setIsSubmit(true);
-    const { payload } = await dispatch(publishItem({ id: item.id, ...values })) as { payload: ItemResponseInterface & { error: string; } };
-    if (!payload?.error) {
-      setItem(payload.item);
-      setIsPublish(false);
-      toast(tToast('itemPublishSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
+    if (item.deferredPublication && values.date && values.time) {
+      values.date = moment(values.date).set({
+        hour: moment(values.time).hour(),
+        minute: moment(values.time).minute(),
+      }).toDate();
+      delete values.time;
+      try {
+        const { data } = await axios.put<DeferredPublicationIResponsenterface>(routes.deferredPublication.telegram.updateOne(item.deferredPublication.id), {
+          id: item.deferredPublication.id,
+          item: { id: item.id },
+          ...values,
+        });
+        if (data.code === 1) {
+          setItem({ ...item, deferredPublication: data.deferredPublication });
+          setIsPublish(false);
+          toast(tToast('itemPublishPlannedUpdateSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
+        }
+      } catch (e) {
+        axiosErrorHandler(e, tToast, setIsSubmit);
+      }
+    } else {
+      const { payload } = await dispatch(publishItem({ id: item.id, ...values })) as { payload: ItemResponseInterface & { error: string; } };
+      if (!payload?.error) {
+        setItem(payload.item);
+        setIsPublish(false);
+        toast(tToast(payload.item.deferredPublication && !payload.item.deferredPublication.isPublished ? 'itemPublishPlannedSuccess' : 'itemPublishSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
+      }
     }
     setIsSubmit(false);
   };
@@ -180,6 +202,17 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
+    }
+  };
+
+  const onDeferredPublicationEdit = () => {
+    if (item.deferredPublication) {
+      setPublishData({
+        date: moment(item.deferredPublication.date).toDate(),
+        time: moment(item.deferredPublication.date).toDate(),
+        description: item.deferredPublication.description,
+      });
+      setIsPublish(true);
     }
   };
 
@@ -236,6 +269,14 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
                 style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
               >
                 {t('planned', { date: moment(item.deferredPublication.date).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
+                <button
+                  className="icon-button text-muted d-flex align-items-center"
+                  type="button"
+                  onClick={onDeferredPublicationEdit}
+                  title={t('editDeferredPublication')}
+                >
+                  <EditOutlined />
+                </button>
                 <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationRemove}>
                   <button
                     className="icon-button text-muted d-flex align-items-center"
@@ -550,7 +591,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
                 <p className={cn('fs-5 m-0', { 'text-muted text-decoration-line-through fw-light': discountPrice })}>{t('price', { price })}</p>
               </div>
               {isMobile ? <Favorites id={id} /> : null}
-              <AdminControlGroup item={item} setItem={setItem} />
+              <AdminControlGroup item={item} setItem={updateItem} />
             </div>
             {isMobile
               ? showThumbnails

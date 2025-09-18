@@ -250,6 +250,7 @@ export class ItemService extends TranslationHelper {
         .addSelect([
           'deferredPublication.id',
           'deferredPublication.date',
+          'deferredPublication.description',
           'deferredPublication.isPublished',
         ]);
     }
@@ -463,6 +464,11 @@ export class ItemService extends TranslationHelper {
         item: { id: item.id },
         description: body.description,
       } as DeferredPublicationEntity;
+
+      deferredPublicationBody.date = moment(deferredPublicationBody.date)
+        .startOf('minute')
+        .minute(Math.round(moment(deferredPublicationBody.date).minute() / 10) * 10)
+        .toDate();
 
       if (moment(deferredPublicationBody.date).isBefore(moment())) {
         throw new Error(isRu
@@ -717,6 +723,11 @@ export class ItemService extends TranslationHelper {
     if (message?.history) {
       await ItemEntity.update(item.id, { message: message.history });
       item.message = message.history;
+
+      if (item.deferredPublication) {
+        await DeferredPublicationEntity.softRemove(item.deferredPublication);
+        item.deferredPublication = null;
+      }
     }
   };
 

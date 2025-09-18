@@ -1,4 +1,5 @@
 import { Singleton } from 'typescript-ioc';
+import moment from 'moment';
 
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import { BaseService } from '@server/services/app/base.service';
@@ -17,6 +18,7 @@ export class DeferredPublicationService extends BaseService {
         'deferredPublication.id',
         'deferredPublication.deleted',
         'deferredPublication.date',
+        'deferredPublication.description',
         'deferredPublication.isPublished',
       ])
       .leftJoin('deferredPublication.item', 'item')
@@ -86,6 +88,26 @@ export class DeferredPublicationService extends BaseService {
 
   public updateOne = async (params: ParamsIdInterface, body: DeferredPublicationEntity, lang: UserLangEnum) => {
     const deferredPublication = await this.findOne(params, lang, { withDeleted: true });
+
+    const deferredPublicationBody = {
+      date: moment(body.date).set({
+        hour: moment(body.date).hour(),
+        minute: moment(body.date).minute(),
+      }).toDate(),
+      item: { id: deferredPublication.item.id },
+      description: body.description,
+    } as DeferredPublicationEntity;
+    
+    deferredPublicationBody.date = moment(deferredPublicationBody.date)
+      .startOf('minute')
+      .minute(Math.round(moment(deferredPublicationBody.date).minute() / 10) * 10)
+      .toDate();
+    
+    if (moment(deferredPublicationBody.date).isBefore(moment())) {
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Дата публикации не должна быть в прошедшем времени'
+        : 'The publication date must not be in the past tense');
+    }
 
     await DeferredPublicationEntity.update(params, body);
 

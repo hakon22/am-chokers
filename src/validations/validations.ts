@@ -152,14 +152,14 @@ export const profileServerSchema = yup.object().shape({
     }),
 });
 
-const translationSchema = yup.lazy((value) => {
+const translationSchema = (target: 'item' | 'group' | 'other' = 'other') => yup.lazy((value) => {
   if (Array.isArray(value)) {
     // Если это массив - валидируем как массив объектов
     return yup.array(yup.object().shape({
       lang: yup.string().oneOf(Object.values(UserLangEnum)),
-      name: stringSchema,
-      description: stringSchema.optional(),
-      length: stringSchema.optional(),
+      name: stringSchema.min(1),
+      description: ['item', 'group'].includes(target) ? stringSchema.min(1) : stringSchema.optional(),
+      length: target === 'item' ? stringSchema.min(1) : stringSchema.optional(),
     }))
       .test('unique-langs', t('validation.uniqueLanguages'), function (arr) {
         return !arr || new Set(arr.map(item => item.lang)).size === arr.length;
@@ -170,9 +170,9 @@ const translationSchema = yup.lazy((value) => {
       .shape(
         Object.values(UserLangEnum).reduce((acc, lang) => {
           acc[lang] = yup.object().shape({
-            name: stringSchema.required(),
-            description: stringSchema.optional(),
-            length: stringSchema.optional(),
+            name: stringSchema.min(1),
+            description: ['item', 'group'].includes(target) ? stringSchema.min(1) : stringSchema.optional(),
+            length: target === 'item' ? stringSchema.min(1) : stringSchema.optional(),
           }).required();
           return acc;
         }, {} as Record<UserLangEnum, ObjectSchema<any>>))
@@ -194,7 +194,7 @@ const newItemSchema = yup.object().shape({
   compositions: yup.array(idSchema).min(1).required(),
   colors: yup.array(idSchema).min(1).required(),
   images: yup.array(requiredIdSchema).optional(),
-  translations: translationSchema,
+  translations: translationSchema('item'),
 });
 
 const partialUpdateItemSchema = yup.object().shape({
@@ -212,11 +212,11 @@ const partialUpdateItemSchema = yup.object().shape({
 });
 
 const newCompositionSchema = yup.object().shape({
-  translations: translationSchema,
+  translations: translationSchema(),
 });
 
 const newColorSchema = yup.object().shape({
-  translations: translationSchema,
+  translations: translationSchema(),
   hex: yup
     .lazy((value) => (typeof value === 'object'
       ? yup.object()
@@ -229,12 +229,12 @@ const newColorSchema = yup.object().shape({
 
 const newItemCollectionSchema = yup.object().shape({
   description: stringSchema,
-  translations: translationSchema,
+  translations: translationSchema(),
 });
 
 const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
-  translations: translationSchema,
+  translations: translationSchema('group'),
 });
 
 export const itemGroupSchema = yup.array(requiredIdSchema).required();

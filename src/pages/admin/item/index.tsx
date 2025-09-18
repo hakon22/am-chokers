@@ -488,7 +488,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
           </CropImage>
         </div>
         <div style={{ width: isMobile ? '100%' : '55%' }}>
-          <Form name="create-item" initialValues={initialValues} className="d-flex flex-column" onFinish={onFinish} form={form}>
+          <Form name="create-item" scrollToFirstError initialValues={initialValues} className="d-flex flex-column" onFinish={onFinish} form={form}>
             <div className="d-flex flex-column">
               <div className="d-flex flex-column flex-xl-row">
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'name']} className="mb-4 large-input col-12 col-xl-6" rules={[newItemValidation]}>
