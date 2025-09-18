@@ -412,7 +412,7 @@ const Cart = () => {
         </div>
         <div className="col-12 col-xl-4">
           <h3 className="mb-4 text-uppercase">{t('deliveryType')}</h3>
-          <Radio.Group size="large" disabled={!cartList.length} className="mb-4" options={deliveryList} value={deliveryType} onChange={({ target }) => setDeliveryType(target.value)} />
+          <Radio.Group size="large" disabled={!cartList.length} className="mb-4 border-0" options={deliveryList} value={deliveryType} onChange={({ target }) => setDeliveryType(target.value)} />
           {deliveryButton
             ? delivery.address
               ? <Button className="button mx-auto mb-4" onClick={resetPVZ}>{t('resetPVZ')}</Button>
