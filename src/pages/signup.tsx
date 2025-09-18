@@ -58,7 +58,7 @@ const Signup = () => {
   useEffect(() => {
     if (isConfirmed && user) {
       dispatch(fetchSignup({ ...user, lang: lang as UserLangEnum }))
-        .then(() => { router.push(routes.page.base.profilePage); })
+        .then(() => { router.push(routes.page.profile.personalData); })
         .catch((e) => { axiosErrorHandler(e, tToast, setIsSubmit); });
     }
   }, [isConfirmed, user]);

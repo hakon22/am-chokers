@@ -66,7 +66,7 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
           <span className="visually-hidden">{t('cart')}</span>
         </Badge>
       </Link>
-      <Link href={routes.page.base.profilePage} title={t('profile')}>
+      <Link href={routes.page.profile.personalData} title={t('profile')}>
         {name
           ? (
             <Avatar style={{ backgroundColor: '#62c2d8ff', width: 28.8, height: 30, verticalAlign: 'middle' }}>
@@ -144,7 +144,7 @@ export const NavBar = () => {
   const searchParams = urlParams.get('search');
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { token, lang, isAdmin } = useAppSelector((state) => state.user);
+  const { token, lang } = useAppSelector((state) => state.user);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>(isMobile ? '' : '108px');
@@ -213,7 +213,7 @@ export const NavBar = () => {
       ...(!isMobile && submenu === 'catalog' ? { style: { opacity: 0.5 } } : {}),
       key: 'contacts',
     },
-    ...(isMobile && isAdmin ? [{
+    ...(isMobile ? [{
       label: (
         <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
           {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
@@ -305,9 +305,9 @@ export const NavBar = () => {
           )
           : (
             <>
-              {isAdmin ? <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
+              <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
                 {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
-              </Radio.Group> : null}
+              </Radio.Group>
               <div className="nav-logo-container" data-aos="fade-down">
                 <Link href={routes.page.base.homePage}>
                   <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />

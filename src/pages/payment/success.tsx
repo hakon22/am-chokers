@@ -23,7 +23,7 @@ const Success = () => {
         subTitle={t('description')}
         style={{ marginTop: '10%' }}
         extra={
-          <Button onClick={() => router.push(routes.page.base.profilePage)} className="mx-auto button">
+          <Button onClick={() => router.push(routes.page.profile.personalData)} className="mx-auto button">
             {t('profileButton')}
           </Button>}
       />

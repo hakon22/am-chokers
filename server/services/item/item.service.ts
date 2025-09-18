@@ -299,7 +299,7 @@ export class ItemService extends TranslationHelper {
     let items: ItemEntity[] = [];
 
     if (ids.length) {
-      const builder = this.createQueryBuilder({}, { withGrades: true, ids: ids.map(({ id }) => id) });
+      const builder = this.createQueryBuilder(query, { withGrades: true, ids: ids.map(({ id }) => id) });
 
       items = await builder.getMany();
     }
@@ -362,7 +362,7 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, rest.id, manager);
 
-      return this.findOne(params, lang, undefined, { manager, fullItem: true });
+      return this.findOne(params, lang, undefined, { manager, withDeleted: true, fullItem: true });
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -414,7 +414,7 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, item.id, manager);
 
-      return this.findOne(params, lang, undefined, { manager, fullItem: true });
+      return this.findOne(params, lang, undefined, { manager, withDeleted: true, fullItem: true });
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });

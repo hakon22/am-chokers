@@ -56,7 +56,7 @@ export default {
           settings: 'Settings',
           logout: 'Log out',
           admin: {
-            title: 'Admn Panel',
+            title: 'Admin Panel',
             items: {
               title: 'Items',
               deferredPublication: 'Deferred publications',
