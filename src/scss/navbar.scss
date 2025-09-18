@@ -110,6 +110,38 @@
   line-height: 35px;
 }
 
+.ant-radio-group {
+  border: 1px solid $dark-blue;
+  border-radius: 4px;
+
+  .ant-radio-button-wrapper {
+    background: $grey-light;
+    color: $dark-blue;
+    border: unset;
+
+    &-checked:not(.ant-radio-button-wrapper-disabled):first-child {
+      border-color: $dark-blue;
+      border: unset;
+      border-start-start-radius: unset;
+      border-end-start-radius: unset;
+      border-inline-start: unset;
+    }
+
+    &-checked:not(.ant-radio-button-wrapper-disabled) {
+      color: $white;
+      background: $dark-blue;
+      border-start-end-radius: unset;
+      border-end-end-radius: unset;
+      border-start-end-radius: unset;
+      border-end-end-radius: unset;
+
+      &::before {
+        background-color: $dark-blue;
+      }
+    }
+  }
+}
+
 @supports (display: grid) {
   @media (min-width: 1200px) {
     .grid-submenu > .ant-menu.ant-menu-sub.ant-menu-vertical {
