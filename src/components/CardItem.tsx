@@ -245,7 +245,11 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
           >
             <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
             {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
-            {!item.message ? <FloatButton onClick={() => setIsPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} /> : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
+            {!item.message?.send && !item.deferredPublication?.date
+              ? <FloatButton onClick={() => setIsPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} />
+              : item.deferredPublication && !item.deferredPublication.isPublished
+                ? <FloatButton onClick={onDeferredPublicationEdit} className="float-custom-icon" icon={<Telegram width={40} height={40} color="purple" />} />
+                : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
           </FloatButton.Group>
         </>
       )
