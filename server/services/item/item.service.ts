@@ -18,6 +18,7 @@ import { GradeService } from '@server/services/rating/grade.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
+import { hasJoin } from '@server/utilities/has.join';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -186,19 +187,25 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('item.translateName = :translateName', { translateName: query.translateName });
     }
     if (query?.itemGroupId) {
-      builder.andWhere('group.id = :itemGroupId', { itemGroupId: query.itemGroupId });
+      builder.andWhere('item.group = :itemGroupId', { itemGroupId: query.itemGroupId });
+    }
+    if (query?.groupIds) {
+      builder.andWhere('item.group IN(:...groupIds)', { groupIds: query.groupIds });
     }
     if (query?.collectionIds?.length) {
-      builder.andWhere('collection.id IN(:...collectionIds)', { collectionIds: query.collectionIds });
+      builder.andWhere('item.collection IN(:...collectionIds)', { collectionIds: query.collectionIds });
     }
     if (query?.compositionIds?.length) {
+      if (!hasJoin(builder, 'compositions')) {
+        builder.leftJoin('item.compositions', 'compositions');
+      }
       builder.andWhere('compositions.id IN(:...compositionIds)', { compositionIds: query.compositionIds });
     }
     if (query?.colorIds?.length) {
+      if (!hasJoin(builder, 'colors')) {
+        builder.leftJoin('item.colors', 'colors');
+      }
       builder.andWhere('colors.id IN(:...colorIds)', { colorIds: query.colorIds });
-    }
-    if (query?.groupIds) {
-      builder.andWhere('group.id IN(:...groupIds)', { groupIds: query.groupIds });
     }
     if (query?.from) {
       builder.andWhere('(item.price - item.discountPrice) >= :from', { from: query.from });
@@ -213,6 +220,9 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('item.bestseller = TRUE');
     }
     if (query?.groupCode) {
+      if (!hasJoin(builder, 'group')) {
+        builder.leftJoin('item.group', 'group');
+      }
       builder.andWhere('group.code = :groupCode', { groupCode: query.groupCode });
     }
     if (query?.excludeIds?.length) {
@@ -300,7 +310,7 @@ export class ItemService extends TranslationHelper {
     let items: ItemEntity[] = [];
 
     if (ids.length) {
-      const builder = this.createQueryBuilder(query, { withGrades: true, ids: ids.map(({ id }) => id) });
+      const builder = this.createQueryBuilder({ ...(query?.withDeleted ? { withDeleted: true } : {}) }, { withGrades: true, ids: ids.map(({ id }) => id) });
 
       items = await builder.getMany();
     }
