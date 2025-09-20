@@ -29,7 +29,6 @@ interface GetServerSidePropsInterface {
 
 interface PagePropsInterface {
   item?: ItemInterface;
-  collectionItems?: ItemInterface[];
   items: ItemInterface[];
   paginationParams: PaginationInterface;
   itemGroup?: ItemGroupInterface;
@@ -89,7 +88,7 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
   }
 
   if (itemName) {
-    const { data: { item, collectionItems } } = await axios.get<ItemResponseInterface & { collectionItems: ItemInterface[]; }>(routes.item.getByName({ isServer: false }), {
+    const { data: { item } } = await axios.get<ItemResponseInterface>(routes.item.getByName({ isServer: false }), {
       params: { translateName: itemName },
     });
   
@@ -105,7 +104,6 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
       return {
         props: {
           item,
-          collectionItems,
           paginationParams,
         },
       };
@@ -115,6 +113,6 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
   return getCatalogServerSideProps({ params, query });
 };
 
-const Page = ({ item, collectionItems, paginationParams, items, itemGroup }: PagePropsInterface) => (item ? <CardItem item={item} collectionItems={collectionItems} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} />);
+const Page = ({ item, paginationParams, items, itemGroup }: PagePropsInterface) => (item ? <CardItem item={item} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} />);
 
 export default Page;

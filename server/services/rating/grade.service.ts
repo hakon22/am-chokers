@@ -1,4 +1,5 @@
 import { Container, Singleton } from 'typescript-ioc';
+import _ from 'lodash';
 
 import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { BaseService } from '@server/services/app/base.service';
@@ -37,7 +38,7 @@ export class GradeService extends BaseService {
         .select('grade.id')
         .orderBy('grade.id', 'DESC');
 
-      if (query?.limit || query?.offset) {
+      if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
         builder
           .limit(query.limit)
           .offset(query.offset);
@@ -214,6 +215,12 @@ export class GradeService extends BaseService {
     }
 
     return [grades, count];
+  };
+
+  public getMyGradesCount = async (query: FetchGradeInterface, userId: number) => {
+    const builder = this.createQueryBuilder(query, { userId, withDeleted: true });
+
+    return builder.getCount();
   };
 
   public createOne = async (body: Partial<GradeEntity>, user: PassportRequestInterface, comment?: CommentEntity) => {

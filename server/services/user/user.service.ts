@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 import moment from 'moment';
+import _ from 'lodash';
 import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
 
@@ -505,11 +506,11 @@ export class UserService extends BaseService {
       const currentUser = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const [user, [, gradeCount], [, messageCount], cart] = await Promise.all([
-        this.findOne(params, { withDeleted: true, withOrders: true, withTokens: true }),
-        this.gradeService.getMyGrades({} as FetchGradeInterface, params.id),
-        this.messageService.messageReport({}, { userId: params.id }),
-        this.cartService.findMany({ ...params, lang: currentUser.lang }, undefined, undefined, { withoutJoin: true }),
+      const [user, gradeCount, messageCount, cartCount] = await Promise.all([
+        this.findOne(params, { withDeleted: true, withOrders: true }),
+        this.gradeService.getMyGradesCount({} as FetchGradeInterface, params.id),
+        this.messageService.messageReportCount({}, { userId: params.id }),
+        this.cartService.findManyCount({ ...params, lang: currentUser.lang }, undefined, undefined, { withoutJoin: true }),
       ]);
 
       if (!user) {
@@ -517,6 +518,8 @@ export class UserService extends BaseService {
           ? `Пользователь с номером #${params.id} не существует`
           : `User with number #${params.id} does not exist`);
       }
+
+      user.refreshTokens = await UserRefreshTokenEntity.find({ where: { user: { id: user.id } } });
 
       user.updated = user.refreshTokens.length ? moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate() : user.created;
       user.refreshTokens = [];
@@ -526,7 +529,7 @@ export class UserService extends BaseService {
         amount: user.orders.filter(({ isPayment }) => isPayment).reduce((acc, order) => acc + getOrderPrice(order as unknown as OrderInterface), 0),
         gradeCount,
         messageCount,
-        cartCount: cart.length,
+        cartCount,
       };
 
       res.json({ code: 1, user: result });
@@ -554,7 +557,7 @@ export class UserService extends BaseService {
         ])
         .orderBy('user.created', 'DESC');
 
-      if (query?.limit && query?.offset) {
+      if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
         builder
           .limit(query.limit)
           .offset(query.offset);

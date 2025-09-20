@@ -202,7 +202,7 @@ const Reviews = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchGrades({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, showAccepted, ...(userIdParams ? { userId: +userIdParams } : {}) })}
+        next={() => fetchGrades({ limit: pagination.limit, offset: (pagination.offset || 0) + 10, withDeleted, showAccepted, ...(userIdParams ? { userId: +userIdParams } : {}) })}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

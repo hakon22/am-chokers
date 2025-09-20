@@ -12,27 +12,18 @@ export const userOptionalParamsSchema = yup.object().shape({
     .optional(),
 });
 
+export const booleanSchema = yup
+  .mixed<boolean>()
+  .transform((value) => ['true', true].includes(value) ? true : false)
+  .optional();
+
 export const queryOptionalSchema = userOptionalParamsSchema.concat(yup.object().shape({
   itemGroupId: yup
     .number()
     .transform((value) => +value)
     .optional(),
-  withDeleted: yup
-    .mixed<boolean>()
-    .transform((value) => {
-      if (value === 'true') return true;
-      if (value === 'false') return false;
-      return undefined;
-    })
-    .optional(),
-  withUser: yup
-    .mixed<boolean>()
-    .transform((value) => {
-      if (value === 'true') return true;
-      if (value === 'false') return false;
-      return undefined;
-    })
-    .optional(),
+  withDeleted: booleanSchema,
+  withUser: booleanSchema,
 }));
 
 export const queryIdOptionalSchema = yup.object().shape({
@@ -56,24 +47,19 @@ export const paramsIdSchema = yup.object().shape({
     .required(),
 });
 
-export const booleanSchema = yup
-  .mixed<boolean>()
-  .transform((value) => ['true', true].includes(value) ? true : false)
-  .optional();
-
 export const queryPaginationSchema = yup.object().shape({
   limit: yup
     .number()
     .integer()
     .transform((value) => +value)
     .min(0)
-    .required(),
+    .notRequired(),
   offset: yup
     .number()
     .integer()
     .transform((value) => +value)
     .min(0)
-    .required(),
+    .notRequired(),
 });
 
 export const queryPaginationWithParams = queryPaginationSchema.concat(
@@ -119,6 +105,7 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     new: booleanSchema,
     bestseller: booleanSchema,
     sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
+    excludeIds: yup.array(yup.number().optional()),
   }),
 );
 

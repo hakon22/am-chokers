@@ -176,7 +176,7 @@ const ItemList = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchItems({ limit: pagination.limit, offset: pagination.offset + 10, withDeleted, search: search?.value })}
+        next={() => fetchItems({ limit: pagination.limit, offset: (pagination.offset || 0) + 10, withDeleted, search: search?.value })}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

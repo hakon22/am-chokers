@@ -1,5 +1,6 @@
 import { Container, Singleton } from 'typescript-ioc';
 import moment from 'moment';
+import _ from 'lodash';
 
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
@@ -56,7 +57,7 @@ export class OrderService extends BaseService {
         builder.andWhere('order.status IN(:...statuses)', { statuses: query.statuses });
       }
 
-      if (query?.limit || query?.offset) {
+      if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
         builder
           .limit(query.limit)
           .offset(query.offset);

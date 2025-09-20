@@ -1,4 +1,6 @@
+import type { Maybe } from 'yup';
+
 export interface PaginationQueryInterface {
-  limit: number;
-  offset: number;
+  limit?: Maybe<number | undefined>;
+  offset?: Maybe<number | undefined>;
 }

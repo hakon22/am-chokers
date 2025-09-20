@@ -1,5 +1,6 @@
 import { Singleton } from 'typescript-ioc';
 import { Brackets, type EntityManager } from 'typeorm';
+import _ from 'lodash';
 
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
@@ -24,7 +25,7 @@ export class CartService extends BaseService {
         'cart.count',
       ]);
 
-    if (query?.limit || query?.offset) {
+    if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
       builder
         .limit(query.limit)
         .offset(query.offset);
@@ -138,6 +139,12 @@ export class CartService extends BaseService {
     }
 
     return this.saveCartItems(cart, oldCart, user, options);    
+  };
+
+  public findManyCount = async (user: NullableParamsIdInterface | null, oldCart?: CartItemInterface[], query?: CartQueryInterface, options?: CartOptionsInterface) => {
+    const builder = this.createQueryBuilder(user?.id || null, query, options);
+
+    return builder.getCount();  
   };
 
   public updateOne = async (user: NullableParamsIdInterface | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement') => {

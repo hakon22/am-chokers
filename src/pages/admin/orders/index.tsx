@@ -85,7 +85,7 @@ const Orders = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchOrders({ limit: pagination.limit, offset: pagination.offset + 10, statuses, ...(userIdParams ? { userId: +userIdParams } : {}) })}
+        next={() => fetchOrders({ limit: pagination.limit, offset: (pagination.offset || 0) + 10, statuses, ...(userIdParams ? { userId: +userIdParams } : {}) })}
         hasMore={!(data.length < 10) && data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

@@ -488,7 +488,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         <div className="w-100">
           <InfiniteScroll
             dataLength={items.length}
-            next={() => onFilters(initialValues, { limit: pagination.limit, offset: pagination.offset + chunkNumber })}
+            next={() => onFilters(initialValues, { limit: pagination.limit, offset: (pagination.offset || 0) + chunkNumber })}
             hasMore={items.length < pagination.count}
             loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton lang={lang as UserLangEnum} />}
             style={{ overflow: 'unset' }}

@@ -36,7 +36,7 @@ import { getHref } from '@/utilities/getHref';
 import { locale } from '@/locales/pickers.locale.ru';
 import { publishTelegramValidation } from '@/validations/validations';
 import type { ItemInterface } from '@/types/item/Item';
-import type { PaginationInterface } from '@/types/PaginationInterface';
+import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
@@ -313,12 +313,13 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       ) : null;
 };
 
-export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams }: { item: ItemInterface; collectionItems?: ItemInterface[]; paginationParams: PaginationInterface; }) => {
+export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface; }) => {
   const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
+  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const galleryRef = useRef<ImageGallery>(null);
 
@@ -348,6 +349,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
   const { isMobile } = useContext(MobileContext);
 
   const [item, setItem] = useState(fetchedItem);
+  const [collectionItems, setCollectionItems] = useState<ItemInterface[]>([]);
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
@@ -409,6 +411,22 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
     setContextItem(value);
   };
 
+  const fetchAdditionalItems = async () => {
+    try {
+      const { data } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
+        params: {
+          collectionIds: [item.collection?.id],
+          excludeIds: [item.id],
+        },
+      });
+      if (data.code === 1) {
+        setCollectionItems(data.items);
+      }
+    } catch (e) {
+      axiosErrorHandler(e, tToast);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       setEdit(booleanSchema.validateSync(editParams));
@@ -432,6 +450,10 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
       setContextItem(undefined);
     };
   }, [item.translateName]);
+
+  useEffect(() => {
+    fetchAdditionalItems();
+  }, []);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} /> : (
     <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>
@@ -711,7 +733,7 @@ export const CardItem = ({ item: fetchedItem, collectionItems, paginationParams 
         </div>
       </div>
       <GradeList item={item} setItem={setItem} />
-      {collectionItems?.length ? (
+      {collectionItems.length ? (
         <div className="d-flex flex-column align-items-start align-items-xl-end mt-5">
           <h4 className="col-11 mb-5 text-uppercase">{t('otherItem')}</h4>
           <Carousel

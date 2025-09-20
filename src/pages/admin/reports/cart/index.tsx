@@ -108,7 +108,7 @@ const Cart = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchData({ limit: pagination.limit, offset: pagination.offset + 10, ...(userIdParams ? { userId: +userIdParams } : {}) })}
+        next={() => fetchData({ limit: pagination.limit, offset: (pagination.offset || 0) + 10, ...(userIdParams ? { userId: +userIdParams } : {}) })}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

@@ -77,7 +77,7 @@ const UserList = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchUsers({ limit: pagination.limit, offset: pagination.offset + 10 })}
+        next={() => fetchUsers({ limit: pagination.limit, offset: (pagination.offset || 0) + 10 })}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}

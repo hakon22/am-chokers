@@ -64,7 +64,7 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
   return (
     <InfiniteScroll
       dataLength={data.length}
-      next={() => fetchItems({ limit: pagination.limit, offset: pagination.offset + 10 })}
+      next={() => fetchItems({ limit: pagination.limit, offset: (pagination.offset || 0) + 10 })}
       hasMore={data.length < pagination.count}
       loader
       style={{ overflow: 'unset' }}

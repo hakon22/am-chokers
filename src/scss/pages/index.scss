@@ -92,6 +92,10 @@
   background: $white;
 }
 
+.react-multiple-carousel__arrow--left, .react-multiple-carousel__arrow--right {
+  z-index: 1;
+}
+
 @media (max-width: 1199px) {
   .index-block-container {
     margin-top: 30%;

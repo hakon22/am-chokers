@@ -1,4 +1,5 @@
 import { Singleton } from 'typescript-ioc';
+import _ from 'lodash';
 import type { FindOptionsWhere } from 'typeorm';
 
 import { MessageEntity } from '@server/db/entities/message.entity';
@@ -29,7 +30,7 @@ export class MessageService extends BaseService {
         'user.name',
       ]);
 
-    if (query?.limit || query?.offset) {
+    if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
       builder
         .limit(query.limit)
         .offset(query.offset);
@@ -80,5 +81,11 @@ export class MessageService extends BaseService {
       .orderBy('message.created', 'DESC');
 
     return builder.getManyAndCount();
+  };
+
+  public messageReportCount = async (query?: MessageQueryInterface, options?: MessageOptionsInterface) => {
+    const builder = this.createQueryBuilder(query, options);
+
+    return builder.getCount();
   };
 }

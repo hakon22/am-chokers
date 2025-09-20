@@ -4,6 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { Brackets } from 'typeorm';
 import ExcelJS, { type Anchor } from 'exceljs';
 import moment from 'moment';
+import _ from 'lodash';
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
@@ -87,7 +88,7 @@ export class ItemService extends TranslationHelper {
       if (query?.groupIds?.length || query?.groupCode) {
         builder.leftJoin('item.group', 'group');
       }
-      if (query?.limit || query?.offset) {
+      if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
         builder
           .limit(query.limit)
           .offset(query.offset);
@@ -291,13 +292,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public findMany = async (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
-    const builder = this.createQueryBuilder({ ...query, withDeleted: true }, options);
-
-    return builder.getMany();
-  };
-
-  public search = async (query: Pick<ItemQueryInterface, 'search' | 'withDeleted'>) => {
-    const builder = this.createQueryBuilder(query);
+    const builder = this.createQueryBuilder(query, options);
 
     return builder.getMany();
   };
@@ -310,9 +305,7 @@ export class ItemService extends TranslationHelper {
     let items: ItemEntity[] = [];
 
     if (ids.length) {
-      const builder = this.createQueryBuilder({ ...(query?.withDeleted ? { withDeleted: true } : {}) }, { withGrades: true, ids: ids.map(({ id }) => id) });
-
-      items = await builder.getMany();
+      items = await this.findMany(query, { withGrades: true, ids: ids.map(({ id }) => id) });
     }
 
     return [items, count];
@@ -556,14 +549,7 @@ export class ItemService extends TranslationHelper {
         : `There is no item named ${query.translateName}.`);
     }
 
-    let collectionItems: ItemEntity[] = [];
-
-    if (item.collection) {
-      const itemCollectionBuilder = this.createQueryBuilder({ collectionIds: [item.collection.id], excludeIds: [item.id] }, { withGrades: true, fullItem: true });
-      collectionItems = await itemCollectionBuilder.getMany();
-    }
-
-    return { item, collectionItems };
+    return item;
   };
 
   public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {

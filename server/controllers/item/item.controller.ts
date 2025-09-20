@@ -84,9 +84,9 @@ export class ItemController extends BaseService {
       const user = this.getCurrentUser(req);
       const query = await queryTranslateNameParams.validate(req.query);
 
-      const { item, collectionItems } = await this.itemService.getByName(query, user.lang);
+      const item = await this.itemService.getByName(query, user.lang);
 
-      res.json({ code: 1, item, collectionItems });
+      res.json({ code: 1, item });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -96,7 +96,7 @@ export class ItemController extends BaseService {
     try {
       const query = await querySearchParams.validate(req.query);
 
-      const search = await this.itemService.search(query);
+      const search = await this.itemService.findMany(query);
 
       res.json({ code: 1, search });
     } catch (e) {

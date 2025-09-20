@@ -195,7 +195,7 @@ export const GradeList = ({ item, setItem }: { item: ItemInterface; setItem: Rea
       const params: PaginationSearchInterface = {
         id: item.id,
         limit: pagination.limit,
-        offset: pagination.offset + 10,
+        offset: (pagination.offset || 0) + 10,
       };
       const { payload } = await dispatch(getItemGrades(params)) as { payload: PaginationEntityInterface<ItemGradeEntity>; };
       setItem((state) => {
