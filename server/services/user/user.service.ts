@@ -541,29 +541,40 @@ export class UserService extends BaseService {
   public getList = async (req: Request, res: Response) => {
     try {
       const query = await queryPaginationSchema.validate(req.query);
-      const manager = this.databaseService.getManager();
 
-      const builder = manager.createQueryBuilder(UserEntity, 'user')
-        .select([
-          'user.id',
-          'user.name',
-          'user.phone',
-          'user.created',
-          'user.updated',
-        ])
-        .leftJoin('user.refreshTokens', 'refreshTokens')
-        .addSelect([
-          'refreshTokens.created',
-        ])
-        .orderBy('user.created', 'DESC');
+      const idsBuilder = UserEntity.createQueryBuilder('user')
+        .select('user.id')
+        .distinct(true)
+        .orderBy('user.id', 'DESC');
 
       if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
-        builder
+        idsBuilder
           .limit(query.limit)
           .offset(query.offset);
       }
-    
-      const [items, count] = await builder.getManyAndCount();
+
+      const [ids, count] = await idsBuilder.getManyAndCount();
+
+      let items: UserEntity[] = [];
+      
+      if (ids.length) {
+        items = await UserEntity.createQueryBuilder('user')
+          .setParameter('ids', ids.map(({ id }) => id))
+          .select([
+            'user.id',
+            'user.name',
+            'user.phone',
+            'user.created',
+            'user.updated',
+          ])
+          .leftJoin('user.refreshTokens', 'refreshTokens')
+          .addSelect([
+            'refreshTokens.created',
+          ])
+          .where('user.id IN(:...ids)')
+          .orderBy('user.created', 'DESC')
+          .getMany();
+      }
 
       items.forEach((user) => {
         user.updated = user.refreshTokens.length ? moment.max(user.refreshTokens.map(({ created }) => moment(created))).toDate() : user.created;
