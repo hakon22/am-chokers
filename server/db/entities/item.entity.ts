@@ -179,4 +179,11 @@ export class ItemEntity extends BaseEntity {
   /** Локализации товара */
   @OneToMany(() => ItemTranslateEntity, translate => translate.item)
   public translations: ItemTranslateEntity[];
+
+  /** Дата публикации товара */
+  @Column('timestamp without time zone', {
+    name: 'publication_date',
+    nullable: true,
+  })
+  public publicationDate: Date | null;
 }

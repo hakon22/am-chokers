@@ -2,7 +2,7 @@ import path from 'path';
 
 import moment from 'moment';
 import { Container } from 'typescript-ioc';
-import { Between, In } from 'typeorm';
+import { Between, In, IsNull } from 'typeorm';
 import 'dotenv/config';
 
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity'; 
@@ -30,32 +30,47 @@ class DeferredPublicationCron {
 
     this.loggerService.info(TAG, 'Процесс запущен');
 
-    const from = moment().clone().subtract(3, 'minute').toDate();
-    const to = moment().clone().add(3, 'minute').toDate();
+    const now = moment();
 
-    const deferredPublications = await DeferredPublicationEntity.find({
-      where: {
-        date: Between(from, to),
-        isPublished: false,
-      },
-      relations: ['item'],
-    });
+    const from = now.clone().subtract(3, 'minute').toDate();
+    const to = now.clone().add(3, 'minute').toDate();
 
-    if (!deferredPublications.length) {
+    const [deferredPublications, publicationItems] = await Promise.all([
+      DeferredPublicationEntity.find({
+        where: {
+          date: Between(from, to),
+          isPublished: false,
+          item: {
+            publicationDate: IsNull(),
+          },
+        },
+        relations: ['item'],
+      }),
+      ItemEntity.find({
+        where: {
+          publicationDate: Between(from, to),
+        },
+        relations: ['translations'],
+      }),
+    ]);
+
+    if (!deferredPublications.length && !publicationItems.length) {
       this.loggerService.info(TAG, 'Нет товаров для публикации');
       process.exit(0);
     }
 
-    const items = await ItemEntity.find({
-      where: { id: In(deferredPublications.map(({ item }) => item.id)) },
-      relations: [
-        'translations',
-        'group',
-        'collection',
-        'collection.translations',
-        'images',
-      ],
-    });
+    const items = deferredPublications.length
+      ? await ItemEntity.find({
+        where: { id: In(deferredPublications.map(({ item }) => item.id)) },
+        relations: [
+          'translations',
+          'group',
+          'collection',
+          'collection.translations',
+          'images',
+        ],
+      })
+      : [];
 
     for (const item of items) {
       const deferredValue = deferredPublications.find((deferredPublication) => deferredPublication.item.id === item.id);
@@ -70,7 +85,21 @@ class DeferredPublicationCron {
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }
 
-    this.loggerService.info(TAG, `Опубликованных товаров: ${items.length} (${items.map(({ translations }) => translations.find(({ lang }) => lang === UserLangEnum.RU)?.name).join(', ').trim()})`);
+    if (publicationItems.length) {
+      await ItemEntity
+        .createQueryBuilder('item')
+        .update()
+        .set({ publicationDate: null })
+        .where('item.id IN(:...ids)', { ids: publicationItems.map(({ id }) => id) })
+        .execute();
+    }
+
+    if (items.length) {
+      this.loggerService.info(TAG, `Опубликованных товаров в Telegram: ${items.length} (${items.map(({ translations }) => translations.find(({ lang }) => lang === UserLangEnum.RU)?.name).join(', ').trim()})`);
+    }
+    if (publicationItems.length) {
+      this.loggerService.info(TAG, `Опубликованных товаров на сайт: ${publicationItems.length} (${publicationItems.map(({ translations }) => translations.find(({ lang }) => lang === UserLangEnum.RU)?.name).join(', ').trim()})`);
+    }
 
     this.loggerService.info(TAG, 'Процесс завершён');
 

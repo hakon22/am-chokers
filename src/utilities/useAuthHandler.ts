@@ -1,4 +1,4 @@
-import { useEffect, useContext } from 'react';
+import { useEffect, useContext, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -24,6 +24,12 @@ export const useAuthHandler = () => {
 
   const { token, refreshToken, url, lang } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
+
+  const fetchToken = useCallback(() => {
+    if (refreshToken) {
+      dispatch(updateTokens(refreshToken));
+    }
+  }, [dispatch, refreshToken]);
 
   useEffect(() => {
     const tokenStorage = window.localStorage.getItem(storageKey);
@@ -70,11 +76,8 @@ export const useAuthHandler = () => {
 
   useEffect(() => {
     if (refreshToken) {
-      const fetch = () => dispatch(updateTokens(refreshToken));
-
-      const timeAlive = setTimeout(fetch, 595000);
+      const timeAlive = setTimeout(fetchToken, 595000);
       return () => clearTimeout(timeAlive);
     }
-    return undefined;
-  }, [refreshToken]);
+  }, [fetchToken, refreshToken]);
 };

@@ -4,7 +4,6 @@ import { Container, Singleton } from 'typescript-ioc';
 import { BaseService } from '@server/services/app/base.service';
 import { publishTelegramValidation, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
@@ -178,12 +177,6 @@ export class ItemController extends BaseService {
       const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
       const body = await publishTelegramValidation.serverValidator(req.body) as PublishTelegramInterface;
-
-      if ([body.date, body.time].filter(Boolean).length === 1) {
-        throw new Error(user.lang === UserLangEnum.RU
-          ? 'Для отложенной публикации дата и время должны быть заполнены'
-          : 'For delayed publication, date and time must be filled in');
-      }
 
       const item = await this.itemService.publishToTelegram(params, user.lang, body);
 

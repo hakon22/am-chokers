@@ -17,6 +17,7 @@ import { MobileContext, SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import type { ItemInterface } from '@/types/item/Item';
 import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
+import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
 interface DataType {
   key: React.Key;
@@ -47,9 +48,20 @@ const DeferredPublication = () => {
   const fetchData = async () => {
     try {
       setIsSubmit(true);
-      const { data: { code, deferredPublications } } = await axios.get<{ code: number; deferredPublications: DeferredPublicationEntity[]; }>(routes.deferredPublication.telegram.findMany);
+      const [
+        { data: { code, deferredPublications } },
+        { data: { items, code: itemCode } },
+      ] = await Promise.all([
+        axios.get<{ code: number; deferredPublications: DeferredPublicationEntity[]; }>(routes.deferredPublication.telegram.findMany),
+        axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
+          params: { onlyNotPublished: true, withNotPublished: true },
+        }),
+      ]);
       if (code === 1) {
         setDeferredPublicationData(deferredPublications.map(({ id, date, item }) => ({ key: id, date, item })));
+      }
+      if (itemCode === 1) {
+        setDeferredPostData(items.map(({ id, publicationDate, ...rest }) => ({ key: id, date: publicationDate as Date, item: rest as ItemInterface })));
       }
       setIsSubmit(false);
     } catch (e) {

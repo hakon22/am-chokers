@@ -64,8 +64,8 @@ export interface ImageResponseInterface {
 }
 
 export interface PublishTelegramInterface {
-  date?: Date;
-  time?: Date;
+  date?: Date | null;
+  time?: string | null;
   description: string;
 }
 
@@ -136,9 +136,9 @@ export const restoreItem = createAsyncThunk(
 
 export const publishItem = createAsyncThunk(
   'app/publishItem',
-  async ({ id, description, date, time }: PublishTelegramInterface & { id: number; }, { rejectWithValue }) => {
+  async ({ id, description, date }: PublishTelegramInterface & { id: number; }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ItemResponseInterface>(routes.item.publishToTelegram(id), { description, date, time });
+      const response = await axios.post<ItemResponseInterface>(routes.item.publishToTelegram(id), { description, date });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

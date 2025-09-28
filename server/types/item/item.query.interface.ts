@@ -38,4 +38,8 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   sort?: ItemSortEnum;
   /** Исключить `ids` */
   excludeIds?: number[];
+  /** Включить неопубликованные */
+  withNotPublished?: boolean;
+  /** Только неопубликованные */
+  onlyNotPublished?: boolean;
 }

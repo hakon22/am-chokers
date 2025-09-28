@@ -58,10 +58,14 @@ export class DeferredPublicationService extends BaseService {
     return builder;
   };
 
-  public createOne = async (body: DeferredPublicationEntity, lang: UserLangEnum) => {
-    const created = await DeferredPublicationEntity.save(body);
+  public createOne = async (body: DeferredPublicationEntity, lang: UserLangEnum, options?: DeferredPublicationOptionsInterface) => {
+    const manager = options?.manager || this.databaseService.getManager();
 
-    const deferredPublication = await this.findOne({ id: created.id }, lang);
+    const repo = manager.getRepository(DeferredPublicationEntity);
+
+    const created = await repo.save(body);
+
+    const deferredPublication = await this.findOne({ id: created.id }, lang, { manager });
 
     return deferredPublication;
   };
@@ -89,29 +93,15 @@ export class DeferredPublicationService extends BaseService {
   public updateOne = async (params: ParamsIdInterface, body: DeferredPublicationEntity, lang: UserLangEnum) => {
     const deferredPublication = await this.findOne(params, lang, { withDeleted: true });
 
-    const deferredPublicationBody = {
-      date: moment(body.date).set({
-        hour: moment(body.date).hour(),
-        minute: moment(body.date).minute(),
-      }).toDate(),
-      item: { id: deferredPublication.item.id },
-      description: body.description,
-    } as DeferredPublicationEntity;
+    const updated = { ...deferredPublication, ...body };
     
-    deferredPublicationBody.date = moment(deferredPublicationBody.date)
-      .startOf('minute')
-      .minute(Math.round(moment(deferredPublicationBody.date).minute() / 10) * 10)
-      .toDate();
-    
-    if (moment(deferredPublicationBody.date).isBefore(moment())) {
+    if (moment(updated.date).isBefore(moment())) {
       throw new Error(lang === UserLangEnum.RU
         ? 'Дата публикации не должна быть в прошедшем времени'
         : 'The publication date must not be in the past tense');
     }
 
     await DeferredPublicationEntity.update(params, body);
-
-    const updated = { ...deferredPublication, ...body };
 
     return { code: 1, deferredPublication: updated };
   };

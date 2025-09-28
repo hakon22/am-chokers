@@ -147,7 +147,7 @@ h2 {
 .ant-input-group-addon .ant-btn-variant-solid {
   background: $dark-blue !important;
 
-  &:active, &:hover {
+  &:active, &:hover, &:disabled {
     background: $button-background-active !important;
     color: $light-font !important;
   }

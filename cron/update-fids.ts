@@ -73,6 +73,7 @@ class UpdateFidsCron {
         LEFT JOIN "chokers"."image" AS "image" ON "image"."item_id" = "item"."id"
       WHERE
         "item"."deleted" IS NULL
+        AND "item"."publication_date" IS NULL
         AND "image"."deleted" IS NULL
         AND "image"."order" = 0
         AND "translate"."lang" = 'RU'

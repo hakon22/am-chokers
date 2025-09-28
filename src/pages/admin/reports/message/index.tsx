@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Table, Divider, Checkbox, Select, Input } from 'antd';
+import { Table, Divider, Checkbox, Select, Input, Typography } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import moment from 'moment';
@@ -27,6 +27,14 @@ import type { MessageEntity } from '@server/db/entities/message.entity';
 interface DataType extends Partial<MessageEntity> {
   key: React.Key;
 }
+
+const HtmlEllipsis = ({ text }: { text: string; }) => {
+  return (
+    <Typography>
+      <div dangerouslySetInnerHTML={{ __html: text }} />
+    </Typography>
+  );
+};
 
 const Message = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.message' });
@@ -161,12 +169,12 @@ const Message = () => {
             emptyText: <NotFoundContent />,
           }}
         >
-          <Table.Column<DataType> title={t('table.created')} dataIndex="created" width={'12%'} render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />
-          <Table.Column<DataType> title={t('table.text')} dataIndex="text" width={'30%'} render={(text) => <div dangerouslySetInnerHTML={{ __html: text }} />} />
-          <Table.Column<DataType> title={t('table.type')} dataIndex="type" width={'5%'} render={(type) => <div className="text-center">{type}</div>} />
-          <Table.Column<DataType> title={t('table.send')} dataIndex="send" width={'3%'} render={(checked) => <Checkbox className="d-flex justify-content-center" checked={checked} />} />
-          <Table.Column<DataType> title={t('table.phone')} dataIndex="phone" width={'10%'} />
-          <Table.Column<DataType> title={t('table.telegramId')} dataIndex="telegramId" width={'10%'} />
+          <Table.Column<DataType> title={t('table.created')} dataIndex="created" width="12%" render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />
+          <Table.Column<DataType> title={t('table.text')} dataIndex="text" width="50%" render={(text) => <HtmlEllipsis text={text} />} />
+          <Table.Column<DataType> title={t('table.type')} dataIndex="type" width="5%" render={(type) => <div className="text-center">{type}</div>} />
+          <Table.Column<DataType> title={t('table.send')} dataIndex="send" width="3%" render={(checked) => <Checkbox className="d-flex justify-content-center" checked={checked} />} />
+          <Table.Column<DataType> title={t('table.phone')} dataIndex="phone" width="10%" />
+          <Table.Column<DataType> title={t('table.telegramId')} dataIndex="telegramId" width="10%" />
           <Table.Column<DataType> title={t('table.user')} dataIndex="user" render={(user: DataType['user']) => <Link href={`${routes.page.admin.userCard}/${user?.id}`}>{user?.name}</Link>} />
         </Table>
       </InfiniteScroll>

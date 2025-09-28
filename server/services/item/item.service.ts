@@ -116,6 +116,7 @@ export class ItemService extends TranslationHelper {
           'item.bestseller',
           'item.order',
           'item.translateName',
+          'item.publicationDate',
         ])
         .leftJoin('item.translations', 'translations')
         .addSelect([
@@ -229,6 +230,12 @@ export class ItemService extends TranslationHelper {
     if (query?.excludeIds?.length) {
       builder.andWhere('item.id NOT IN(:...excludeIds)', { excludeIds: query.excludeIds });
     }
+    if (!query?.withNotPublished) {
+      builder.andWhere('item.publicationDate IS NULL');
+    }
+    if (query?.onlyNotPublished) {
+      builder.andWhere('item.publicationDate IS NOT NULL');
+    }
     if (options?.ids?.length) {
       builder.andWhere('item.id IN(:...ids)', { ids: options.ids });
     }
@@ -318,16 +325,52 @@ export class ItemService extends TranslationHelper {
       return { code: 2 };
     }
 
+    if (body.deferredPublication) {
+      body.deferredPublication.description = body.deferredPublication.description || body.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string;
+
+      if (moment(body.deferredPublication.date).isBefore(moment())) {
+        throw new Error(lang === UserLangEnum.RU
+          ? 'Дата публикации в Telegram не должна быть в прошедшем времени'
+          : 'The publication date in Telegram must not be in the past tense');
+      }
+    }
+
+    if (body.publicationDate && moment(body.publicationDate).isBefore(moment())) {
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Дата публикации товара на сайт не должна быть в прошедшем времени'
+        : 'The item publication date in site must not be in the past tense');
+    }
+
+    if (body.deferredPublication && body.publicationDate) {
+      if (moment(body.deferredPublication.date).isBefore(moment(body.publicationDate), 'minutes')) {
+        throw new Error(lang === UserLangEnum.RU
+          ? 'Дата публикации в Telegram не должна быть раньше даты публикации товара'
+          : 'The publication date in Telegram should not be earlier than the product publication date');
+      }
+      if (moment(body.deferredPublication.date).isSame(moment(body.publicationDate), 'minutes')) {
+        throw new Error(lang === UserLangEnum.RU
+          ? 'Дата публикации в Telegram не должна быть равна дате публикации товара'
+          : 'The publication date in Telegram should not be same than the product publication date');
+      }
+    }
+
     body.translateName = translate(body.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name);
 
     const item = await this.databaseService.getManager().transaction(async (manager) => {
-      const created = await this.createEntityWithTranslations(ItemEntity, ItemTranslateEntity, body, 'item', manager);
+      const { deferredPublication, ...rest } = body;
+
+      const created = await this.createEntityWithTranslations(ItemEntity, ItemTranslateEntity, rest, 'item', manager);
 
       this.uploadPathService.checkFolder(UploadPathEnum.ITEM, created.id);
 
       await this.imageService.processingImages(images, UploadPathEnum.ITEM, created.id, manager);
 
-      return this.findOne({ id: created.id }, lang, undefined, { manager });
+      if (deferredPublication) {
+        deferredPublication.item = { id: created.id } as ItemEntity;
+        await this.deferredPublicationService.createOne(deferredPublication, lang, { manager });
+      }
+
+      return this.findOne({ id: created.id }, lang, { withNotPublished: true }, { manager });
     });
 
     const url = this.getUrl(item);
@@ -338,7 +381,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public updateOne = async (params: ParamsIdInterface, body: ItemEntity, lang: UserLangEnum) => {
-    const { translations: oldTranslations, ...item } = await this.findOne(params, lang, { withDeleted: true });
+    const { translations: oldTranslations, ...item } = await this.findOne(params, lang, { withDeleted: true, withNotPublished: true });
 
     const isExist = await this.exist({ names: body.translations.map((translation) => translation.name), excludeIds: [item.id] });
 
@@ -366,7 +409,7 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, rest.id, manager);
 
-      return this.findOne(params, lang, undefined, { manager, withDeleted: true, fullItem: true });
+      return this.findOne(params, lang, { withNotPublished: true }, { manager, withDeleted: true, fullItem: true });
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -384,7 +427,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public partialUpdateOne = async (params: ParamsIdInterface, body: ItemEntity, lang: UserLangEnum) => {
-    const { translations: oldTranslations, ...item } = await this.findOne(params, lang, { withDeleted: true });
+    const { translations: oldTranslations, ...item } = await this.findOne(params, lang, { withDeleted: true, withNotPublished: true });
 
     if (body.translations && body.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name !== oldTranslations.find((translation) => translation.lang === UserLangEnum.RU)?.name) {
       const isExist = await this.exist({ names: body.translations.map((translation) => translation.name), excludeIds: [item.id] });
@@ -418,7 +461,7 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, item.id, manager);
 
-      return this.findOne(params, lang, undefined, { manager, withDeleted: true, fullItem: true });
+      return this.findOne(params, lang, { withNotPublished: true }, { manager, withDeleted: true, fullItem: true });
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -458,20 +501,12 @@ export class ItemService extends TranslationHelper {
         : 'The item has already been published!');
     }
 
-    if (body && body.date && body.time && body.description) {
+    if (body && body.date && body.description) {
       const deferredPublicationBody = {
-        date: moment(body.date).set({
-          hour: moment(body.time).hour(),
-          minute: moment(body.time).minute(),
-        }).toDate(),
+        date: body.date,
         item: { id: item.id },
-        description: body.description,
+        description: body.description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string,
       } as DeferredPublicationEntity;
-
-      deferredPublicationBody.date = moment(deferredPublicationBody.date)
-        .startOf('minute')
-        .minute(Math.round(moment(deferredPublicationBody.date).minute() / 10) * 10)
-        .toDate();
 
       if (moment(deferredPublicationBody.date).isBefore(moment())) {
         throw new Error(isRu
@@ -539,7 +574,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public getByName = async (query: ItemQueryInterface, lang: UserLangEnum) => {
-    const builder = this.createQueryBuilder({ ...query, withDeleted: true }, { fullItem: true });
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true, withNotPublished: true }, { fullItem: true });
 
     const item = await builder.getOne();
 

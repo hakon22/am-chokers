@@ -194,7 +194,12 @@ const newItemSchema = yup.object().shape({
   compositions: yup.array(idSchema).min(1).required(),
   colors: yup.array(idSchema).min(1).required(),
   images: yup.array(requiredIdSchema).optional(),
+  publicationDate: yup.date().optional().nullable(),
   translations: translationSchema('item'),
+  deferredPublication: yup.object().shape({
+    date: yup.date().nullable(),
+    description: yup.string().optional().nullable(),
+  }).optional().nullable(),
 });
 
 const partialUpdateItemSchema = yup.object().shape({
@@ -358,7 +363,6 @@ export const deferredPublicationSchema = yup.object().shape({
 
 const publishTelegramSchema = yup.object().shape({
   date: yup.date().optional().nullable(),
-  time: yup.date().optional().nullable(),
   description: stringSchema,
 });
 

@@ -7,10 +7,11 @@ import { RightOutlined, InboxOutlined, UploadOutlined } from '@ant-design/icons'
 import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, Modal, type UploadProps, type UploadFile, Switch, Checkbox } from 'antd';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, Modal, type UploadProps, type UploadFile, Switch, Checkbox, DatePicker, Divider } from 'antd';
 import { isEqual, some, isEmpty, omit, cloneDeep } from 'lodash';
-import moment from 'moment';
+import moment, { type Moment } from 'moment';
+import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
@@ -23,11 +24,13 @@ import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { BackButton } from '@/components/BackButton';
 import { CropImage } from '@/components/CropImage';
+import { TimePicker } from '@/components/TimePicker';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { getHeight } from '@/utilities/screenExtension';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
+import { locale } from '@/locales/pickers.locale.ru';
 import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
@@ -36,12 +39,16 @@ import type { ColorInterface } from '@/types/color/ColorInterface';
 import type { ColorEntity } from '@server/db/entities/color.entity';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
 
+const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
+
 interface ItemFormInterface extends Omit<Partial<ItemInterface>, 'translations' | 'group' | 'collection' | 'compositions' | 'colors'> {
   translations: Record<UserLangEnum, { name?: string; description?: string; length?: string; }>,
   group?: number | ItemInterface['group'];
   collection?: number | ItemInterface['collection'];
   compositions?: (number | CompositionEntity)[];
   colors?: (number | ColorEntity)[];
+  telegramPublicationTime?: string | Date | null;
+  itemPublicationTime?: string | Date | null;
 }
 
 export const getServerSideProps = async () => {
@@ -111,6 +118,9 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const [colors, setColors] = useState<ColorInterface[]>([]);
   const [isSortImage, setIsSortImage] = useState(false);
   const [lastProgress, setLastProgress] = useState('');
+  const [isFinish, setIsFinish] = useState(false);
+  const [itemPublicationTime, setItemPublicationTime] = useState<string | null>(null);
+  const [telegramPublicationTime, setTelegramPublicationTime] = useState<string | null>(null);
 
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
@@ -128,6 +138,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       const parsedSavedProgress = JSON.parse(savedProgress) as { data: ItemFormInterface; images: ImageEntity[]; lastProgress: Date; };
       form.setFieldsValue(parsedSavedProgress.data);
       setImages(parsedSavedProgress.images);
+      setItemGroup(itemGroups.find(({ id }) => id === parsedSavedProgress.data.group));
+      setItemCollection(itemCollections.find((collection) => collection?.id === parsedSavedProgress.data.collection));
+      setItemCompositions(compositions?.filter(({ id }) => id === parsedSavedProgress.data.compositions?.find((composition) => composition === id)));
+      setItemColors(colors?.filter(({ id }) => id === parsedSavedProgress.data.colors?.find((color) => color === id)));
     }
     setLastProgress('');
   };
@@ -211,6 +225,23 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         router.push(payload.url);
       }
     } else {
+      const [itemH, itemM] = itemPublicationTime ? itemPublicationTime.split(':') : [null, null];
+      const [tgH, tgM] = telegramPublicationTime ? telegramPublicationTime.split(':') : [null, null];
+
+      if (values.publicationDate && itemH && itemM) {
+        values.publicationDate = moment(values.publicationDate).set({ hour: +itemH, minute: +itemM }).toDate();
+      } else {
+        delete values.publicationDate;
+      }
+      if (values.deferredPublication?.date && tgH && tgM) {
+        values.deferredPublication = {
+          date: moment(values.deferredPublication?.date).set({ hour: +tgH, minute: +tgM }).toDate(),
+          description: values.deferredPublication?.description,
+        } as ItemInterface['deferredPublication'];
+      } else {
+        delete values.deferredPublication;
+      }
+
       const { payload } = await dispatch(addItem(values as ItemInterface)) as { payload: ItemWithUrlResponseInterface; };
       code = payload.code;
       if (code === 1) {
@@ -219,6 +250,8 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         setItemCollection(undefined);
         setItemCompositions(undefined);
         setItemColors(undefined);
+        setItemPublicationTime(null);
+        setTelegramPublicationTime(null);
         setFileList([]);
         setImages([]);
         form.resetFields();
@@ -227,7 +260,12 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         form.setFieldValue('compositions', undefined);
         form.setFieldValue('colors', undefined);
         window.localStorage.removeItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
-        window.open(payload.url, '_blank');
+        setIsFinish(false);
+        if (values.publicationDate) {
+          toast(tToast('itemPublishPlannedSuccess', { name: values.translations.find((translation) => translation.lang === lang)?.name }), 'success');
+        } else {
+          window.open(payload.url, '_blank');
+        }
       }
     }
 
@@ -239,30 +277,66 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
     setIsSubmit(false);
   };
 
-  const generateDescription = async () => {
+  const generateDescription = async (isSubmitTgModal = false) => {
     try {
       setIsSubmit(true);
       const values = form.getFieldsValue();
 
-      if (!(values.compositions?.length && images.length)) {
-        form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [tToast('requiredFields')] }]);
+      if (!values.compositions?.length || !images.length) {
+        form.setFields([{ name: isSubmitTgModal ? ['deferredPublication', 'description'] : ['translations', lang as UserLangEnum, 'description'], errors: [tToast('requiredFields')] }]);
         throw new Error(tToast('requiredFields'));
       }
 
       values.images = images;
-      values.compositions = compositions.filter((composition) => itemCompositions?.find((value) => (typeof value === 'number' && value === composition.id) || value.id === composition.id)) as CompositionEntity[];
+      values.compositions = compositions.filter((composition) => itemCompositions?.find((value) => typeof value === 'number' ? value === composition.id : value.id === composition.id)) as CompositionEntity[];
 
       const { data } = await axios.post<{ code: number; description: string; }>(routes.integration.gpt.generateDescriptionWithoutItem, values);
 
       if (data.code === 1) {
-        form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [] }]);
-        form.setFieldValue(['translations', lang as UserLangEnum, 'description'], data.description);
+        if (!isSubmitTgModal) {
+          form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [] }]);
+          form.setFieldValue(['translations', lang as UserLangEnum, 'description'], data.description);
+        } else {
+          form.setFieldValue(['deferredPublication', 'description'], data.description);
+        }
       }
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
   };
+
+  const onSubmit = () => {
+    form.validateFields().then(() => setIsFinish(true));
+  };
+
+  const itemPublicationDate = Form.useWatch('publicationDate', form);
+  const telegramPublicationDate = Form.useWatch(['deferredPublication', 'date'], form);
+
+  const saveProgress = useCallback(() => {
+    const formValues = form.getFieldsValue();
+
+    const rootValues = some(omit(formValues, 'translations'), value => typeof value === 'object' ? !isEmpty(value) : !!value);
+    const nestedValues = some(formValues.translations, (langObj) => some(langObj, (value) => !isEmpty(value)));
+
+    if (rootValues || nestedValues || imagesRef.current.length) {
+      window.localStorage.setItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '', JSON.stringify({ data: formValues, images: imagesRef.current, lastProgress: moment() }));
+    }
+  }, [imagesRef.current.length, form]);
+
+  const getSubmitButtonText = useCallback(() => {
+    let text = 'publishNow';
+
+    if (itemPublicationDate && itemPublicationTime && telegramPublicationDate && telegramPublicationTime) {
+      text = 'fullPlanOkText';
+    } else if (itemPublicationDate && itemPublicationTime) {
+      text = 'sitePlanOkText';
+    } else if (telegramPublicationDate && telegramPublicationTime) {
+      text = 'tgPlanOkText';
+    }
+
+    return t(`modalSubmit.${text}`);
+  }, [itemPublicationDate, itemPublicationTime, telegramPublicationDate, telegramPublicationTime]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -341,16 +415,6 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   useEffect(() => {
     if (!oldItem) {
-      const saveProgress = () => {
-        const formValues = form.getFieldsValue();
-
-        const rootValues = some(omit(formValues, 'translations'), value => typeof value === 'object' ? !isEmpty(value) : !!value);
-        const nestedValues = some(formValues.translations, (langObj) => some(langObj, (value) => !isEmpty(value)));
-
-        if (rootValues || nestedValues || imagesRef.current.length) {
-          window.localStorage.setItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '', JSON.stringify({ data: formValues, images: imagesRef.current, lastProgress: moment() }));
-        }
-      };
       const timeAlive = setInterval(saveProgress, 10000);
       return () => clearInterval(timeAlive);
     }
@@ -359,20 +423,22 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   return isAdmin ? (
     <>
       <Helmet title={t(oldItem ? 'editTitle' : 'title')} description={t(oldItem ? 'editDescription' : 'description')} />
-      <Modal
-        title={t('modal.title')}
-        closable={{ 'aria-label': t('modal.cancelText') }}
-        classNames={{ footer: 'ant-input-group-addon' }}
-        centered
-        open={!!lastProgress}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        okText={t('modal.okText')}
-        cancelText={t('modal.cancelText')}
-      >
-        <p>{t('modal.body1', { date: lastProgress })}</p>
-        <p>{t('modal.body2')}</p>
-      </Modal>
+      {lastProgress ? (
+        <Modal
+          title={t('modal.title')}
+          closable={{ 'aria-label': t('modal.cancelText') }}
+          classNames={{ footer: 'ant-input-group-addon' }}
+          centered
+          open
+          onOk={handleModalOk}
+          onCancel={handleModalCancel}
+          okText={t('modal.okText')}
+          cancelText={t('modal.cancelText')}
+        >
+          <p>{t('modal.body1', { date: lastProgress })}</p>
+          <p>{t('modal.body2')}</p>
+        </Modal>
+      ) : null}
       {oldItem ? null : isMobile ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
       <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '100px' } : {}}>
         {isMobile ? (
@@ -489,6 +555,63 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         </div>
         <div style={{ width: isMobile ? '100%' : '55%' }}>
           <Form name="create-item" scrollToFirstError initialValues={initialValues} className="d-flex flex-column" onFinish={onFinish} form={form}>
+            <Modal
+              centered
+              classNames={{ footer: 'ant-input-group-addon d-flex justify-content-center' }}
+              open={isFinish}
+              zIndex={10000}
+              onOk={form.submit}
+              okText={getSubmitButtonText()}
+              cancelText={t('modalSubmit.cancelText')}
+              onCancel={() => setIsFinish(false)}
+              footer={(_, { OkBtn, CancelBtn }) => (
+                <div className="d-flex flex-column flex-xl-row gap-2 mt-4">
+                  <CancelBtn />
+                  <OkBtn />
+                </div>
+              )}
+            >
+              <div className="d-flex flex-column align-items-center mt-4">
+                <Divider className="font-oswald fs-5 mb-4">{t('modalSubmit.siteTitle')}</Divider>
+                <div className="d-flex justify-content-between col-12 col-xl-10">
+                  <Form.Item<ItemFormInterface> name="publicationDate" rules={[newItemValidation]} getValueProps={(value) => ({ value: value ? moment(value) : value })}>
+                    <MomentDatePicker minDate={moment()} placeholder={t('modalSubmit.placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
+                  </Form.Item>
+                  <Form.Item<ItemFormInterface>>
+                    <TimePicker
+                      onChange={(value) => setItemPublicationTime(value)}
+                      value={itemPublicationTime}
+                      minDate={itemPublicationDate}
+                      placeholder={t('modalSubmit.placeholderTime')}
+                      step={10}
+                    />
+                  </Form.Item>
+                </div>
+                <Divider className="font-oswald fs-5 mb-4">{t('modalSubmit.tgTitle')}</Divider>
+                <div className="d-flex flex-column col-12 col-xl-10">
+                  <div className="d-flex justify-content-between">
+                    <Form.Item<ItemFormInterface> name={['deferredPublication', 'date']} rules={[newItemValidation]} getValueProps={(value) => ({ value: value ? moment(value) : value })}>
+                      <MomentDatePicker minDate={moment()} placeholder={t('modalSubmit.placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
+                    </Form.Item>
+                    <Form.Item<ItemFormInterface>>
+                      <TimePicker
+                        onChange={(value) => setTelegramPublicationTime(value)}
+                        value={telegramPublicationTime}
+                        minDate={telegramPublicationDate}
+                        placeholder={t('modalSubmit.placeholderTime')}
+                        step={10}
+                      />
+                    </Form.Item>
+                  </div>
+                  <Form.Item<ItemFormInterface> name={['deferredPublication', 'description']} rules={[newItemValidation]}>
+                    <Input.TextArea rows={6} placeholder={t('modalSubmit.enterDescription')} />
+                  </Form.Item>
+                  <div className="d-flex justify-content-end">
+                    <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={() => generateDescription(true)}>{t('generateDescription')}</Button>
+                  </div>
+                </div>
+              </div>
+            </Modal>
             <div className="d-flex flex-column">
               <div className="d-flex flex-column flex-xl-row">
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'name']} className="mb-4 large-input col-12 col-xl-6" rules={[newItemValidation]}>
@@ -560,21 +683,21 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
               </div>
               {!isMobile && (<div className="d-flex align-items-center gap-5 mb-4 position-relative">
                 {oldItem && <BackButton style={{ position: 'absolute', left: '60%' }} />}
-                <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
+                <Button className="button border-button fs-5" onClick={oldItem ? form.submit : onSubmit}>{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
                 <Switch className="switch-large" checkedChildren={t('onSortImage')} unCheckedChildren={t('unSortImage')} checked={isSortImage} onChange={sortImageHandler} />
               </div>)}
               <div className="position-relative">
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'description']} className="lh-lg" rules={[newItemValidation]}>
                   <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
                 </Form.Item>
-                {!isMobile && <Button className="generate-button" onClick={generateDescription}>{t('generateDescription')}</Button>}
+                {!isMobile && <Button className="generate-button" onClick={() => generateDescription}>{t('generateDescription')}</Button>}
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.EN, 'description']} className="lh-lg" rules={[newItemValidation]}>
                   <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.descriptionEn')} style={{ letterSpacing: '0.5px' }} />
                 </Form.Item>
               </div>
               {isMobile && (
                 <div className="mb-4 text-center">
-                  <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button>
+                  <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={() => generateDescription()}>{t('generateDescription')}</Button>
                 </div>)}
               <div className="d-flex flex-column gap-3">
                 <div className="d-flex flex-column gap-2">
@@ -638,7 +761,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </div>
                 {isMobile && (
                   <div className="d-flex justify-content-center">
-                    <Button className="button border-button fs-5" htmlType="submit">{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
+                    <Button className="button border-button fs-5" onClick={oldItem ? form.submit : onSubmit}>{t(oldItem ? 'submitEditButton' : 'submitButton')}</Button>
                   </div>
                 )}
               </div>
