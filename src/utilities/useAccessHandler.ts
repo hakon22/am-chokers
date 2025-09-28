@@ -16,7 +16,7 @@ export const useAccessHandler = () => {
         if (!isAdmin) {
           router.push(routes.page.base.homePage);
         }
-      }, 300);
+      }, process.env.NODE_ENV === 'development' ? 2000 : 300);
       
       return () => clearTimeout(timeout);
     }
