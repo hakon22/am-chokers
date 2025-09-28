@@ -128,7 +128,7 @@ export const ImageHover = ({
                 </div>
                 <div className="d-flex align-items-center gap-2">
                   <LikeOutlined />
-                  <span>{tPrice('grades.gradeCount', { count: rating.grades.length })}</span>
+                  <span>{tPrice('grades.gradeCount', { count: rating.grades?.length || 0 })}</span>
                 </div>
               </div>
             ) : null}

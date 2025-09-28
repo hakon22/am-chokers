@@ -15,6 +15,7 @@ import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import type { ItemInterface } from '@/types/item/Item';
 import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
@@ -54,7 +55,7 @@ const DeferredPublication = () => {
       ] = await Promise.all([
         axios.get<{ code: number; deferredPublications: DeferredPublicationEntity[]; }>(routes.deferredPublication.telegram.findMany),
         axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
-          params: { onlyNotPublished: true, withNotPublished: true },
+          params: { onlyNotPublished: true, withNotPublished: true, sort: ItemSortEnum.BY_PUBLICATION_DATE },
         }),
       ]);
       if (code === 1) {

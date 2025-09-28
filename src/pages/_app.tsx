@@ -13,6 +13,7 @@ import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import AOS from 'aos';
 import CookieConsent from 'react-cookie-consent';
+import moment from 'moment';
 
 import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext, MobileContext } from '@/components/Context';
 import { routes } from '@/routes';
@@ -33,6 +34,12 @@ import type { ItemGroupInterface, ItemInterface, AppDataInterface } from '@/type
 import type { ImageEntity } from '@server/db/entities/image.entity';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
+
+moment.updateLocale('ru-ru', {
+  week: {
+    dow: 1,
+  },
+});
 
 interface InitPropsInterface extends AppProps, AppDataInterface {
   isMobile: boolean;

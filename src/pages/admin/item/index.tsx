@@ -408,7 +408,13 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       const savedProgress = window.localStorage.getItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
       if (savedProgress) {
         const parsedSavedProgress = JSON.parse(savedProgress) as { data: ItemFormInterface; lastProgress: Date; };
-        setLastProgress(moment(parsedSavedProgress.lastProgress).format(DateFormatEnum.DD_MM_YYYY_HH_MM));
+
+        const rootValues = some(omit(parsedSavedProgress.data, 'translations'), value => typeof value === 'object' ? !isEmpty(value) : !!value);
+        const nestedValues = some(parsedSavedProgress.data.translations, (langObj) => some(langObj, (value) => !isEmpty(value)));
+
+        if (rootValues || nestedValues || imagesRef.current.length) {
+          setLastProgress(moment(parsedSavedProgress.lastProgress).format(DateFormatEnum.DD_MM_YYYY_HH_MM));
+        }
       }
     }
   }, []);

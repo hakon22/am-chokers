@@ -897,15 +897,19 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               </div>
               <div key={5}>
                 {tDelivery('5')}
-                <br />
+                <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
                 {tDelivery('6')}
-              </div>
-              <p key={6} className="my-4">{tDelivery('7')}</p>
-              <p key={7} className="mb-4 fs-5 fw-bold">{tDelivery('8')}</p>
-              <div key={8}>
-                {tDelivery('9')}
+                <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
+                {tDelivery('7')}
                 <br />
-                {tDelivery('10')}
+                {tDelivery('8')}
+              </div>
+              <p key={6} className="my-4">{tDelivery('9')}</p>
+              <p key={7} className="mb-4 fs-5 fw-bold">{tDelivery('10')}</p>
+              <div key={8}>
+                {tDelivery('11')}
+                <br />
+                {tDelivery('12')}
               </div>
             </div>
           )}

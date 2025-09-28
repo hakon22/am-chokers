@@ -71,6 +71,11 @@ export class ItemService extends TranslationHelper {
             .addSelect('(item.price - item.discountPrice)', 'diff_price')
             .orderBy('diff_price', 'ASC');
           break;
+        case ItemSortEnum.BY_PUBLICATION_DATE:
+          builder
+            .addSelect('item.publicationDate')
+            .orderBy('item.publicationDate', 'ASC');
+          break;
         }
       } else {
         builder.orderBy('item.id', 'DESC');
@@ -164,6 +169,9 @@ export class ItemService extends TranslationHelper {
         break;
       case ItemSortEnum.BY_LOWER_PRICE:
         builder.orderBy('(item.price - item.discountPrice)', 'ASC');
+        break;
+      case ItemSortEnum.BY_PUBLICATION_DATE:
+        builder.orderBy('item.publicationDate', 'ASC');
         break;
       }
     } else {
@@ -325,7 +333,7 @@ export class ItemService extends TranslationHelper {
       return { code: 2 };
     }
 
-    if (body.deferredPublication) {
+    if (!_.isEmpty(body.deferredPublication)) {
       body.deferredPublication.description = body.deferredPublication.description || body.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string;
 
       if (moment(body.deferredPublication.date).isBefore(moment())) {
@@ -365,7 +373,7 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(images, UploadPathEnum.ITEM, created.id, manager);
 
-      if (deferredPublication) {
+      if (!_.isEmpty(deferredPublication)) {
         deferredPublication.item = { id: created.id } as ItemEntity;
         await this.deferredPublicationService.createOne(deferredPublication, lang, { manager });
       }

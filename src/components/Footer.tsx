@@ -6,6 +6,7 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
 import { catalogPath, routes } from '@/routes';
 import { useAppSelector } from '@/utilities/hooks';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 export const Footer = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
@@ -49,8 +50,8 @@ export const Footer = () => {
         <div className="col-12 col-xl-6">
           <h6 className="mb-4">{t('info')}</h6>
           <ul>
-            <li className="text-muted">{process.env.NEXT_PUBLIC_FIO}</li>
-            <li className="text-muted mb-3">{process.env.NEXT_PUBLIC_INN}</li>
+            <li className="text-muted">{lang === UserLangEnum.RU ? process.env.NEXT_PUBLIC_FIO : process.env.NEXT_PUBLIC_FIO_EN}</li>
+            <li className="text-muted mb-3">{t('inn', { number: process.env.NEXT_PUBLIC_INN })}</li>
             <li className="text-muted"><Link href={routes.page.base.privacyPolicy}>{t('privacyPolicy')}</Link></li>
             <li className="text-muted"><Link href={routes.page.base.offerAgreement}>{t('offerAgreement')}</Link></li>
           </ul>

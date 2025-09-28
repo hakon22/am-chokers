@@ -5,4 +5,6 @@ export enum ItemSortEnum {
   BY_OVER_PRICE = 'BY_OVER_PRICE',
   /** Сначала дешевле */
   BY_LOWER_PRICE = 'BY_LOWER_PRICE',
+  /** По дате отложенной публикации */
+  BY_PUBLICATION_DATE = 'BY_PUBLICATION_DATE',
 }
