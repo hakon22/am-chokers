@@ -12,7 +12,7 @@ const TAG = 'UpdateFids';
 
 interface YandexFidInterface {
   ID: number;
-  Title: number;
+  Title: string;
   Description: string;
   Price: number;
   Currency: string;
@@ -22,7 +22,7 @@ interface YandexFidInterface {
 
 interface GoogleFidInterface {
   id: number;
-  title: number;
+  title: string;
   description: string;
   price: number;
   condition: 'new';
@@ -31,7 +31,7 @@ interface GoogleFidInterface {
   image_link: string;
 }
 
-/** Обновляет файлы фидов, которые используется в Яндекс Директе и Google Merchant */
+/** Обновляет файлы фидов, которые используется в Яндекс Директе, Google Merchant и Яндекс Вебмастере */
 class UpdateFidsCron {
 
   public readonly loggerService = Container.get(LoggerService);
@@ -129,12 +129,77 @@ class UpdateFidsCron {
     }
 
     const output = rows.join('\n');
-
     writeFileSync(`${this.uploadPathService.uploadFilesPath}/google_fid.txt`, output, { encoding: 'utf8' });
+
+    const ymlContent = this.generateYmlContent(data);
+    writeFileSync(`${this.uploadPathService.uploadFilesPath}/yandex_webmaster.xml`, ymlContent, { encoding: 'utf8' });
 
     this.loggerService.info(TAG, 'Процесс завершён');
 
     process.exit(0);
+  };
+
+  private generateYmlContent = (data: YandexFidInterface[]) => {
+    const date = new Date().toISOString();
+    
+    let yml = `<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog date="${date}">
+  <shop>
+    <name>AM Chokers</name>
+    <company>AM Chokers</company>
+    <url>https://amchokers.ru</url>
+    <currencies>
+      <currency id="RUR" rate="1"/>
+    </currencies>
+    <categories>
+      <category id="1">Украшения</category>
+    </categories>
+    <offers>
+`;
+
+    data.forEach(item => {
+      yml += `      <offer id="${item.ID}" available="true">
+        <url>${this.escapeXml(item.URL)}</url>
+        <price>${item.Price}</price>
+        <currencyId>RUR</currencyId>
+        <categoryId>1</categoryId>
+        <picture>${this.escapeXml(item.Image)}</picture>
+        <name>${this.escapeXml(item.Title)}</name>
+        <description>${this.escapeXml(item.Description)}</description>
+      </offer>
+`;
+    });
+
+    yml += `    </offers>
+  </shop>
+</yml_catalog>`;
+
+    return yml;
+  };
+
+  private escapeXml = (unsafe: string) => {
+    return unsafe.replace(/[<>&'"]/g, (c) => {
+      switch (c) {
+      case '<': {
+        return '&lt;';
+      }
+      case '>': {
+        return '&gt;';
+      }
+      case '&': {
+        return '&amp;';
+      }
+      case '\'': {
+        return '&apos;';
+      }
+      case '"': {
+        return '&quot;';
+      }
+      default: {
+        return c;
+      }
+      }
+    });
   };
 }
 
