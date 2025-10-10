@@ -28,7 +28,7 @@ const Signup = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { key, lang } = useAppSelector((state) => state.user);
+  const { key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);

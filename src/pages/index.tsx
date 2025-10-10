@@ -16,6 +16,7 @@ import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemInterface } from '@/types/item/Item';
 
 const Index = () => {
@@ -25,7 +26,7 @@ const Index = () => {
   const { isMobile } = useContext(MobileContext);
 
   const { specialItems, coverImages } = useAppSelector((state) => state.app);
-  const { lang } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
 

@@ -40,7 +40,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { lang } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { isMobile } = useContext(MobileContext);
 

@@ -71,7 +71,7 @@ const Cart = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { name, phone, key, lang } = useAppSelector((state) => state.user);
+  const { name, phone, key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);

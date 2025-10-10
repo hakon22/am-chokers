@@ -13,6 +13,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { setPaginationParams } from '@/slices/appSlice';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { FetchItemInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 
@@ -25,7 +26,7 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
   const dispatch = useAppDispatch();
 
   const { pagination } = useAppSelector((state) => state.app);
-  const { lang } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const translate = items?.[0]?.group?.translations.find((translation) => translation.lang === lang);
 

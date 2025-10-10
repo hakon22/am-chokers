@@ -9,11 +9,12 @@ import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { getHref } from '@/utilities/getHref';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 export const Favorites = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  const { favorites, lang } = useAppSelector((state) => state.user);
+  const { favorites, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const coefficient = 1.3;
 

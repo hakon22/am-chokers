@@ -12,7 +12,7 @@ export const Footer = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { lang } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   return (
     <div className="container d-flex col-12">

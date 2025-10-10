@@ -223,7 +223,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
 
   const dispatch = useAppDispatch();
 
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [publicationDate, setPublicationDate] = useState<Date | null>(null);
   const [isTgPublish, setIsTgPublish] = useState(false);
@@ -498,7 +498,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const dispatch = useAppDispatch();
 
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
   const { pagination } = useAppSelector((state) => state.app);
 

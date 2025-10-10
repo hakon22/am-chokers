@@ -9,6 +9,7 @@ import { RightOutlined } from '@ant-design/icons';
 import { routes, catalogPath } from '@/routes';
 import { useAppSelector } from '@/utilities/hooks';
 import { ItemContext, MobileContext } from '@/components/Context';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 type BreadcrumbState = {
   title: JSX.Element | string;
@@ -19,7 +20,7 @@ export const Breadcrumb = () => {
   const router = useRouter();
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { lang } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { item } = useContext(ItemContext);
   const { isMobile } = useContext(MobileContext);

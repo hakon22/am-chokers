@@ -278,7 +278,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const chunkNumber = 8;
 
   const { pagination } = useAppSelector((state) => state.app);
-  const { lang } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isSearch } = useContext(SearchContext);
