@@ -186,6 +186,15 @@ export class OrderService extends BaseService {
     if (promotional) {
       const promo = await this.promotionalService.findOne({ id: promotional.id }, user.lang);
 
+      if (promo.name === process.env.NEXT_PUBLIC_PROMO && user?.phone) {
+        const fetchedUser = await this.userService.findOne({ phone: user.phone }, { withOrders: true });
+        if (fetchedUser?.orders.some((order) => order.isPayment)) {
+          throw new Error(user.lang === UserLangEnum.RU
+            ? `Промокод "${promotional.name}" не может быть использован`
+            : `Promo code "${promotional.name}" cannot be used`);
+        }
+      }
+
       if (!moment().isBetween(moment(promo.start), moment(promo.end), 'day', '[]') || !promo.active) {
         throw new Error(user.lang === UserLangEnum.RU
           ? `Промокод "${promotional.name}" не активен или истёк`

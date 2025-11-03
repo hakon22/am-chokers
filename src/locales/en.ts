@@ -905,6 +905,14 @@ export default {
       search: {
         title: 'Search',
       },
+      promotional: {
+        title: '20% discount for new customers',
+        tutorial: {
+          span1: 'Add the jewelry you like to your cart.',
+          span2: 'When placing an order, simply enter the promo code in the “promo code” field — the discount will be applied automatically.',
+          p1: 'The promo code is valid only for the first purchase.',
+        },
+      },
     },
     validation: {
       required: 'Mandatory field',
