@@ -386,6 +386,9 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
           >
             <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
             {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
+            {item.publicationDate
+              ? <FloatButton onClick={onPublicationDateEdit} className="float-custom-icon" icon={<RubyOutlined width={40} height={40} />} />
+              : null}
             {!item.message?.send && !item.deferredPublication?.date
               ? <FloatButton onClick={() => setIsTgPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} />
               : item.deferredPublication && !item.deferredPublication.isPublished
