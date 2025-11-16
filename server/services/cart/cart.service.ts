@@ -86,7 +86,7 @@ export class CartService extends BaseService {
     } else if (query?.from) {
       builder.andWhere('cart.created >= :from');
     } else if (query?.to) {
-      builder.andWhere('cart.created <= :from');
+      builder.andWhere('cart.created <= :to');
     }
 
     return builder;

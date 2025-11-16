@@ -144,7 +144,8 @@ const Init = (props: InitPropsInterface) => {
                         ym(100705426, "init", {
                             clickmap:true,
                             trackLinks:true,
-                            accurateTrackBounce:true
+                            accurateTrackBounce:true,
+                            webvisor:true
                         });
                     `,
                             }}

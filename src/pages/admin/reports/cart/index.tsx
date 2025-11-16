@@ -109,20 +109,12 @@ const Cart = () => {
   }, [axiosAuth, router, pagination.limit, from, to]);
 
   useEffect(() => {
-    fetchDataWithParams();
+    fetchDataWithParams(true);
 
     return () => {
       setPaginationParams({ limit: 0, offset: 0, count: 0 });
     };
-  }, [axiosAuth]);
-
-  useEffect(() => {
-    fetchDataWithParams(true);
-  }, [from]);
-
-  useEffect(() => {
-    fetchDataWithParams(true);
-  }, [to]);
+  }, [axiosAuth, from, to]);
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">
