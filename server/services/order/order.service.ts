@@ -262,11 +262,14 @@ export class OrderService extends BaseService {
           `Order <b>№${order.id}</b> created.`,
           `Follow the statuses in your personal account: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.profile.orderHistory}`,
         ];
-      await this.telegramService.sendMessage(text, user.telegramId);
+      this.telegramService.sendMessage(text, user.telegramId)
+        .catch((error) => {
+          this.loggerService.error('Ошибка отправки в Telegram:', error);
+        });
     }
 
     if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+      Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
         const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
 
         if (!adminUser) {
@@ -290,7 +293,10 @@ export class OrderService extends BaseService {
         ];
 
         return this.telegramService.sendMessage(adminText, tgId as string);
-      }));
+      }))
+        .catch((error) => {
+          this.loggerService.error('Ошибка отправки в Telegram:', error);
+        });
     }
 
     const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, user.lang) as string;

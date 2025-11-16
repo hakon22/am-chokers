@@ -48,7 +48,7 @@ export class AcquiringService extends BaseService {
 
       if (!transaction) {
         if (payment.status === 'succeeded' && (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2)) {
-          await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+          Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
             const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
         
             if (!adminUser) {
@@ -60,7 +60,10 @@ export class AcquiringService extends BaseService {
               : `‼️Payment received in the amount of: <b>${payment.amount.value} ₽</b>‼️`;
         
             return this.telegramService.sendMessage(adminText, tgId as string);
-          }));
+          }))
+            .catch((error) => {
+              this.loggerService.error(this.TAG, 'Ошибка отправки в Telegram:', error);
+            });
         }
 
         return;
@@ -258,13 +261,16 @@ export class AcquiringService extends BaseService {
       await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
 
       if (order.user.telegramId) {
-        await this.telegramService.sendMessage(order.user.lang === UserLangEnum.RU
+        this.telegramService.sendMessage(order.user.lang === UserLangEnum.RU
           ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`
-          : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> to <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`, order.user.telegramId);
+          : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> to <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`, order.user.telegramId)
+          .catch((error) => {
+            this.loggerService.error(this.TAG, 'Ошибка отправки в Telegram:', error);
+          });
       }
 
       if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-        await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
+        Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
           const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
         
           if (!adminUser) {
@@ -298,7 +304,10 @@ export class AcquiringService extends BaseService {
             ];
         
           return this.telegramService.sendMessage(adminText, tgId as string);
-        }));
+        }))
+          .catch((error) => {
+            this.loggerService.error(this.TAG, 'Ошибка отправки в Telegram:', error);
+          });
       }
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);
