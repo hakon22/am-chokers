@@ -7,4 +7,8 @@ export interface CartQueryInterface extends Partial<PaginationQueryInterface> {
   ids?: string[];
   /** `id` пользователя */
   userId?: number;
+  /** Дата начала периода */
+  from?: string;
+  /** Дата конца периода */
+  to?: string;
 }

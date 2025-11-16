@@ -706,6 +706,8 @@ export default {
             date: 'Date when added',
             username: 'User',
           },
+          from: 'Date, from',
+          to: 'Date, to',
         },
         message: {
           title: 'Messages',

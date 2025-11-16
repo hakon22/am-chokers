@@ -706,6 +706,8 @@ export default {
             date: 'Дата добавления',
             username: 'Пользователь',
           },
+          from: 'Дата, от',
+          to: 'Дата, до',
         },
         message: {
           title: 'Сообщения',

@@ -1,5 +1,6 @@
 import { Singleton } from 'typescript-ioc';
 import { Brackets, type EntityManager } from 'typeorm';
+import moment from 'moment';
 import _ from 'lodash';
 
 import { CartEntity } from '@server/db/entities/cart.entity';
@@ -19,6 +20,10 @@ export class CartService extends BaseService {
     const manager = options?.manager || this.databaseService.getManager();
 
     const builder = manager.createQueryBuilder(CartEntity, 'cart')
+      .setParameters({
+        from: moment(query?.from).startOf('day').toISOString(true),
+        to: moment(query?.to).endOf('day').toISOString(true),
+      })
       .select([
         'cart.id',
         'cart.created',
@@ -75,6 +80,13 @@ export class CartService extends BaseService {
     }
     if (query?.ids) {
       builder.andWhere('cart.id IN(:...ids)', { ids: query.ids });
+    }
+    if (query?.from && query?.to) {
+      builder.andWhere('cart.created BETWEEN :from AND :to');
+    } else if (query?.from) {
+      builder.andWhere('cart.created >= :from');
+    } else if (query?.to) {
+      builder.andWhere('cart.created <= :from');
     }
 
     return builder;
