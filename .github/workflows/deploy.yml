@@ -93,6 +93,7 @@ jobs:
         
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
+          git restore .
           git pull
           
           # Загружаем образы
@@ -128,7 +129,7 @@ jobs:
                 - /srv/logs:/srv/logs
               restart: unless-stopped
           DOCKERCOMPOSE
-          
+
           # Запускаем контейнеры
           docker compose -f docker-compose.prod.yml up -d
           
