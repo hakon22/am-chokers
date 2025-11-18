@@ -102,10 +102,10 @@ jobs:
           docker run --rm --env-file .env --add-host=host.docker.internal:host-gateway amchokers-server:\$IMAGE_TAG npm run migration:run:prod
           
           # Обновляем docker-compose.yml с новыми тегами
-          cat > docker-compose.prod.yml << 'DOCKERCOMPOSE'
+          cat << 'DOCKERCOMPOSE' > docker-compose.prod.yml
           services:
             server:
-              image: amchokers-server:\$IMAGE_TAG
+              image: amchokers-server:$IMAGE_TAG
               env_file:
                 - .env
               extra_hosts:
@@ -114,15 +114,18 @@ jobs:
                 - "3010:3010"
               volumes:
                 - /srv/logs:/srv/logs
+                - /var/www/amchokers.ru/public:/app/public
+              restart: unless-stopped
 
             sender:
-              image: amchokers-sender:\$IMAGE_TAG
+              image: amchokers-sender:$IMAGE_TAG
               env_file:
                 - .env
               extra_hosts:
                 - "host.docker.internal:host-gateway"
               volumes:
                 - /srv/logs:/srv/logs
+              restart: unless-stopped
           DOCKERCOMPOSE
           
           # Запускаем контейнеры
