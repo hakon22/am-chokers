@@ -1,0 +1,26 @@
+services:
+  server:
+    build:
+      context: .
+      target: server
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3010:3010"
+    volumes:
+      - "C:/srv/logs:/srv/logs"
+      - "C:/Program Files/Git/am-chokers/public:/app/public"
+
+  sender:
+    build:
+      context: .
+      target: sender
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "C:/srv/logs:/srv/logs"
+      - "C:/Program Files/Git/am-chokers/public:/app/public"

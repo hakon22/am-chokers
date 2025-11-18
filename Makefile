@@ -7,6 +7,9 @@ start:
 start-local:
 	npm run dev
 
+start-sender:
+	npm run sender
+
 start-local-prod:
 	npm run dev-prod
 

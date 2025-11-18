@@ -24,7 +24,8 @@
     ],
     "paths": {
       "@/*": ["src/*"],
-      "@server/*": ["server/*"]
+      "@server/*": ["server/*"],
+      "@microservices/sender/*": ["microservices/sender/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

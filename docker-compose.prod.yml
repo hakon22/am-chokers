@@ -1,0 +1,24 @@
+services:
+  server:
+    image: amchokers-server:$IMAGE_TAG
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "3010:3010"
+    volumes:
+      - /srv/logs:/srv/logs
+      - /var/www/amchokers.ru/public:/app/public
+    restart: unless-stopped
+
+  sender:
+    image: amchokers-sender:$IMAGE_TAG
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /srv/logs:/srv/logs
+      - /var/www/amchokers.ru/public:/app/public
+    restart: unless-stopped

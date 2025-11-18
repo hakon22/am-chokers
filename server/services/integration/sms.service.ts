@@ -9,6 +9,11 @@ import { MessageService } from '@server/services/message/message.service';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
+export interface SmsParameterInterface {
+  phone: string;
+  lang: UserLangEnum;
+}
+
 @Singleton
 export class SmsService {
   private readonly TAG = 'SMS Service';

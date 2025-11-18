@@ -5,15 +5,14 @@ import _ from 'lodash';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';
-import { SmsService } from '@server/services/integration/sms.service';
 import { UserService } from '@server/services/user/user.service';
-import { TelegramService } from '@server/services/integration/telegram.service';
 import { PromotionalService } from '@server/services/promotional/promotional.service';
 import { AcquiringService } from '@server/services/acquiring/acquiring.service';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { CartService } from '@server/services/cart/cart.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { routes } from '@/routes';
@@ -31,10 +30,6 @@ import type { CartEntity } from '@server/db/entities/cart.entity';
 
 @Singleton
 export class OrderService extends BaseService {
-  private readonly smsService = Container.get(SmsService);
-
-  private readonly telegramService = Container.get(TelegramService);
-
   private readonly cartService = Container.get(CartService);
 
   private readonly userService = Container.get(UserService);
@@ -42,6 +37,8 @@ export class OrderService extends BaseService {
   private readonly promotionalService = Container.get(PromotionalService);
 
   private readonly acquiringService = Container.get(AcquiringService);
+
+  private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -253,7 +250,7 @@ export class OrderService extends BaseService {
     });
 
     if (user?.telegramId) {
-      const text = user.lang === UserLangEnum.RU
+      const message = user.lang === UserLangEnum.RU
         ? [
           `Создан заказ <b>№${order.id}</b>.`,
           `Следите за статусами в личном кабинете: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.profile.orderHistory}`,
@@ -262,21 +259,18 @@ export class OrderService extends BaseService {
           `Order <b>№${order.id}</b> created.`,
           `Follow the statuses in your personal account: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.profile.orderHistory}`,
         ];
-      this.telegramService.sendMessage(text, user.telegramId)
-        .catch((error) => {
-          this.loggerService.error('Ошибка отправки в Telegram:', error);
-        });
+      this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: user.telegramId });
     }
 
     if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-      Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
-        const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+      for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
+        const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
 
-        if (!adminUser) {
-          return;
+        if (!adminUser?.telegramId) {
+          continue;
         }
 
-        const adminText = adminUser.lang === UserLangEnum.RU ? [
+        const message = adminUser.lang === UserLangEnum.RU ? [
           `Создан заказ <b>№${order.id}</b>`,
           '',
           `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
@@ -292,11 +286,8 @@ export class OrderService extends BaseService {
           `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
         ];
 
-        return this.telegramService.sendMessage(adminText, tgId as string);
-      }))
-        .catch((error) => {
-          this.loggerService.error('Ошибка отправки в Telegram:', error);
-        });
+        this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: adminUser.telegramId });
+      }
     }
 
     const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, user.lang) as string;
@@ -320,9 +311,10 @@ export class OrderService extends BaseService {
     await OrderEntity.update(order.id, { status });
 
     if (order.user.telegramId) {
-      await this.telegramService.sendMessage(lang === UserLangEnum.RU
+      const message = lang === UserLangEnum.RU
         ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, lang)}</b> на <b>${getOrderStatusTranslate(status, lang)}</b>.`
-        : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, lang)}</b> to <b>${getOrderStatusTranslate(status, lang)}</b>.`, order.user.telegramId);
+        : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, lang)}</b> to <b>${getOrderStatusTranslate(status, lang)}</b>.`;
+      this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: order.user.telegramId });
     }
 
     order.status = status;
@@ -360,23 +352,23 @@ export class OrderService extends BaseService {
     });
 
     if (user.telegramId) {
-      await this.telegramService.sendMessage(lang === UserLangEnum.RU
+      const message = lang === UserLangEnum.RU
         ? `Заказ <b>№${order.id}</b> был отменён.`
-        : `Order <b>№${order.id}</b> has been cancelled.`,
-      user.telegramId);
+        : `Order <b>№${order.id}</b> has been cancelled.`;
+      this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: user.telegramId });
     }
 
     order.status = status;
 
     if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && !user.isAdmin) {
-      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
-        const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
+      for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
+        const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
 
-        if (!adminUser) {
-          return;
+        if (!adminUser?.telegramId) {
+          continue;
         }
 
-        const adminText = lang === UserLangEnum.RU ? [
+        const message = lang === UserLangEnum.RU ? [
           `Отмена заказа <b>№${order.id}</b>`,
           '',
           `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
@@ -390,8 +382,8 @@ export class OrderService extends BaseService {
           `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
         ];
 
-        return this.telegramService.sendMessage(adminText, tgId as string);
-      }));
+        this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: adminUser.telegramId });
+      }
     }
   
     return { order, cart };

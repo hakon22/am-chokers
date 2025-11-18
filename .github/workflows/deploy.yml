@@ -4,27 +4,122 @@ on:
   push:
     branches:
       - production
-  workflow_dispatch: # Позволяет запускать работу вручную
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
+    outputs:
+      image-tag: ${{ steps.tag.outputs.tag }}
+    
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Generate build tag
+      id: tag
+      run: echo "tag=$(date +%s)" >> $GITHUB_OUTPUT
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64
+        push: false
+        tags: |
+          amchokers-server:${{ steps.tag.outputs.tag }}
+          amchokers-sender:${{ steps.tag.outputs.tag }}
+        targets: |
+          server
+          sender
+
+    - name: Save Docker images
+      run: |
+        docker save -o server-image.tar amchokers-server:${{ steps.tag.outputs.tag }}
+        docker save -o sender-image.tar amchokers-sender:${{ steps.tag.outputs.tag }}
+
+    - name: Upload Docker images
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-images
+        path: |
+          server-image.tar
+          sender-image.tar
+        retention-days: 1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+    
+    steps:
+    - name: Download Docker images
+      uses: actions/download-artifact@v4
+      with:
+        name: docker-images
 
     - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
+      uses: webfactory/ssh-agent@v0.8.0
       with:
         ssh-private-key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
 
-    - name: Deploy to VPS [amchokers.ru]
+    - name: Load and deploy to VPS
       run: |
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
           cd /var/www/amchokers.ru
-          git pull origin production
-          make install
-          make build
-          make start
+          
+          # Останавливаем текущие контейнеры
+          docker-compose down
+          
+          # Удаляем старые образы
+          docker rmi $(docker images amchokers-* -q) 2>/dev/null || true
+        EOF
+        
+        # Передаем образы на сервер
+        scp -o StrictHostKeyChecking=no server-image.tar sender-image.tar root@am-projects.ru:/var/www/amchokers.ru/
+        
+        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
+          cd /var/www/amchokers.ru
+          
+          # Загружаем образы
+          docker load -i server-image.tar
+          docker load -i sender-image.tar
+          
+          # Запускаем миграции
+          docker run --rm --env-file .env amchokers-server:${{ needs.build.outputs.image-tag }} npm run migration:run:prod
+          
+          # Обновляем docker-compose.yml с новыми тегами
+          cat > docker-compose.prod.yml << 'DOCKERCOMPOSE'
+          services:
+            server:
+              image: amchokers-server:${{ needs.build.outputs.image-tag }}
+              env_file:
+                - .env
+              extra_hosts:
+                - "host.docker.internal:host-gateway"
+              ports:
+                - "3010:3010"
+              volumes:
+                - /srv/logs:/srv/logs
+
+            sender:
+              image: amchokers-sender:${{ needs.build.outputs.image-tag }}
+              env_file:
+                - .env
+              extra_hosts:
+                - "host.docker.internal:host-gateway"
+              volumes:
+                - /srv/logs:/srv/logs
+          DOCKERCOMPOSE
+          
+          # Запускаем контейнеры
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          # Очистка
+          rm -f server-image.tar sender-image.tar
+          docker system prune -f
         EOF

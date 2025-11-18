@@ -12,7 +12,7 @@ import { phoneTransform } from '@server/utilities/phone.transform';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
-interface OptionsTelegramMessageInterface {
+export interface OptionsTelegramMessageInterface {
   reply_markup?: {
     keyboard: {
       text: string;

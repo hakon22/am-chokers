@@ -1,18 +1,24 @@
 import { createClient, RedisClientType } from 'redis';
 import { Singleton } from 'typescript-ioc';
 
+import { redisConfig } from '@server/db/database.service';
+
 @Singleton
 export class RedisService {
-  private redis: RedisClientType<any, any, any>;
+  private redis: RedisClientType<any, any, any, any, any>;
 
-  public subscribeRedis: RedisClientType<any, any, any>;
+  public subscribeRedis: RedisClientType<any, any, any, any, any>;
+
+  private commonOptions = {
+    socket: redisConfig,
+  };
 
   public init = async () => {
-    this.redis = await createClient()
+    this.redis = await createClient(this.commonOptions)
       .on('error', (error) => console.log('Невозможно подключиться к Redis', error))
       .connect();
 
-    this.subscribeRedis = await createClient()
+    this.subscribeRedis = await createClient(this.commonOptions)
       .on('error', (error) => console.log('Ошибка при попытке подписаться на события Redis', error))
       .connect();
 
@@ -25,7 +31,7 @@ export class RedisService {
   public get = async <T>(key: string): Promise<T | null> => {
     const value = await this.redis.get(key);
 
-    return value ? JSON.parse(value) : null;
+    return typeof value === 'string' ? JSON.parse(value) : null;
   };
 
   /** Запись значения в кеш
