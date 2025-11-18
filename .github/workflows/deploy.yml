@@ -77,7 +77,8 @@ jobs:
 
     - name: Load and deploy to VPS
       run: |
-        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
+        IMAGE_TAG=${{ needs.build.outputs.image-tag }}
+        ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
           
           # Останавливаем текущие контейнеры
@@ -90,7 +91,7 @@ jobs:
         # Передаем образы на сервер
         scp -o StrictHostKeyChecking=no server-image.tar sender-image.tar root@am-projects.ru:/var/www/amchokers.ru/
         
-        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
+        ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
           
           # Загружаем образы
@@ -98,13 +99,13 @@ jobs:
           docker load -i sender-image.tar
           
           # Запускаем миграции
-          docker run --rm --env-file .env amchokers-server:${{ needs.build.outputs.image-tag }} npm run migration:run:prod
+          docker run --rm --env-file .env amchokers-server:\$IMAGE_TAG npm run migration:run:prod
           
           # Обновляем docker-compose.yml с новыми тегами
           cat > docker-compose.prod.yml << 'DOCKERCOMPOSE'
           services:
             server:
-              image: amchokers-server:${{ needs.build.outputs.image-tag }}
+              image: amchokers-server:\$IMAGE_TAG
               env_file:
                 - .env
               extra_hosts:
@@ -115,7 +116,7 @@ jobs:
                 - /srv/logs:/srv/logs
 
             sender:
-              image: amchokers-sender:${{ needs.build.outputs.image-tag }}
+              image: amchokers-sender:\$IMAGE_TAG
               env_file:
                 - .env
               extra_hosts:
