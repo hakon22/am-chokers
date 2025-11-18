@@ -81,7 +81,7 @@ jobs:
           cd /var/www/amchokers.ru
           
           # Останавливаем текущие контейнеры
-          docker-compose -f docker-compose.prod.yml down
+          docker compose -f docker-compose.prod.yml down
           
           # Удаляем старые образы
           docker rmi $(docker images amchokers-* -q) 2>/dev/null || true
@@ -125,7 +125,7 @@ jobs:
           DOCKERCOMPOSE
           
           # Запускаем контейнеры
-          docker-compose -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml up -d
           
           # Очистка
           rm -f server-image.tar sender-image.tar
