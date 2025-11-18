@@ -20,5 +20,4 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - /srv/logs:/srv/logs
-      - /var/www/amchokers.ru/public:/app/public
     restart: unless-stopped

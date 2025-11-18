@@ -1,5 +1,6 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
+RUN mkdir -p ./public
 COPY package*.json ./
 RUN npm ci
 
@@ -27,7 +28,7 @@ COPY --from=server-builder /app/microservices/sender ./microservices/sender
 COPY --from=server-builder /app/src ./src
 COPY --from=server-builder /app/package.json ./
 COPY --from=server-builder /app/tsconfig.json ./
-COPY /var/www/amchokers.ru/public ./public
+COPY --from=server-builder /app/public ./public
 EXPOSE 3010
 CMD ["npm", "run", "start:server:prod"]
 
