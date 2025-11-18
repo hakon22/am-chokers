@@ -93,6 +93,7 @@ jobs:
         
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
+          git pull
           
           # Загружаем образы
           docker load -i server-image.tar

@@ -16,6 +16,8 @@
 # production
 /build
 /public
+.docker-compose.dev.yml
+*.tar
 
 # misc
 .DS_Store
