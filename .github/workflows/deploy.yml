@@ -23,19 +23,27 @@ jobs:
       id: tag
       run: echo "tag=$(date +%s)" >> $GITHUB_OUTPUT
 
-    - name: Build and push Docker images
+    - name: Build server image
       uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64
         push: false
-        tags: |
-          amchokers-server:${{ steps.tag.outputs.tag }}
-          amchokers-sender:${{ steps.tag.outputs.tag }}
-        targets: |
-          server
-          sender
+        load: true
+        tags: amchokers-server:${{ steps.tag.outputs.tag }}
+        target: server
+
+    - name: Build sender image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile
+        platforms: linux/amd64
+        push: false
+        load: true
+        tags: amchokers-sender:${{ steps.tag.outputs.tag }}
+        target: sender
 
     - name: Save Docker images
       run: |
@@ -73,7 +81,7 @@ jobs:
           cd /var/www/amchokers.ru
           
           # Останавливаем текущие контейнеры
-          docker-compose down
+          docker-compose -f docker-compose.prod.yml down
           
           # Удаляем старые образы
           docker rmi $(docker images amchokers-* -q) 2>/dev/null || true
