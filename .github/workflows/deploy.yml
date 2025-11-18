@@ -99,7 +99,7 @@ jobs:
           docker load -i sender-image.tar
           
           # Запускаем миграции
-          docker run --rm --env-file .env amchokers-server:\$IMAGE_TAG npm run migration:run:prod
+          docker run --rm --env-file .env --add-host=host.docker.internal:host-gateway amchokers-server:\$IMAGE_TAG npm run migration:run:prod
           
           # Обновляем docker-compose.yml с новыми тегами
           cat > docker-compose.prod.yml << 'DOCKERCOMPOSE'
