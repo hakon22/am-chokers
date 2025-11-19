@@ -33,6 +33,24 @@ jobs:
         load: true
         tags: amchokers-server:${{ steps.tag.outputs.tag }}
         target: server
+        build-args: |
+          NEXT_PUBLIC_PORT=${{ secrets.NEXT_PUBLIC_PORT }}
+          NEXT_PUBLIC_SERVER_HOST=${{ secrets.NEXT_PUBLIC_SERVER_HOST }}
+          NEXT_PUBLIC_PRODUCTION_HOST=${{ secrets.NEXT_PUBLIC_PRODUCTION_HOST }}
+          NEXT_PUBLIC_API_PATH=${{ secrets.NEXT_PUBLIC_API_PATH }}
+          NEXT_PUBLIC_STORAGE_KEY=${{ secrets.NEXT_PUBLIC_STORAGE_KEY }}
+          NEXT_PUBLIC_LANGUAGE_KEY=${{ secrets.NEXT_PUBLIC_LANGUAGE_KEY }}
+          NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY=${{ secrets.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY }}
+          NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT=${{ secrets.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT }}
+          NEXT_PUBLIC_URL_TG_ACCOUNT=${{ secrets.NEXT_PUBLIC_URL_TG_ACCOUNT }}
+          NEXT_PUBLIC_URL_INST_ACCOUNT=${{ secrets.NEXT_PUBLIC_URL_INST_ACCOUNT }}
+          NEXT_PUBLIC_APP_NAME=${{ secrets.NEXT_PUBLIC_APP_NAME }}
+          NEXT_PUBLIC_WORK_PHONE=${{ secrets.NEXT_PUBLIC_WORK_PHONE }}
+          NEXT_PUBLIC_CONTACT_MAIL=${{ secrets.NEXT_PUBLIC_CONTACT_MAIL }}
+          NEXT_PUBLIC_FIO=${{ secrets.NEXT_PUBLIC_FIO }}
+          NEXT_PUBLIC_FIO_EN=${{ secrets.NEXT_PUBLIC_FIO_EN }}
+          NEXT_PUBLIC_INN=${{ secrets.NEXT_PUBLIC_INN }}
+          NEXT_PUBLIC_PROMO=${{ secrets.NEXT_PUBLIC_PROMO }}
 
     - name: Build sender image
       uses: docker/build-push-action@v4
