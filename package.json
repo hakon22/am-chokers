@@ -8,8 +8,8 @@
     "microservices/sender"
   ],
   "scripts": {
-    "start:server:prod": "cross-env DB='HOST' tsx server/server.ts",
-    "start:sender:prod": "cross-env DB='HOST' tsx microservices/sender/src/main.ts",
+    "start:server:prod": "cross-env DB='HOST' NODE_ENV=production tsx server/server.ts",
+    "start:sender:prod": "cross-env DB='HOST' NODE_ENV=production tsx microservices/sender/src/main.ts",
     "dev-prod": "cross-env DB='LOCAL' NODE_ENV=production tsx server/server.ts",
     "start:server:dev": "cross-env DB='LOCAL' NODE_ENV=development tsx server/server.ts",
     "start:sender:dev": "cross-env DB='LOCAL' NODE_ENV=development tsx microservices/sender/src/main.ts",
@@ -18,8 +18,12 @@
     "migration:create": "typeorm migration:create",
     "migration:create:name": "tsx ./server/db/migrations/helpers/create.migration.helper.ts",
     "migration:run": "cross-env DB='LOCAL' CRON='TRUE' tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
-    "migration:run:prod": "cross-env DB='HOST' CRON='TRUE' tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
-    "migration:revert": "cross-env CRON='TRUE' tsx ./node_modules/typeorm/cli.js migration:revert --dataSource ./server/db/database.service.ts"
+    "migration:run:prod": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production tsx ./node_modules/typeorm/cli.js migration:run --dataSource ./server/db/database.service.ts",
+    "migration:revert": "cross-env CRON='TRUE' tsx ./node_modules/typeorm/cli.js migration:revert --dataSource ./server/db/database.service.ts",
+    "cron:promotional.status.control:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production tsx cron/promotional.status.control.ts >> /srv/logs/promotional.status.control.log 2>&1",
+    "cron:update-fids:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production tsx cron/update-fids.ts >> /srv/logs/update-fids.log 2>&1",
+    "cron:deferred-publication:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production tsx cron/deferred-publication.ts >> /srv/logs/deferred-publication.log 2>&1",
+    "cron:clear-user-refresh-tokens:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production tsx cron/clear-user-refresh-tokens.ts >> /srv/logs/clear-user-refresh-tokens.log 2>&1"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",

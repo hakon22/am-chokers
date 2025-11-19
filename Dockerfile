@@ -15,6 +15,7 @@ RUN npm run build
 FROM node:22-alpine AS server
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=server-builder /app/cron ./cron
 COPY --from=server-builder /app/server ./server
 COPY --from=server-builder /app/microservices/sender ./microservices/sender
 COPY --from=server-builder /app/src ./src

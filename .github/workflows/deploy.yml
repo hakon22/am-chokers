@@ -106,7 +106,7 @@ jobs:
           docker run --rm --env-file .env --network host amchokers-server:$IMAGE_TAG npm run migration:run:prod
 
           # Обновляем docker-compose.prod.yml с новыми тегами
-          cat > docker-compose.prod.yml << 'DCYML'
+          cat > docker-compose.prod.yml << DCYML
           services:
             server:
               image: amchokers-server:${IMAGE_TAG}
@@ -129,6 +129,12 @@ jobs:
                 - /srv/logs:/srv/logs
               restart: unless-stopped
           DCYML
+        EOF
+
+    - name: Deploy on VPS
+      run: |
+        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
+          cd /var/www/amchokers.ru || exit 1
 
           # Запускаем контейнеры
           docker compose -f docker-compose.prod.yml up -d
