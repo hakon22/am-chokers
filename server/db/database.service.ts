@@ -16,7 +16,7 @@ const {
   NODE_ENV,
 } = process.env;
 
-const host = NODE_ENV === 'development' ? 'host.docker.internal' : 'localhost';
+const host = NODE_ENV === 'production' ? 'localhost' : 'host.docker.internal';
 
 export const redisConfig = {
   host,

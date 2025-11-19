@@ -8,11 +8,11 @@
     "microservices/sender"
   ],
   "scripts": {
-    "start:server:prod": "cross-env DB='HOST' NODE_ENV=production tsx server/server.ts",
-    "start:sender:prod": "cross-env DB='HOST' NODE_ENV=production tsx microservices/sender/src/main.ts",
+    "start:server:prod": "cross-env DB='HOST' tsx server/server.ts",
+    "start:sender:prod": "cross-env DB='HOST' tsx microservices/sender/src/main.ts",
     "dev-prod": "cross-env DB='LOCAL' NODE_ENV=production tsx server/server.ts",
-    "start:server:dev": "cross-env DB='LOCAL' tsx server/server.ts",
-    "start:sender:dev": "cross-env DB='LOCAL' tsx microservices/sender/src/main.ts",
+    "start:server:dev": "cross-env DB='LOCAL' NODE_ENV=development tsx server/server.ts",
+    "start:sender:dev": "cross-env DB='LOCAL' NODE_ENV=development tsx microservices/sender/src/main.ts",
     "build": "next build --no-lint",
     "lint": "next lint",
     "migration:create": "typeorm migration:create",
