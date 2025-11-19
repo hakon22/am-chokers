@@ -91,7 +91,7 @@ jobs:
           docker rmi $(docker images "amchokers-*" -q) 2>/dev/null || true
         EOF
 
-    - name: Load images and deploy on VPS
+    - name: Load images
       env:
         IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
       run: |
@@ -107,27 +107,27 @@ jobs:
 
           # Обновляем docker-compose.prod.yml с новыми тегами
           cat > docker-compose.prod.yml << DCYML
-          services:
-            server:
-              image: amchokers-server:${IMAGE_TAG}
-              env_file:
-                - .env
-              network_mode: "host"
-              ports:
-                - "3010:3010"
-              volumes:
-                - /srv/logs:/srv/logs
-                - /var/www/amchokers.ru/public:/app/public
-              restart: unless-stopped
+            services:
+              server:
+                image: amchokers-server:${IMAGE_TAG}
+                env_file:
+                  - .env
+                network_mode: "host"
+                ports:
+                  - "3010:3010"
+                volumes:
+                  - /srv/logs:/srv/logs
+                  - /var/www/amchokers.ru/public:/app/public
+                restart: unless-stopped
 
-            sender:
-              image: amchokers-sender:${IMAGE_TAG}
-              env_file:
-                - .env
-              network_mode: "host"
-              volumes:
-                - /srv/logs:/srv/logs
-              restart: unless-stopped
+              sender:
+                image: amchokers-sender:${IMAGE_TAG}
+                env_file:
+                  - .env
+                network_mode: "host"
+                volumes:
+                  - /srv/logs:/srv/logs
+                restart: unless-stopped
           DCYML
         EOF
 
