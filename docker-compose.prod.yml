@@ -1,8 +1,7 @@
 services:
   server:
     image: amchokers-server:$IMAGE_TAG
-    env_file:
-      - .env
+    env_file: .env
     network_mode: "host"
     ports:
       - "3010:3010"
@@ -15,8 +14,7 @@ services:
 
   sender:
     image: amchokers-sender:$IMAGE_TAG
-    env_file:
-      - .env
+    env_file: .env
     network_mode: "host"
     volumes:
       - /srv/logs:/srv/logs
