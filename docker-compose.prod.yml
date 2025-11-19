@@ -3,8 +3,7 @@ services:
     image: amchokers-server:$IMAGE_TAG
     env_file:
       - .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    network_mode: "host"
     ports:
       - "3010:3010"
     volumes:
@@ -16,8 +15,7 @@ services:
     image: amchokers-sender:$IMAGE_TAG
     env_file:
       - .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    network_mode: "host"
     volumes:
       - /srv/logs:/srv/logs
     restart: unless-stopped

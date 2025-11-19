@@ -93,25 +93,22 @@ jobs:
 
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
-          git restore .
-          git pull
 
           # Загружаем образы
           docker load -i server-image.tar
           docker load -i sender-image.tar
 
           # Запускаем миграции
-          docker run --rm --env-file .env --add-host=host.docker.internal:host-gateway amchokers-server:\$IMAGE_TAG npm run migration:run:prod
+          docker run --rm --env-file .env --network host amchokers-server:\$IMAGE_TAG npm run migration:run:prod
 
           # Обновляем docker-compose.yml с новыми тегами
-          cat << 'DOCKERCOMPOSE' > docker-compose.prod.yml
+          cat > docker-compose.prod.yml << DOCKERCOMPOSE
           services:
             server:
               image: amchokers-server:$IMAGE_TAG
               env_file:
                 - .env
-              extra_hosts:
-                - "host.docker.internal:host-gateway"
+              network_mode: "host"
               ports:
                 - "3010:3010"
               volumes:
@@ -123,8 +120,7 @@ jobs:
               image: amchokers-sender:$IMAGE_TAG
               env_file:
                 - .env
-              extra_hosts:
-                - "host.docker.internal:host-gateway"
+              network_mode: "host"
               volumes:
                 - /srv/logs:/srv/logs
               restart: unless-stopped

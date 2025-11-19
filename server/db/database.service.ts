@@ -13,16 +13,19 @@ const {
   PASSWORD_DB_LOCAL = '',
   USER_DB_HOST = '',
   PASSWORD_DB_HOST = '',
+  NODE_ENV,
 } = process.env;
 
+const host = NODE_ENV === 'development' ? 'host.docker.internal' : 'localhost';
+
 export const redisConfig = {
-  host: 'host.docker.internal',
+  host,
   port: 6379,
 };
 
 export const databaseConfig = new DataSource({
   type: 'postgres',
-  host: 'host.docker.internal',
+  host,
   port: 5432,
   username: DB === 'LOCAL' ? USER_DB_LOCAL : USER_DB_HOST,
   password: DB === 'LOCAL' ? PASSWORD_DB_LOCAL : PASSWORD_DB_HOST,
