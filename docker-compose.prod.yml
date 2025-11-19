@@ -9,6 +9,8 @@ services:
     volumes:
       - /srv/logs:/srv/logs
       - /var/www/amchokers.ru/public:/app/public
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
 
   sender:
@@ -18,4 +20,7 @@ services:
     network_mode: "host"
     volumes:
       - /srv/logs:/srv/logs
+      - /var/www/amchokers.ru/public:/app/public
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
