@@ -106,29 +106,29 @@ jobs:
           docker run --rm --env-file .env --network host amchokers-server:$IMAGE_TAG npm run migration:run:prod
 
           # Обновляем docker-compose.prod.yml с новыми тегами
-          cat > docker-compose.prod.yml << DOCKERCOMPOSE
-services:
-  server:
-    image: amchokers-server:$IMAGE_TAG
-    env_file:
-      - .env
-    network_mode: "host"
-    ports:
-      - "3010:3010"
-    volumes:
-      - /srv/logs:/srv/logs
-      - /var/www/amchokers.ru/public:/app/public
-    restart: unless-stopped
+          cat > docker-compose.prod.yml << 'DCYML'
+          services:
+            server:
+              image: amchokers-server:${IMAGE_TAG}
+              env_file:
+                - .env
+              network_mode: "host"
+              ports:
+                - "3010:3010"
+              volumes:
+                - /srv/logs:/srv/logs
+                - /var/www/amchokers.ru/public:/app/public
+              restart: unless-stopped
 
-  sender:
-    image: amchokers-sender:$IMAGE_TAG
-    env_file:
-      - .env
-    network_mode: "host"
-    volumes:
-      - /srv/logs:/srv/logs
-    restart: unless-stopped
-DOCKERCOMPOSE
+            sender:
+              image: amchokers-sender:${IMAGE_TAG}
+              env_file:
+                - .env
+              network_mode: "host"
+              volumes:
+                - /srv/logs:/srv/logs
+              restart: unless-stopped
+          DCYML
 
           # Запускаем контейнеры
           docker compose -f docker-compose.prod.yml up -d
