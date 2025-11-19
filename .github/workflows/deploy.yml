@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image-tag: ${{ steps.tag.outputs.tag }}
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment: production
-    
+
     steps:
     - name: Download Docker images
       uses: actions/download-artifact@v4
@@ -80,29 +80,29 @@ jobs:
         IMAGE_TAG=${{ needs.build.outputs.image-tag }}
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
-          
+
           # Останавливаем текущие контейнеры
           docker compose -f docker-compose.prod.yml down
-          
+
           # Удаляем старые образы
           docker rmi $(docker images amchokers-* -q) 2>/dev/null || true
         EOF
-        
+
         # Передаем образы на сервер
         scp -o StrictHostKeyChecking=no server-image.tar sender-image.tar root@am-projects.ru:/var/www/amchokers.ru/
-        
+
         ssh -o StrictHostKeyChecking=no root@am-projects.ru << EOF
           cd /var/www/amchokers.ru
           git restore .
           git pull
-          
+
           # Загружаем образы
           docker load -i server-image.tar
           docker load -i sender-image.tar
-          
+
           # Запускаем миграции
           docker run --rm --env-file .env --add-host=host.docker.internal:host-gateway amchokers-server:\$IMAGE_TAG npm run migration:run:prod
-          
+
           # Обновляем docker-compose.yml с новыми тегами
           cat << 'DOCKERCOMPOSE' > docker-compose.prod.yml
           services:
@@ -132,7 +132,7 @@ jobs:
 
           # Запускаем контейнеры
           docker compose -f docker-compose.prod.yml up -d
-          
+
           # Очистка
           rm -f server-image.tar sender-image.tar
           docker system prune -f

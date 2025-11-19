@@ -8,8 +8,8 @@
     "microservices/sender"
   ],
   "scripts": {
-    "start:server": "cross-env DB='HOST' NODE_ENV=production tsx server/server.ts",
-    "start:sender": "cross-env DB='HOST' tsx microservices/sender/src/main.ts",
+    "start:server:prod": "cross-env DB='HOST' NODE_ENV=production tsx server/server.ts",
+    "start:sender:prod": "cross-env DB='HOST' NODE_ENV=production tsx microservices/sender/src/main.ts",
     "dev-prod": "cross-env DB='LOCAL' NODE_ENV=production tsx server/server.ts",
     "start:server:dev": "cross-env DB='LOCAL' tsx server/server.ts",
     "start:sender:dev": "cross-env DB='LOCAL' tsx microservices/sender/src/main.ts",
