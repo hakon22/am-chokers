@@ -43,7 +43,6 @@ ENV NEXT_PUBLIC_PORT=${NEXT_PUBLIC_PORT} \
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY .env ./.env
 RUN mkdir -p ./public
 RUN npm run build
 
