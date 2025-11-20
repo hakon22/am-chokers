@@ -1,4 +1,4 @@
-name: Deploy to VPS [amchokers.ru]
+name: Manual deploy to VPS [amchokers.ru]
 
 on:
   workflow_dispatch: # Позволяет запускать работу вручную

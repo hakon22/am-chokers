@@ -1,6 +1,6 @@
 services:
   migrations:
-    image: ${{ secrets.DOCKER_USERNAME }}/amchokers:latest
+    image: ${DOCKER_USERNAME}/amchokers:latest
     network_mode: "host"
     volumes:
       - /srv/logs:/srv/logs
@@ -11,7 +11,7 @@ services:
     command: migration:run:prod
 
   server:
-    image: ${{ secrets.DOCKER_USERNAME }}/amchokers:latest
+    image: ${DOCKER_USERNAME}/amchokers:latest
     network_mode: "host"
     ports:
       - "3010:3010"
@@ -26,7 +26,7 @@ services:
       - migrations
 
   sender:
-    image: ${{ secrets.DOCKER_USERNAME }}/amchokers:latest
+    image: ${DOCKER_USERNAME}/amchokers:latest
     network_mode: "host"
     volumes:
       - /srv/logs:/srv/logs
