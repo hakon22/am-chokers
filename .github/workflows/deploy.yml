@@ -30,7 +30,7 @@ jobs:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64
-        push: false
+        push: true
         tags: amchokers:latest
         build-args: |
           NEXT_PUBLIC_PORT=${{ secrets.NEXT_PUBLIC_PORT }}
