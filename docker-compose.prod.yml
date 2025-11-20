@@ -2,6 +2,7 @@ services:
   migrations:
     image: ${DOCKER_USERNAME}/amchokers:latest
     network_mode: "host"
+    env_file: .env
     volumes:
       - /srv/logs:/srv/logs
       - /var/www/amchokers.ru/public:/app/public
@@ -13,6 +14,7 @@ services:
   server:
     image: ${DOCKER_USERNAME}/amchokers:latest
     network_mode: "host"
+    env_file: .env
     ports:
       - "3010:3010"
     volumes:
@@ -28,6 +30,7 @@ services:
   sender:
     image: ${DOCKER_USERNAME}/amchokers:latest
     network_mode: "host"
+    env_file: .env
     volumes:
       - /srv/logs:/srv/logs
       - /var/www/amchokers.ru/public:/app/public
