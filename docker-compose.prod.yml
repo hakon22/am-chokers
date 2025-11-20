@@ -8,7 +8,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: "no"
-    command: npm run migration:run:prod
+    command: migration:run:prod
 
   server:
     image: amchokers:latest
