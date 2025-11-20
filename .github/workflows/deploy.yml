@@ -75,7 +75,8 @@ jobs:
           key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
           script: |
             cd /var/www/amchokers.ru/
+            echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             docker pull amchokers:latest
-            docker compose -f compose.prod.yml down
-            docker compose -f compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
