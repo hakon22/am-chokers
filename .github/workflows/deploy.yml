@@ -31,7 +31,7 @@ jobs:
         file: ./Dockerfile
         platforms: linux/amd64
         push: true
-        tags: amchokers:latest
+        tags: ${{ secrets.DOCKER_USERNAME }}/amchokers:latest
         build-args: |
           NEXT_PUBLIC_PORT=${{ secrets.NEXT_PUBLIC_PORT }}
           NEXT_PUBLIC_SERVER_HOST=${{ secrets.NEXT_PUBLIC_SERVER_HOST }}
@@ -74,9 +74,10 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd /var/www/amchokers.ru/
-            echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            docker pull amchokers:latest
+            docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_TOKEN }}"
+            docker pull ${{ secrets.DOCKER_USERNAME }}/amchokers:latest
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
