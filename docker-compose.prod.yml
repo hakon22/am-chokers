@@ -1,7 +1,6 @@
 services:
   server:
-    image: amchokers-server:$IMAGE_TAG
-    env_file: .env
+    image: amchokers:latest
     network_mode: "host"
     ports:
       - "3010:3010"
@@ -11,10 +10,10 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
+    command: start:server:prod
 
   sender:
-    image: amchokers-sender:$IMAGE_TAG
-    env_file: .env
+    image: amchokers:latest
     network_mode: "host"
     volumes:
       - /srv/logs:/srv/logs
@@ -22,3 +21,4 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
+    command: start:sender:prod

@@ -2,13 +2,16 @@ install:
 	npm ci
 
 start:
-	pm2 start "npm run start" -n am-chokers
-
-start-local:
-	npm run dev
+	pm2 start "npm run start:server:prod" -n am-chokers
 
 start-sender:
-	npm run sender
+	pm2 start "npm run start:sender:prod" -n am-chokers-sender
+
+start-local:
+	npm run start:server:dev
+
+start-local-sender:
+	npm run start:sender:dev
 
 start-local-prod:
 	npm run dev-prod

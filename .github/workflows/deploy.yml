@@ -9,30 +9,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      image-tag: ${{ steps.tag.outputs.tag }}
+    environment: production
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
 
-    - name: Generate build tag
-      id: tag
-      run: echo "tag=$(date +%s)" >> $GITHUB_OUTPUT
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build server image
-      uses: docker/build-push-action@v4
+    - name: Build image
+      uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64
         push: false
-        load: true
-        tags: amchokers-server:${{ steps.tag.outputs.tag }}
-        target: server
+        tags: amchokers:latest
         build-args: |
           NEXT_PUBLIC_PORT=${{ secrets.NEXT_PUBLIC_PORT }}
           NEXT_PUBLIC_SERVER_HOST=${{ secrets.NEXT_PUBLIC_SERVER_HOST }}
@@ -52,115 +51,31 @@ jobs:
           NEXT_PUBLIC_INN=${{ secrets.NEXT_PUBLIC_INN }}
           NEXT_PUBLIC_PROMO=${{ secrets.NEXT_PUBLIC_PROMO }}
 
-    - name: Build sender image
-      uses: docker/build-push-action@v4
+deploy:
+  runs-on: ubuntu-latest
+  needs: build
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Copy compose file to server
+      uses: appleboy/scp-action@v0.1.3
       with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64
-        push: false
-        load: true
-        tags: amchokers-sender:${{ steps.tag.outputs.tag }}
-        target: sender
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
+        source: "docker-compose.prod.yml"
+        target: "/var/www/amchokers.ru/"
 
-    - name: Save Docker images
-      run: |
-        docker save -o server-image.tar amchokers-server:${{ steps.tag.outputs.tag }}
-        docker save -o sender-image.tar amchokers-sender:${{ steps.tag.outputs.tag }}
-
-    - name: Upload Docker images
-      uses: actions/upload-artifact@v4
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.0
       with:
-        name: docker-images
-        path: |
-          server-image.tar
-          sender-image.tar
-        retention-days: 1
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment: production
-
-    steps:
-    - name: Download Docker images
-      uses: actions/download-artifact@v4
-      with:
-        name: docker-images
-
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.8.0
-      with:
-        ssh-private-key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
-
-    - name: Copy Docker images to VPS
-      run: |
-        scp -o StrictHostKeyChecking=no server-image.tar sender-image.tar root@am-projects.ru:/var/www/amchokers.ru/
-
-    - name: Stop current containers and remove old images
-      run: |
-        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
-          cd /var/www/amchokers.ru || exit 1
-
-          # Останавливаем текущие контейнеры (если есть)
-          docker compose -f docker-compose.prod.yml down || true
-
-          # Удаляем старые образы (если есть)
-          docker rmi $(docker images "amchokers-*" -q) 2>/dev/null || true
-        EOF
-
-    - name: Load images
-      env:
-        IMAGE_TAG: ${{ needs.build.outputs.image-tag }}
-      run: |
-        ssh -o StrictHostKeyChecking=no root@am-projects.ru "IMAGE_TAG=$IMAGE_TAG bash -s" << 'EOF'
-          cd /var/www/amchokers.ru || exit 1
-
-          # Загружаем образы
-          docker load -i server-image.tar
-          docker load -i sender-image.tar
-
-          # Запускаем миграции
-          docker run --rm --env-file .env --network host amchokers-server:$IMAGE_TAG npm run migration:run:prod
-
-          # Обновляем docker-compose.prod.yml с новыми тегами
-          cat > docker-compose.prod.yml << DCYML
-            services:
-              server:
-                image: amchokers-server:${IMAGE_TAG}
-                env_file: .env
-                network_mode: "host"
-                ports:
-                  - "3010:3010"
-                volumes:
-                  - /srv/logs:/srv/logs
-                  - /var/www/amchokers.ru/public:/app/public
-                  - /etc/localtime:/etc/localtime:ro
-                  - /etc/timezone:/etc/timezone:ro
-                restart: unless-stopped
-
-              sender:
-                image: amchokers-sender:${IMAGE_TAG}
-                env_file: .env
-                network_mode: "host"
-                volumes:
-                  - /srv/logs:/srv/logs
-                  - /var/www/amchokers.ru/public:/app/public
-                  - /etc/localtime:/etc/localtime:ro
-                  - /etc/timezone:/etc/timezone:ro
-                restart: unless-stopped
-            DCYML
-        EOF
-
-    - name: Deploy on VPS
-      run: |
-        ssh -o StrictHostKeyChecking=no root@am-projects.ru << 'EOF'
-          cd /var/www/amchokers.ru || exit 1
-
-          # Запускаем контейнеры
-          docker compose -f docker-compose.prod.yml up -d
-
-          # Очистка
-          rm -f server-image.tar sender-image.tar
-          docker system prune -f
-        EOF
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.AM_PROJECTS_SSH_PRIVATE_KEY }}
+        script: |
+          cd /var/www/amchokers.ru/
+          docker pull amchokers:latest
+          docker-compose -f compose.prod.yml down
+          docker-compose -f compose.prod.yml up -d
+          docker image prune -f
