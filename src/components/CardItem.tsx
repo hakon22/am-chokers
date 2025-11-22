@@ -530,7 +530,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
+  const [showThumbnails, setShowThumbnails] = useState(true);
 
   const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
 
@@ -640,10 +640,10 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} />: !isAdmin && item.publicationDate ? null : (
     <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>
       <Helmet title={name} description={description} image={images?.[0]?.src} />
-      <div className="d-flex flex-column flex-xl-row gap-xl-5 mb-5">
+      <div className="d-flex flex-column flex-xl-row justify-content-xl-between justify-content-xxl-start gap-xxl-5 mb-5">
         {isMobile
           ? (
-            <>
+            <div className="d-flex flex-column align-items-md-center">
               <h1 className="mb-4 fs-3">{name}</h1>
               <div className="d-flex mb-4">
                 {collection
@@ -659,13 +659,13 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   </Tag>
                 )}
               </div>
-            </>
+            </div>
           )
           : null}
         <div className="d-flex flex-column align-items-center gap-3">
           <ImageGallery
             ref={galleryRef}
-            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'd-flex align-items-center': isMobile })}
+            additionalClass={cn('w-100 mb-5 mb-xl-0 mt-xl-2-5', { 'd-flex align-items-center justify-content-center': isMobile })}
             showIndex
             items={images.sort((a, b) => a.order - b.order).map((image) => ({
               original: image.src,
@@ -743,8 +743,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             ? (
               <div className="d-flex justify-content-center" style={{ width: '320px', alignSelf: 'end' }}>
                 <div className="d-flex justify-content-between w-100">
-                  <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
-                  <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
+                  <Button type="text" onClick={() => setTab('warranty')} className={cn('text-muted fs-6 fs-xxl-5 py-3-5 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'delivery' })}>{t('warrantyAndCare')}</Button>
+                  <Button type="text" onClick={() => setTab('delivery')} className={cn('text-muted fs-6 fs-xxl-5 py-3-5 py-xxl-4 px-3 px-xxl-3', { disabled: tab === 'warranty' })}>{t('deliveryAndPayment')}</Button>
                 </div>
               </div>
             ) : null}
@@ -931,7 +931,6 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             infinite
             arrows={true}
             minimumTouchDrag={80}
-            partialVisible={false}
             renderArrowsWhenDisabled={false}
             renderButtonGroupOutside={false}
             renderDotsOutside={false}

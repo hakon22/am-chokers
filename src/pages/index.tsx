@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState, useContext, type WheelEvent } from 'react';
+import { useEffect, useRef, useState, useContext, type WheelEvent, useMemo } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
@@ -18,6 +18,7 @@ import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemInterface } from '@/types/item/Item';
+import type { ImageEntity } from '@server/db/entities/image.entity';
 
 const Index = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
@@ -29,8 +30,9 @@ const Index = () => {
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
+  const [autoPlay, setAutoPlay] = useState(false);
 
-  const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
+  const { bestsellers, collections, news } = useMemo(() => specialItems.reduce((acc, item) => {
     if (item.new) {
       acc.news.push(item);
     }
@@ -41,31 +43,110 @@ const Index = () => {
       acc.collections.push(item);
     }
     return acc;
-  }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
+  }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; }), [specialItems]);
 
-  const bestseller1 = bestsellers.find(({ deleted, order }) => order === 1 && !deleted);
-  const bestseller2 = bestsellers.find(({ deleted, order }) => order === 2 && !deleted);
-  const bestseller3 = bestsellers.find(({ deleted, order }) => order === 3 && !deleted);
+  const { bestseller1, bestseller2, bestseller3 } = useMemo(() => bestsellers.reduce((acc, item) => {
+    if (!item.deleted) {
+      switch (item.order) {
+      case 1:
+        acc.bestseller1 = item;
+        break;
+      case 2:
+        acc.bestseller2 = item;
+        break;
+      case 3:
+        acc.bestseller3 = item;
+        break;
+      }
+    }
+    return acc;
+  }, { bestseller1: undefined, bestseller2: undefined, bestseller3: undefined } as { bestseller1?: ItemInterface; bestseller2?: ItemInterface; bestseller3?: ItemInterface; }), [bestsellers]);
 
-  const collection1 = collections.find(({ deleted, order }) => order === 4 && !deleted);
-  const collection2 = collections.find(({ deleted, order }) => order === 5 && !deleted);
-  const collection3 = collections.find(({ deleted, order }) => order === 6 && !deleted);
-  const collection4 = collections.find(({ deleted, order }) => order === 7 && !deleted);
-  const collection5 = collections.find(({ deleted, order }) => order === 8 && !deleted);
+  const { collection1, collection2, collection3, collection4, collection5 } = useMemo(() => collections.reduce((acc, item) => {
+    if (!item.deleted) {
+      switch (item.order) {
+      case 4:
+        acc.collection1 = item;
+        break;
+      case 5:
+        acc.collection2 = item;
+        break;
+      case 6:
+        acc.collection3 = item;
+        break;
+      case 7:
+        acc.collection4 = item;
+        break;
+      case 8:
+        acc.collection5 = item;
+        break;
+      }
+    }
+    return acc;
+  }, { collection1: undefined, collection2: undefined, collection3: undefined, collection4: undefined, collection5: undefined } as { collection1?: ItemInterface; collection2?: ItemInterface; collection3?: ItemInterface; collection4?: ItemInterface; collection5?: ItemInterface; }), [collections]);
 
-  const coverImage1 = coverImages.find(({ coverOrder }) => coverOrder === 1);
-  const coverImage2 = coverImages.find(({ coverOrder }) => coverOrder === 2);
-  const coverImage3 = coverImages.find(({ coverOrder }) => coverOrder === 3);
-  const coverImage4 = coverImages.find(({ coverOrder }) => coverOrder === 4);
-  const coverImage5 = coverImages.find(({ coverOrder }) => coverOrder === 5);
-  const coverImage6 = coverImages.find(({ coverOrder }) => coverOrder === 6);
-  // const coverImage7 = coverImages.find(({ coverOrder }) => coverOrder === 7);
-  // const coverImage8 = coverImages.find(({ coverOrder }) => coverOrder === 8);
-  const coverCollectionImage9 = coverImages.find(({ coverOrder }) => coverOrder === 9);
-  const coverCollectionImage10 = coverImages.find(({ coverOrder }) => coverOrder === 10);
-  const coverCollectionImage11 = coverImages.find(({ coverOrder }) => coverOrder === 11);
-  const coverCollectionImage12 = coverImages.find(({ coverOrder }) => coverOrder === 12);
-  const coverCollectionImage13 = coverImages.find(({ coverOrder }) => coverOrder === 13);
+  const { coverImage1, coverImage2, coverImage3, coverImage4, coverImage5, coverImage6, coverCollectionImage9, coverCollectionImage10, coverCollectionImage11, coverCollectionImage12, coverCollectionImage13 } = useMemo(() => coverImages.reduce((acc, image) => {
+    switch (image.coverOrder) {
+    case 1:
+      acc.coverImage1 = image;
+      break;
+    case 2:
+      acc.coverImage2 = image;
+      break;
+    case 3:
+      acc.coverImage3 = image;
+      break;
+    case 4:
+      acc.coverImage4 = image;
+      break;
+    case 5:
+      acc.coverImage5 = image;
+      break;
+    case 6:
+      acc.coverImage6 = image;
+      break;
+    case 9:
+      acc.coverCollectionImage9 = image;
+      break;
+    case 10:
+      acc.coverCollectionImage10 = image;
+      break;
+    case 11:
+      acc.coverCollectionImage11 = image;
+      break;
+    case 12:
+      acc.coverCollectionImage12 = image;
+      break;
+    case 13:
+      acc.coverCollectionImage13 = image;
+      break;
+    }
+    return acc;
+  }, {
+    coverImage1: undefined,
+    coverImage2: undefined,
+    coverImage3: undefined,
+    coverImage4: undefined,
+    coverImage5: undefined,
+    coverImage6: undefined,
+    coverCollectionImage9: undefined,
+    coverCollectionImage10: undefined,
+    coverCollectionImage11: undefined,
+    coverCollectionImage12: undefined,
+    coverCollectionImage13: undefined,
+  } as {
+    coverImage1?: ImageEntity;
+    coverImage2?: ImageEntity;
+    coverImage3?: ImageEntity;
+    coverImage4?: ImageEntity;
+    coverImage5?: ImageEntity;
+    coverImage6?: ImageEntity;
+    coverCollectionImage9?: ImageEntity;
+    coverCollectionImage10?: ImageEntity;
+    coverCollectionImage11?: ImageEntity;
+    coverCollectionImage12?: ImageEntity;
+    coverCollectionImage13?: ImageEntity;
+  }), [coverImages]);
 
   const coefficient = 1.3;
 
@@ -79,16 +160,31 @@ const Index = () => {
       breakpoint: { max: 5000, min: 1400 },
       items: 5,
     },
-    tv: {
-      breakpoint: { max: 1400, min: 1024 },
+    laptop: {
+      breakpoint: { max: 1400, min: 1200 },
       items: 4,
     },
-    tablet: {
-      breakpoint: { max: 1024, min: 464 },
+    largeTv: {
+      breakpoint: { max: 1199, min: 991 },
+      items: 2,
+      partialVisibilityGutter: 130,
+    },
+    tv: {
+      breakpoint: { max: 990, min: 768 },
       items: 2,
     },
+    largeMobile: {
+      breakpoint: { max: 767, min: 540 },
+      items: 1,
+      partialVisibilityGutter: 170,
+    },
+    middleMobile: {
+      breakpoint: { max: 539, min: 500 },
+      items: 1,
+      partialVisibilityGutter: 130,
+    },
     mobile: {
-      breakpoint: { max: 464, min: 0 },
+      breakpoint: { max: 499, min: 0 },
       items: 1,
     },
   };
@@ -104,6 +200,8 @@ const Index = () => {
   }, 1000);
 
   useEffect(() => {
+    setTimeout(setAutoPlay, 2000, true);
+
     const handleResize = () => {
       const extension = getWidth();
       setCoverSize({
@@ -120,16 +218,8 @@ const Index = () => {
               : 160,
         },
         coverCollection: {
-          width: extension >= 1200
-            ? 450
-            : extension < 1200
-              ? 300
-              : 352,
-          height: extension >= 1200
-            ? 299
-            : extension < 1200
-              ? 199.3
-              : 233.9,
+          width: extension >= 1200 ? 450 : 300,
+          height: extension >= 1200 ? 299 : 199.3,
         },
       });
     };
@@ -165,11 +255,10 @@ const Index = () => {
                 ref={carouselRef}
                 arrows={isMobile}
                 minimumTouchDrag={80}
-                partialVisible={false}
                 renderArrowsWhenDisabled={false}
                 renderButtonGroupOutside={false}
                 renderDotsOutside={false}
-                partialVisbile={false}
+                partialVisbile={true}
                 responsive={responsive}
                 rewind={false}
                 rewindWithAnimation={false}
@@ -179,7 +268,7 @@ const Index = () => {
                 slidesToSlide={1}
                 swipeable
                 ssr
-                autoPlay
+                autoPlay={autoPlay}
               >
                 {news.map((item) => (
                   <ImageHover
@@ -239,7 +328,7 @@ const Index = () => {
                     style={{ alignSelf: 'center' }}
                     href={getHref(bestseller3)}
                     width={isMobile ? 300 : 551}
-                    height={isMobile ? 300 * coefficient : 551 * coefficient}
+                    height={(isMobile ? 300 : 551) * coefficient}
                     images={bestseller3?.images ?? []}
                     name={bestseller3?.translations.find((translation) => translation.lang === lang)?.name}
                     rating={bestseller3 ? { rating: bestseller3.rating, grades: bestseller3.grades } : undefined}
