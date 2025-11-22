@@ -13,10 +13,11 @@ const {
   PASSWORD_DB_LOCAL = '',
   USER_DB_HOST = '',
   PASSWORD_DB_HOST = '',
+  IS_DOCKER = '',
   NODE_ENV,
 } = process.env;
 
-const host = NODE_ENV === 'production' ? 'localhost' : 'host.docker.internal';
+const host = NODE_ENV === 'production' || !IS_DOCKER ? 'localhost' : 'host.docker.internal';
 
 export const redisConfig = {
   host,

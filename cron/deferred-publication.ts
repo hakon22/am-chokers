@@ -8,7 +8,7 @@ import 'dotenv/config';
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity'; 
 import { LoggerService } from '@server/services/app/logger.service';
 import { DatabaseService } from '@server/db/database.service';
-import { TelegramService } from '@server/services/integration/telegram.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { catalogPath, routes } from '@/routes';
@@ -22,7 +22,7 @@ class DeferredPublicationCron {
 
   private readonly databaseService = Container.get(DatabaseService);
 
-  private readonly telegramService = Container.get(TelegramService);
+  private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   public start = async () => {
 
@@ -79,7 +79,7 @@ class DeferredPublicationCron {
         continue;
       }
 
-      await this.publishProcess(item, deferredValue.description);
+      this.publishProcess(item, deferredValue.description);
       await DeferredPublicationEntity.update(deferredValue.id, { isPublished: true });
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -106,7 +106,7 @@ class DeferredPublicationCron {
     process.exit(0);
   };
 
-  private publishProcess = async (item: ItemEntity, description?: string) => {
+  private publishProcess = (item: ItemEntity, description?: string) => {
     if (!process.env.TELEGRAM_GROUP_ID) {
       return;
     }
@@ -115,7 +115,7 @@ class DeferredPublicationCron {
   
     const values: string[] = (description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string).split('\n');
   
-    const text = [
+    const message = [
       ...values,
       '',
       ...(item?.collection ? [`Коллекция: <b>${item.collection.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name}</b>`] : []),
@@ -123,13 +123,8 @@ class DeferredPublicationCron {
       '',
       `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
     ];
-  
-    const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
-  
-    if (message?.history) {
-      await ItemEntity.update(item.id, { message: message.history });
-      item.message = message.history;
-    }
+
+    this.bullMQQueuesService.sendTelegramMessage({ message, item, telegramId: process.env.TELEGRAM_GROUP_ID, images: item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`) });
   };
   
   private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');

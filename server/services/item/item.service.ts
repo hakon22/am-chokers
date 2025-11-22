@@ -12,7 +12,7 @@ import { DeferredPublicationEntity } from '@server/db/entities/deferred.publicat
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import { TranslationHelper } from '@server/utilities/translation.helper';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
-import { TelegramService } from '@server/services/integration/telegram.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { DeferredPublicationService } from '@server/services/deferred-publication/deferred-publication.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { GradeService } from '@server/services/rating/grade.service';
@@ -39,7 +39,7 @@ export class ItemService extends TranslationHelper {
 
   private readonly uploadPathService = Container.get(UploadPathService);
 
-  private readonly telegramService = Container.get(TelegramService);
+  private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private readonly deferredPublicationService = Container.get(DeferredPublicationService);
 
@@ -524,7 +524,8 @@ export class ItemService extends TranslationHelper {
 
       item.deferredPublication = await this.deferredPublicationService.createOne(deferredPublicationBody, lang);
     } else {
-      await this.publishProcess(item, body?.description);
+      this.publishProcess(item, body?.description);
+      item.deferredPublication = null;
     }
 
     return item;
@@ -739,7 +740,7 @@ export class ItemService extends TranslationHelper {
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);
 
-  private publishProcess = async (item: ItemEntity, description?: string) => {
+  private publishProcess = (item: ItemEntity, description?: string) => {
     if (!process.env.TELEGRAM_GROUP_ID) {
       return;
     }
@@ -748,7 +749,7 @@ export class ItemService extends TranslationHelper {
 
     const values: string[] = (description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string).split('\n');
 
-    const text = [
+    const message = [
       ...values,
       '',
       ...(item?.collection ? [`Коллекция: <b>${item.collection.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name}</b>`] : []),
@@ -757,17 +758,7 @@ export class ItemService extends TranslationHelper {
       `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
     ];
 
-    const message = await this.telegramService.sendMessageWithPhotos(text, item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`), process.env.TELEGRAM_GROUP_ID);
-
-    if (message?.history) {
-      await ItemEntity.update(item.id, { message: message.history });
-      item.message = message.history;
-
-      if (item.deferredPublication) {
-        await DeferredPublicationEntity.softRemove(item.deferredPublication);
-        item.deferredPublication = null;
-      }
-    }
+    this.bullMQQueuesService.sendTelegramMessage({ message, item, telegramId: process.env.TELEGRAM_GROUP_ID, images: item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`) });
   };
 
   private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');

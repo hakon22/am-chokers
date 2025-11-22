@@ -3,20 +3,25 @@ import { Singleton } from 'typescript-ioc';
 
 import { redisConfig } from '@server/db/database.service';
 import { BullMQQueuesEnum } from '@microservices/sender/enums/bull-mq-queues.enum';
-import type { SmsParameterInterface } from '@server/services/integration/sms.service';
-import type { TelegramJobInterface } from '@microservices/sender/types/telegram-job.interface';
+import type { SmsCodeParameterInterface, SmsPasswordParameterInterface } from '@server/services/integration/sms.service';
+import type { TelegramJobInterface, TelegramAdminJobInterface } from '@microservices/sender/types/telegram-job.interface';
 
 @Singleton
 export class BullMQQueuesService {
-  private smsCodeQueue = new Queue(BullMQQueuesEnum.SMS_CODE_QUEUE, { connection: redisConfig });
+  private readonly createQueue = (queue: BullMQQueuesEnum) => new Queue(queue, { connection: redisConfig });
 
-  private smsPasswordQueue = new Queue(BullMQQueuesEnum.SMS_PASSWORD_QUEUE, { connection: redisConfig });
+  private readonly queues: Record<BullMQQueuesEnum, Queue> = {
+    [BullMQQueuesEnum.SMS_CODE_QUEUE]: this.createQueue(BullMQQueuesEnum.SMS_CODE_QUEUE),
+    [BullMQQueuesEnum.SMS_PASSWORD_QUEUE]: this.createQueue(BullMQQueuesEnum.SMS_PASSWORD_QUEUE),
+    [BullMQQueuesEnum.TELEGRAM_QUEUE]: this.createQueue(BullMQQueuesEnum.TELEGRAM_QUEUE),
+    [BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE]: this.createQueue(BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE),
+  };
 
-  private telegramQueue = new Queue(BullMQQueuesEnum.TELEGRAM_QUEUE, { connection: redisConfig });
+  public sendSMSCode = (data: SmsCodeParameterInterface) => this.queues[BullMQQueuesEnum.SMS_CODE_QUEUE].add('SMS_CODE_QUEUE', data);
 
-  public sendSMSCode = async (options: SmsParameterInterface) => this.smsCodeQueue.add(BullMQQueuesEnum.SMS_CODE_QUEUE, options);
+  public sendSMSPassword = (data: SmsPasswordParameterInterface) => this.queues[BullMQQueuesEnum.SMS_PASSWORD_QUEUE].add('SMS_PASSWORD_QUEUE', data);
 
-  public sendSMSPassword = async (options: SmsParameterInterface) => this.smsPasswordQueue.add(BullMQQueuesEnum.SMS_PASSWORD_QUEUE, options);
+  public sendTelegramMessage = (data: TelegramJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_QUEUE].add('TELEGRAM_QUEUE', data);
 
-  public sendTelegramMessage = async (options: TelegramJobInterface) => this.telegramQueue.add(BullMQQueuesEnum.TELEGRAM_QUEUE, options);
+  public sendTelegramAdminMessage = (data: TelegramAdminJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE].add('TELEGRAM_ADMIN_QUEUE', data);
 }

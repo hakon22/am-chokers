@@ -18,7 +18,6 @@ import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTransla
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import { UserEntity } from '@server/db/entities/user.entity';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
@@ -262,33 +261,25 @@ export class OrderService extends BaseService {
       this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: user.telegramId });
     }
 
-    if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-      for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
-        const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
+    const messageRu = [
+      `Создан заказ <b>№${order.id}</b>`,
+      '',
+      `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+      ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
+      '',
+      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
+    ];
 
-        if (!adminUser?.telegramId) {
-          continue;
-        }
+    const messageEn = [
+      `Order <b>№${order.id}</b> created.`,
+      '',
+      `Amount: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+      ...(comment ? [`Comment: <b>${comment}</b>`] : []),
+      '',
+      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
+    ];
 
-        const message = adminUser.lang === UserLangEnum.RU ? [
-          `Создан заказ <b>№${order.id}</b>`,
-          '',
-          `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
-          ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
-          '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
-        ] : [
-          `Order <b>№${order.id}</b> created.`,
-          '',
-          `Amount: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
-          ...(comment ? [`Comment: <b>${comment}</b>`] : []),
-          '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
-        ];
-
-        this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: adminUser.telegramId });
-      }
-    }
+    this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
 
     const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, user.lang) as string;
 
@@ -360,30 +351,24 @@ export class OrderService extends BaseService {
 
     order.status = status;
 
-    if ((process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) && !user.isAdmin) {
-      for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
-        const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
+    if (!user.isAdmin) {
+      const messageRu = [
+        `Отмена заказа <b>№${order.id}</b>`,
+        '',
+        `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        '',
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
+      ];
 
-        if (!adminUser?.telegramId) {
-          continue;
-        }
+      const messageEn = [
+        `Cancel order <b>№${order.id}</b>`,
+        '',
+        `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        '',
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
+      ];
 
-        const message = lang === UserLangEnum.RU ? [
-          `Отмена заказа <b>№${order.id}</b>`,
-          '',
-          `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
-          '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
-        ] : [
-          `Cancel order <b>№${order.id}</b>`,
-          '',
-          `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
-          '',
-          `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
-        ];
-
-        this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: adminUser.telegramId });
-      }
+      this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
     }
   
     return { order, cart };

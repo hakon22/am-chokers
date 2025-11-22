@@ -5,12 +5,11 @@ import { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
-import { TelegramService } from '@server/services/integration/telegram.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { GradeEntity } from '@server/db/entities/grade.entity';
-import { UserEntity } from '@server/db/entities/user.entity';
 import { routes } from '@/routes';
 import { hasJoin } from '@server/utilities/has.join';
 import type { GradeQueryInterface } from '@server/types/rating/grade.query.interface';
@@ -26,7 +25,7 @@ export class GradeService extends BaseService {
 
   private readonly imageService = Container.get(ImageService);
 
-  private readonly telegramService = Container.get(TelegramService);
+  private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private createQueryBuilder = (query?: GradeQueryInterface, options?: GradeOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -243,28 +242,19 @@ export class GradeService extends BaseService {
       return gradeRepo.save(grade);
     });
 
-    if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-      await Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
-        const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
-      
-        if (!adminUser) {
-          return;
-        }
-      
-        const adminText = adminUser.lang === UserLangEnum.RU
-          ? [
-            `Вам оставлен новый отзыв с оценкой: <b>${body.grade}</b>`,
-            '',
-            `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.moderationOfReview}`,
-          ] : [
-            `You have a new review with a rating of: <b>${body.grade}</b>`,
-            '',
-            `More details: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.moderationOfReview}`,
-          ];
-      
-        return this.telegramService.sendMessage(adminText, tgId as string);
-      }));
-    }
+    const messageRu = [
+      `Вам оставлен новый отзыв с оценкой: <b>${body.grade}</b>`,
+      '',
+      `Подробнее: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.moderationOfReview}`,
+    ];
+
+    const messageEn = [
+      `You have a new review with a rating of: <b>${body.grade}</b>`,
+      '',
+      `More details: ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.moderationOfReview}`,
+    ];
+
+    this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
 
     return this.findOne({ id: created.id }, user.lang);
   };

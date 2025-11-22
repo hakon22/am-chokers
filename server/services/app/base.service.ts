@@ -5,7 +5,7 @@ import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
 import { LoggerService } from '@server/services/app/logger.service';
 import { TokenService } from '@server/services/user/token.service';
-import { TelegramService } from '@server/services/integration/telegram.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
@@ -36,7 +36,7 @@ export abstract class BaseService {
           if (!adminUser) {
             return;
           }
-          const adminText = adminUser.lang === UserLangEnum.RU ? [
+          const message = adminUser.lang === UserLangEnum.RU ? [
             `Ошибка на сервере <b>${process.env.NEXT_PUBLIC_APP_NAME}</b>:`,
             `<pre><code class="language-typescript">${e.stack}</code></pre>`,
           ] : [
@@ -44,7 +44,7 @@ export abstract class BaseService {
             `<pre><code class="language-typescript">${e.stack}</code></pre>`,
           ];
 
-          Container.get(TelegramService).sendMessage(adminText, process.env.TELEGRAM_CHAT_ID as string).catch(this.loggerService.error);
+          Container.get(BullMQQueuesService).sendTelegramMessage({ message, telegramId: process.env.TELEGRAM_CHAT_ID as string });
         })
         .catch(this.loggerService.error);
     }

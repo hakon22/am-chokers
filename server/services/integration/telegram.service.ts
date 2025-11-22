@@ -6,6 +6,8 @@ import { Message } from 'typegram/message';
 import type { InputMedia } from 'telegraf/typings/core/types/typegram';
 
 import { UserEntity } from '@server/db/entities/user.entity';
+import { ItemEntity } from '@server/db/entities/item.entity';
+import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
 import { phoneTransform } from '@server/utilities/phone.transform';
@@ -113,7 +115,7 @@ export class TelegramService {
     }
   };
 
-  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {
+  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: OptionsTelegramMessageInterface) => {
     const text = this.serializeText(message);
 
     const media: InputMedia[] = images.map((image, i) => ({
@@ -138,6 +140,13 @@ export class TelegramService {
         messageHistory.send = true;
         messageHistory.messageId = data.result.map(({ message_id }) => message_id).join(', ').trim();
         await messageHistory.save();
+        if (item) {
+          await ItemEntity.update(item.id, { message: messageHistory });
+
+          if (item.deferredPublication) {
+            await DeferredPublicationEntity.softRemove(item.deferredPublication);
+          }
+        }
         return { ...data, text, history: messageHistory };
       }
     } catch (e) {
@@ -149,6 +158,20 @@ export class TelegramService {
       }
       this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, errorMessage);
       throw new Error(errorMessage);
+    }
+  };
+
+  public sendAdminMessages = async (messageRu: string | string[], messageEn: string | string[], options?: OptionsTelegramMessageInterface) => {
+    for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
+      const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
+
+      if (!adminUser?.telegramId) {
+        continue;
+      }
+
+      const message = adminUser.lang === UserLangEnum.RU ? messageRu : messageEn;
+
+      await this.sendMessage(message, adminUser.telegramId, options);
     }
   };
 

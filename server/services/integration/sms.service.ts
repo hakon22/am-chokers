@@ -1,7 +1,5 @@
 import axios from 'axios';
 import qs from 'qs';
-import passGen from 'generate-password';
-import { getDigitalCode } from 'node-verification-code';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { LoggerService } from '@server/services/app/logger.service';
@@ -9,9 +7,17 @@ import { MessageService } from '@server/services/message/message.service';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
-export interface SmsParameterInterface {
+interface SmsParameterInterface {
   phone: string;
   lang: UserLangEnum;
+}
+
+export interface SmsCodeParameterInterface extends SmsParameterInterface {
+  code: string;
+}
+
+export interface SmsPasswordParameterInterface extends SmsParameterInterface {
+  password: string;
 }
 
 @Singleton
@@ -22,9 +28,8 @@ export class SmsService {
 
   private readonly messageService = Container.get(MessageService);
 
-  public sendCode = async (phone: string, lang: UserLangEnum): Promise<{ request_id: string, code: string }> => {
+  public sendCode = async (phone: string, code: string, lang: UserLangEnum): Promise<{ request_id: string, code: string }> => {
     try {
-      const code = this.codeGen();
       const object = { to: phone, txt: `Ваш код подтверждения: ${code}` };
 
       const { message } = await this.messageService.createOne({ text: object.txt, type: MessageTypeEnum.SMS, phone });
@@ -56,12 +61,8 @@ export class SmsService {
     }
   };
 
-  public sendPass = async (phone: string, lang: UserLangEnum): Promise<string> => {
+  public sendPass = async (phone: string, password: string, lang: UserLangEnum): Promise<string> => {
     try {
-      const password = passGen.generate({
-        length: 7,
-        numbers: true,
-      });
       const object = {
         method: 'push_msg',
         format: 'json',
@@ -89,6 +90,4 @@ export class SmsService {
         : 'There was an error sending SMS');
     }
   };
-
-  private codeGen = () => getDigitalCode(4).toString();
 }

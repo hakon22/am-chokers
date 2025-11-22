@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 import moment from 'moment';
 import _ from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response } from 'express';
 import type { EntityManager } from 'typeorm';
 
@@ -10,7 +11,7 @@ import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.e
 import { phoneTransform } from '@server/utilities/phone.transform';
 import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation, profileServerSchema } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
-import { SmsService } from '@server/services/integration/sms.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
 import { GradeService } from '@server/services/rating/grade.service';
@@ -18,6 +19,8 @@ import { MessageService } from '@server/services/message/message.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { codeGen } from '@server/utilities/code-generator';
+import { passwordGen } from '@server/utilities/password-generator';
 import { paramsIdSchema, queryLanguageParams, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
@@ -27,7 +30,7 @@ import type { FetchGradeInterface } from '@/types/app/grades/FetchGradeInterface
 
 @Singleton
 export class UserService extends BaseService {
-  private readonly smsService = Container.get(SmsService);
+  private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private readonly itemService = Container.get(ItemService);
 
@@ -247,11 +250,14 @@ export class UserService extends BaseService {
         return;
       }
 
-      const { request_id, code } = await this.smsService.sendCode(phone, lang);
-      await this.redisService.setEx(request_id, { phone, code }, 3600);
+      const code = codeGen();
+      const uuid = uuidv4();
+
+      this.bullMQQueuesService.sendSMSCode({ phone, code, lang });
+      await this.redisService.setEx(uuid, { phone, code }, 3600);
       await this.redisService.setEx(phone, { phone }, 59);
 
-      res.json({ code: 1, key: request_id, phone });
+      res.json({ code: 1, key: uuid, phone });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -340,8 +346,13 @@ export class UserService extends BaseService {
         res.json({ code: 2 });
         return;
       }
-      const password = await this.smsService.sendPass(phone, user.lang);
+
+      const password = passwordGen();
+
+      this.bullMQQueuesService.sendSMSPassword({ phone, password, lang: user.lang });
+
       const hashPassword = bcrypt.hashSync(password, 10);
+
       await UserEntity.update(user.id, { password: hashPassword });
       res.json({ code: 1 });
     } catch (e) {
@@ -486,7 +497,13 @@ export class UserService extends BaseService {
     const userRepo = manager.getRepository(UserEntity);
     const userRefreshTokenRepo = manager.getRepository(UserRefreshTokenEntity);
 
-    const userPassword = password || await this.smsService.sendPass(user.phone, user.lang);
+    const newPassword = passwordGen();
+
+    if (!password) {
+      this.bullMQQueuesService.sendSMSPassword({ phone: user.phone, password: newPassword, lang: user.lang });
+    }
+
+    const userPassword = password || newPassword;
 
     const createdUser = await userRepo.save({
       ...user,

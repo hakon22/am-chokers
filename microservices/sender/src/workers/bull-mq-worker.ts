@@ -3,13 +3,21 @@ import { Container } from 'typescript-ioc';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
-import { SmsService, type SmsParameterInterface } from '@server/services/integration/sms.service';
+import { SmsService, type SmsCodeParameterInterface, type SmsPasswordParameterInterface } from '@server/services/integration/sms.service';
 import { redisConfig } from '@server/db/database.service';
 import { BullMQQueuesEnum } from '@microservices/sender/enums/bull-mq-queues.enum';
-import type { TelegramJobInterface } from '@microservices/sender/types/telegram-job.interface';
+import type { TelegramJobInterface, TelegramAdminJobInterface } from '@microservices/sender/types/telegram-job.interface';
+
+type JobInterface = TelegramJobInterface & TelegramAdminJobInterface & SmsCodeParameterInterface & SmsPasswordParameterInterface;
+
+interface WorkerConfigInterface {
+  queue: BullMQQueuesEnum;
+  processor: (job: Job<JobInterface, any, string>) => Promise<void>;
+  name: string;
+}
 
 export class BullMQWorker {
-  private TAG = 'BillMQWorker';
+  private TAG = 'BulMQWorker';
 
   private readonly loggerService = Container.get(LoggerService);
 
@@ -17,119 +25,98 @@ export class BullMQWorker {
 
   private readonly smsService = Container.get(SmsService);
 
-  private smsCodeWorker: Worker;
-
-  private smsPasswordWorker: Worker;
-
-  private telegramWorker: Worker;
+  private workers: Map<BullMQQueuesEnum, Worker> = new Map();
 
   public init = () => {
     const options = { connection: redisConfig, concurrency: 1 };
 
-    this.smsCodeWorker = new Worker(BullMQQueuesEnum.SMS_CODE_QUEUE, this.processSMSCodeJob, options);
-    this.smsPasswordWorker = new Worker(BullMQQueuesEnum.SMS_PASSWORD_QUEUE, this.processSMSPasswordJob, options);
-    this.telegramWorker = new Worker(BullMQQueuesEnum.TELEGRAM_QUEUE, this.processTelegramJob, options);
+    const workerConfigs: WorkerConfigInterface[] = [
+      { queue: BullMQQueuesEnum.SMS_CODE_QUEUE, processor: this.processSMSCodeJob, name: 'SMS code' },
+      { queue: BullMQQueuesEnum.SMS_PASSWORD_QUEUE, processor: this.processSMSPasswordJob, name: 'SMS password' },
+      { queue: BullMQQueuesEnum.TELEGRAM_QUEUE, processor: this.processTelegramJob, name: 'Telegram' },
+      { queue: BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE, processor: this.processTelegramAdminJob, name: 'Telegram admin' },
+    ];
 
-    this.setupEventHandlers();
+    workerConfigs.forEach((config) => {
+      const worker = new Worker(config.queue, config.processor, options);
+      this.workers.set(config.queue, worker);
+      this.setupEventHandlers(worker, config.name);
+    });
   };
 
   public close = async () => {
     this.loggerService.info(this.TAG, 'Завершение работы воркеров...');
     
-    await this.smsCodeWorker.close();
-    await this.smsPasswordWorker.close();
-    await this.telegramWorker.close();
+    await Promise.all([...this.workers.values()].map(worker => worker.close()));
     
     this.loggerService.info(this.TAG, 'Все воркеры остановлены');
   };
 
-  private processSMSCodeJob = async (job: Job<SmsParameterInterface>) => {
+  private processSMSCodeJob = async (job: Job<SmsCodeParameterInterface>) => this.processSMSJob(job, 'sendCode');
+
+  private processSMSPasswordJob = async (job: Job<SmsPasswordParameterInterface>) => this.processSMSJob(job, 'sendPass');
+
+  private processSMSJob = async (job: Job<SmsCodeParameterInterface | SmsPasswordParameterInterface>, method: 'sendCode' | 'sendPass') => {
     try {
-      this.loggerService.info(this.TAG, `Обработка SMS задачи ${job.id}`, job.data);
+      this.loggerService.info(this.TAG, `Обработка SMS задачи #${job.id}`, job.data);
 
       const { phone, lang } = job.data;
 
-      const result = await this.smsService.sendCode(phone, lang);
-
-      this.loggerService.info(this.TAG, `SMS отправлено успешно: ${job.id}`);
-      return result;
-      
+      if (method === 'sendCode') {
+        const { code } = job.data as SmsCodeParameterInterface;
+        await this.smsService.sendCode(phone, code, lang);
+      } else {
+        const { password } = job.data as SmsPasswordParameterInterface;
+        await this.smsService.sendPass(phone, password, lang);
+      }
     } catch (error) {
-      this.loggerService.error(this.TAG, `Ошибка при обработке SMS задачи ${job.id}:`, error);
-      throw error;
-    }
-  };
-
-  private processSMSPasswordJob = async (job: Job<SmsParameterInterface>) => {
-    try {
-      this.loggerService.info(this.TAG, `Обработка SMS задачи ${job.id}`, job.data);
-
-      const { phone, lang } = job.data;
-
-      const result = await this.smsService.sendPass(phone, lang);
-
-      this.loggerService.info(this.TAG, `SMS отправлено успешно: ${job.id}`);
-      return result;
-      
-    } catch (error) {
-      this.loggerService.error(this.TAG, `Ошибка при обработке SMS задачи ${job.id}:`, error);
+      this.loggerService.error(this.TAG, `Ошибка при обработке SMS задачи #${job.id}:`, error);
       throw error;
     }
   };
 
   private processTelegramJob = async (job: Job<TelegramJobInterface>) => {
     try {
-      this.loggerService.info(`Обработка Telegram задачи ${job.id}`, job.data);
+      this.loggerService.info(`Обработка Telegram задачи #${job.id}`, job.data);
 
-      const { message, telegramId, images, options } = job.data;
+      const { message, telegramId, images, options, item } = job.data;
 
-      const result = images
-        ? await this.telegramService.sendMessageWithPhotos(message, images, telegramId, options)
-        : await this.telegramService.sendMessage(message, telegramId, options);
-
-      this.loggerService.info(this.TAG, `Telegram сообщение отправлено успешно: ${job.id}`);
-      return result;
+      if (images) {
+        await this.telegramService.sendMessageWithPhotos(message, images, telegramId, item, options);
+      } else {
+        await this.telegramService.sendMessage(message, telegramId, options);
+      }
+      this.loggerService.info(this.TAG, `Telegram сообщение отправлено успешно: #${job.id}`);
     } catch (error) {
-      this.loggerService.error(this.TAG, `Ошибка при обработке Telegram задачи ${job.id}:`, error);
+      this.loggerService.error(this.TAG, `Ошибка при обработке Telegram задачи #${job.id}:`, error);
       throw error;
     }
   };
 
-  private setupEventHandlers = () => {
-    this.smsCodeWorker.on('completed', (job: Job) => {
-      this.loggerService.info(this.TAG, `SMS задача ${job.id} завершена`);
-    });
+  private processTelegramAdminJob = async (job: Job<TelegramAdminJobInterface>) => {
+    try {
+      this.loggerService.info(`Обработка Telegram задачи #${job.id}`, job.data);
 
-    this.smsCodeWorker.on('failed', (job: Job | undefined, error: Error) => {
-      this.loggerService.error(this.TAG, `SMS задача ${job?.id} завершилась ошибкой:`, error);
-    });
+      const { messageRu, messageEn, options } = job.data;
 
-    this.smsCodeWorker.on('error', (error: Error) => {
-      this.loggerService.error(this.TAG, 'Ошибка в SMS code worker:', error);
-    });
+      await this.telegramService.sendAdminMessages(messageRu, messageEn, options);
 
-    this.smsPasswordWorker.on('completed', (job: Job) => {
-      this.loggerService.info(this.TAG, `SMS задача ${job.id} завершена`);
-    });
+      this.loggerService.info(this.TAG, `Telegram сообщение отправлено успешно: #${job.id}`);
+    } catch (error) {
+      this.loggerService.error(this.TAG, `Ошибка при обработке Telegram задачи #${job.id}:`, error);
+      throw error;
+    }
+  };
 
-    this.smsPasswordWorker.on('failed', (job: Job | undefined, error: Error) => {
-      this.loggerService.error(this.TAG, `SMS задача ${job?.id} завершилась ошибкой:`, error);
+  private setupEventHandlers = (worker: Worker, workerName: string) => {
+    worker.on('completed', (job: Job) => {
+      this.loggerService.info(this.TAG, `${workerName} задача #${job.id} завершена`);
     });
-
-    this.smsPasswordWorker.on('error', (error: Error) => {
-      this.loggerService.error(this.TAG, 'Ошибка в SMS password worker:', error);
+    worker.on('failed', (job: Job | undefined, error: Error) => {
+      this.loggerService.error(this.TAG, `${workerName} задача #${job?.id} завершилась ошибкой:`, error);
     });
-
-    this.telegramWorker.on('completed', (job: Job) => {
-      this.loggerService.info(this.TAG, `Telegram задача ${job.id} завершена`);
-    });
-
-    this.telegramWorker.on('failed', (job: Job | undefined, error: Error) => {
-      this.loggerService.error(this.TAG, `Telegram задача ${job?.id} завершилась ошибкой:`, error);
-    });
-
-    this.telegramWorker.on('error', (error: Error) => {
-      this.loggerService.error(this.TAG, 'Ошибка в Telegram worker:', error);
+    worker.on('error', (error: Error) => {
+      this.loggerService.error(this.TAG, `Ошибка в ${workerName} worker:`, error);
     });
   };
 }

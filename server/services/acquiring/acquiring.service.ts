@@ -8,11 +8,10 @@ import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction
 import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.error.translate';
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
-import { TelegramService } from '@server/services/integration/telegram.service';
+import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { getDiscountPercent, getOrderPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
-import { UserEntity } from '@server/db/entities/user.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
@@ -35,8 +34,7 @@ type Data = {
 };
 
 export class AcquiringService extends BaseService {
-
-  private readonly telegramService = Container.get(TelegramService);
+  private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private readonly TAG = 'AcquiringService';
 
@@ -47,23 +45,11 @@ export class AcquiringService extends BaseService {
       const transaction = await AcquiringTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional', 'order.delivery', 'order.positions'] });
 
       if (!transaction) {
-        if (payment.status === 'succeeded' && (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2)) {
-          Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
-            const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
-        
-            if (!adminUser) {
-              return;
-            }
-        
-            const adminText = adminUser.lang === UserLangEnum.RU
-              ? `‼️Поступила оплата на сумму: <b>${payment.amount.value} ₽</b>‼️`
-              : `‼️Payment received in the amount of: <b>${payment.amount.value} ₽</b>‼️`;
-        
-            return this.telegramService.sendMessage(adminText, tgId as string);
-          }))
-            .catch((error) => {
-              this.loggerService.error(this.TAG, 'Ошибка отправки в Telegram:', error);
-            });
+        if (payment.status === 'succeeded') {
+          this.bullMQQueuesService.sendTelegramAdminMessage({
+            messageRu: `‼️Поступила оплата на сумму: <b>${payment.amount.value} ₽</b>‼️`,
+            messageEn: `‼️Payment received in the amount of: <b>${payment.amount.value} ₽</b>‼️`,
+          });
         }
 
         return;
@@ -261,54 +247,41 @@ export class AcquiringService extends BaseService {
       await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
 
       if (order.user.telegramId) {
-        this.telegramService.sendMessage(order.user.lang === UserLangEnum.RU
+        const message = order.user.lang === UserLangEnum.RU
           ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> на <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`
-          : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> to <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`, order.user.telegramId)
-          .catch((error) => {
-            this.loggerService.error(this.TAG, 'Ошибка отправки в Telegram:', error);
-          });
+          : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> to <b>${getOrderStatusTranslate(OrderStatusEnum.NEW, order.user.lang)}</b>.`;
+
+        this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: order.user.telegramId });
       }
 
-      if (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID2) {
-        Promise.all([process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean).map(async (tgId) => {
-          const adminUser = await UserEntity.findOne({ select: ['id', 'lang'], where: { telegramId: tgId } });
-        
-          if (!adminUser) {
-            return;
-          }
+      const deliveryRu = getDeliveryTypeTranslate(order.delivery.type, UserLangEnum.RU);
+      const deliveryEn = getDeliveryTypeTranslate(order.delivery.type, UserLangEnum.EN);
 
-          const delivery = getDeliveryTypeTranslate(order.delivery.type, adminUser.lang);
-        
-          const adminText = adminUser.lang === UserLangEnum.RU
-            ? [
-              `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
-              '',
-              `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
-              `Способ доставки: <b>${delivery}</b>`,
-              `Адрес доставки: <b>${order.delivery.address}</b>`,
-              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, adminUser.lang)}</b>`] : []),
-              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
-              '',
-              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
-            ]
-            : [
-              `‼️Paid order <b>№${order.id}</b>‼️`,
-              '',
-              `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
-              `Delivery method: <b>${delivery}</b>`,
-              `Delivery address: <b>${order.delivery.address}</b>`,
-              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, adminUser.lang)}</b>`] : []),
-              ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Pickup index: <b>${order.delivery.index}</b>`] : []),
-              '',
-              `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
-            ];
-        
-          return this.telegramService.sendMessage(adminText, tgId as string);
-        }))
-          .catch((error) => {
-            this.loggerService.error(this.TAG, 'Ошибка отправки в Telegram:', error);
-          });
-      }
+      const messageRu = [
+        `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
+        '',
+        `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        `Способ доставки: <b>${deliveryRu}</b>`,
+        `Адрес доставки: <b>${order.delivery.address}</b>`,
+        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, UserLangEnum.RU)}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
+        '',
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
+      ];
+
+      const messageEn = [
+        `‼️Paid order <b>№${order.id}</b>‼️`,
+        '',
+        `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        `Delivery method: <b>${deliveryEn}</b>`,
+        `Delivery address: <b>${order.delivery.address}</b>`,
+        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, UserLangEnum.EN)}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Pickup index: <b>${order.delivery.index}</b>`] : []),
+        '',
+        `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
+      ];
+
+      this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);
     }
