@@ -258,7 +258,7 @@ const Index = () => {
                 renderArrowsWhenDisabled={false}
                 renderButtonGroupOutside={false}
                 renderDotsOutside={false}
-                partialVisbile={true}
+                partialVisible={true}
                 responsive={responsive}
                 rewind={false}
                 rewindWithAnimation={false}

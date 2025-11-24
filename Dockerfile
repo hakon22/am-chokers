@@ -46,17 +46,19 @@ ENV NEXT_PUBLIC_INN=$NEXT_PUBLIC_INN
 ENV NEXT_PUBLIC_PROMO=$NEXT_PUBLIC_PROMO
 
 RUN npm run build
+RUN npx tsc && npx tsc-alias --resolve-full-paths
 
 # Финальный образ
 FROM node:22-alpine AS app
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/cron ./cron
-COPY --from=builder /app/server ./server
-COPY --from=builder /app/microservices/sender ./microservices/sender
-COPY --from=builder /app/src ./src
+COPY --from=builder /app/dist/cron ./cron
+COPY --from=builder /app/dist/server ./server
+COPY --from=builder /app/dist/microservices/sender ./microservices/sender
+COPY --from=builder /app/dist/src ./src
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/tsconfig.json ./
+COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 EXPOSE 3010

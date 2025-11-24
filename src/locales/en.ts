@@ -855,6 +855,7 @@ export default {
         planned: 'Planned {{ date }}',
         collection: '{{ name }}',
         otherItem: 'Other items in this collection',
+        notice: 'All jewelry is handcrafted, so the final product may differ slightly from the one in the photo',
         grades: {
           gradeCount_zero: 'No reviews',
           gradeCount_one: '{{ count }} review',

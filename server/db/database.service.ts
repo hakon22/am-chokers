@@ -17,7 +17,7 @@ const {
   NODE_ENV,
 } = process.env;
 
-const host = NODE_ENV === 'production' || !IS_DOCKER ? 'localhost' : 'host.docker.internal';
+const host = (NODE_ENV === 'production' && DB !== 'LOCAL') || !IS_DOCKER ? 'localhost' : 'host.docker.internal';
 
 export const redisConfig = {
   host,
@@ -37,7 +37,7 @@ export const databaseConfig = new DataSource({
   logging: true,
   entities,
   subscribers: [],
-  migrations: ['server/db/migrations/*.ts'],
+  migrations: [`server/db/migrations/*.${NODE_ENV === 'production' ? 'js' : 'ts'}`],
 });
 
 @Singleton

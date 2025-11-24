@@ -1,6 +1,9 @@
 services:
   server:
-    image: amchokers:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: amchokers-dev:latest
     env_file: .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -9,14 +12,14 @@ services:
     volumes:
       - "C:/srv/logs:/srv/logs"
       - "C:/Program Files/Git/am-chokers/public:/app/public"
-    command: start:server:dev
+    command: start:server:docker:dev
 
   sender:
-    image: amchokers:latest
+    image: amchokers-dev:latest
     env_file: .env
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - "C:/srv/logs:/srv/logs"
       - "C:/Program Files/Git/am-chokers/public:/app/public"
-    command: start:sender:dev
+    command: start:sender:docker:dev
