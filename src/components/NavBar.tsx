@@ -16,6 +16,7 @@ import { onFocus } from '@/utilities/onFocus';
 import { SearchContext, MobileContext, NavbarContext, SubmitContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { changeLang } from '@/slices/userSlice';
+import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 type NavigationKeys = {
   key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home' | 'lang';
@@ -30,7 +31,7 @@ interface MobileNavBarInterface {
   items: MenuItem[];
 }
 
-const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; isOpen: boolean; }) =>  href
+const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; isOpen: boolean; }) => href
   ? (
     <Link href={href} className="d-flex align-items-center gap-2">
       <span>{label}</span>
@@ -127,7 +128,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
   );
 };
 
-export const NavBar = () => {
+export const NavBar = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const router = useRouter();
@@ -143,12 +144,10 @@ export const NavBar = () => {
 
   const searchParams = urlParams.get('search');
 
-  const { itemGroups } = useAppSelector((state) => state.app);
-  const { token, lang } = useAppSelector((state) => state.user);
+  const { token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>(isMobile ? '' : '108px');
-  const [isLoaded, setIsLoaded] = useState(false);
   const [search, setSearch] = useState<string | null>('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -274,81 +273,76 @@ export const NavBar = () => {
     setSearch(searchParams);
   }, [searchParams]);
 
-  useEffect(() => {
-    setTimeout(setIsLoaded, 1000, true);
-  }, []);
-
   return (
     <nav className="nav" {...(navHeight ? { style: { height: navHeight } } : {})}>
-      {isLoaded 
-        ? isMobile
-          ? (
-            <>
-              <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
-              {isSearch?.value
-                ? (
-                  <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">
-                    <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
-                    <AutoComplete
-                      ref={searchRef}
-                      className="custom-placeholder w-100"
-                      style={{ height: 'auto' }}
-                      value={search}
-                      onChange={setSearch}
-                      onInputKeyDown={onKeyboardSearch}
-                    >
-                      <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
-                    </AutoComplete>
-                  </div>
-                ) : null}
-            </>
-          )
-          : (
-            <>
-              <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
-                {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
-              </Radio.Group>
-              <div className="nav-logo-container" data-aos="fade-down">
-                <Link href={routes.page.base.homePage}>
-                  <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
-                </Link>
-              </div>
-              {isSearch?.value
-                ? (
-                  <div className="d-flex justify-content-center align-items-center animate__animated animate__fadeInDown gap-3" style={{ width: '60%' }}>
-                    <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
-                    <AutoComplete
-                      ref={searchRef}
-                      className="custom-placeholder"
-                      style={{ width: '80%', height: 'auto' }}
-                      value={search}
-                      onChange={setSearch}
-                      onInputKeyDown={onKeyboardSearch}
-                    >
-                      <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
-                    </AutoComplete>
-                  </div>
-                )
-                : (
-                  <div className="nav-menu">
-                    <Menu
-                      data-aos="fade-down"
-                      items={items}
-                      selectedKeys={[router.asPath.split('/')[1]]}
-                      rootClassName="bg-transparent"
-                      mode="horizontal"
-                      style={{
-                        zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
-                      }}
-                      onMouseLeave={() => setSubmenu(undefined)}
-                      subMenuCloseDelay={0.0000000001}
-                      subMenuOpenDelay={0.3}
-                    />
-                  </div>
-                )}
-              <NavBarIcons searchClick={searchClick} />
-            </>
-          ) : null}
+      {isMobile
+        ? (
+          <>
+            <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
+            {isSearch?.value
+              ? (
+                <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">
+                  <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
+                  <AutoComplete
+                    ref={searchRef}
+                    className="custom-placeholder w-100"
+                    style={{ height: 'auto' }}
+                    value={search}
+                    onChange={setSearch}
+                    onInputKeyDown={onKeyboardSearch}
+                  >
+                    <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
+                  </AutoComplete>
+                </div>
+              ) : null}
+          </>
+        )
+        : (
+          <>
+            <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
+              {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
+            </Radio.Group>
+            <div className="nav-logo-container" data-aos="fade-down">
+              <Link href={routes.page.base.homePage}>
+                <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
+              </Link>
+            </div>
+            {isSearch?.value
+              ? (
+                <div className="d-flex justify-content-center align-items-center animate__animated animate__fadeInDown gap-3" style={{ width: '60%' }}>
+                  <CloseOutlined onClick={() => setIsSearch({ value: false, needFetch: false })} />
+                  <AutoComplete
+                    ref={searchRef}
+                    className="custom-placeholder"
+                    style={{ width: '80%', height: 'auto' }}
+                    value={search}
+                    onChange={setSearch}
+                    onInputKeyDown={onKeyboardSearch}
+                  >
+                    <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
+                  </AutoComplete>
+                </div>
+              )
+              : (
+                <div className="nav-menu">
+                  <Menu
+                    data-aos="fade-down"
+                    items={items}
+                    selectedKeys={[router.asPath.split('/')[1]]}
+                    rootClassName="bg-transparent"
+                    mode="horizontal"
+                    style={{
+                      zIndex: 2, display: 'flex', justifyContent: 'center', height: 'min-content',
+                    }}
+                    onMouseLeave={() => setSubmenu(undefined)}
+                    subMenuCloseDelay={0.0000000001}
+                    subMenuOpenDelay={0.3}
+                  />
+                </div>
+              )}
+            <NavBarIcons searchClick={searchClick} />
+          </>
+        )}
     </nav>
   );
 };

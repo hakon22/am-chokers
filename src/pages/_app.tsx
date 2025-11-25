@@ -32,7 +32,6 @@ import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
 import type { ItemGroupInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
-import type { ImageEntity } from '@server/db/entities/image.entity';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
@@ -47,7 +46,7 @@ interface InitPropsInterface extends AppProps, AppDataInterface {
 }
 
 const Init = (props: InitPropsInterface) => {
-  const { pageProps, Component, isMobile: isMobileProps, itemGroups, specialItems, coverImages } = props;
+  const { pageProps, Component, isMobile: isMobileProps, itemGroups } = props;
   const { dispatch } = store;
 
   const { id, refreshToken } = store.getState().user;
@@ -84,7 +83,7 @@ const Init = (props: InitPropsInterface) => {
 
   useEffect(() => {
     AOS.init();
-    dispatch(setAppData({ itemGroups, specialItems, coverImages }));
+    dispatch(setAppData({ itemGroups }));
   }, []);
 
   return (
@@ -102,7 +101,7 @@ const Init = (props: InitPropsInterface) => {
                       <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
                       <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
                     </Head>
-                    {process.env.NODE_ENV === 'production'
+                    {process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL'
                       ? (
                         <>
                           <Script 
@@ -187,7 +186,7 @@ const Init = (props: InitPropsInterface) => {
                       </>
                     </CookieConsent>
                     <Promotional />
-                    <App>
+                    <App itemGroups={itemGroups}>
                       <Component {...pageProps} />
                     </App>
                   </Provider>
@@ -202,11 +201,7 @@ const Init = (props: InitPropsInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
-  const [{ data: { itemGroups } }, { data: { specialItems } }, { data: { coverImages } }] = await Promise.all([
-    axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.findMany({ isServer: false })),
-    axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
-    axios.get<{ coverImages: ImageEntity[]; }>(routes.storage.image.getCoverImages({ isServer: false })),
-  ]);
+  const { data: { itemGroups } } = await axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.findMany({ isServer: false }));
 
   const { req } = context.ctx;
   const userAgent = req ? req.headers['user-agent'] : navigator.userAgent;
@@ -214,7 +209,7 @@ Init.getInitialProps = async (context: AppContext) => {
 
   const props = await AppNext.getInitialProps(context);
 
-  return { ...props, isMobile, itemGroups, specialItems, coverImages };
+  return { ...props, isMobile, itemGroups };
 };
 
 export default Init;

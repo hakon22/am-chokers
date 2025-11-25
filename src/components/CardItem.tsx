@@ -933,10 +933,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
           <h4 className="col-11 mb-5 text-uppercase">{t('otherItem')}</h4>
           <Carousel
             autoPlaySpeed={2000}
-            centerMode={false}
             containerClass="col-12 col-xl-11"
-            draggable={false}
-            focusOnSelect={false}
+            focusOnSelect={true}
             infinite
             arrows={true}
             minimumTouchDrag={80}
@@ -945,14 +943,13 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             renderDotsOutside={false}
             partialVisible={true}
             responsive={responsive}
-            rewind={false}
-            rewindWithAnimation={false}
-            rtl={false}
             shouldResetAutoplay
             showDots={false}
             slidesToSlide={1}
-            swipeable
-            ssr
+            ssr={true}
+            swipeable={false}
+            draggable={false}
+            deviceType={isMobile ? 'mobile' : 'desktop'}
             autoPlay
           >
             {collectionItems.map((collectionItem) => (

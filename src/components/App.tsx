@@ -17,8 +17,9 @@ import { Spinner } from '@/components/Spinner';
 import { routes } from '@/routes';
 import { useAccessHandler } from '@/utilities/useAccessHandler';
 import { useRouterHandler } from '@/utilities/useRouterHandler';
+import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
-export const App = ({ children }: { children: JSX.Element }) => {
+export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
   const router = useRouter();
 
@@ -64,7 +65,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
     <>
       {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
       <header>
-        <NavBar />
+        <NavBar itemGroups={itemGroups} />
         {isMobile ? null : <Breadcrumb />}
       </header>
       <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: footerHeight }}>
@@ -74,7 +75,7 @@ export const App = ({ children }: { children: JSX.Element }) => {
         </main>
       </div>
       <footer ref={footerRef} className="footer">
-        <Footer />
+        <Footer itemGroups={itemGroups} />
       </footer>
     </>
   );

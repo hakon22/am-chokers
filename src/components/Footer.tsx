@@ -7,11 +7,11 @@ import instagramIcon from '@/images/icons/instagram.svg';
 import { catalogPath, routes } from '@/routes';
 import { useAppSelector } from '@/utilities/hooks';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
-export const Footer = () => {
+export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
 
-  const { itemGroups } = useAppSelector((state) => state.app);
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   return (
@@ -21,9 +21,9 @@ export const Footer = () => {
           <h6 className="mb-4">
             <Link href={routes.page.base.catalog}>{t('jewelryCatalog')}</Link>
           </h6>
-          <ul>
-            {[...itemGroups].sort((a, b) => a.order - b.order).map((itemGroup) => <li key={itemGroup.id}><Link href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link></li>)}
-          </ul>
+          <nav>
+            {[...itemGroups].sort((a, b) => a.order - b.order).map((itemGroup) => <Link key={itemGroup.id} href={`${catalogPath}/${itemGroup.code}`}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>)}
+          </nav>
         </div>
         <div className="col-12 col-xl-8">
           <h6 className="mb-4">

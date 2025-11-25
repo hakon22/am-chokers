@@ -347,10 +347,16 @@ const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    setAppData: (state, { payload }: PayloadAction<AppDataInterface>) => {
-      state.itemGroups = payload.itemGroups;
-      state.specialItems = payload.specialItems;
-      state.coverImages = payload.coverImages;
+    setAppData: (state, { payload }: PayloadAction<Partial<AppDataInterface>>) => {
+      if (payload.itemGroups) {
+        state.itemGroups = payload.itemGroups;
+      }
+      if (payload.specialItems) {
+        state.specialItems = payload.specialItems;
+      }
+      if (payload.coverImages) {
+        state.coverImages = payload.coverImages;
+      }
     },
     addSpecialItem: (state, { payload }: PayloadAction<ItemInterface>) => {
       state.specialItems = [...state.specialItems, payload];

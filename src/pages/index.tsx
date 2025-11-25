@@ -1,38 +1,35 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState, useContext, type WheelEvent, useMemo } from 'react';
+import { useEffect, useRef, useState, useContext, type WheelEvent } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import cn from 'classnames';
+import axios from 'axios';
+import type { InferGetServerSidePropsType } from 'next';
 
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
 import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import type { ItemInterface } from '@/types/item/Item';
+import { setAppData } from '@/slices/appSlice';
+import type { ItemInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 
-const Index = () => {
-  const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
-  const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+export const getServerSideProps = async () => {
+  const [{ data: { specialItems } }, { data: { coverImages } }] = await Promise.all([
+    axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
+    axios.get<{ coverImages: ImageEntity[]; }>(routes.storage.image.getCoverImages({ isServer: false })),
+  ]);
 
-  const { isMobile } = useContext(MobileContext);
-
-  const { specialItems, coverImages } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
-
-  const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
-  const [autoPlay, setAutoPlay] = useState(false);
-
-  const { bestsellers, collections, news } = useMemo(() => specialItems.reduce((acc, item) => {
+  const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
     if (item.new) {
       acc.news.push(item);
     }
@@ -43,9 +40,9 @@ const Index = () => {
       acc.collections.push(item);
     }
     return acc;
-  }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; }), [specialItems]);
-
-  const { bestseller1, bestseller2, bestseller3 } = useMemo(() => bestsellers.reduce((acc, item) => {
+  }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
+    
+  const preparedBestsellers = bestsellers.reduce((acc, item) => {
     if (!item.deleted) {
       switch (item.order) {
       case 1:
@@ -60,9 +57,9 @@ const Index = () => {
       }
     }
     return acc;
-  }, { bestseller1: undefined, bestseller2: undefined, bestseller3: undefined } as { bestseller1?: ItemInterface; bestseller2?: ItemInterface; bestseller3?: ItemInterface; }), [bestsellers]);
-
-  const { collection1, collection2, collection3, collection4, collection5 } = useMemo(() => collections.reduce((acc, item) => {
+  }, { bestseller1: undefined, bestseller2: undefined, bestseller3: undefined } as GeneralPageBestsellerInterface);
+    
+  const preparedCollections = collections.reduce((acc, item) => {
     if (!item.deleted) {
       switch (item.order) {
       case 4:
@@ -83,9 +80,9 @@ const Index = () => {
       }
     }
     return acc;
-  }, { collection1: undefined, collection2: undefined, collection3: undefined, collection4: undefined, collection5: undefined } as { collection1?: ItemInterface; collection2?: ItemInterface; collection3?: ItemInterface; collection4?: ItemInterface; collection5?: ItemInterface; }), [collections]);
-
-  const { coverImage1, coverImage2, coverImage3, coverImage4, coverImage5, coverImage6, coverCollectionImage9, coverCollectionImage10, coverCollectionImage11, coverCollectionImage12, coverCollectionImage13 } = useMemo(() => coverImages.reduce((acc, image) => {
+  }, { collection1: undefined, collection2: undefined, collection3: undefined, collection4: undefined, collection5: undefined } as GeneralPageCollectionInterface);
+    
+  const preparedCoverImages = coverImages.reduce((acc, image) => {
     switch (image.coverOrder) {
     case 1:
       acc.coverImage1 = image;
@@ -134,19 +131,32 @@ const Index = () => {
     coverCollectionImage11: undefined,
     coverCollectionImage12: undefined,
     coverCollectionImage13: undefined,
-  } as {
-    coverImage1?: ImageEntity;
-    coverImage2?: ImageEntity;
-    coverImage3?: ImageEntity;
-    coverImage4?: ImageEntity;
-    coverImage5?: ImageEntity;
-    coverImage6?: ImageEntity;
-    coverCollectionImage9?: ImageEntity;
-    coverCollectionImage10?: ImageEntity;
-    coverCollectionImage11?: ImageEntity;
-    coverCollectionImage12?: ImageEntity;
-    coverCollectionImage13?: ImageEntity;
-  }), [coverImages]);
+  } as GeneralPageCoverImageInterface);
+
+  return {
+    props: {
+      news,
+      preparedBestsellers,
+      preparedCollections,
+      preparedCoverImages,
+      specialItems,
+      coverImages,
+    },
+  };
+};
+
+const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
+  const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+
+  const dispatch = useAppDispatch();
+
+  const { isMobile } = useContext(MobileContext);
+
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+
+  const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
+  const [autoPlay, setAutoPlay] = useState(false);
 
   const coefficient = 1.3;
 
@@ -200,6 +210,8 @@ const Index = () => {
   }, 1000);
 
   useEffect(() => {
+    dispatch(setAppData({ coverImages, specialItems }));
+
     setTimeout(setAutoPlay, 2000, true);
 
     const handleResize = () => {
@@ -247,11 +259,8 @@ const Index = () => {
               </div>
               <Carousel
                 autoPlaySpeed={2000}
-                centerMode={false}
                 containerClass="col-12 index-block-container-carousel"
-                draggable={false}
-                focusOnSelect={false}
-                infinite
+                focusOnSelect={true}
                 ref={carouselRef}
                 arrows={isMobile}
                 minimumTouchDrag={80}
@@ -260,14 +269,14 @@ const Index = () => {
                 renderDotsOutside={false}
                 partialVisible={true}
                 responsive={responsive}
-                rewind={false}
-                rewindWithAnimation={false}
-                rtl={false}
                 shouldResetAutoplay
                 showDots={false}
                 slidesToSlide={1}
-                swipeable
-                ssr
+                infinite
+                ssr={true}
+                swipeable={false}
+                draggable={false}
+                deviceType={isMobile ? 'mobile' : 'desktop'}
                 autoPlay={autoPlay}
               >
                 {news.map((item) => (
@@ -296,43 +305,43 @@ const Index = () => {
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between gap-4 gap-xl-0">
               <div className="d-flex flex-column col-12 col-xl-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
-                <ContextMenu item={bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
+                <ContextMenu item={preparedBestsellers?.bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
                   <ImageHover
                     height={height}
                     width={width}
-                    href={getHref(bestseller1)}
-                    images={bestseller1?.images ?? []}
-                    name={bestseller1?.translations.find((translation) => translation.lang === lang)?.name}
-                    rating={bestseller1 ? { rating: bestseller1.rating, grades: bestseller1.grades } : undefined}
-                    description={tPrice('price', { price: bestseller1 ? bestseller1.price - bestseller1?.discountPrice : 0 })}
+                    href={getHref(preparedBestsellers?.bestseller1)}
+                    images={preparedBestsellers?.bestseller1?.images ?? []}
+                    name={preparedBestsellers?.bestseller1?.translations.find((translation) => translation.lang === lang)?.name}
+                    rating={preparedBestsellers?.bestseller1 ? { rating: preparedBestsellers?.bestseller1.rating, grades: preparedBestsellers?.bestseller1.grades } : undefined}
+                    description={tPrice('price', { price: preparedBestsellers?.bestseller1 ? preparedBestsellers?.bestseller1.price - preparedBestsellers?.bestseller1?.discountPrice : 0 })}
                   />
                 </ContextMenu>
-                <ContextMenu item={bestseller2} order={2} className="col-12 col-xl-6 d-flex align-self-end">
+                <ContextMenu item={preparedBestsellers?.bestseller2} order={2} className="col-12 col-xl-6 d-flex align-self-end">
                   <ImageHover
                     className="w-100"
-                    href={getHref(bestseller2)}
+                    href={getHref(preparedBestsellers?.bestseller2)}
                     style={{ alignSelf: 'end' }}
                     height={height}
                     width={width}
-                    images={bestseller2?.images ?? []}
-                    name={bestseller2?.translations.find((translation) => translation.lang === lang)?.name}
-                    rating={bestseller2 ? { rating: bestseller2.rating, grades: bestseller2.grades } : undefined}
-                    description={tPrice('price', { price: bestseller2 ? bestseller2.price - bestseller2.discountPrice : 0 })}
+                    images={preparedBestsellers?.bestseller2?.images ?? []}
+                    name={preparedBestsellers?.bestseller2?.translations.find((translation) => translation.lang === lang)?.name}
+                    rating={preparedBestsellers?.bestseller2 ? { rating: preparedBestsellers?.bestseller2.rating, grades: preparedBestsellers?.bestseller2.grades } : undefined}
+                    description={tPrice('price', { price: preparedBestsellers?.bestseller2 ? preparedBestsellers?.bestseller2.price - preparedBestsellers?.bestseller2.discountPrice : 0 })}
                   />
                 </ContextMenu>
               </div>
               <div className="col-0 col-xl-1 col-xxl-2" />
               <div className="d-flex">
-                <ContextMenu item={bestseller3} order={3} className="w-100">
+                <ContextMenu item={preparedBestsellers?.bestseller3} order={3} className="w-100">
                   <ImageHover
                     style={{ alignSelf: 'center' }}
-                    href={getHref(bestseller3)}
+                    href={getHref(preparedBestsellers?.bestseller3)}
                     width={isMobile ? 300 : 551}
                     height={(isMobile ? 300 : 551) * coefficient}
-                    images={bestseller3?.images ?? []}
-                    name={bestseller3?.translations.find((translation) => translation.lang === lang)?.name}
-                    rating={bestseller3 ? { rating: bestseller3.rating, grades: bestseller3.grades } : undefined}
-                    description={tPrice('price', { price: bestseller3 ? bestseller3.price - bestseller3.discountPrice : 0 })}
+                    images={preparedBestsellers?.bestseller3?.images ?? []}
+                    name={preparedBestsellers?.bestseller3?.translations.find((translation) => translation.lang === lang)?.name}
+                    rating={preparedBestsellers?.bestseller3 ? { rating: preparedBestsellers?.bestseller3.rating, grades: preparedBestsellers?.bestseller3.grades } : undefined}
+                    description={tPrice('price', { price: preparedBestsellers?.bestseller3 ? preparedBestsellers?.bestseller3.price - preparedBestsellers?.bestseller3.discountPrice : 0 })}
                   />
                 </ContextMenu>
               </div>
@@ -374,215 +383,215 @@ const Index = () => {
             </div>}
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={collection5} order={8} data-aos="fade-right" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection5} order={8} data-aos="fade-right" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
                       style={{ alignSelf: isMobile ? 'center' : 'start' }}
-                      href={getHref(collection5)}
+                      href={getHref(preparedCollections?.collection5)}
                       height={height}
                       width={width}
-                      images={collection5?.images ?? []}
-                      name={collection5?.translations.find((translation) => translation.lang === lang)?.name}
-                      rating={collection5 ? { rating: collection5.rating, grades: collection5.grades } : undefined}
-                      description={tPrice('price', { price: collection5 ? collection5.price - collection5.discountPrice : 0 })}
+                      images={preparedCollections?.collection5?.images ?? []}
+                      name={preparedCollections?.collection5?.translations.find((translation) => translation.lang === lang)?.name}
+                      rating={preparedCollections?.collection5 ? { rating: preparedCollections?.collection5.rating, grades: preparedCollections?.collection5.grades } : undefined}
+                      description={tPrice('price', { price: preparedCollections?.collection5 ? preparedCollections?.collection5.price - preparedCollections?.collection5.discountPrice : 0 })}
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={coverCollectionImage13} cover={13} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage13} cover={13} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={(coverCollectionImage13 ? [coverCollectionImage13] : [])}
+                    images={preparedCoverImages?.coverCollectionImage13 ? [preparedCoverImages?.coverCollectionImage13] : []}
                   />
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection5 ? `${routes.page.base.catalog}?collectionIds=${collection5?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{collection5?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={preparedCollections?.collection5 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection5?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{preparedCollections?.collection5?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
                       style={{ alignSelf: isMobile ? 'center' : 'start' }}
-                      href={getHref(collection1)}
+                      href={getHref(preparedCollections?.collection1)}
                       height={height}
                       width={width}
-                      images={collection1?.images ?? []}
-                      name={collection1?.translations.find((translation) => translation.lang === lang)?.name}
-                      rating={collection1 ? { rating: collection1.rating, grades: collection1.grades } : undefined}
-                      description={tPrice('price', { price: collection1 ? collection1.price - collection1.discountPrice : 0 })}
+                      images={preparedCollections?.collection1?.images ?? []}
+                      name={preparedCollections?.collection1?.translations.find((translation) => translation.lang === lang)?.name}
+                      rating={preparedCollections?.collection1 ? { rating: preparedCollections?.collection1.rating, grades: preparedCollections?.collection1.grades } : undefined}
+                      description={tPrice('price', { price: preparedCollections?.collection1 ? preparedCollections?.collection1.price - preparedCollections?.collection1.discountPrice : 0 })}
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={coverCollectionImage9} cover={9} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage9} cover={9} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={(coverCollectionImage9 ? [coverCollectionImage9] : [])}
+                    images={preparedCoverImages?.coverCollectionImage9 ? [preparedCoverImages?.coverCollectionImage9] : []}
                   />
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection1 ? `${routes.page.base.catalog}?collectionIds=${collection1?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{collection1?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={preparedCollections?.collection1 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection1?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{preparedCollections?.collection1?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={collection2} order={5} data-aos="fade-left" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection2} order={5} data-aos="fade-left" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
                       style={{ alignSelf: isMobile ? 'center' : 'start' }}
-                      href={getHref(collection2)}
+                      href={getHref(preparedCollections?.collection2)}
                       height={height}
                       width={width}
-                      images={collection2?.images ?? []}
-                      name={collection2?.translations.find((translation) => translation.lang === lang)?.name}
-                      rating={collection2 ? { rating: collection2.rating, grades: collection2.grades } : undefined}
-                      description={tPrice('price', { price: collection2 ? collection2.price - collection2.discountPrice : 0 })}
+                      images={preparedCollections?.collection2?.images ?? []}
+                      name={preparedCollections?.collection2?.translations.find((translation) => translation.lang === lang)?.name}
+                      rating={preparedCollections?.collection2 ? { rating: preparedCollections?.collection2.rating, grades: preparedCollections?.collection2.grades } : undefined}
+                      description={tPrice('price', { price: preparedCollections?.collection2 ? preparedCollections?.collection2.price - preparedCollections?.collection2.discountPrice : 0 })}
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={coverCollectionImage10} cover={10} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage10} cover={10} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={(coverCollectionImage10 ? [coverCollectionImage10] : [])}
+                    images={preparedCoverImages?.coverCollectionImage10 ? [preparedCoverImages?.coverCollectionImage10] : []}
                   />
                 </ContextMenu>
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection2 ? `${routes.page.base.catalog}?collectionIds=${collection2?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{collection2?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={preparedCollections?.collection2 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection2?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{preparedCollections?.collection2?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={collection3} order={6} data-aos="fade-left" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection3} order={6} data-aos="fade-left" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
                       style={{ alignSelf: isMobile ? 'center' : 'start' }}
-                      href={getHref(collection3)}
+                      href={getHref(preparedCollections?.collection3)}
                       height={height}
                       width={width}
-                      images={collection3?.images ?? []}
-                      name={collection3?.translations.find((translation) => translation.lang === lang)?.name}
-                      rating={collection3 ? { rating: collection3.rating, grades: collection3.grades } : undefined}
-                      description={tPrice('price', { price: collection3 ? collection3.price - collection3.discountPrice : 0 })}
+                      images={preparedCollections?.collection3?.images ?? []}
+                      name={preparedCollections?.collection3?.translations.find((translation) => translation.lang === lang)?.name}
+                      rating={preparedCollections?.collection3 ? { rating: preparedCollections?.collection3.rating, grades: preparedCollections?.collection3.grades } : undefined}
+                      description={tPrice('price', { price: preparedCollections?.collection3 ? preparedCollections?.collection3.price - preparedCollections?.collection3.discountPrice : 0 })}
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={coverCollectionImage11} cover={11} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage11} cover={11} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={(coverCollectionImage11 ? [coverCollectionImage11] : [])}
+                    images={preparedCoverImages?.coverCollectionImage11 ? [preparedCoverImages?.coverCollectionImage11] : []}
                   />
                 </ContextMenu>
               </div>
               <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
-                <Link href={collection3 ? `${routes.page.base.catalog}?collectionIds=${collection3?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{collection3?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={preparedCollections?.collection3 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection3?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{preparedCollections?.collection3?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={collection4} order={7} data-aos="fade-right" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection4} order={7} data-aos="fade-right" data-aos-duration="1500">
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
                       style={{ alignSelf: isMobile ? 'center' : 'start' }}
-                      href={getHref(collection4)}
+                      href={getHref(preparedCollections?.collection4)}
                       height={height}
                       width={width}
-                      images={collection4?.images ?? []}
-                      name={collection4?.translations.find((translation) => translation.lang === lang)?.name}
-                      rating={collection4 ? { rating: collection4.rating, grades: collection4.grades } : undefined}
-                      description={tPrice('price', { price: collection4 ? collection4.price - collection4.discountPrice : 0 })}
+                      images={preparedCollections?.collection4?.images ?? []}
+                      name={preparedCollections?.collection4?.translations.find((translation) => translation.lang === lang)?.name}
+                      rating={preparedCollections?.collection4 ? { rating: preparedCollections?.collection4.rating, grades: preparedCollections?.collection4.grades } : undefined}
+                      description={tPrice('price', { price: preparedCollections?.collection4 ? preparedCollections?.collection4.price - preparedCollections?.collection4.discountPrice : 0 })}
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={coverCollectionImage12} cover={12} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage12} cover={12} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={(coverCollectionImage12 ? [coverCollectionImage12] : [])}
+                    images={preparedCoverImages?.coverCollectionImage12 ? [preparedCoverImages?.coverCollectionImage12] : []}
                   />
                 </ContextMenu>
               </div>
               <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
-                <Link href={collection4 ? `${routes.page.base.catalog}?collectionIds=${collection4?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{collection4?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
+                <Link href={preparedCollections?.collection4 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection4?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{preparedCollections?.collection4?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={(coverImage1 ? [coverImage1] : [])}
+                  images={preparedCoverImages?.coverImage1 ? [preparedCoverImages?.coverImage1] : []}
                   href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('necklacesAndChokers')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={(coverImage2 ? [coverImage2] : [])}
+                  images={preparedCoverImages?.coverImage2 ? [preparedCoverImages?.coverImage2] : []}
                   href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={(coverImage3 ? [coverImage3] : [])}
+                  images={preparedCoverImages?.coverImage3 ? [preparedCoverImages?.coverImage3] : []}
                   href={`${routes.page.base.catalog}/bracelet`}
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}/bracelet`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('bracelets')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={(coverImage4 ? [coverImage4] : [])}
+                  images={preparedCoverImages?.coverImage4 ? [preparedCoverImages?.coverImage4] : []}
                   href={`${routes.page.base.catalog}/bracelet`}
                 />
               </ContextMenu>
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={(coverImage5 ? [coverImage5] : [])}
+                  images={preparedCoverImages?.coverImage5 ? [preparedCoverImages?.coverImage5] : []}
                   href={`${routes.page.base.catalog}/earrings`}
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}/earrings`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('earrings')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={(coverImage6 ? [coverImage6] : [])}
+                  images={preparedCoverImages?.coverImage6 ? [preparedCoverImages?.coverImage6] : []}
                   href={`${routes.page.base.catalog}/earrings`}
                 />
               </ContextMenu>

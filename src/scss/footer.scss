@@ -20,6 +20,12 @@
     gap: 0.5rem;
   }
 
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
   .text-muted {
     color: #a1b3cd !important;
   }

@@ -1,7 +1,7 @@
-import type { InferGetServerSidePropsType } from 'next';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
+import type { InferGetServerSidePropsType } from 'next';
 
 import { routes } from '@/routes';
 import { BackButton } from '@/components/BackButton';
