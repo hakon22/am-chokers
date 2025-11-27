@@ -9,14 +9,20 @@ export const useRouterHandler = () => {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
 
-    const handleStart = () => {
+    const handleStart = (url: string, { shallow }: { shallow?: boolean; } = {}) => {
+      if (shallow) {
+        return;
+      }
       // Устанавливаем таймаут на 1 секунду перед показом спиннера
       timeoutId = setTimeout(() => {
         setIsLoaded(false);
       }, 1000);
     };
 
-    const handleComplete = () => {
+    const handleComplete = (url: string, { shallow }: { shallow?: boolean; } = {}) => {
+      if (shallow) {
+        return;
+      }
       // Отменяем таймаут, если переход завершился до истечения 1 секунды
       if (timeoutId) {
         clearTimeout(timeoutId);
