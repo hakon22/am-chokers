@@ -159,7 +159,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   
   return (
     <>
-      <Helmet title={t('title', titleProps)} description={t('description')} />
+      <Helmet title={t('title', titleProps)} description={t('description', titleProps)} />
       {id ? (
         <>
           {!isMobile
