@@ -28,7 +28,7 @@ export const Promotional = () => {
       if (!orders.some(({ isPayment }) => isPayment)) {
         setIsOpen(true);
       }
-    }, 10 * 1000);
+    }, 35 * 1000);
 
     return () => clearTimeout(timer);
   }, [orders.length]);
