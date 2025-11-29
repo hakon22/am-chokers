@@ -207,6 +207,13 @@ export class OrderService extends BaseService {
 
       const cart = await this.cartService.findMany(null, undefined, { ids: cartIds }, { manager });
 
+      if (!cart.length) {
+        throw new Error(user.lang === UserLangEnum.RU
+          ? 'Нет позиций для заказа. Обновите страницу'
+          : 'There are no items to order. Refresh the page.',
+        );
+      }
+
       const deletedItem = cart.find(({ item }) => item.deleted);
 
       if (deletedItem) {

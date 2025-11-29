@@ -113,38 +113,48 @@ export class AcquiringService extends BaseService {
       order.positions.push(deliveryPosition);
     }
 
-    const items = order.positions.filter((position) => position.price).map((position) => (
-      {
+    const items = order.positions.filter((position) => position.price).map((position) => {
+      let positionDiscountPercent = discountPercent;
+      if (order.promotional && order.promotional.items.length) {
+        if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
+          positionDiscountPercent = 0;
+        }
+      }
+      return {
         description: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
         amount: {
-          value: getPositionPriceWithDiscount(position, discountPercent).toString(),
+          value: getPositionPriceWithDiscount(position, positionDiscountPercent).toString(),
           currency: 'RUB',
         },
         quantity: position.count.toString(),
         vat_code: 1,
         payment_subject: 'commodity',
         payment_mode: 'full_payment',
-      }
-    )) as IItemWithoutData[];
+      };
+    }) as IItemWithoutData[];
 
     if (items.length > 6) {
       throw new Error(lang === UserLangEnum.RU
-        ? 'Максимум 6 позиций в одном заказе'
-        : 'Maximum 6 items per order');
+        ? 'Максимум 6 позиций в одном заказе (включая доставку)'
+        : 'Maximum 6 items per order (including delivery)');
     }
 
     const positionsAmount = items.reduce((acc, item) => acc + (+item.amount.value * 100), 0);
     const centAmount = amount * 100;
 
     if (centAmount !== positionsAmount) {
+      this.loggerService.info(this.TAG, `Сумма заказа расходится с суммой позиций в чеке: сумма заказа ${centAmount / 100}, сумма позиций ${positionsAmount / 100}`);
+
       const max = Math.max(centAmount, positionsAmount);
       const min = Math.min(centAmount, positionsAmount);
       const difference = max - min;
 
       if (centAmount > positionsAmount) {
-        items[0].amount.value = ((+items[0].amount.value * 100) + difference).toFixed(2);
+        items[0].amount.value = (((+items[0].amount.value * 100) + difference) / 100).toFixed(2);
+        this.loggerService.info(this.TAG, `Добавляю разницу в ${difference / 100} в первую позицию`);
       } else {
-        items[0].amount.value = ((+items[0].amount.value * 100) - difference).toFixed(2);
+        items[0].amount.value = (((+items[0].amount.value * 100) - difference) / 100).toFixed(2);
+        this.loggerService.info(this.TAG, `Отнимаю разницу в ${difference / 100} из первой позиции`);
       }
     }
 
@@ -216,7 +226,7 @@ export class AcquiringService extends BaseService {
 
     } catch (e: unknown) {
       const error = e as ICreateError;
-      this.loggerService.error(error.id);
+      this.loggerService.error(error.description);
       if (error.description === 'Idempotence key duplicated') {
         this.loggerService.info(this.TAG, `Заявка на платёж ${orderId} уже зарегистрирована в ${credential.issuer}. Поиск в базе.`);
 
@@ -234,6 +244,7 @@ export class AcquiringService extends BaseService {
 
         return transaction.url;
       }
+      throw new Error(error.description);
     }
   };
 
