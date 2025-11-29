@@ -21,7 +21,7 @@ import { GradeList } from '@/components/GradeList';
 import { TimePicker } from '@/components/TimePicker';
 import { deleteItem, type ItemResponseInterface, type PublishTelegramInterface, publishItem, restoreItem, setPaginationParams, partialUpdateItem, type DeferredPublicationIResponsenterface } from '@/slices/appSlice';
 import { routes } from '@/routes';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';

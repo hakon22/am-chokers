@@ -8,7 +8,7 @@ import type { CollapseProps, FormInstance } from 'antd/lib';
 
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { onFocus } from '@/utilities/onFocus';
 import { MobileContext } from '@/components/Context';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';

@@ -9,7 +9,7 @@ import cn from 'classnames';
 import type { InferGetServerSidePropsType } from 'next';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';

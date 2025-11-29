@@ -10,12 +10,14 @@ import type { CommentEntity } from '@server/db/entities/comment.entity';
 import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import type { PaginationEntityInterface, PaginationInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
+import type { MessageEntity } from '@server/db/entities/message.entity';
 
 type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface; };
 
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
   error: null,
+  /** Статус аутентификации */
   axiosAuth: false,
   itemGroups: [],
   specialItems: [],
@@ -560,9 +562,10 @@ const appSlice = createSlice({
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(publishItem.fulfilled, (state) => {
+      .addCase(publishItem.fulfilled, (state, { payload }) => {
         state.loadingStatus = 'finish';
         state.error = null;
+        payload.item.message = { send: true } as MessageEntity;
       })
       .addCase(publishItem.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';

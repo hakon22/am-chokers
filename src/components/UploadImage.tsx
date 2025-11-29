@@ -6,7 +6,7 @@ import cn from 'classnames';
 import type { GetProp, UploadFile, UploadProps } from 'antd/lib';
 
 import { routes } from '@/routes';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { PreviewImage } from '@/components/PreviewImage';
 import { CropImage } from '@/components/CropImage';
 import { toast } from '@/utilities/toast';

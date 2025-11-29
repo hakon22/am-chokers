@@ -6,7 +6,7 @@ import axios from 'axios';
 import { changeLang, fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
 import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { fetchCart, addMany } from '@/slices/cartSlice';
 import { setAxiosAuth } from '@/slices/appSlice';
 import { routes } from '@/routes';

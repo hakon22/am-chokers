@@ -35,7 +35,7 @@ export class ColorEntity extends BaseEntity {
 
   /** Дата удаления цвета */
   @DeleteDateColumn()
-  public deleted: Date;
+  public deleted: Date | null;
 
   /** Товары, которые включают данный цвет */
   @ManyToMany(() => ItemEntity, item => item.compositions)

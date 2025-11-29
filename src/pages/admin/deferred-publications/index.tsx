@@ -6,7 +6,7 @@ import axios from 'axios';
 import moment from 'moment';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { BackButton } from '@/components/BackButton';

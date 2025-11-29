@@ -10,7 +10,7 @@ import type { CheckboxProps } from 'antd/lib';
 import type { CheckboxGroupProps } from 'antd/lib/checkbox';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
 import { Favorites } from '@/components/Favorites';

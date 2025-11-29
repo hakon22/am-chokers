@@ -3,8 +3,6 @@ import type { EntityManager } from 'typeorm';
 export interface ItemOptionsInterface {
   /** Только `id` товаров */
   onlyIds?: boolean;
-  /** С удалёнными */
-  withDeleted?: boolean;
   /** `ids` товаров */
   ids?: number[];
   /** С оценками */
@@ -13,4 +11,6 @@ export interface ItemOptionsInterface {
   manager?: EntityManager;
   /** Полная сущность со всеми оставшимися связями */
   fullItem?: boolean;
+  /** Без использования кэша */
+  withoutCache?: boolean;
 }

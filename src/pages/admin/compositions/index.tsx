@@ -7,7 +7,7 @@ import axios from 'axios';
 import { maxBy } from 'lodash';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newCompositionValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -22,7 +22,7 @@ import type { CompositionFormInterface, CompositionInterface, CompositionRespons
 interface CompositionTableInterface {
   key: string;
   translations: Record<UserLangEnum, { name: string; }>;
-  deleted?: Date;
+  deleted?: Date | null;
 }
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {

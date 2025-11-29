@@ -8,7 +8,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import type { UploadFile } from 'antd/lib';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { setPaginationParams, type CommentResponseInterface, type GradeResponseInterface } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';

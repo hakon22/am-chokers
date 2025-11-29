@@ -14,7 +14,7 @@ import moment, { type Moment } from 'moment';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { newItemValidation } from '@/validations/validations';

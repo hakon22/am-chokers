@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import type { UploadFile } from 'antd/lib';
 
 import { SubmitContext } from '@/components/Context';
-import { useAppDispatch } from '@/utilities/hooks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
 import { deleteItemImage } from '@/slices/appSlice';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';

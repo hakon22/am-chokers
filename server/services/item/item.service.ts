@@ -16,6 +16,7 @@ import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues
 import { DeferredPublicationService } from '@server/services/deferred-publication/deferred-publication.service';
 import { ImageService } from '@server/services/storage/image.service';
 import { GradeService } from '@server/services/rating/grade.service';
+import { ItemGroupService } from '@server/services/item/item.group.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
@@ -24,12 +25,15 @@ import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
+import type { SynchronizationCacheInterface } from '@server/types/db/synchronization-cache.interface';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 import type { ItemOptionsInterface } from '@server/types/item/item.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { FetchItemInterface } from '@/types/item/Item';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
+import type { CacheInfoInterface } from '@server/types/db/cache-info.interface';
 
 @Singleton
 export class ItemService extends TranslationHelper {
@@ -93,7 +97,7 @@ export class ItemService extends TranslationHelper {
       if (query?.groupIds?.length || query?.groupCode) {
         builder.leftJoin('item.group', 'group');
       }
-      if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
+      if (!_.isNil(query?.limit) && !_.isNil(query?.offset) && !options?.ids?.length) {
         builder
           .limit(query.limit)
           .offset(query.offset);
@@ -196,9 +200,6 @@ export class ItemService extends TranslationHelper {
     if (query?.translateName) {
       builder.andWhere('item.translateName = :translateName', { translateName: query.translateName });
     }
-    if (query?.itemGroupId) {
-      builder.andWhere('item.group = :itemGroupId', { itemGroupId: query.itemGroupId });
-    }
     if (query?.groupIds) {
       builder.andWhere('item.group IN(:...groupIds)', { groupIds: query.groupIds });
     }
@@ -247,38 +248,40 @@ export class ItemService extends TranslationHelper {
     if (options?.ids?.length) {
       builder.andWhere('item.id IN(:...ids)', { ids: options.ids });
     }
-    if (options?.withGrades) {
-      builder
-        .leftJoin('item.grades', 'grades', 'grades.checked = true')
-        .addSelect('grades.id');
-    }
-    if (options?.fullItem) {
-      builder
-        .leftJoinAndSelect('item.collection', 'collection')
-        .leftJoin('collection.translations', 'collectionTranslations')
-        .addSelect([
-          'collectionTranslations.name',
-          'collectionTranslations.lang',
-        ])
-        .leftJoinAndSelect('item.compositions', 'compositions')
-        .leftJoin('compositions.translations', 'compositionsTranslations')
-        .addSelect([
-          'compositionsTranslations.name',
-          'compositionsTranslations.lang',
-        ])
-        .leftJoinAndSelect('item.colors', 'colors')
-        .leftJoin('colors.translations', 'colorsTranslations')
-        .addSelect([
-          'colorsTranslations.name',
-          'colorsTranslations.lang',
-        ])
-        .leftJoin('item.deferredPublication', 'deferredPublication')
-        .addSelect([
-          'deferredPublication.id',
-          'deferredPublication.date',
-          'deferredPublication.description',
-          'deferredPublication.isPublished',
-        ]);
+    if (options?.withoutCache) {
+      if (options?.withGrades) {
+        builder
+          .leftJoin('item.grades', 'grades', 'grades.checked = true')
+          .addSelect('grades.id');
+      }
+      if (options?.fullItem) {
+        builder
+          .leftJoinAndSelect('item.collection', 'collection')
+          .leftJoin('collection.translations', 'collectionTranslations')
+          .addSelect([
+            'collectionTranslations.name',
+            'collectionTranslations.lang',
+          ])
+          .leftJoinAndSelect('item.compositions', 'compositions')
+          .leftJoin('compositions.translations', 'compositionsTranslations')
+          .addSelect([
+            'compositionsTranslations.name',
+            'compositionsTranslations.lang',
+          ])
+          .leftJoinAndSelect('item.colors', 'colors')
+          .leftJoin('colors.translations', 'colorsTranslations')
+          .addSelect([
+            'colorsTranslations.name',
+            'colorsTranslations.lang',
+          ])
+          .leftJoin('item.deferredPublication', 'deferredPublication')
+          .addSelect([
+            'deferredPublication.id',
+            'deferredPublication.date',
+            'deferredPublication.description',
+            'deferredPublication.isPublished',
+          ]);
+      }
     }
 
     return builder;
@@ -293,7 +296,14 @@ export class ItemService extends TranslationHelper {
   };
 
   public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
-    const builder = this.createQueryBuilder({ ...query, id: params.id }, { ...options, fullItem: true });
+    if (!options?.withoutCache) {
+      if (!options) {
+        options = {};
+      }
+      options.onlyIds = true;
+    }
+
+    const builder = this.createQueryBuilder({ ...query, id: params.id }, options);
 
     const item = await builder.getOne();
 
@@ -303,13 +313,36 @@ export class ItemService extends TranslationHelper {
         : `Item with number #${params.id} does not exist.`);
     }
 
-    return item;
+    if (options?.withoutCache) {
+      return item;
+    }
+
+    const redisItem = await this.redisService.getItemById<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, item.id);
+
+    if (!redisItem) {
+      throw new Error(lang === UserLangEnum.RU
+        ? `Товара с номером #${params.id} не существует в кэше.`
+        : `Item with number #${params.id} does not exist in cache.`);
+    }
+
+    return redisItem;
   };
 
   public findMany = async (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
+    if (!options?.withoutCache) {
+      if (!options) {
+        options = {};
+      }
+      options.onlyIds = true;
+    }
+
     const builder = this.createQueryBuilder(query, options);
 
-    return builder.getMany();
+    const items = await builder.getMany();
+
+    return options?.withoutCache
+      ? items
+      : this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, items.map(({ id }) => id));
   };
 
   public getList = async (query: FetchItemInterface): Promise<[ItemEntity[], number]> => {
@@ -317,11 +350,7 @@ export class ItemService extends TranslationHelper {
 
     const [ids, count] = await idsBuilder.getManyAndCount();
 
-    let items: ItemEntity[] = [];
-
-    if (ids.length) {
-      items = await this.findMany(query, { withGrades: true, ids: ids.map(({ id }) => id) });
-    }
+    const items = await this.findMany(query, { withGrades: true, ids: ids.map(({ id }) => id) });
 
     return [items, count];
   };
@@ -378,12 +407,14 @@ export class ItemService extends TranslationHelper {
         await this.deferredPublicationService.createOne(deferredPublication, lang, { manager });
       }
 
-      return this.findOne({ id: created.id }, lang, { withNotPublished: true }, { manager });
+      return this.findOne({ id: created.id }, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
     });
 
     const url = this.getUrl(item);
 
     this.uploadPathService.createSitemap(url);
+
+    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
     return { code: 1, item, url };
   };
@@ -417,11 +448,8 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, rest.id, manager);
 
-      return this.findOne(params, lang, { withNotPublished: true }, { manager, withDeleted: true, fullItem: true });
+      return this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
     });
-
-    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
-    updated.grades = grades;
 
     const url = this.getUrl(updated);
 
@@ -430,6 +458,8 @@ export class ItemService extends TranslationHelper {
 
       this.uploadPathService.updateSitemap(oldUrl, url);
     }
+
+    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, updated);
 
     return { code: 1, item: updated, url };
   };
@@ -469,11 +499,8 @@ export class ItemService extends TranslationHelper {
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, item.id, manager);
 
-      return this.findOne(params, lang, { withNotPublished: true }, { manager, withDeleted: true, fullItem: true });
+      return this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
     });
-
-    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
-    updated.grades = grades;
 
     const url = this.getUrl(updated);
 
@@ -483,10 +510,12 @@ export class ItemService extends TranslationHelper {
       this.uploadPathService.updateSitemap(oldUrl, url);
     }
 
+    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, updated);
+
     return { code: 1, item: updated, url };
   };
 
-  public publishToTelegram = async (params: ParamsIdInterface, lang: UserLangEnum, body?: PublishTelegramInterface, value?: ItemEntity) => {
+  public publishToTelegram = async (params: ParamsIdInterface, lang: UserLangEnum, body?: PublishTelegramInterface) => {
     const isRu = lang === UserLangEnum.RU;
 
     if (!process.env.TELEGRAM_GROUP_ID) {
@@ -495,7 +524,7 @@ export class ItemService extends TranslationHelper {
         : 'No group specified for sending to Telegram');
     }
 
-    const item = value || await this.findOne(params, lang, {}, { fullItem: true });
+    const item = await this.findOne(params, lang);
 
     if (item.images.length < 2) {
       throw new Error(isRu
@@ -523,9 +552,11 @@ export class ItemService extends TranslationHelper {
       }
 
       item.deferredPublication = await this.deferredPublicationService.createOne(deferredPublicationBody, lang);
+      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
     } else {
-      this.publishProcess(item, body?.description);
       item.deferredPublication = null;
+      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
+      this.publishProcess(item, body?.description);
     }
 
     return item;
@@ -554,14 +585,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public getSpecials = async (isAdmin: boolean, isFull?: boolean) => {
-    const builder = this.createQueryBuilder({}, { withGrades: true })
-      .leftJoin('item.collection', 'collection')
-      .addSelect('collection.id')
-      .leftJoin('collection.translations', 'collectionTranslations')
-      .addSelect([
-        'collectionTranslations.name',
-        'collectionTranslations.lang',
-      ])
+    const builder = this.createQueryBuilder({}, { onlyIds: true })
       .andWhere(new Brackets(qb => {
         qb
           .orWhere('item.new')
@@ -579,11 +603,13 @@ export class ItemService extends TranslationHelper {
           }));
       }));
 
-    return builder.getMany();
+    const ids = await builder.getMany();
+
+    return this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, ids.map(({ id }) => id));
   };
 
   public getByName = async (query: ItemQueryInterface, lang: UserLangEnum) => {
-    const builder = this.createQueryBuilder({ ...query, withDeleted: true, withNotPublished: true }, { fullItem: true });
+    const builder = this.createQueryBuilder({ ...query, withDeleted: true, withNotPublished: true }, { onlyIds: true });
 
     const item = await builder.getOne();
 
@@ -593,7 +619,15 @@ export class ItemService extends TranslationHelper {
         : `There is no item named ${query.translateName}.`);
     }
 
-    return item;
+    const redisItem = await this.redisService.getItemById<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, item.id);
+
+    if (!redisItem) {
+      throw new Error(lang === UserLangEnum.RU
+        ? `Товара с именем ${query.translateName} не существует в кэше.`
+        : `There is no item named ${query.translateName} in cache.`);
+    }
+
+    return redisItem;
   };
 
   public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
@@ -607,8 +641,7 @@ export class ItemService extends TranslationHelper {
       item.deferredPublication = null;
     }
 
-    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
-    item.grades = grades;
+    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
     return item;
   };
@@ -620,8 +653,7 @@ export class ItemService extends TranslationHelper {
 
     deletedItem.deleted = null;
 
-    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
-    deletedItem.grades = grades;
+    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, deletedItem);
 
     return deletedItem;
   };
@@ -736,6 +768,58 @@ export class ItemService extends TranslationHelper {
     });
 
     return workbook.xlsx.writeBuffer();
+  };
+
+  public synchronizationCache = async (options?: SynchronizationCacheInterface) => {
+    // Товары
+    const items = await this.findMany({ withDeleted: true }, { onlyIds: true, withoutCache: true });
+    const cachedItems = await this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, items.map(({ id }) => id));
+    if (!cachedItems?.length || items.length !== cachedItems.length || options?.forced) {
+      if (items.length !== cachedItems.length && !options?.forced) {
+        this.loggerService.info('ItemService', `Обнаружена рассинхронизация кэша товаров (PostgreSQL: ${items.length} / Redis: ${cachedItems.length}). Обновляю принудительно...`);
+      } else if (options?.forced) {
+        this.loggerService.info('ItemService', `Ручная синхронизация кэша товаров (PostgreSQL: ${items.length} / Redis: ${cachedItems.length})...`);
+      }
+      const allItems = await this.findMany({ withDeleted: true }, { fullItem: true, withGrades: true, withoutCache: true });
+      await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, allItems);
+      this.loggerService.info('ItemService', `В Redis было успешно добавлено ${allItems.length} товаров.`);
+    }
+
+    // Группы товаров
+    const groups = await Container.get(ItemGroupService).findMany({ withDeleted: true }, { onlyIds: true });
+    const cachedGroups = await this.redisService.getItemsByIds<ItemGroupEntity>(RedisKeyEnum.ITEM_GROUP_BY_ID, groups.map(({ id }) => id));
+    if (!cachedGroups?.length || groups.length !== cachedGroups.length || options?.forced) {
+      if (groups.length !== cachedGroups.length && !options?.forced) {
+        this.loggerService.info('ItemGroupService', `Обнаружена рассинхронизация кэша групп товаров (PostgreSQL: ${groups.length} / Redis: ${cachedGroups.length}). Обновляю принудительно...`);
+      } else if (options?.forced) {
+        this.loggerService.info('ItemGroupService', `Ручная синхронизация кэша групп товаров (PostgreSQL: ${groups.length} / Redis: ${cachedGroups.length})...`);
+      }
+      const allGroups = await Container.get(ItemGroupService).findMany({ withDeleted: true }, { withoutCache: true });
+      await this.redisService.setItems(RedisKeyEnum.ITEM_GROUP_BY_ID, allGroups);
+      this.loggerService.info('ItemGroupService', `В Redis было успешно добавлено ${allGroups.length} групп товаров.`);
+    }
+
+    await this.gradeService.synchronizationCache(options);
+  };
+
+  public getCacheInfo = async (): Promise<CacheInfoInterface> => {
+    // Товары, Группы товаров и Оценки товаров
+    const [items, groups, { itemGrades }] = await Promise.all([
+      this.findMany({ withDeleted: true }, { onlyIds: true, withoutCache: true }),
+      Container.get(ItemGroupService).findMany({ withDeleted: true }, { onlyIds: true }),
+      this.gradeService.getCacheInfo(),
+    ]);
+
+    const [cachedItems, cachedGroups] = await Promise.all([
+      this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, items.map(({ id }) => id)),
+      this.redisService.getItemsByIds<ItemGroupEntity>(RedisKeyEnum.ITEM_GROUP_BY_ID, groups.map(({ id }) => id)),
+    ]);
+
+    return {
+      items: { postgreSql: items.length, redis: cachedItems.length },
+      itemGroups: { postgreSql: groups.length, redis: cachedGroups.length },
+      itemGrades,
+    };
   };
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);

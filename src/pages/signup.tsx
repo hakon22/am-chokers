@@ -7,7 +7,7 @@ import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { signupValidation } from '@/validations/validations';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { routes } from '@/routes';

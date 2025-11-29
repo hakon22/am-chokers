@@ -363,6 +363,10 @@ a {
   background-color: $grey-light;
 }
 
+.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: $active-violet;
+}
+
 .ant-input-affix-wrapper-lg {
   padding: 11px;
   font-size: 1.2rem;

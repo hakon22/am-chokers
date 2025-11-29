@@ -3,6 +3,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { ImageService } from '@server/services/storage/image.service';
+import { GradeService } from '@server/services/rating/grade.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -16,6 +17,8 @@ export class CommentService extends BaseService {
   private readonly uploadPathService = Container.get(UploadPathService);
 
   private readonly imageService = Container.get(ImageService);
+
+  private readonly gradeService = Container.get(GradeService);
 
   private createQueryBuilder = (query?: CommentQueryInterface) => {
     const manager = this.databaseService.getManager();
@@ -119,7 +122,11 @@ export class CommentService extends BaseService {
       return comment;
     });
 
-    return this.findOne({ id: created.id }, user.lang);
+    const comment = await this.findOne({ id: created.id }, user.lang);
+
+    await this.updateGradeCache(comment, user.lang);
+
+    return comment;
   };
 
   public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
@@ -129,6 +136,8 @@ export class CommentService extends BaseService {
 
     comment.deleted = new Date();
 
+    await this.updateGradeCache(comment, lang);
+
     return comment;
   };
 
@@ -137,6 +146,17 @@ export class CommentService extends BaseService {
 
     await deletedComment.recover();
 
-    return this.findOne(params, lang);
+    deletedComment.deleted = null;
+
+    await this.updateGradeCache(deletedComment, lang);
+
+    return deletedComment;
+  };
+
+  private updateGradeCache = async (comment: CommentEntity, lang: UserLangEnum) => {
+    if (comment.parentComment?.grade) {
+      const grade = await this.gradeService.findOne({ id: comment.parentComment.grade.id }, lang, { withoutCache: true, withDeleted: true });
+      await this.gradeService.updateItemCache(grade, lang);
+    }
   };
 }

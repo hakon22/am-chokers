@@ -29,7 +29,7 @@ export class CompositionEntity extends BaseEntity {
 
   /** Дата удаления компонента */
   @DeleteDateColumn()
-  public deleted: Date;
+  public deleted: Date | null;
 
   /** Товары, которые включают данный компонент */
   @ManyToMany(() => ItemEntity, item => item.compositions)

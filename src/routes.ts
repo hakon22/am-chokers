@@ -49,6 +49,7 @@ export const routes = {
       userList: [adminPath, 'user', 'list'].join('/'),
       userCard: [adminPath, 'user'].join('/'),
       deferredPublication: [adminPath, 'deferred-publications'].join('/'),
+      adminSettings: [adminPath, 'settings'].join('/'),
     },
   },
 
@@ -141,6 +142,8 @@ export const routes = {
     deleteOne: (id?: number) => [apiPath, 'item', id ?? ':id', 'delete'].join('/'),
     publishToTelegram: (id?: number) => [apiPath, 'item', id ?? ':id', 'publish'].join('/'),
     getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
+    getCacheInfo: [apiPath, 'item', 'cache-info'].join('/'),
+    synchronizationCache: [apiPath, 'item', 'synchronization-cache'].join('/'),
   },
 
   // cart

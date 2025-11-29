@@ -8,7 +8,7 @@ import { maxBy } from 'lodash';
 import type { Color } from 'antd/lib/color-picker';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newColorValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -24,7 +24,7 @@ interface ColorTableInterface {
   key: string;
   translations: Record<UserLangEnum, { name: string; }>;
   hex: Color | string;
-  deleted?: Date;
+  deleted?: Date | null;
 }
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {

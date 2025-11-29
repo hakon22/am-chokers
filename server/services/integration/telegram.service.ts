@@ -1,8 +1,8 @@
-import type { Request, Response } from 'express';
 import axios from 'axios';
 import { Container, Singleton } from 'typescript-ioc';
 import { Context } from 'telegraf';
 import { Message } from 'typegram/message';
+import type { Request, Response } from 'express';
 import type { InputMedia } from 'telegraf/typings/core/types/typegram';
 
 import { UserEntity } from '@server/db/entities/user.entity';
@@ -10,9 +10,11 @@ import { ItemEntity } from '@server/db/entities/item.entity';
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
+import { RedisService } from '@server/db/redis.service';
 import { phoneTransform } from '@server/utilities/phone.transform';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
 
 export interface OptionsTelegramMessageInterface {
   reply_markup?: {
@@ -35,6 +37,8 @@ export class TelegramService {
   private readonly loggerService = Container.get(LoggerService);
 
   private readonly messageService = Container.get(MessageService);
+
+  private readonly redisService = Container.get(RedisService);
 
   public webhooks = async (req: Request, res: Response) => {
     try {
@@ -142,10 +146,13 @@ export class TelegramService {
         await messageHistory.save();
         if (item) {
           await ItemEntity.update(item.id, { message: messageHistory });
+          item.message = messageHistory;
 
           if (item.deferredPublication) {
             await DeferredPublicationEntity.softRemove(item.deferredPublication);
+            item.deferredPublication.deleted = new Date();
           }
+          await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
         }
         return { ...data, text, history: messageHistory };
       }

@@ -71,12 +71,17 @@ export default {
               cart: 'Cart',
               message: 'Messages',
             },
+            adminSettings: 'Admin settings',
             orders: 'Orders',
             moderationOfReview: 'Reviews moderation',
             promotionalCodes: 'Discount codes',
             compositions: 'Components',
             colors: 'Colors',
           },
+        },
+        adminSettings: {
+          title: 'Site settings',
+          synchronizationCache: 'Update cache',
         },
         personal: {
           title: 'Profile',
@@ -971,6 +976,7 @@ export default {
       cancelOrderStatusSuccess: 'Order canceled successfully',
       addPromotionalSuccess: 'Discount code {{ name }} applied successfully!',
       requiredFields: 'Please fill in all required fields',
+      synchronizationCacheComplete: 'Cache update successfully',
     },
     cookieConsent: {
       contentText: 'We use cookies to give you the best possible experience when using our website. By clicking ‘Accept All’ we can bring you relevant advertising and personalised content – and generally give you a more enhanced visit.',

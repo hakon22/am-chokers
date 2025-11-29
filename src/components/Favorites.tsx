@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import { HeartFilled, HeartOutlined, HeartTwoTone } from '@ant-design/icons';
 import cn from 'classnames';
 
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { SubmitContext } from '@/components/Context';
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
 

@@ -15,4 +15,6 @@ export interface GradeOptionsInterface {
   itemNames?: string[];
   /** С удалёнными */
   withDeleted?: boolean;
+  /** Без использования кэша */
+  withoutCache?: boolean;
 }

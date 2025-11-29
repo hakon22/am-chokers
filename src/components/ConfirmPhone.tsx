@@ -5,7 +5,7 @@ import VerificationInput from 'react-verification-input';
 
 import { SubmitContext } from '@/components/Context';
 import { fetchConfirmCode } from '@/slices/userSlice';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { toast } from '@/utilities/toast';
 
 

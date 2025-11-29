@@ -7,7 +7,7 @@ import axios from 'axios';
 import { maxBy } from 'lodash';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newItemCollectionValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -24,7 +24,7 @@ interface ItemCollectionTableInterface {
   key: string;
   translations: Record<UserLangEnum, { name: string; }>;
   description: string;
-  deleted?: Date;
+  deleted?: Date | null;
 }
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {

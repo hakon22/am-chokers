@@ -11,12 +11,11 @@ import cn from 'classnames';
 import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { onFocus } from '@/utilities/onFocus';
 import { SearchContext, MobileContext, NavbarContext, SubmitContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { changeLang } from '@/slices/userSlice';
-import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 type NavigationKeys = {
   key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home' | 'lang';
@@ -128,7 +127,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
   );
 };
 
-export const NavBar = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
+export const NavBar = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const router = useRouter();
@@ -145,6 +144,7 @@ export const NavBar = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
   const searchParams = urlParams.get('search');
 
   const { token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { itemGroups } = useAppSelector((state) => state.app);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();
   const [navHeight, setNavHeight] = useState<string>(isMobile ? '' : '108px');

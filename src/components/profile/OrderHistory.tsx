@@ -11,7 +11,7 @@ import cn from 'classnames';
 import axios from 'axios';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';

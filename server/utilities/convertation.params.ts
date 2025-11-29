@@ -18,10 +18,6 @@ export const booleanSchema = yup
   .optional();
 
 export const queryOptionalSchema = userOptionalParamsSchema.concat(yup.object().shape({
-  itemGroupId: yup
-    .number()
-    .transform((value) => +value)
-    .optional(),
   withDeleted: booleanSchema,
   withUser: booleanSchema,
 }));

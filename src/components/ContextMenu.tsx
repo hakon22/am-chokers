@@ -7,7 +7,7 @@ import ImgCrop from 'antd-img-crop';
 import type { MenuProps } from 'antd';
 
 import { SubmitContext } from '@/components/Context';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage, setSpecialItems } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';

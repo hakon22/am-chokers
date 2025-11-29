@@ -4,7 +4,7 @@ import { Divider, List } from 'antd';
 import { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { NotFoundContent } from '@/components/NotFoundContent';

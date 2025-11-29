@@ -9,7 +9,7 @@ import cn from 'classnames';
 import Link from 'next/link';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { createGrade, selectors } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { MobileContext } from '@/components/Context';

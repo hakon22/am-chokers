@@ -13,7 +13,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newItemGroupValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';

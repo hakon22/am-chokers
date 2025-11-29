@@ -3,7 +3,7 @@ import { List } from 'antd';
 import Link from 'next/link';
 import cn from 'classnames';
 
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { ImageHover } from '@/components/ImageHover';
 import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';

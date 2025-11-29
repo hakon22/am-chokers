@@ -7,7 +7,7 @@ import { Breadcrumb as BreadcrumbAntd } from 'antd';
 import { RightOutlined } from '@ant-design/icons';
 
 import { routes, catalogPath } from '@/routes';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { ItemContext, MobileContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 

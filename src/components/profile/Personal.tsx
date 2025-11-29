@@ -10,7 +10,7 @@ import type { TFunction } from 'i18next';
 
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { SubmitContext } from '@/components/Context';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
 import { toast } from '@/utilities/toast';

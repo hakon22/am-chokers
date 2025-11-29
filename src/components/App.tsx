@@ -4,19 +4,19 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import { FloatButton, Spin } from 'antd';
 
-import { useAppSelector } from '@/utilities/hooks';
-import { useErrorHandler } from '@/utilities/useErrorHandler';
-import { useAuthHandler } from '@/utilities/useAuthHandler';
+import { useAppSelector } from '@/hooks/reduxHooks';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useAuthHandler } from '@/hooks/useAuthHandler';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { NavBar } from '@/components/NavBar';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Footer } from '@/components/Footer';
-import { useRootStyle } from '@/utilities/useRootStyle';
-import { useMobileContext } from '@/utilities/useMobileContext';
+import { useRootStyle } from '@/hooks/useRootStyle';
+import { useMobileContext } from '@/hooks/useMobileContext';
 import { Spinner } from '@/components/Spinner';
 import { routes } from '@/routes';
-import { useAccessHandler } from '@/utilities/useAccessHandler';
-import { useRouterHandler } from '@/utilities/useRouterHandler';
+import { useAccessHandler } from '@/hooks/useAccessHandler';
+import { useRouterHandler } from '@/hooks/useRouterHandler';
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroups: ItemGroupEntity[]; }) => {
@@ -65,7 +65,7 @@ export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroup
     <>
       {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
       <header>
-        <NavBar itemGroups={itemGroups} />
+        <NavBar />
         {isMobile ? null : <Breadcrumb />}
       </header>
       <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: footerHeight }}>

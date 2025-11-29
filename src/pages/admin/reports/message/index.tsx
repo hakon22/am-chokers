@@ -10,7 +10,7 @@ import moment from 'moment';
 import type { SearchProps } from 'antd/lib/input';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';

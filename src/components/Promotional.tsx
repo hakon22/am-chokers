@@ -5,7 +5,7 @@ import { CopyOutlined } from '@ant-design/icons';
 import { Modal, Button } from 'antd';
 import cn from 'classnames';
 
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { selectors } from '@/slices/orderSlice';
 
 const PROMOTIONAL_NAME = process.env.NEXT_PUBLIC_PROMO as string;

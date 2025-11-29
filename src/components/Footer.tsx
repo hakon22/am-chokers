@@ -5,7 +5,7 @@ import Link from 'next/link';
 import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
 import { catalogPath, routes } from '@/routes';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 

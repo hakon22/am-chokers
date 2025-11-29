@@ -8,7 +8,7 @@ import Link from 'next/link';
 import type { FormInstance, UploadFile } from 'antd/lib';
 
 import { getItemGrades, createComment, removeGrade, setPaginationParams, type CommentResponseInterface, type GradeResponseInterface } from '@/slices/appSlice';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { newCommentValidation } from '@/validations/validations';
 import { PreviewImage } from '@/components/PreviewImage';

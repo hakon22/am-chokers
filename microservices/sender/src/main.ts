@@ -3,6 +3,7 @@ import { Container } from 'typescript-ioc';
 import { LoggerService } from '@server/services/app/logger.service';
 import { BullMQWorker } from '@microservices/sender/workers/bull-mq-worker';
 import { DatabaseService } from '@server/db/database.service';
+import { RedisService } from '@server/db/redis.service';
 
 class Sender {
   private readonly bullMQWorker = Container.get(BullMQWorker);
@@ -11,9 +12,12 @@ class Sender {
 
   private readonly databaseService = Container.get(DatabaseService);
 
+  private readonly redisService = Container.get(RedisService);
+
   public init = async () => {
     try {
       await this.databaseService.init();
+      await this.redisService.init({ withoutSubscribles: true });
       this.bullMQWorker.init();
       this.loggerService.info('Сервис BullMQ Worker успешно запущен');
 

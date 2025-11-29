@@ -10,10 +10,6 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   translateName?: string;
   /** С удалёнными */
   withDeleted?: boolean;
-  /** `id` группы товара */
-  itemGroupId?: number;
-  /** `id` коллекции товара */
-  itemCollectionId?: number;
   /** Строка поиска */
   search?: string;
   /** Код группы товара */

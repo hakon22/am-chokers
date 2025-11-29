@@ -10,7 +10,7 @@ import { chunk } from 'lodash';
 
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SearchContext, SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { CatalogItemsFilter } from '@/components/filters/catalog/CatalogItemsFilter';

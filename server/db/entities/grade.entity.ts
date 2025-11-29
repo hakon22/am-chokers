@@ -31,7 +31,7 @@ export class GradeEntity extends BaseEntity {
 
   /** Дата удаления оценки */
   @DeleteDateColumn()
-  public deleted: Date;
+  public deleted: Date | null;
 
   /** Оценка позиции заказа */
   @Column('smallint')

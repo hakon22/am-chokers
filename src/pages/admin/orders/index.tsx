@@ -6,7 +6,7 @@ import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';

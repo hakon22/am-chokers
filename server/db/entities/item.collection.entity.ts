@@ -21,7 +21,7 @@ export class ItemCollectionEntity extends BaseEntity {
 
   /** Дата удаления коллекции */
   @DeleteDateColumn()
-  public deleted: Date;
+  public deleted: Date | null;
 
   /** Описание коллекции */
   @Column('character varying')

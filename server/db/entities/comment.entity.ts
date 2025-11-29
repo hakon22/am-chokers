@@ -33,7 +33,7 @@ export class CommentEntity extends BaseEntity {
 
   /** Дата удаления комментария */
   @DeleteDateColumn()
-  public deleted: Date;
+  public deleted: Date | null;
 
   /** Текст комментария */
   @Column('text')

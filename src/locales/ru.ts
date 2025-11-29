@@ -71,12 +71,17 @@ export default {
               cart: 'Корзина',
               message: 'Сообщения',
             },
+            adminSettings: 'Настройки сайта',
             orders: 'Заказы',
             moderationOfReview: 'Модерация отзывов',
             promotionalCodes: 'Промокоды',
             compositions: 'Компоненты',
             colors: 'Цвета',
           },
+        },
+        adminSettings: {
+          title: 'Настройки сайта',
+          synchronizationCache: 'Обновить кэш',
         },
         personal: {
           title: 'Личные данные',
@@ -971,6 +976,7 @@ export default {
       cancelOrderStatusSuccess: 'Заказ успешно отменён',
       addPromotionalSuccess: 'Промокод {{ name }} успешно применён!',
       requiredFields: 'Заполните все обязательные поля',
+      synchronizationCacheComplete: 'Кэш товаров успешно обновлён',
     },
     cookieConsent: {
       contentText: 'Этот сайт использует cookie для улучшения вашего опыта. Если вы продолжите использовать этот сайт, вы соглашаетесь с этим. ',

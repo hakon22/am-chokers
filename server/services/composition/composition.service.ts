@@ -1,15 +1,18 @@
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 
 import { CompositionEntity } from '@server/db/entities/composition.entity';
 import { CompositionTranslateEntity } from '@server/db/entities/composition.translate.entity';
 import { TranslationHelper } from '@server/utilities/translation.helper';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { ItemService } from '@server/services/item/item.service';
 import type { CompositionQueryInterface } from '@server/types/composition/composition.query.interface';
 import type { CompositionOptionsInterface } from '@server/types/composition/composition.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
+import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
 
 @Singleton
 export class CompositionService extends TranslationHelper {
+  private readonly itemService = Container.get(ItemService);
 
   private createQueryBuilder = (query?: CompositionQueryInterface, options?: CompositionOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -103,6 +106,9 @@ export class CompositionService extends TranslationHelper {
       return this.findOne(params, lang, undefined, { manager });
     });
 
+    const items = await this.itemService.findMany({ compositionIds: [composition.id], withDeleted: true }, { withoutCache: true, withGrades: true, fullItem: true });
+    await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
+
     return { code: 1, composition: updated };
   };
 
@@ -113,12 +119,22 @@ export class CompositionService extends TranslationHelper {
 
     composition.deleted = new Date();
 
+    const items = await this.itemService.findMany({ compositionIds: [composition.id], withDeleted: true }, { withoutCache: true, withGrades: true, fullItem: true });
+    await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
+
     return composition;
   };
 
   public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
     const deletedComposition = await this.findOne(params, lang, { withDeleted: true });
 
-    return deletedComposition.recover();
+    await deletedComposition.recover();
+
+    deletedComposition.deleted = null;
+
+    const items = await this.itemService.findMany({ compositionIds: [deletedComposition.id], withDeleted: true }, { withoutCache: true, withGrades: true, fullItem: true });
+    await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
+
+    return deletedComposition;
   };
 }

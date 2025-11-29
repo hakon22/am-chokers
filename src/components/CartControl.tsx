@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';

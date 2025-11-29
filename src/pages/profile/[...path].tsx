@@ -7,7 +7,7 @@ import type { InferGetServerSidePropsType } from 'next';
 import type { CollapseProps, MenuProps } from 'antd/lib';
 
 import { routes } from '@/routes';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { Helmet } from '@/components/Helmet';
 import { AuthContext, MobileContext } from '@/components/Context';
 import { Personal } from '@/components/profile/Personal';
@@ -16,6 +16,7 @@ import { Favorites } from '@/components/profile/Favorites';
 import { NoAuthorization } from '@/components/NoAuthorization';
 import { Order } from '@/components/profile/Order';
 import { Reviews } from '@/components/profile/Reviews';
+import { AdminSettings } from '@/components/AdminSettings';
 
 type MenuItem = Required<MenuProps>['items'][number];
 type CollapseItem = Required<CollapseProps>['items'][number];
@@ -56,6 +57,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
     favorites: <Favorites />,
     reviews: <Reviews />,
     order: <Order orderId={+titleProps.id} />,
+    adminSettings: <AdminSettings />,
   };
 
   const getPage = () => {
@@ -77,6 +79,8 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       router.push(routes.page.profile.myReviews);
     } else if (keys.includes('settings')) {
       router.push(routes.page.profile.settings);
+    } else if (keys.includes('adminSettings')) {
+      router.push(routes.page.admin.adminSettings);
     }
   };
 
@@ -117,6 +121,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           { key: routes.page.admin.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.page.admin.compositionsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.page.admin.colorsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: 'adminSettings', label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.colorsControl}>{tMenu('menu.admin.adminSettings')}</Button>, showArrow: false, collapsible: 'disabled' },
         ]}
       /> }]
       : []),
@@ -147,6 +152,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
         { key: routes.page.admin.promotionalCodes, label: <Link href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },
         { key: routes.page.admin.compositionsControl, label: <Link href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Link> },
         { key: routes.page.admin.colorsControl, label: <Link href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Link> },
+        { key: routes.page.admin.adminSettings, label: <Link href={routes.page.admin.adminSettings}>{tMenu('menu.admin.adminSettings')}</Link> },
       ],
       } : null,
     { type: 'divider' },

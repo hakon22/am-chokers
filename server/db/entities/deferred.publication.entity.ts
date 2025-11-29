@@ -29,7 +29,7 @@ export class DeferredPublicationEntity extends BaseEntity {
 
   /** Дата удаления отложенной публикации */
   @DeleteDateColumn()
-  public deleted: Date;
+  public deleted: Date | null;
 
   /** Дата отложенной публикации */
   @Column('timestamp without time zone')

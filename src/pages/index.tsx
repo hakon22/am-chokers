@@ -13,7 +13,7 @@ import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';

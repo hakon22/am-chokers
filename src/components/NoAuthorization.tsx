@@ -5,7 +5,7 @@ import { useContext, useEffect } from 'react';
 
 import { setUrl } from '@/slices/userSlice';
 import { routes } from '@/routes';
-import { useAppDispatch } from '@/utilities/hooks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
 import { MobileContext } from '@/components/Context';
 
 export const NoAuthorization = () => {

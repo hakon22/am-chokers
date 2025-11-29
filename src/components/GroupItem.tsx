@@ -11,7 +11,7 @@ import { Helmet } from '@/components/Helmet';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
-import { useAppDispatch, useAppSelector } from '@/utilities/hooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { setPaginationParams } from '@/slices/appSlice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';

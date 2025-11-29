@@ -1,15 +1,18 @@
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 
 import { ColorEntity } from '@server/db/entities/color.entity';
 import { ColorTranslateEntity } from '@server/db/entities/color.translate.entity';
 import { TranslationHelper } from '@server/utilities/translation.helper';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
+import { ItemService } from '@server/services/item/item.service';
 import type { ColorQueryInterface } from '@server/types/color/color.query.interface';
 import type { ColorOptionsInterface } from '@server/types/color/color.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 @Singleton
 export class ColorService extends TranslationHelper {
+  private readonly itemService = Container.get(ItemService);
 
   private createQueryBuilder = (query?: ColorQueryInterface, options?: ColorOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -107,6 +110,9 @@ export class ColorService extends TranslationHelper {
       return this.findOne(params, lang, undefined, { manager });
     });
 
+    const items = await this.itemService.findMany({ colorIds: [color.id], withDeleted: true }, { withoutCache: true, withGrades: true, fullItem: true });
+    await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
+
     return { code: 1, color: updated };
   };
 
@@ -117,12 +123,20 @@ export class ColorService extends TranslationHelper {
 
     color.deleted = new Date();
 
+    const items = await this.itemService.findMany({ colorIds: [color.id], withDeleted: true }, { withoutCache: true, withGrades: true, fullItem: true });
+    await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
+
     return color;
   };
 
   public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
     const deletedColor = await this.findOne(params, lang, { withDeleted: true });
 
-    return deletedColor.recover();
+    await deletedColor.recover();
+
+    deletedColor.deleted = null;
+
+    const items = await this.itemService.findMany({ colorIds: [deletedColor.id], withDeleted: true }, { withoutCache: true, withGrades: true, fullItem: true });
+    await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
   };
 }

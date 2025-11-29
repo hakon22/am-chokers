@@ -6,7 +6,7 @@ import type { InferGetServerSidePropsType } from 'next';
 import { routes } from '@/routes';
 import { BackButton } from '@/components/BackButton';
 import { Order as OrderComponent } from '@/components/profile/Order';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { Helmet } from '@/components/Helmet';

@@ -186,6 +186,26 @@ export class ItemController extends BaseService {
     }
   };
 
+  public getCacheInfo = async (req: Request, res: Response) => {
+    try {
+      const result = await this.itemService.getCacheInfo();
+
+      res.json({ code: 1, result });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public synchronizationCache = async (req: Request, res: Response) => {
+    try {
+      await this.itemService.synchronizationCache({ forced: true });
+
+      res.json({ code: 1 });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
   public getGrades = async (req: Request, res: Response) => {
     try {
       const params = await paramsIdSchema.validate(req.params);

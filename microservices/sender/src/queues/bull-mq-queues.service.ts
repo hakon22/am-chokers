@@ -17,11 +17,11 @@ export class BullMQQueuesService {
     [BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE]: this.createQueue(BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE),
   };
 
-  public sendSMSCode = (data: SmsCodeParameterInterface) => this.queues[BullMQQueuesEnum.SMS_CODE_QUEUE].add('SMS_CODE_QUEUE', data);
+  public sendSMSCode = (data: SmsCodeParameterInterface) => this.queues[BullMQQueuesEnum.SMS_CODE_QUEUE].add(BullMQQueuesEnum.SMS_CODE_QUEUE, data);
 
-  public sendSMSPassword = (data: SmsPasswordParameterInterface) => this.queues[BullMQQueuesEnum.SMS_PASSWORD_QUEUE].add('SMS_PASSWORD_QUEUE', data);
+  public sendSMSPassword = (data: SmsPasswordParameterInterface) => this.queues[BullMQQueuesEnum.SMS_PASSWORD_QUEUE].add(BullMQQueuesEnum.SMS_PASSWORD_QUEUE, data);
 
-  public sendTelegramMessage = (data: TelegramJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_QUEUE].add('TELEGRAM_QUEUE', data);
+  public sendTelegramMessage = (data: TelegramJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_QUEUE].add(BullMQQueuesEnum.TELEGRAM_QUEUE, data);
 
-  public sendTelegramAdminMessage = (data: TelegramAdminJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE].add('TELEGRAM_ADMIN_QUEUE', data);
+  public sendTelegramAdminMessage = (data: TelegramAdminJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE].add(BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE, data);
 }
