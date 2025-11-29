@@ -13,7 +13,7 @@ import type { ValidationError } from 'yup';
 import type { LabeledValue } from 'antd/lib/select';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/utilities/hooks';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newPromotionalValidation, periodSchema, discountAndDiscountPercentSchema } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -59,22 +59,22 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   form: FormInstance;
   items: ItemInterface[];
   setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>;
-  fetchItems: (search: string) => any;
+  fetchItems: (search?: string) => any;
 }
 
 interface DebounceSelectProps<ValueType = any> extends Omit<SelectProps<ValueType | ValueType[]>, 'options' | 'children'> {
   t: TFunction;
-  fetchOptions: (search: string) => Promise<ValueType[]>;
+  fetchOptions: (search?: string) => Promise<ValueType[]>;
   debounceTimeout?: number;
 }
 
 const DebounceSelect = <ValueType extends LabeledValue & { id: number; button?: JSX.Element; } = any>({ fetchOptions, t, debounceTimeout = 300, ...props }: DebounceSelectProps<ValueType>) => {
   const [fetching, setFetching] = useState(false);
-  const [options, setOptions] = useState<ValueType[]>([]);
+  const [options, setOptions] = useState<ValueType[]>();
   const fetchRef = useRef(0);
 
   const debounceFetcher = useMemo(() => {
-    const loadOptions = (value: string) => {
+    const loadOptions = (value?: string) => {
       fetchRef.current += 1;
       const fetchId = fetchRef.current;
       setOptions([]);
@@ -93,6 +93,10 @@ const DebounceSelect = <ValueType extends LabeledValue & { id: number; button?: 
     return debounce(loadOptions, debounceTimeout);
   }, [fetchOptions, debounceTimeout]);
 
+  useEffect(() => {
+    debounceFetcher();
+  }, []);
+
   return (
     <Select
       labelInValue
@@ -106,7 +110,7 @@ const DebounceSelect = <ValueType extends LabeledValue & { id: number; button?: 
   );
 };
 
-const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, form: FormInstance, items: ItemInterface[], t: TFunction, setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>, fetchItems: (search: string) => any, editing = true) => {
+const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, form: FormInstance, items: ItemInterface[], t: TFunction, setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>, fetchItems: (search?: string) => any, editing = true) => {
   if (['start', 'end'].includes(dataIndex)) {
     return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />;
   }
@@ -372,11 +376,11 @@ const CreatePromotional = () => {
     }
   };
 
-  const fetchItems = async (search: string) => {
+  const fetchItems = async (search?: string) => {
     let result: { label: string; value: number; }[] = [];
     try {
       const response = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
-        params: { search, limit: 10, offset: 0 },
+        params: { search, limit: 1000, offset: 0 },
       });
       if (response.data.code === 1) {
         result = response.data.items.map((item) => ({
