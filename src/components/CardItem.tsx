@@ -953,6 +953,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             draggable={false}
             deviceType={isMobile ? 'mobile' : 'desktop'}
             autoPlay
+            pauseOnHover
           >
             {collectionItems.map((collectionItem) => (
               <ImageHover

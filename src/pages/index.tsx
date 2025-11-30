@@ -278,6 +278,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                 draggable={false}
                 deviceType={isMobile ? 'mobile' : 'desktop'}
                 autoPlay={autoPlay}
+                pauseOnHover
               >
                 {news.map((item) => (
                   <ImageHover
