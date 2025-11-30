@@ -230,7 +230,7 @@ export const NavBar = () => {
     if (router.query?.path) {
       delete router.query.path;
     }
-    router.push({ query: search ? { ...router.query, search } : router.query, pathname: routes.page.base.catalog });
+    router.push({ query: search ? { search } : router.query, pathname: routes.page.base.catalog });
     onFocus();
   };
 

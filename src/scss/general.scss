@@ -363,8 +363,24 @@ a {
   background-color: $grey-light;
 }
 
-.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
-  color: $active-violet;
+.ant-menu-light {
+
+  .ant-menu-submenu-selected > .ant-menu-submenu-title {
+    color: $active-violet;
+  }
+
+  &.ant-menu-horizontal > .ant-menu-submenu-selected::after {
+    border-bottom-color: $active-violet;
+  }
+
+  &.ant-menu-horizontal > .ant-menu-submenu:hover::after {
+    border-bottom-color: $active-violet-hover;
+  }
+}
+
+.ant-btn-variant-outlined:not(:disabled):not(.ant-btn-disabled):hover {
+  color: $dark-blue;
+  background-color: $bg-navbar !important;
 }
 
 .ant-input-affix-wrapper-lg {

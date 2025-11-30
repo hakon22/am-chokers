@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
@@ -31,15 +31,26 @@ interface CatalogItemsPropsInterface {
   showDrawer: boolean;
   setShowDrawer: React.Dispatch<React.SetStateAction<boolean>>;
   itemGroup?: ItemGroupInterface;
+  uuid: string;
+  statistics: Record<number, number>;
 }
 
-const mapping = ({ id, lang, translations }: { id: number; lang: UserLangEnum; translations: (ItemGroupTranslateEntity | ItemCollectionTranslateEntity | CompositionTranslateEntity)[]; }) => ({ label: <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}</span>, value: id.toString() });
+interface MappingInterface {
+  id: number;
+  lang: UserLangEnum;
+  itemGroupId?: number;
+  translations: (ItemGroupTranslateEntity | ItemCollectionTranslateEntity | CompositionTranslateEntity)[];
+  count?: number;
+}
 
-export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup }: CatalogItemsPropsInterface) => {
+const mapping = ({ id, lang, itemGroupId, translations, count }: MappingInterface) => ({ label: <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}{count || itemGroupId ? ` (${count || 0})` : ''}{id === itemGroupId ? ' (текущий каталог)' : ''}</span>, value: id.toString() });
+
+export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup, uuid, statistics }: CatalogItemsPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog.filters' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
+
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { isMobile } = useContext(MobileContext);
@@ -49,7 +60,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   const [optionCompositions, setOptionCompositions] = useState<CompositionInterface[]>([]);
   const [optionColors, setOptionColors] = useState<ColorInterface[]>([]);
 
-  const itemGroupFilterOptions = itemGroups.map((item) => mapping({ ...item, lang: lang as UserLangEnum }));
+  const itemGroupFilterOptions = itemGroups.map((item) => mapping({ ...item, itemGroupId: itemGroup?.id, lang: lang as UserLangEnum, count: statistics[item.id] }));
   const itemCollectionsFilterOptions = itemCollections.map((item) => mapping({ ...item as ItemCollectionEntity, lang: lang as UserLangEnum }));
   const compositionsFilterOptions = optionCompositions.map((item) => mapping({ ...item, lang: lang as UserLangEnum }));
   const colorsFilterOptions = optionColors.map((color) => ({
@@ -107,7 +118,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     }
   };
 
-  const getFiltersCount = () => (
+  const getFiltersCount = useMemo(() => (
     initialValues.itemGroups?.length ?? 0) +
     (initialValues.itemCollections?.length ?? 0) +
     (initialValues.compositions?.length ?? 0) +
@@ -115,7 +126,16 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     (initialValues.from ? 1 : 0) +
     (initialValues.to ? 1 : 0) +
     (initialValues.new ? 1 : 0) +
-    (initialValues.bestseller ? 1 : 0);
+    (initialValues.bestseller ? 1 : 0), [
+    initialValues.itemGroups?.length,
+    initialValues.itemCollections?.length,
+    initialValues.compositions?.length,
+    initialValues.colors?.length,
+    initialValues.from,
+    initialValues.to,
+    initialValues.new,
+    initialValues.bestseller,
+  ]);
 
   const getActiveFields = () => {
     const activeFields = ['1', '4'];
@@ -136,6 +156,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     return activeFields;
   };
 
+  const getCurrentGroups = itemGroupFilterOptions.map((value) => ({ ...value, disabled: +value.value === itemGroup?.id }));
+
   const filters: CollapseProps['items'] = [
     {
       key: '1',
@@ -148,7 +170,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       ),
       children: (
         <Form.Item<CatalogFiltersInterface> name="itemGroups">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={itemGroup && !isMobile ? itemGroupFilterOptions.map((value) => ({ ...value, disabled: true })) : itemGroupFilterOptions} />
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={getCurrentGroups} />
         </Form.Item>
       ),
     },
@@ -254,18 +276,26 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
 
   useEffect(() => {
     if (itemGroup) {
-      form.setFieldsValue({ ...initialValues, itemGroups: isMobile ? [...(initialValues.itemGroups || []), itemGroup.id.toString()] : [itemGroup.id.toString()] });
+      form.setFieldsValue({ ...initialValues, itemGroups: [...new Set([...(initialValues.itemGroups || []), itemGroup.id.toString()]).values()] });
     } else {
       form.setFieldsValue(initialValues);
     }
-  }, [itemGroup?.id]);
+  }, [itemGroup?.id, uuid, initialValues]);
+
+  useEffect(() => {
+    if (itemGroup) {
+      setInitialValues({ ...initialValues, itemGroups: [...new Set([...(initialValues.itemGroups || []), itemGroup.id.toString()]).values()] });
+    } else {
+      setInitialValues(initialValues);
+    }
+  }, [itemGroup?.id, uuid]);
 
   return isMobile
     ? (
       <>
         <FloatButton
           style={{ left: '6.5%', top: '5rem', zIndex: 1 }}
-          badge={{ count: getFiltersCount() }}
+          badge={{ count: getFiltersCount }}
           icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />
@@ -277,6 +307,11 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
           zIndex={10001}
         >
           <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
+            <div className="d-flex justify-content-center">
+              <Button htmlType="submit" className="align-self-center fs-6 mb-4" style={{ backgroundColor: '#eaeef6' }}>
+                {t('submitButton')}
+              </Button>
+            </div>
             <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
               <Select
                 className="w-100 mb-2 custom-placeholder"
@@ -309,10 +344,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
                 ]}
               />
             </Form.Item>
-            <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" className="mb-4" />
-            <Button htmlType="submit" className="button fs-6 mx-auto">
-              {t('submitButton')}
-            </Button>
+            <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" />
           </Form>
         </Drawer>
       </>
@@ -320,6 +352,11 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     : (
       <div className="d-flex col-2">
         <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
+          <div className="d-flex justify-content-center">
+            <Button htmlType="submit" className="align-self-center fs-6 mb-4" style={{ backgroundColor: '#eaeef6' }}>
+              {t('submitButton')}
+            </Button>
+          </div>
           <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
             <Select
               className="w-100 mb-2 custom-placeholder"
@@ -352,10 +389,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
               ]}
             />
           </Form.Item>
-          <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" className="mb-4" />
-          <Button htmlType="submit" className="button fs-6 mx-auto">
-            {t('submitButton')}
-          </Button>
+          <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" />
         </Form>
       </div>
     );

@@ -144,6 +144,7 @@ export const routes = {
     getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
     getCacheInfo: [apiPath, 'item', 'cache-info'].join('/'),
     synchronizationCache: [apiPath, 'item', 'synchronization-cache'].join('/'),
+    getStatistics: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'statistics'].join('/'),
   },
 
   // cart

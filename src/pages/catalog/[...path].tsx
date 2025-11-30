@@ -1,11 +1,11 @@
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 import { CardItem } from '@/components/CardItem';
 import Catalog from '@/pages/catalog';
 import { routes } from '@/routes';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
-import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { ItemGroupResponseInterface, ItemResponseInterface } from '@/slices/appSlice';
 
 interface GetServerSidePropsInterface {
@@ -27,11 +27,13 @@ interface GetServerSidePropsInterface {
   },
 }
 
-interface PagePropsInterface {
+export interface PagePropsInterface {
   item?: ItemInterface;
   items: ItemInterface[];
-  paginationParams: PaginationInterface;
+  paginationParams?: PaginationInterface;
   itemGroup?: ItemGroupInterface;
+  uuid: string;
+  statistics: Record<number, number>;
 }
 
 export const getCatalogServerSideProps = async ({ params, query }: GetServerSidePropsInterface) => {
@@ -39,23 +41,30 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
 
   const [groupCode] = path;
 
-  const [{ data: { items: payloadItems, paginationParams } }, { data: { itemGroup } }] = await Promise.all([
+  const filters = {
+    ...(query?.collectionIds ? Array.isArray(query.collectionIds) ? { collectionIds: query.collectionIds } : { collectionIds: [query.collectionIds] } : {}),
+    ...(query?.compositionIds ? Array.isArray(query.compositionIds) ? { compositionIds: query.compositionIds } : { compositionIds: [query.compositionIds] } : {}),
+    ...(query?.colorIds ? Array.isArray(query.colorIds) ? { colorIds: query.colorIds } : { colorIds: [query.colorIds] } : {}),
+    ...(query?.from ? { from: query.from } : {}),
+    ...(query?.to ? { to: query.to } : {}),
+    ...(query?.search ? { search: query.search } : {}),
+    ...(query?.new ? { new: query.new } : {}),
+    ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
+  };
+
+  const [{ data: { items: payloadItems, paginationParams } }, { data: { statistics } }, { data: { itemGroup } }] = await Promise.all([
     axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: false }), {
       params: {
         limit: +(query?.page || 1) * 8,
         offset: 0,
-        groupCode,
+        ...(query?.groupIds ? {} : { groupCode }),
         ...(query?.groupIds ? Array.isArray(query.groupIds) ? { groupIds: query.groupIds } : { groupIds: [query.groupIds] } : {}),
-        ...(query?.collectionIds ? Array.isArray(query.collectionIds) ? { collectionIds: query.collectionIds } : { collectionIds: [query.collectionIds] } : {}),
-        ...(query?.compositionIds ? Array.isArray(query.compositionIds) ? { compositionIds: query.compositionIds } : { compositionIds: [query.compositionIds] } : {}),
-        ...(query?.colorIds ? Array.isArray(query.colorIds) ? { colorIds: query.colorIds } : { colorIds: [query.colorIds] } : {}),
-        ...(query?.from ? { from: query.from } : {}),
-        ...(query?.to ? { to: query.to } : {}),
-        ...(query?.search ? { search: query.search } : {}),
-        ...(query?.new ? { new: query.new } : {}),
-        ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
         ...(query?.sort ? { sort: query.sort } : {}),
+        ...filters,
       },
+    }),
+    axios.get<{ code: number; statistics: Record<number, number>; }>(routes.item.getStatistics({ isServer: false }), {
+      params: filters,
     }),
     ...(groupCode ? [axios.get<ItemGroupResponseInterface>(routes.itemGroup.getByCode({ isServer: false }), {
       params: { code: groupCode },
@@ -67,6 +76,8 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
       items: payloadItems,
       paginationParams,
       itemGroup,
+      statistics,
+      uuid: uuidv4(),
     },
   };
 };
@@ -93,19 +104,10 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
         params: { translateName: itemName },
       });
   
-      if (item) {
-        const { data: { items: grades, paginationParams } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.item.getGrades({ isServer: false, id: item.id }), {
-          params: {
-            limit: 10,
-            offset: 0,
-          },
-        });
-        item.grades = grades;
-  
+      if (item) {  
         return {
           props: {
             item,
-            paginationParams,
           },
         };
       }
@@ -122,6 +124,6 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
   }
 };
 
-const Page = ({ item, paginationParams, items, itemGroup }: PagePropsInterface) => (item ? <CardItem item={item} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} />);
+const Page = ({ item, paginationParams, items, itemGroup, uuid, statistics }: PagePropsInterface) => (item ? <CardItem item={item} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />);
 
 export default Page;

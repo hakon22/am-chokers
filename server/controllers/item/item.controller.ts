@@ -225,6 +225,18 @@ export class ItemController extends BaseService {
     }
   };
 
+  public getStatistics = async (req: Request, res: Response) => {
+    try {
+      const query = await queryItemsParams.validate(req.query);
+
+      const statistics = await this.itemService.getStatistics(query);
+
+      res.json({ code: 1, statistics });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
   public getListExcel = async (req: Request, res: Response) => {
     try {
       const user = this.getCurrentUser(req);

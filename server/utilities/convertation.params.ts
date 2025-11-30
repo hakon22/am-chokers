@@ -92,16 +92,16 @@ export const queryUploadImageParams = yup.object().shape({
 export const queryItemsParams = queryPaginationWithParams.concat(
   yup.object().shape({
     groupCode: yup.string().optional(),
-    groupIds: yup.array(yup.number().optional()),
-    collectionIds: yup.array(yup.number().optional()),
-    compositionIds: yup.array(yup.number().optional()),
-    colorIds: yup.array(yup.number().optional()),
+    groupIds: yup.array(yup.number().required()).optional(),
+    collectionIds: yup.array(yup.number().required()).optional(),
+    compositionIds: yup.array(yup.number().required()).optional(),
+    colorIds: yup.array(yup.number().required()).optional(),
     from: yup.number().optional(),
     to: yup.number().optional(),
     new: booleanSchema,
     bestseller: booleanSchema,
     sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
-    excludeIds: yup.array(yup.number().optional()),
+    excludeIds: yup.array(yup.number().required()).optional(),
   }),
 );
 

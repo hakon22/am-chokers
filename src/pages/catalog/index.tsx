@@ -23,7 +23,8 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { getWidth } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
+import type { PagePropsInterface } from '@/pages/catalog/[...path]';
+import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 
 export interface CatalogFiltersInterface {
@@ -271,7 +272,7 @@ const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInt
     );
 };
 
-const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, itemGroup }: { items: ItemInterface[]; paginationParams: PaginationInterface; itemGroup?: ItemGroupInterface; }) => {
+const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, itemGroup, uuid, statistics: propsStatistics }: Omit<PagePropsInterface, 'item'>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -281,6 +282,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
+  const { setIsSearch } = useContext(SearchContext);
   const { isSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
   
@@ -289,7 +291,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   
   const urlParams = useSearchParams();
   
-  const typesParams = urlParams.getAll('groupIds');
+  const groupParams = urlParams.getAll('groupIds');
   const collectionsParams = urlParams.getAll('collectionIds');
   const compositionParams = urlParams.getAll('compositionIds');
   const colorParams = urlParams.getAll('colorIds');
@@ -307,7 +309,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const [form] = Form.useForm<CatalogFiltersInterface>();
 
   const preparedInitialValues: CatalogFiltersInterface = {
-    itemGroups: typesParams,
+    itemGroups: groupParams,
     itemCollections: collectionsParams,
     compositions: compositionParams,
     colors: colorParams,
@@ -334,11 +336,29 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   const [items, setItems] = useState<ItemInterface[]>(propsItems);
   const [initialValues, setInitialValues] = useState<CatalogFiltersInterface>(preparedInitialValues);
+  const [statistics, setStatistics] = useState<Record<number, number>>(propsStatistics);
+
+  const getStatistics = async (params?: CatalogFiltersInterface) => {
+    try {
+      const { data } = await axios.get<{ code: number; statistics: Record<number, number>; }>(routes.item.getStatistics({ isServer: false }), {
+        params,
+      });
+      if (data.code === 1) {
+        setStatistics(data.statistics);
+      }
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    }
+  };
 
   const onFilters = async (values: CatalogFiltersInterface, paginationParams?: Pick<PaginationInterface, 'limit' | 'offset'>) => {
     try {
       setIsSubmit(true);
       setIsFilters(true);
+
+      if (values?.search) {
+        setIsSearch({ value: false, needFetch: false });
+      }
 
       const params = {
         page: (paginationParams?.offset || chunkNumber) / chunkNumber,
@@ -348,7 +368,6 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.colors?.length ? { colorIds: values.colors } : {}),
         ...(values?.from ? { from: values.from } : {}),
         ...(values?.to ? { to: values.to } : {}),
-        ...(values?.search ? { search: values.search } : {}),
         ...(values?.new ? { new: values.new } : {}),
         ...(values?.bestseller ? { bestseller: values.bestseller } : {}),
         ...(values?.sort ? { sort: values.sort } : {}),
@@ -356,9 +375,12 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
       router.push({ query: { ...params, ...(itemGroup ? { path: [itemGroup.code] } : {}) } }, undefined, { shallow: true });
 
-      const { data } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
-        params: { ...params, limit: paginationParams?.limit || chunkNumber, offset: paginationParams?.offset || 0 },
-      });
+      const [{ data }] = await Promise.all([
+        axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
+          params: { ...params, limit: paginationParams?.limit || chunkNumber, offset: paginationParams?.offset || 0 },
+        }),
+        getStatistics(params),
+      ]);
       if (data.code === 1) {
         setItems(paginationParams ? (state) => [...state, ...data.items] : data.items);
         dispatch(setPaginationParams(data.paginationParams));
@@ -435,12 +457,14 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, []);
 
   useEffect(() => {
-    dispatch(setPaginationParams(propsPaginationParams));
+    if (propsPaginationParams) {
+      dispatch(setPaginationParams(propsPaginationParams));
+    }
   }, [propsPaginationParams]);
 
   useEffect(() => {
     if (searchParams) {
-      setInitialValues((state) => ({ ...state, search: searchParams }));
+      setInitialValues({ search: searchParams });
       setItems(propsItems);
     } else if (!isSearch?.value) {
       setInitialValues((state) => ({ ...state, search: undefined }));
@@ -456,34 +480,15 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   useEffect(() => {
     if (itemGroup?.id) {
-      if (isFilters) {
-        setIsFilters(false);
-      } else {
-        setItems(propsItems);
-      }
+      setItems(propsItems);
+      setInitialValues((state) => ({ ...state, itemGroups: itemGroup?.id ? [...new Set([...(preparedInitialValues.itemGroups || []), itemGroup.id.toString()]).values()] : state.itemGroups }));
     }
-    setInitialValues((state) => {
-      let itemGroups = state.itemGroups || [];
+  }, [itemGroup?.id, uuid]);
 
-      if (isMobile) {
-        if (itemGroup) {
-          itemGroups.push(itemGroup.id.toString());
-        }
-        itemGroups = [...new Set(itemGroups)];
-      } else {
-        if (itemGroup) {
-          itemGroups = [itemGroup.id.toString()];
-        }
-      }
-
-      return { ...state, itemGroups };
-    });
-  }, [itemGroup?.id]);
-  
   return (
     <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
       <Helmet title={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.name as string : t('title')} description={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.description as string : t('description')} />
-      <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} />
+      <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />
       <div className="d-flex col-12 col-xl-9">
         <div className="w-100">
           <InfiniteScroll
