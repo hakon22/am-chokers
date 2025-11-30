@@ -487,7 +487,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
       ) : null;
 };
 
-export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams: PaginationInterface; }) => {
+export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
@@ -610,7 +610,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   }, [editParams, isAdmin]);
 
   useEffect(() => {
-    dispatch(setPaginationParams(paginationParams));
+    if (paginationParams) {
+      dispatch(setPaginationParams(paginationParams));
+    }
   }, [paginationParams]);
 
   useEffect(() => {

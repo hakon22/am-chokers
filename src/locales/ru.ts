@@ -81,7 +81,12 @@ export default {
         },
         adminSettings: {
           title: 'Настройки сайта',
-          synchronizationCache: 'Обновить кэш',
+          cache: {
+            synchronizationCache: 'Обновить кэш',
+            items: 'Товары',
+            itemGroups: 'Группы товаров',
+            itemGrades: 'Оценки товаров',
+          },
         },
         personal: {
           title: 'Личные данные',
@@ -642,7 +647,8 @@ export default {
             suffix: '₽',
           },
           search: 'Поиск',
-          submitButton: 'Поиск',
+          submitButton: 'Применить фильтры',
+          resetFilters: 'Сбросить фильтры',
           additionally: {
             title: 'Дополнительно',
             new: 'Новинки',

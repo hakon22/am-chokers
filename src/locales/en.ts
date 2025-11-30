@@ -81,7 +81,12 @@ export default {
         },
         adminSettings: {
           title: 'Site settings',
-          synchronizationCache: 'Update cache',
+          cache: {
+            synchronizationCache: 'Update cache',
+            items: 'Items',
+            itemGroups: 'Item groups',
+            itemGrades: 'Item grades',
+          },
         },
         personal: {
           title: 'Profile',
@@ -642,7 +647,8 @@ export default {
             suffix: '₽',
           },
           search: 'Search',
-          submitButton: 'Search',
+          submitButton: 'Apply filters',
+          resetFilters: 'Reset filters',
           additionally: {
             title: 'Additionally',
             new: 'New arrivals',

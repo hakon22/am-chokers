@@ -31,7 +31,6 @@ import type { ItemQueryInterface } from '@server/types/item/item.query.interface
 import type { ItemOptionsInterface } from '@server/types/item/item.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
-import type { FetchItemInterface } from '@/types/item/Item';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
 import type { CacheInfoInterface } from '@server/types/db/cache-info.interface';
 
@@ -345,7 +344,7 @@ export class ItemService extends TranslationHelper {
       : this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, items.map(({ id }) => id));
   };
 
-  public getList = async (query: FetchItemInterface): Promise<[ItemEntity[], number]> => {
+  public getList = async (query: ItemQueryInterface): Promise<[ItemEntity[], number]> => {
     const idsBuilder = this.createQueryBuilder(query, { ...query, onlyIds: true });
 
     const [ids, count] = await idsBuilder.getManyAndCount();
@@ -820,6 +819,52 @@ export class ItemService extends TranslationHelper {
       itemGroups: { postgreSql: groups.length, redis: cachedGroups.length },
       itemGrades,
     };
+  };
+
+  public getStatistics = async (query?: ItemQueryInterface) => {
+    const builder = this.databaseService.getManager()
+      .createQueryBuilder(ItemEntity, 'item')
+      .leftJoin('item.group', 'group')
+      .select([
+        '"group"."id" AS "groupId"',
+        'COUNT(DISTINCT "item"."id") AS "count"',
+      ])
+      .where('item.deleted IS NULL')
+      .andWhere('item.publicationDate IS NULL')
+      .groupBy('group.id');
+
+    if (query?.collectionIds?.length) {
+      builder.andWhere('item.collection IN(:...collectionIds)', { collectionIds: query.collectionIds });
+    }
+    if (query?.compositionIds?.length) {
+      builder
+        .leftJoin('item.compositions', 'compositions')
+        .andWhere('compositions.id IN(:...compositionIds)', { compositionIds: query.compositionIds });
+    }
+    if (query?.colorIds?.length) {
+      builder
+        .leftJoin('item.colors', 'colors')
+        .andWhere('colors.id IN(:...colorIds)', { colorIds: query.colorIds });
+    }
+    if (query?.from) {
+      builder.andWhere('(item.price - item.discountPrice) >= :from', { from: query.from });
+    }
+    if (query?.to) {
+      builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
+    }
+    if (query?.new) {
+      builder.andWhere('item.new = TRUE');
+    }
+    if (query?.bestseller) {
+      builder.andWhere('item.bestseller = TRUE');
+    }
+
+    const statistics = await builder.getRawMany<{ groupId: number; count: number; }>();
+
+    return statistics.reduce((acc, { groupId, count }) => {
+      acc[groupId] = count;
+      return acc;
+    }, {} as Record<number, number>);
   };
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);

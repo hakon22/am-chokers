@@ -79,8 +79,6 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
       router.push(routes.page.profile.myReviews);
     } else if (keys.includes('settings')) {
       router.push(routes.page.profile.settings);
-    } else if (keys.includes('adminSettings')) {
-      router.push(routes.page.admin.adminSettings);
     }
   };
 
@@ -121,7 +119,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           { key: routes.page.admin.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.page.admin.compositionsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.page.admin.colorsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: 'adminSettings', label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.colorsControl}>{tMenu('menu.admin.adminSettings')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: 'adminSettings', label: tMenu('menu.admin.adminSettings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <AdminSettings /> },
         ]}
       /> }]
       : []),

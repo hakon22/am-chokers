@@ -126,7 +126,7 @@ export class LoggerService {
     }
     if (message && (typeof message === 'string')) {
       this.log('error', message, args, true);
-    } else if (message.type !== 'PRECONDITION FAILED') {
+    } else if (message?.type !== 'PRECONDITION FAILED') {
       args.push(message);
       this.log('error', '', args, true);
     }

@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
 import { Skeleton, Button, Form } from 'antd';
 import cn from 'classnames';
-import { chunk } from 'lodash';
+import { chunk, isEmpty, isNil } from 'lodash';
 
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
@@ -28,10 +28,10 @@ import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 
 export interface CatalogFiltersInterface {
-  itemGroups?: string[];
-  itemCollections?: string[];
-  compositions?: string[];
-  colors?: string[];
+  groupIds?: string[];
+  collectionIds?: string[];
+  compositionIds?: string[];
+  colorIds?: string[];
   from?: string | null;
   to?: string | null;
   search?: string | null;
@@ -309,10 +309,10 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const [form] = Form.useForm<CatalogFiltersInterface>();
 
   const preparedInitialValues: CatalogFiltersInterface = {
-    itemGroups: groupParams,
-    itemCollections: collectionsParams,
-    compositions: compositionParams,
-    colors: colorParams,
+    groupIds: groupParams,
+    collectionIds: collectionsParams,
+    compositionIds: compositionParams,
+    colorIds: colorParams,
     from: fromParams,
     to: toParams,
     search: searchParams,
@@ -322,10 +322,10 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   };
 
   const defaultInitialValues: CatalogFiltersInterface = {
-    itemGroups: itemGroup ? [itemGroup.id.toString()] : [],
-    itemCollections: [],
-    compositions: [],
-    colors: [],
+    groupIds: [],
+    collectionIds: [],
+    compositionIds: [],
+    colorIds: [],
     from: undefined,
     to: undefined,
     search: undefined,
@@ -361,11 +361,10 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       }
 
       const params = {
-        page: (paginationParams?.offset || chunkNumber) / chunkNumber,
-        ...(values?.itemGroups?.length ? { groupIds: values.itemGroups } : {}),
-        ...(values?.itemCollections?.length ? { collectionIds: values.itemCollections } : {}),
-        ...(values?.compositions?.length ? { compositionIds: values.compositions } : {}),
-        ...(values?.colors?.length ? { colorIds: values.colors } : {}),
+        ...(values?.groupIds?.length ? { groupIds: values.groupIds } : {}),
+        ...(values?.collectionIds?.length ? { collectionIds: values.collectionIds } : {}),
+        ...(values?.compositionIds?.length ? { compositionIds: values.compositionIds } : {}),
+        ...(values?.colorIds?.length ? { colorIds: values.colorIds } : {}),
         ...(values?.from ? { from: values.from } : {}),
         ...(values?.to ? { to: values.to } : {}),
         ...(values?.new ? { new: values.new } : {}),
@@ -373,23 +372,23 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.sort ? { sort: values.sort } : {}),
       };
 
-      router.push({ query: { ...params, ...(itemGroup ? { path: [itemGroup.code] } : {}) } }, undefined, { shallow: true });
+      router.push({ query: {
+        page: (paginationParams?.offset || chunkNumber) / chunkNumber,
+        ...params,
+        ...(itemGroup ? { path: [itemGroup.code] } : {}),
+      } }, undefined, { shallow: true });
 
       const [{ data }] = await Promise.all([
         axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
           params: { ...params, limit: paginationParams?.limit || chunkNumber, offset: paginationParams?.offset || 0 },
         }),
-        getStatistics(params),
+        ...(!paginationParams ? [getStatistics(params)] : []),
       ]);
       if (data.code === 1) {
         setItems(paginationParams ? (state) => [...state, ...data.items] : data.items);
         dispatch(setPaginationParams(data.paginationParams));
 
-        if (itemGroup) {
-          values.itemGroups = [...new Set([...(values.itemGroups || []), itemGroup.id.toString()])];
-        }
-
-        setInitialValues(values);
+        setInitialValues(params);
 
         if (!paginationParams) {
           scrollTop();
@@ -479,16 +478,18 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, [searchParams, isSearch?.value]);
 
   useEffect(() => {
-    if (itemGroup?.id) {
-      setItems(propsItems);
-      setInitialValues((state) => ({ ...state, itemGroups: itemGroup?.id ? [...new Set([...(preparedInitialValues.itemGroups || []), itemGroup.id.toString()]).values()] : state.itemGroups }));
+    if (itemGroup?.id && Object.values(preparedInitialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) {
+      preparedInitialValues.groupIds = [itemGroup.id.toString()];
     }
+    setItems(propsItems);
+    setInitialValues(preparedInitialValues);
+    setStatistics(propsStatistics);
   }, [itemGroup?.id, uuid]);
 
   return (
     <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '120px' } : {}}>
       <Helmet title={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.name as string : t('title')} description={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.description as string : t('description')} />
-      <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />
+      <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} uuid={uuid} statistics={statistics} resetFilters={resetFilters} />
       <div className="d-flex col-12 col-xl-9">
         <div className="w-100">
           <InfiniteScroll

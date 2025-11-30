@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isEmpty } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CardItem } from '@/components/CardItem';
@@ -57,7 +58,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
       params: {
         limit: +(query?.page || 1) * 8,
         offset: 0,
-        ...(query?.groupIds ? {} : { groupCode }),
+        ...(query?.groupIds || !isEmpty(filters) ? {} : { groupCode }),
         ...(query?.groupIds ? Array.isArray(query.groupIds) ? { groupIds: query.groupIds } : { groupIds: [query.groupIds] } : {}),
         ...(query?.sort ? { sort: query.sort } : {}),
         ...filters,

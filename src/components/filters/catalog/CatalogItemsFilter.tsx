@@ -1,9 +1,11 @@
 import axios from 'axios';
+import { isEmpty, isNil } from 'lodash';
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
+import type { TFunction } from 'i18next';
 import type { CollapseProps, FormInstance } from 'antd/lib';
 
 import { routes } from '@/routes';
@@ -33,19 +35,34 @@ interface CatalogItemsPropsInterface {
   itemGroup?: ItemGroupInterface;
   uuid: string;
   statistics: Record<number, number>;
+  resetFilters: () => void;
 }
 
 interface MappingInterface {
   id: number;
   lang: UserLangEnum;
-  itemGroupId?: number;
+  isItemGroup?: boolean;
   translations: (ItemGroupTranslateEntity | ItemCollectionTranslateEntity | CompositionTranslateEntity)[];
   count?: number;
 }
 
-const mapping = ({ id, lang, itemGroupId, translations, count }: MappingInterface) => ({ label: <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}{count || itemGroupId ? ` (${count || 0})` : ''}{id === itemGroupId ? ' (текущий каталог)' : ''}</span>, value: id.toString() });
+const FilterButtons = ({ t, resetFilters }: { t: TFunction; resetFilters?: () => void; }) => (
+  <div className="d-flex flex-column justify-content-center gap-3 mb-4">
+    <Button htmlType="submit" className="fs-6 mx-auto col-6 col-xl-9" style={{ backgroundColor: '#eaeef6' }}>
+      {t('submitButton')}
+    </Button>
+    {resetFilters ? (
+      <Button className="fs-6 mx-auto col-6 col-xl-9" style={{ backgroundColor: '#f7f9fcd8', color: '#69788e' }} onClick={resetFilters}>
+        {t('resetFilters')}
+      </Button>
+    )
+      : null}
+  </div>
+);
 
-export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup, uuid, statistics }: CatalogItemsPropsInterface) => {
+const mapping = ({ id, lang, isItemGroup, translations, count }: MappingInterface) => ({ label: <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}{isItemGroup ? ` (${count || 0})` : ''}</span>, value: id.toString() });
+
+export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues, setInitialValues, showDrawer, setShowDrawer, itemGroup, uuid, statistics, resetFilters }: CatalogItemsPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog.filters' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -60,7 +77,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   const [optionCompositions, setOptionCompositions] = useState<CompositionInterface[]>([]);
   const [optionColors, setOptionColors] = useState<ColorInterface[]>([]);
 
-  const itemGroupFilterOptions = itemGroups.map((item) => mapping({ ...item, itemGroupId: itemGroup?.id, lang: lang as UserLangEnum, count: statistics[item.id] }));
+  const itemGroupFilterOptions = itemGroups.map((item) => mapping({ ...item, isItemGroup: true, lang: lang as UserLangEnum, count: statistics[item.id] }));
   const itemCollectionsFilterOptions = itemCollections.map((item) => mapping({ ...item as ItemCollectionEntity, lang: lang as UserLangEnum }));
   const compositionsFilterOptions = optionCompositions.map((item) => mapping({ ...item, lang: lang as UserLangEnum }));
   const colorsFilterOptions = optionColors.map((color) => ({
@@ -82,8 +99,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   };
 
   const setValueCompositions = (values: string[]) => {
-    const otherValues = (initialValues.compositions ?? [])?.filter((value) => !optionCompositions.find((optionsValue) => optionsValue.id.toString() === value));
-    setInitialValues((state) => ({ ...state, compositions: [...values, ...otherValues] }));
+    const otherValues = (initialValues.collectionIds ?? [])?.filter((value) => !optionCompositions.find((optionsValue) => optionsValue.id.toString() === value));
+    setInitialValues((state) => ({ ...state, compositionIds: [...values, ...otherValues] }));
   };
 
   const onClear = () => {
@@ -119,18 +136,18 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   };
 
   const getFiltersCount = useMemo(() => (
-    initialValues.itemGroups?.length ?? 0) +
-    (initialValues.itemCollections?.length ?? 0) +
-    (initialValues.compositions?.length ?? 0) +
-    (initialValues.colors?.length ?? 0) +
+    initialValues.groupIds?.length ?? 0) +
+    (initialValues.collectionIds?.length ?? 0) +
+    (initialValues.compositionIds?.length ?? 0) +
+    (initialValues.colorIds?.length ?? 0) +
     (initialValues.from ? 1 : 0) +
     (initialValues.to ? 1 : 0) +
     (initialValues.new ? 1 : 0) +
     (initialValues.bestseller ? 1 : 0), [
-    initialValues.itemGroups?.length,
-    initialValues.itemCollections?.length,
-    initialValues.compositions?.length,
-    initialValues.colors?.length,
+    initialValues.groupIds?.length,
+    initialValues.collectionIds?.length,
+    initialValues.compositionIds?.length,
+    initialValues.colorIds?.length,
     initialValues.from,
     initialValues.to,
     initialValues.new,
@@ -140,23 +157,21 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   const getActiveFields = () => {
     const activeFields = ['1', '4'];
 
-    if (initialValues.compositions?.length) {
+    if (initialValues.compositionIds?.length) {
       activeFields.push('2');
     }
-    if (initialValues.itemCollections?.length) {
+    if (initialValues.collectionIds?.length) {
       activeFields.push('3');
     }
     if (initialValues.new || initialValues.bestseller) {
       activeFields.push('5');
     }
-    if (initialValues.colors?.length) {
+    if (initialValues.colorIds?.length) {
       activeFields.push('6');
     }
 
     return activeFields;
   };
-
-  const getCurrentGroups = itemGroupFilterOptions.map((value) => ({ ...value, disabled: +value.value === itemGroup?.id }));
 
   const filters: CollapseProps['items'] = [
     {
@@ -165,12 +180,12 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase fw-400">{t('type')}</span>
-          {initialValues.itemGroups?.length ? <Badge count={initialValues.itemGroups.length} color="#69788e" /> : null}
+          {initialValues.groupIds?.length ? <Badge count={initialValues.groupIds.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
-        <Form.Item<CatalogFiltersInterface> name="itemGroups">
-          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={getCurrentGroups} />
+        <Form.Item<CatalogFiltersInterface> name="groupIds">
+          <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={itemGroupFilterOptions} />
         </Form.Item>
       ),
     },
@@ -179,7 +194,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase fw-400">{t('materials')}</span>
-          {initialValues.compositions?.length ? <Badge count={initialValues.compositions.length} color="#69788e" /> : null}
+          {initialValues.compositionIds?.length ? <Badge count={initialValues.compositionIds.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
@@ -197,7 +212,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
               }
             }} />
           <Form.Item<CatalogFiltersInterface>>
-            <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" value={initialValues.compositions} onChange={setValueCompositions} options={compositionsFilterOptions} />
+            <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" value={initialValues.compositionIds} onChange={setValueCompositions} options={compositionsFilterOptions} />
           </Form.Item>
         </div>
       ),
@@ -207,11 +222,11 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase fw-400">{t('collections')}</span>
-          {initialValues.itemCollections?.length ? <Badge count={initialValues.itemCollections.length} color="#69788e" /> : null}
+          {initialValues.collectionIds?.length ? <Badge count={initialValues.collectionIds.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
-        <Form.Item<CatalogFiltersInterface> name="itemCollections">
+        <Form.Item<CatalogFiltersInterface> name="collectionIds">
           <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={itemCollectionsFilterOptions} />
         </Form.Item>
       ),
@@ -259,11 +274,11 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase fw-400">{t('colors')}</span>
-          {initialValues.colors?.length ? <Badge count={initialValues.colors.length} color="#69788e" /> : null}
+          {initialValues.colorIds?.length ? <Badge count={initialValues.colorIds.length} color="#69788e" /> : null}
         </div>
       ),
       children: (
-        <Form.Item<CatalogFiltersInterface> name="colors">
+        <Form.Item<CatalogFiltersInterface> name="colorIds">
           <Checkbox.Group className="d-flex flex-column justify-content-center gap-xl-2 checkbox-center fw-300" options={colorsFilterOptions} />
         </Form.Item>
       ),
@@ -275,19 +290,21 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   }, []);
 
   useEffect(() => {
-    if (itemGroup) {
-      form.setFieldsValue({ ...initialValues, itemGroups: [...new Set([...(initialValues.itemGroups || []), itemGroup.id.toString()]).values()] });
-    } else {
-      form.setFieldsValue(initialValues);
+    if (itemGroup?.id) {
+      if (Object.values(initialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) {
+        initialValues.groupIds = [itemGroup.id.toString()];
+      }
     }
+    form.setFieldsValue(initialValues);
   }, [itemGroup?.id, uuid, initialValues]);
 
   useEffect(() => {
-    if (itemGroup) {
-      setInitialValues({ ...initialValues, itemGroups: [...new Set([...(initialValues.itemGroups || []), itemGroup.id.toString()]).values()] });
-    } else {
-      setInitialValues(initialValues);
+    if (itemGroup?.id) {
+      if (Object.values(initialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) {
+        initialValues.groupIds = [itemGroup.id.toString()];
+      }
     }
+    setInitialValues(initialValues);
   }, [itemGroup?.id, uuid]);
 
   return isMobile
@@ -307,11 +324,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
           zIndex={10001}
         >
           <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-            <div className="d-flex justify-content-center">
-              <Button htmlType="submit" className="align-self-center fs-6 mb-4" style={{ backgroundColor: '#eaeef6' }}>
-                {t('submitButton')}
-              </Button>
-            </div>
+            <FilterButtons t={t} {...(getFiltersCount ? { resetFilters } : {})} />
             <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
               <Select
                 className="w-100 mb-2 custom-placeholder"
@@ -352,11 +365,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     : (
       <div className="d-flex col-2">
         <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-          <div className="d-flex justify-content-center">
-            <Button htmlType="submit" className="align-self-center fs-6 mb-4" style={{ backgroundColor: '#eaeef6' }}>
-              {t('submitButton')}
-            </Button>
-          </div>
+          <FilterButtons t={t} {...(getFiltersCount ? { resetFilters } : {})} />
           <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
             <Select
               className="w-100 mb-2 custom-placeholder"

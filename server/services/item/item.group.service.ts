@@ -133,7 +133,7 @@ export class ItemGroupService extends TranslationHelper {
       }
       options.onlyIds = true;
     }
-    const builder = this.createQueryBuilder(query);
+    const builder = this.createQueryBuilder(query, options);
 
     const itemGroups = await builder.getMany();
 
@@ -150,7 +150,7 @@ export class ItemGroupService extends TranslationHelper {
       options.onlyIds = true;
     }
 
-    const builder = this.createQueryBuilder(query);
+    const builder = this.createQueryBuilder(query, options);
   
     const itemGroup = await builder.getOne();
   

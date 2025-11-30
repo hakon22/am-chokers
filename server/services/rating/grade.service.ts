@@ -39,6 +39,7 @@ export class GradeService extends BaseService {
     if (options?.onlyIds) {
       builder
         .select('grade.id')
+        .distinct(true)
         .orderBy('grade.id', 'DESC');
 
       if (!_.isNil(query?.limit) && !_.isNil(query?.offset) && !options?.ids?.length) {
