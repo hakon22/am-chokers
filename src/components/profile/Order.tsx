@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Card, Form, Input, Rate, Tag, type UploadFile } from 'antd';
+import { Badge, Button, Card, Form, Input, Rate, Tag, Tooltip, type UploadFile } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -33,6 +33,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.orders.order' });
   const { t: tOrders } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
+  const { t: tPromotionalCodes } = useTranslation('translation', { keyPrefix: 'pages.promotionalCodes' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -228,10 +229,12 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                       </div>
                     )}
                     {order.promotional && (
-                      <div className="d-flex justify-content-between">
-                        <span>{tOrders('promotional')}</span>
-                        <span className="fw-500 text-danger">{`- ${tOrders('price', { price: getOrderDiscount(order) })}`}</span>
-                      </div>
+                      <Tooltip title={order.promotional.name} trigger={['click', 'hover']} placement={isMobile ? 'bottom' : 'left'} color="#4d689e">
+                        <div className="d-flex justify-content-between">
+                          <span>{tOrders('promotional')}</span>
+                          <span className="fw-500 text-danger">{order.promotional.freeDelivery ? tPromotionalCodes('columns.freeDelivery') : `- ${tOrders('price', { price: getOrderDiscount(order) })}`}</span>
+                        </div>
+                      </Tooltip>
                     )}
                   </div>
                   <div className="d-flex justify-content-between fs-5 font-oswald fw-bold">
