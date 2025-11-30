@@ -75,13 +75,14 @@ class DeferredPublicationCron {
         continue;
       }
 
-      this.publishProcess(item, deferredValue.description);
       await DeferredPublicationEntity.update(deferredValue.id, { isPublished: true });
 
       if (item.deferredPublication) {
         item.deferredPublication.isPublished = true;
         await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
       }
+
+      this.publishProcess(item, deferredValue.description);
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
     }

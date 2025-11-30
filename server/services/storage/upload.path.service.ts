@@ -101,7 +101,7 @@ export class UploadPathService {
           this.loggerService.error('Ошибка записи в файл sitemap', error);
           return;
         }
-        this.loggerService.info(`Sitemap успешно обновлён добавлением ${isItemGroup ? 'новой группы' : 'нового'} товара:`, `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`);
+        this.loggerService.info(`Sitemap успешно обновлён добавлением ${isItemGroup ? 'новой группы' : 'нового'} товара`, `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`);
       });
     });
   };

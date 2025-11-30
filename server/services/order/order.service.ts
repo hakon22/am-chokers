@@ -410,7 +410,7 @@ export class OrderService extends BaseService {
   public subscribe = async () => {
     await this.redisService.subscribeRedis.subscribe('__keyevent@0__:expired', async (message) => {
       if (message.includes('checkOrderPayment')) {
-        const orderId = message.replace('checkOrderPayment_', '') as string;
+        const orderId = message.replace(`${this.redisService.commonOptions.prefix}checkOrderPayment_`, '') as string;
 
         console.log(`Обработка истёкшей оплаты для заказа ${orderId}`);
   

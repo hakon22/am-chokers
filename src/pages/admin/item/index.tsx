@@ -696,7 +696,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.RU, 'description']} className="lh-lg" rules={[newItemValidation]}>
                   <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.description')} style={{ letterSpacing: '0.5px' }} />
                 </Form.Item>
-                {!isMobile && <Button className="generate-button" onClick={() => generateDescription}>{t('generateDescription')}</Button>}
+                {!isMobile && <Button className="generate-button" onClick={() => generateDescription()}>{t('generateDescription')}</Button>}
                 <Form.Item<ItemFormInterface> name={['translations', UserLangEnum.EN, 'description']} className="lh-lg" rules={[newItemValidation]}>
                   <Input.TextArea variant={isMobile ? 'outlined' : 'borderless'} className="font-oswald fs-5 p-xl-0" size="large" rows={3} placeholder={t('placeholders.descriptionEn')} style={{ letterSpacing: '0.5px' }} />
                 </Form.Item>

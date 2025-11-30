@@ -67,12 +67,7 @@ export class DeferredPublicationService extends BaseService {
 
     const created = await repo.save(body);
 
-    const deferredPublication = await this.findOne({ id: created.id }, lang, { manager });
-
-    const item = await Container.get(ItemService).findOne({ id: deferredPublication.item.id }, lang, { withDeleted: true }, { withGrades: true, fullItem: true, withoutCache: true });
-    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
-
-    return deferredPublication;
+    return this.findOne({ id: created.id }, lang, { manager });
   };
 
   public findOne = async (params: ParamsIdInterface, lang: UserLangEnum, options?: DeferredPublicationOptionsInterface) => {
@@ -108,7 +103,7 @@ export class DeferredPublicationService extends BaseService {
 
     await DeferredPublicationEntity.update(params, body);
 
-    const item = await Container.get(ItemService).findOne({ id: deferredPublication.item.id }, lang, { withDeleted: true }, { withGrades: true, fullItem: true, withoutCache: true });
+    const item = await Container.get(ItemService).findOne({ id: deferredPublication.item.id }, lang, { withDeleted: true, withNotPublished: true }, { withGrades: true, fullItem: true, withoutCache: true });
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
     return { code: 1, deferredPublication: updated };
@@ -121,7 +116,7 @@ export class DeferredPublicationService extends BaseService {
 
     deferredPublication.deleted = new Date();
 
-    const item = await Container.get(ItemService).findOne({ id: deferredPublication.item.id }, lang, { withDeleted: true }, { withGrades: true, fullItem: true, withoutCache: true });
+    const item = await Container.get(ItemService).findOne({ id: deferredPublication.item.id }, lang, { withDeleted: true, withNotPublished: true }, { withGrades: true, fullItem: true, withoutCache: true });
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
     return deferredPublication;
@@ -130,7 +125,7 @@ export class DeferredPublicationService extends BaseService {
   public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
     const deletedDeferredPublication = await this.findOne(params, lang, { withDeleted: true });
 
-    const item = await Container.get(ItemService).findOne({ id: deletedDeferredPublication.item.id }, lang, { withDeleted: true }, { withGrades: true, fullItem: true, withoutCache: true });
+    const item = await Container.get(ItemService).findOne({ id: deletedDeferredPublication.item.id }, lang, { withDeleted: true, withNotPublished: true }, { withGrades: true, fullItem: true, withoutCache: true });
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
     await deletedDeferredPublication.recover();

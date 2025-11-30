@@ -15,7 +15,7 @@ export class RedisService {
 
   private readonly TAG = 'RedisService';
 
-  private commonOptions = {
+  public commonOptions = {
     socket: redisConfig,
     prefix: `${process.env.NEXT_PUBLIC_APP_NAME ?? 'myapp'}:${process.env.NODE_ENV ?? 'dev'}:`.toUpperCase(),
   };
