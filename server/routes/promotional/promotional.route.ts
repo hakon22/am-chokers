@@ -9,7 +9,7 @@ export class PromotionalRoute extends BaseRouter {
   private readonly promotionalController = Container.get(PromotionalController);
 
   public set = (router: Router) => {
-    router.get(this.routes.promotional.findOneByName, this.promotionalController.findByName);
+    router.get(this.routes.promotional.findOneByName, this.middlewareService.optionalJwtAuth, this.promotionalController.findByName);
     router.get(this.routes.promotional.findMany, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.findMany);
     router.get(this.routes.promotional.findOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.findOne);
     router.post(this.routes.promotional.createOne, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.promotionalController.createOne);

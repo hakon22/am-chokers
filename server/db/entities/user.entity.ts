@@ -13,6 +13,7 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
+import { PromotionalEntity } from '@server/db/entities/promotional.entity';
 
 /** Пользователь */
 @Entity({
@@ -98,6 +99,10 @@ export class UserEntity extends BaseEntity {
 
   /** Уровень доступа */
   public isAdmin: boolean;
+
+  /** Пользователи, которые действуют на данного пользователя */
+  @ManyToMany(() => PromotionalEntity, promotional => promotional.users)
+  public promotionals: PromotionalEntity[];
   
   @AfterLoad()
   setAccessLevel() {

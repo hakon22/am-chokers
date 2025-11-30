@@ -10,6 +10,7 @@ import {
 
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { UserEntity } from '@server/db/entities/user.entity';
 
 /** Промокоды */
 @Entity({
@@ -88,6 +89,21 @@ export class PromotionalEntity extends BaseEntity {
     },
   })
   public items: ItemEntity[];
+
+  /** Пользователи, на которых действует данный промокод */
+  @ManyToMany(() => UserEntity, user => user.promotionals)
+  @JoinTable({
+    name: 'promotional_user',
+    joinColumn: {
+      name: 'promotional_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'user_id',
+      referencedColumnName: 'id',
+    },
+  })
+  public users: UserEntity[];
 
   /** Заказы */
   @OneToMany(() => OrderEntity, order => order.promotional)

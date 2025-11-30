@@ -29,6 +29,7 @@ import type { PromotionalFormInterface, PromotionalInterface, PromotionalRespons
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { ItemEntity } from '@server/db/entities/item.entity';
+import type { UserEntity } from '@server/db/entities/user.entity';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
@@ -43,6 +44,7 @@ interface PromotionalTableInterface {
   end: Date | Moment | string | null;
   active: boolean;
   items: (ItemEntity | LabeledValue)[];
+  users: (UserEntity | LabeledValue)[];
   orders?: { id: number; }[];
   deleted?: Date;
 }
@@ -58,8 +60,11 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   lang: UserLangEnum;
   form: FormInstance;
   items: ItemInterface[];
+  users: UserEntity[];
   setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>;
   fetchItems: (search?: string) => any;
+  setUsers: React.Dispatch<React.SetStateAction<UserEntity[]>>;
+  fetchUsers: () => any;
 }
 
 interface DebounceSelectProps<ValueType = any> extends Omit<SelectProps<ValueType | ValueType[]>, 'options' | 'children'> {
@@ -110,7 +115,7 @@ const DebounceSelect = <ValueType extends LabeledValue & { id: number; button?: 
   );
 };
 
-const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, form: FormInstance, items: ItemInterface[], t: TFunction, setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>, fetchItems: (search?: string) => any, editing = true) => {
+const getFields = (dataIndex: string, title: string, record: PromotionalTableInterface, lang: UserLangEnum, form: FormInstance, items: ItemInterface[], users: UserEntity[], t: TFunction, setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>, fetchItems: (search?: string) => any, setUsers: React.Dispatch<React.SetStateAction<UserEntity[]>>, fetchUsers: () => any, editing = true) => {
   if (['start', 'end'].includes(dataIndex)) {
     return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />;
   }
@@ -145,6 +150,38 @@ const getFields = (dataIndex: string, title: string, record: PromotionalTableInt
       />
     ) : <Select className="w-100" mode="multiple" disabled value={values} />;
   }
+  if (['users'].includes(dataIndex)) {
+    const source = editing ? users : record.users as UserEntity[];
+    const values = source.map((user) => ({
+      key: user.id.toString(),
+      label: `${user.name} (${user.phone})`,
+      value: user.id,
+      id: user.id,
+    }));
+    return editing ? (
+      <DebounceSelect
+        mode="multiple"
+        value={values}
+        t={t}
+        placeholder={t('usersPlaceholder')}
+        fetchOptions={fetchUsers}
+        onChange={(newValue) => {
+          if (Array.isArray(newValue)) {
+            const newUsers = newValue.map((user) => {
+              const match = user.label.match(/^([^(]+)\s*\((\d+)\)$/);
+              return {
+                id: user.value,
+                name: match?.[1].trim(),
+                phone: match?.[2],
+              } as UserEntity;
+            });
+            setUsers(newUsers);
+            form.setFieldValue('users', newValue);
+          }
+        }}
+      />
+    ) : <Select className="w-100" mode="multiple" disabled value={values} />;
+  }
   return ['discount', 'discountPercent'].includes(dataIndex) ? <InputNumber placeholder={title} /> : <Input placeholder={title} />;
 };
 
@@ -159,8 +196,11 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   lang,
   form,
   items,
+  users,
   setItems,
   fetchItems,
+  setUsers,
+  fetchUsers,
 }) => (
   <td className={['active', 'freeDelivery'].includes(dataIndex) ? 'text-center' : undefined}>
     {editing ? (
@@ -210,9 +250,9 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
             : [newPromotionalValidation]}
         valuePropName={['active', 'freeDelivery'].includes(dataIndex) ? 'checked' : undefined}
       >
-        {getFields(dataIndex, title, record, lang, form, items, t, setItems, fetchItems)}
+        {getFields(dataIndex, title, record, lang, form, items, users, t, setItems, fetchItems, setUsers, fetchUsers)}
       </Form.Item>
-    ) : !dataIndex || ['name', 'description', 'discountPercent', 'discount'].includes(dataIndex) ? children : getFields(dataIndex, title, record, lang, form, items, t, setItems, fetchItems, false)}
+    ) : !dataIndex || ['name', 'description', 'discountPercent', 'discount'].includes(dataIndex) ? children : getFields(dataIndex, title, record, lang, form, items, users, t, setItems, fetchItems, setUsers, fetchUsers, false)}
   </td>
 );
 
@@ -238,6 +278,7 @@ const CreatePromotional = () => {
   const [promotionals, setPromotionals] = useState<PromotionalInterface[]>([]);
   const [data, setData] = useState<PromotionalTableInterface[]>([]);
   const [items, setItems] = useState<ItemInterface[]>([]);
+  const [users, setUsers] = useState<UserEntity[]>([]);
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
   const [withExpired, setWithExpired] = useState<boolean | undefined>(booleanSchema.validateSync(withExpiredParams));
@@ -270,6 +311,12 @@ const CreatePromotional = () => {
       label: item.translations.find((translation) => translation.lang === lang)?.name as string,
       value: item.id,
     }));
+    setUsers(record.users as UserEntity[]);
+    record.users = (record.users as UserEntity[]).map(user => ({
+      key: user.id.toString(),
+      label: `${user.name} (${user.phone})`,
+      value: user.id,
+    }));
     form.setFieldsValue(record);
     setEditingKey(record.key);
   };
@@ -293,6 +340,7 @@ const CreatePromotional = () => {
       active: true,
       freeDelivery: false,
       items: [],
+      users: [],
       key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
@@ -338,6 +386,12 @@ const CreatePromotional = () => {
         value: item.id,
         ...item,
       })));
+      form.setFieldValue('users', users.map((user) => ({
+        key: user.id.toString(),
+        label: `${user.name} (${user.phone})`,
+        value: user.id,
+        ...user,
+      })));
       setIsSubmit(true);
       const row = await form.validateFields().catch(() => setIsSubmit(false)) as PromotionalTableInterface;
 
@@ -352,16 +406,16 @@ const CreatePromotional = () => {
         row.end = row.end.format(DateFormatEnum.YYYY_MM_DD);
       }
 
-      const { name, description, discount, discountPercent, freeDelivery, start, end, active, items: rowItems } = row;
+      const { name, description, discount, discountPercent, freeDelivery, start, end, active, items: rowItems, users: rowUsers } = row;
 
       const exist = promotionals.find((promotional) => promotional.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems, users: rowUsers } as PromotionalFormInterface);
         if (code === 1) {
           updateData(promotional, row);
         }
       } else {
-        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems, users: rowUsers } as PromotionalFormInterface);
         if (code === 1) {
           setPromotionals((state) => [promotional, ...state]);
           setEditingKey('');
@@ -398,6 +452,25 @@ const CreatePromotional = () => {
               <span className="fs-6 text-wrap">{item.translations.find((translation) => translation.lang === lang)?.name}</span>
             </Button>
           ),
+        }));
+      }
+    } catch (e) {
+      axiosErrorHandler(e, tToast);
+    }
+    return result;
+  };
+
+  const fetchUsers = async () => {
+    let result: { label: string; value: number; }[] = [];
+    try {
+      const response = await axios.get<PaginationEntityInterface<UserEntity>>(routes.reports.users, {
+        params: { limit: 1000, offset: 0 },
+      });
+      if (response.data.code === 1) {
+        result = response.data.items.map((user) => ({
+          label: `${user.name} (${user.phone})`,
+          value: user.id,
+          button: <span>{`${user.name} (${user.phone})`}</span>,
         }));
       }
     } catch (e) {
@@ -461,6 +534,12 @@ const CreatePromotional = () => {
       editable: true,
     },
     {
+      title: t('columns.users'),
+      dataIndex: 'users',
+      width: '300px',
+      editable: true,
+    },
+    {
       title: t('columns.active'),
       dataIndex: 'active',
       editable: true,
@@ -520,8 +599,11 @@ const CreatePromotional = () => {
         lang,
         form,
         items,
+        users,
         setItems,
         fetchItems,
+        setUsers,
+        fetchUsers,
       }),
     };
   });

@@ -31,6 +31,7 @@ export class PromotionalController extends BaseService {
 
   public findByName = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const query = await queryActivatePromotionalParams.validate(req.query);
 
       const promotional = await this.promotionalService.findByName(query);
@@ -54,6 +55,11 @@ export class PromotionalController extends BaseService {
           res.json({ code: 4 });
           return;
         }
+      }
+
+      if (promotional.users.length && !promotional.users.find(({ id }) => id === user?.id)) {
+        res.json({ code: 5 });
+        return;
       }
 
       res.json({ code: 1, promotional });

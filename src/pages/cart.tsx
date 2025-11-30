@@ -151,7 +151,7 @@ const Cart = () => {
         }
         setSelectPromotionField(false);
         toast(tToast('addPromotionalSuccess', { name: data.promotional.name }), 'success');
-      } else if ([2, 3, 4].includes(data.code)) {
+      } else if ([2, 3, 4, 5].includes(data.code)) {
         let validationCode = '';
 
         switch (data.code) {
@@ -163,6 +163,9 @@ const Cart = () => {
           break;
         case 4:
           validationCode = 'promotionalConditionsNotMet';
+          break;
+        case 5:
+          validationCode = 'promotionalUsersNotMet';
           break;
         }
         form.setFields([{ name: 'promotional', errors: [tValidation(validationCode)] }]);

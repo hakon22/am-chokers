@@ -347,6 +347,7 @@ const newPromotionalSchema = yup.object().shape({
   name: stringSchema,
   description: stringSchema,
   items: yup.array(requiredIdSchema).optional(),
+  users: yup.array(requiredIdSchema).optional(),
   active: yup
     .boolean()
     .test('is-expired', t('validation.isExpired'), function (value) {
