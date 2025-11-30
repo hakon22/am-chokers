@@ -8,6 +8,7 @@ import { routes } from '@/routes';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemGroupResponseInterface, ItemResponseInterface } from '@/slices/appSlice';
+import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 
 interface GetServerSidePropsInterface {
   params: {
@@ -105,10 +106,20 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
         params: { translateName: itemName },
       });
   
-      if (item) {  
+      if (item) {
+        const { data: { items: grades, paginationParams } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.item.getGrades({ isServer: false, id: item.id }), {
+          params: {
+            limit: 10,
+            offset: 0,
+          },
+        });
+
+        item.grades = grades;
+
         return {
           props: {
             item,
+            paginationParams,
           },
         };
       }

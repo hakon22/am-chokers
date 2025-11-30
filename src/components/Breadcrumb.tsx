@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Breadcrumb as BreadcrumbAntd } from 'antd';
 import { RightOutlined } from '@ant-design/icons';
+import cn from 'classnames';
 
 import { routes, catalogPath } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
@@ -54,6 +55,10 @@ export const Breadcrumb = () => {
   }, [pathname, itemGroups.length, itemName, lang]);
 
   return router.pathname.includes(catalogPath)
-    ? <BreadcrumbAntd items={breadcrumbs} className="container fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: isMobile ? '25%' : '9%' }} />
+    ? (
+      <div className="w-100 pb-3 pb-xl-0" style={{ ...(isMobile ? { position: 'fixed', top: '-15px', zIndex: 5, backgroundColor: '#f7f9fc' } : {}) }} >
+        <BreadcrumbAntd items={breadcrumbs} className={cn('container mb-xl-5 font-oswald', { 'fs-6': isMobile, 'fs-5': !isMobile })} separator={<RightOutlined className={cn({ 'fs-6': !isMobile })} />} style={{ paddingTop: isMobile ? '90px' : '9%' }} />
+      </div>
+    )
     : null;
 };

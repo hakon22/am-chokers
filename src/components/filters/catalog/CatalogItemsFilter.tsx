@@ -48,11 +48,11 @@ interface MappingInterface {
 
 const FilterButtons = ({ t, resetFilters }: { t: TFunction; resetFilters?: () => void; }) => (
   <div className="d-flex flex-column justify-content-center gap-3 mb-4">
-    <Button htmlType="submit" className="fs-6 mx-auto col-6 col-xl-9" style={{ backgroundColor: '#eaeef6' }}>
+    <Button htmlType="submit" className="filter fs-6 mx-auto col-6 col-xl-9" style={{ backgroundColor: '#eaeef6' }}>
       {t('submitButton')}
     </Button>
     {resetFilters ? (
-      <Button className="fs-6 mx-auto col-6 col-xl-9" style={{ backgroundColor: '#f7f9fcd8', color: '#69788e' }} onClick={resetFilters}>
+      <Button className="filter fs-6 mx-auto col-6 col-xl-9" style={{ backgroundColor: '#f7f9fcd8', color: '#69788e' }} onClick={resetFilters}>
         {t('resetFilters')}
       </Button>
     )
@@ -311,8 +311,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     ? (
       <>
         <FloatButton
-          style={{ left: '6.5%', top: '5rem', zIndex: 1 }}
-          badge={{ count: getFiltersCount }}
+          style={{ right: '6.5%', top: '69px', zIndex: 5 }}
+          badge={{ count: getFiltersCount, offset: [10, 2] }}
           icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />

@@ -450,6 +450,9 @@ export class ItemService extends TranslationHelper {
       return this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
     });
 
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    updated.grades = grades;
+
     const url = this.getUrl(updated);
 
     if ((updated.group.code !== item.group.code) || (updated.translateName !== item.translateName)) {
@@ -500,6 +503,9 @@ export class ItemService extends TranslationHelper {
 
       return this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
     });
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    updated.grades = grades;
 
     const url = this.getUrl(updated);
 
@@ -640,6 +646,9 @@ export class ItemService extends TranslationHelper {
       item.deferredPublication = null;
     }
 
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    item.grades = grades;
+
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
     return item;
@@ -651,6 +660,9 @@ export class ItemService extends TranslationHelper {
     await ItemEntity.update(deletedItem.id, { deleted: null });
 
     deletedItem.deleted = null;
+
+    const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
+    deletedItem.grades = grades;
 
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, deletedItem);
 

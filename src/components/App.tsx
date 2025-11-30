@@ -66,7 +66,7 @@ export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroup
       {isLoaded ? <Spin tip={t('loading')} spinning={isSubmit} fullscreen size="large" /> : <Spinner isLoaded={isLoaded} />}
       <header>
         <NavBar />
-        {isMobile ? null : <Breadcrumb />}
+        <Breadcrumb />
       </header>
       <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: footerHeight }}>
         <FloatButton.BackTop />
