@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
 import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import cn from 'classnames';
@@ -85,21 +85,26 @@ const Cart = () => {
     mailType: undefined,
   };
 
-  const [cartList, setCartList] = useState<CartItemInterface[]>([]);
-  const [selectPromotionField, setSelectPromotionField] = useState(false);
+  const filteredCart = useMemo(() => cart.filter(({ item }) => !item.deleted), [cart]);
+
+  const [cartList, setCartList] = useState<CartItemInterface[]>(filteredCart);
   const [promotional, setPromotional] = useState<PromotionalInterface>();
-  const [deliveryList, setDeliveryList] = useState<CheckboxGroupProps['options']>([]);
   const [deliveryServices, setDeliveryServices] = useState<Pick<DeliveryCredentialsEntity, 'translations' | 'type'>[]>([]);
   const [deliveryType, setDeliveryType] = useState<DeliveryTypeEnum>();
   const [savedDeliveryPrice, setSavedDeliveryPrice] = useState(0);
-  const [deliveryButton, setDeliveryButton] = useState(false);
   const [isOpenDeliveryWidget, setIsOpenDeliveryWidget] = useState(false);
   const [delivery, setDelivery] = useState(defaultDelivery);
-  const [user, setUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
   const [tempUser, setTempUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
 
-  const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+
+  const deliveryButton = useMemo(() => !!deliveryType, [deliveryType]);
+
+  const isProcessConfirmed = useMemo(() => isConfirmed && tempUser.phone, [isConfirmed, tempUser.phone]);
+
+  const user = useMemo(() => tempUser || ({ name: '', phone: '', lang: lang as UserLangEnum }), [isConfirmed, tempUser, lang]);
+
+  const deliveryList = useMemo(() => deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })), [lang, deliveryServices]);
 
   const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count, item }));
 
@@ -112,8 +117,6 @@ const Cart = () => {
 
   const price = getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0));
 
-  const filteredCart = cart.filter(({ item }) => !item.deleted);
-
   const isFull = cartList.length === filteredCart.length;
   const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
 
@@ -123,14 +126,6 @@ const Cart = () => {
   const height = width * coefficient;
 
   const [form] = Form.useForm();
-
-  const onPromotionalRemove = () => {
-    if (promotional && promotional.freeDelivery) {
-      setDelivery((state) => ({ ...state, price: savedDeliveryPrice }));
-    }
-    setPromotional(undefined);
-    form.setFieldValue('promotional', undefined);
-  };
 
   const onCheckAllChange: CheckboxProps['onChange'] = async ({ target }) => {
     setCartList(target.checked ? filteredCart : []);
@@ -149,7 +144,6 @@ const Cart = () => {
         if (data.promotional.freeDelivery) {
           setDelivery((state) => ({ ...state, price: 0 }));
         }
-        setSelectPromotionField(false);
         toast(tToast('addPromotionalSuccess', { name: data.promotional.name }), 'success');
       } else if ([2, 3, 4, 5].includes(data.code)) {
         let validationCode = '';
@@ -221,7 +215,6 @@ const Cart = () => {
   };
 
   const resetPVZ = () => {
-    setDeliveryButton(false);
     setDelivery(defaultDelivery);
     setSavedDeliveryPrice(0);
     setDeliveryType(undefined);
@@ -235,7 +228,6 @@ const Cart = () => {
     if (!name && !user.phone) {
       const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
       if (code === 1) {
-        setIsProcessConfirmed(true);
         setTempUser({ name: values.name, phone: values.phone, lang: lang as UserLangEnum });
       }
       if (code === 4) {
@@ -265,25 +257,15 @@ const Cart = () => {
   };
 
   const promotionalValue = Form.useWatch('promotional', form);
+  const selectPromotionField = !!promotionalValue;
 
   useEffect(() => {
-    setSelectPromotionField(!!promotionalValue);
-  }, [promotionalValue]);
-
-  useEffect(() => {
-    setCartList(filteredCart);
     axios.get<{ code: number; deliveryList: DeliveryCredentialsEntity[]; }>(routes.delivery.findMany)
       .then(({ data }) => {
         setDeliveryServices(data.deliveryList);
       })
       .catch((e) => axiosErrorHandler(e, tToast));
   }, []);
-
-  useEffect(() => {
-    if (lang && deliveryServices.length) {
-      setDeliveryList(deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })));
-    }
-  }, [lang, deliveryServices]);
 
   useEffect(() => {
     const handlePointSelected = (data: any) => {
@@ -319,22 +301,15 @@ const Cart = () => {
   }, [isOpenDeliveryWidget, deliveryType]);
 
   useEffect(() => {
-    setDeliveryButton(!!deliveryType);
-  }, [deliveryType]);
-
-  useEffect(() => {
-    if (isConfirmed && tempUser.phone) {
-      setUser(tempUser);
-      setIsProcessConfirmed(false);
-    }
-  }, [isConfirmed, tempUser.phone]);
-
-  useEffect(() => {
     if (promotional?.items?.length) {
       const cartItemIds = cartList.map(({ item }) => item.id);
 
       if (!promotional.items.some(({ id }) => cartItemIds.includes(id))) {
-        onPromotionalRemove();
+        if (promotional && promotional.freeDelivery) {
+          setDelivery((state) => ({ ...state, price: savedDeliveryPrice }));
+        }
+        setPromotional(undefined);
+        form.setFieldValue('promotional', undefined);
       }
     }
     setDelivery((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
@@ -351,7 +326,7 @@ const Cart = () => {
             zIndex={10000}
             open
             footer={null}
-            onCancel={() => setIsProcessConfirmed(false)}
+            onCancel={() => setIsConfirmed(false)}
           >
             <ConfirmPhone setState={setIsConfirmed} />
           </Modal>
@@ -454,7 +429,7 @@ const Cart = () => {
             <span>{t('promotional')}</span>
             {promotional
               ? <div className="d-flex">
-                <Tag color="green" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={onPromotionalRemove}>{t('promotionalName', { name: promotional.name })}</Tag>
+                <Tag color="green" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={() => setPromotional(undefined)}>{t('promotionalName', { name: promotional.name })}</Tag>
                 <span>{t('promotionalDiscount', { discount: promotional && promotional.freeDelivery ? savedDeliveryPrice : getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">

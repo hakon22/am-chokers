@@ -1,5 +1,5 @@
 import cn from 'classnames';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState, type JSX } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import { FloatButton, Spin } from 'antd';

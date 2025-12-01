@@ -14,7 +14,12 @@ const nextConfig = {
     '@ant-design/icons-svg',
   ],
   reactStrictMode: false,
-  experimental: { webpackBuildWorker: true },
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+  },
+  images: {
+    qualities: [100, 75],
+  },
 };
 
 export default nextConfig;

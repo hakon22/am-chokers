@@ -4,7 +4,11 @@
     "rootDir": ".",
     "sourceMap": true,
     "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "outDir": "./dist",
     "allowJs": true,
     "skipLibCheck": true,
@@ -16,7 +20,7 @@
     "strictPropertyInitialization": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": true,
@@ -26,11 +30,24 @@
       }
     ],
     "paths": {
-      "@/*": ["src/*"],
-      "@server/*": ["server/*"],
-      "@microservices/sender/*": ["microservices/sender/src/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@server/*": [
+        "server/*"
+      ],
+      "@microservices/sender/*": [
+        "microservices/sender/src/*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

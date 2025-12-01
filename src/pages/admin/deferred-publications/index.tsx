@@ -23,7 +23,7 @@ import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 interface DataType {
   key: React.Key;
   item: ItemInterface;
-  date: Date;
+  date: null | Date;
 }
 
 const DeferredPublication = () => {
@@ -62,7 +62,7 @@ const DeferredPublication = () => {
         setDeferredPublicationData(deferredPublications.map(({ id, date, item }) => ({ key: id, date, item })));
       }
       if (itemCode === 1) {
-        setDeferredPostData(items.map(({ id, publicationDate, ...rest }) => ({ key: id, date: publicationDate as Date, item: rest as ItemInterface })));
+        setDeferredPostData(items.map(({ id, publicationDate, ...rest }) => ({ key: id, date: publicationDate, item: rest as ItemInterface })));
       }
       setIsSubmit(false);
     } catch (e) {
@@ -72,7 +72,7 @@ const DeferredPublication = () => {
 
   useEffect(() => {
     if (axiosAuth) {
-      fetchData();
+      Promise.resolve().then(() => fetchData());
     }
   }, [axiosAuth]);
 

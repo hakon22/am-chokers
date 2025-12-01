@@ -67,7 +67,7 @@ const Orders = () => {
         statuses,
         ...(userIdParams ? { userId: +userIdParams } : {}),
       };
-      fetchOrders(params, true);
+      Promise.resolve().then(() => fetchOrders(params, true));
     }
 
     return () => {

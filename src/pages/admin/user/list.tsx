@@ -62,7 +62,7 @@ const UserList = () => {
         limit: 10,
         offset: 0,
       };
-      fetchUsers(params);
+      Promise.resolve().then(() => fetchUsers(params));
     }
   }, [axiosAuth]);
 

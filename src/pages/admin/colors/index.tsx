@@ -305,7 +305,7 @@ const CreateColor = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setColors(response.colors);
-            const newColors: ColorTableInterface[] = response.colors.map((color) => ({
+            const newColors: ColorTableInterface[] = response.colors.sort((a, b) => b.id - a.id).map((color) => ({
               ...color,
               translations: {
                 [UserLangEnum.RU]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
@@ -322,17 +322,6 @@ const CreateColor = () => {
         });
     }
   }, [withDeleted, axiosAuth]);
-
-  useEffect(() => {
-    setData([...colors].sort((a, b) => b.id - a.id).map((color) => ({
-      ...color,
-      translations: {
-        [UserLangEnum.RU]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
-        [UserLangEnum.EN]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
-      },
-      key: color.id.toString(),
-    })));
-  }, [colors.length]);
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -661,10 +661,6 @@ const CreatePromotional = () => {
         });
     }
   }, [withDeleted, withExpired, axiosAuth]);
-
-  useEffect(() => {
-    setData(promotionals.map((promotional) => ({ ...promotional, key: promotional.id.toString() })));
-  }, [promotionals.length]);
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">

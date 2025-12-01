@@ -1,5 +1,6 @@
 import ImgCrop from 'antd-img-crop';
 import { useTranslation } from 'react-i18next';
+import type { JSX } from 'react';
 
 export const CropImage = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.imageCrop' });

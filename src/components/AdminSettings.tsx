@@ -50,7 +50,7 @@ export const AdminSettings = () => {
 
   useEffect(() => {
     if (axiosAuth) {
-      getCacheInfo();
+      Promise.resolve().then(() => getCacheInfo());
     }
   }, [axiosAuth]);
 

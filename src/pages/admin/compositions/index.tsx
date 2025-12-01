@@ -298,7 +298,7 @@ const CreateComposition = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setCompositions(response.compositions);
-            const newCompositions: CompositionTableInterface[] = response.compositions.map((composition) => ({
+            const newCompositions: CompositionTableInterface[] = response.compositions.sort((a, b) => b.id - a.id).map((composition) => ({
               ...composition,
               translations: {
                 [UserLangEnum.RU]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
@@ -315,17 +315,6 @@ const CreateComposition = () => {
         });
     }
   }, [withDeleted, axiosAuth]);
-
-  useEffect(() => {
-    setData([...compositions].sort((a, b) => b.id - a.id).map((composition) => ({
-      ...composition,
-      translations: {
-        [UserLangEnum.RU]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
-        [UserLangEnum.EN]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
-      },
-      key: composition.id.toString(),
-    })));
-  }, [compositions.length]);
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center">

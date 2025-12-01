@@ -147,7 +147,7 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
 
   useEffect(() => {
     if (axiosAuth) {
-      fetchUser({ id });
+      Promise.resolve().then(() => fetchUser({ id }));
     }
   }, [axiosAuth]);
 

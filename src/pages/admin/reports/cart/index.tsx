@@ -84,7 +84,7 @@ const Cart = () => {
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
-  }, [isSubmit]);
+  }, [isSubmit, setIsSubmit, dispatch, tToast]);
 
   const fetchDataWithParams = useCallback((replace = false) => {
     if (axiosAuth) {
@@ -106,10 +106,10 @@ const Cart = () => {
       };
       fetchData(params, replace);
     }
-  }, [axiosAuth, router, pagination.limit, from, to]);
+  }, [axiosAuth, router, pagination.limit, from, to, userIdParams, fetchData]);
 
   useEffect(() => {
-    fetchDataWithParams(true);
+    Promise.resolve().then(() => fetchDataWithParams(true));
 
     return () => {
       setPaginationParams({ limit: 0, offset: 0, count: 0 });

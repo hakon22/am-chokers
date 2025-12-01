@@ -46,7 +46,8 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
 
   useEffect(() => {
     if (axiosAuth) {
-      fetchOrder();
+      Promise.resolve().then(() => fetchOrder());
+      
     }
   }, [axiosAuth]);
 

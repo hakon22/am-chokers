@@ -186,7 +186,7 @@ const Reviews = () => {
         showAccepted,
         ...(userIdParams ? { userId: +userIdParams } : {}),
       };
-      fetchGrades(params, true);
+      Promise.resolve().then(() => fetchGrades(params, true));
     }
   }, [withDeleted, showAccepted, userIdParams, axiosAuth]);
 

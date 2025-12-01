@@ -108,14 +108,16 @@ const Message = () => {
 
   useEffect(() => {
     if (axiosAuth) {
-      fetchData({
-        limit: pagination.limit || 10,
-        offset: 0,
-        types,
-        onlyUnsent,
-        ...(phone ? { phone } : {}),
-        ...(userIdParams ? { userId: +userIdParams } : {}),
-      }, true);
+      Promise.resolve().then(() => {
+        fetchData({
+          limit: pagination.limit || 10,
+          offset: 0,
+          types,
+          onlyUnsent,
+          ...(phone ? { phone } : {}),
+          ...(userIdParams ? { userId: +userIdParams } : {}),
+        }, true);
+      });
     }
 
     return () => {

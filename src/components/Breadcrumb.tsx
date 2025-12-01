@@ -1,5 +1,5 @@
  
-import { useEffect, useState, useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -11,10 +11,6 @@ import { routes, catalogPath } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { ItemContext, MobileContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-
-type BreadcrumbState = {
-  title: JSX.Element | string;
-}
 
 export const Breadcrumb = () => {
   const { t } = useTranslation();
@@ -28,15 +24,13 @@ export const Breadcrumb = () => {
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbState[]>([]);
-
   const itemName = item?.translations.find((translation) => translation.lang === lang)?.name;
 
-  useEffect(() => {
+  const breadcrumbs = useMemo(() => {
     const pathArray = pathname.replace('/', 'index/').split('/').filter(Boolean);
     const linkArray: string[] = [];
 
-    setBreadcrumbs(pathArray.map((folder, index) => {
+    return pathArray.map((folder, index) => {
       if (index === 0) {
         return {
           title: pathArray.length === 1 ? '' : <Link href={routes.page.base.homePage}>{t('modules.navbar.menu.home')}</Link>,
@@ -51,8 +45,8 @@ export const Breadcrumb = () => {
       return {
         title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
       };
-    }));
-  }, [pathname, itemGroups.length, itemName, lang]);
+    });
+  }, [pathname, itemGroups.length, itemName, lang, t, itemGroups, item]);
 
   return router.pathname.includes(catalogPath)
     ? (

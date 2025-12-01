@@ -64,7 +64,7 @@ export const Reviews = () => {
         limit: 10,
         offset: 0,
       };
-      fetchMyGrades(params);
+      Promise.resolve().then(() => fetchMyGrades(params));
     }
   }, [axiosAuth]);
 

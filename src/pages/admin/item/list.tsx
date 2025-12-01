@@ -133,7 +133,7 @@ const ItemList = () => {
         withDeleted,
         search: search?.value,
       };
-      fetchItems(params, true, search?.onFetch);
+      Promise.resolve().then(() => fetchItems(params, true, search?.onFetch));
     }
   }, [withDeleted, search?.value]);
 
@@ -156,7 +156,7 @@ const ItemList = () => {
         withDeleted,
         search: search?.value,
       };
-      fetchItems(params);
+      Promise.resolve().then(() => fetchItems(params));
     }
   }, [axiosAuth]);
 

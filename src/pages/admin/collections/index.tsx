@@ -284,7 +284,7 @@ const CreateItemCollection = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setItemCollections(response.itemCollections);
-            const newItemCollections = response.itemCollections.map((itemCollection) => ({
+            const newItemCollections = response.itemCollections.sort((a, b) => (b?.id ?? 0) - (a?.id ?? 0)).map((itemCollection) => ({
               ...itemCollection,
               translations: {
                 [UserLangEnum.RU]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name },
@@ -301,17 +301,6 @@ const CreateItemCollection = () => {
         });
     }
   }, [withDeleted, axiosAuth]);
-
-  useEffect(() => {
-    setData([...itemCollections].sort((a, b) => (b?.id ?? 0) - (a?.id ?? 0)).map((itemCollection) => ({
-      ...itemCollection,
-      translations: {
-        [UserLangEnum.RU]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name },
-        [UserLangEnum.EN]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name },
-      },
-      key: itemCollection?.id.toString() as string,
-    } as ItemCollectionTableInterface)));
-  }, [itemCollections.length]);
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
