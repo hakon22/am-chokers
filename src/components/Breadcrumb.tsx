@@ -56,7 +56,7 @@ export const Breadcrumb = () => {
 
   return router.pathname.includes(catalogPath)
     ? (
-      <div className="w-100 pb-3 pb-xl-0" style={{ ...(isMobile ? { position: 'fixed', top: '-15px', zIndex: 5, backgroundColor: '#f7f9fc' } : {}) }} >
+      <div className="w-100 pb-3 pb-xl-0 breadcrumb-one-line" style={{ ...(isMobile ? { position: 'fixed', top: '-15px', zIndex: 5, backgroundColor: '#f7f9fc' } : {}) }} >
         <BreadcrumbAntd items={breadcrumbs} className={cn('container mb-xl-5 font-oswald', { 'fs-6': isMobile, 'fs-5': !isMobile })} separator={<RightOutlined className={cn({ 'fs-6': !isMobile })} />} style={{ paddingTop: isMobile ? '90px' : '9%' }} />
       </div>
     )
