@@ -53,6 +53,7 @@ const RenderCatalogItem = ({ width, height, className, item, lang }: { width: nu
         className={className}
         height={height}
         width={width}
+        isAbsent={item.isAbsent}
         images={item.images}
         name={item?.translations.find((translation) => translation.lang === lang)?.name}
         rating={{ rating: item.rating, grades: item.grades }}

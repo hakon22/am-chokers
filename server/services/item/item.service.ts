@@ -117,6 +117,7 @@ export class ItemService extends TranslationHelper {
           'item.id',
           'item.created',
           'item.deleted',
+          'item.isAbsent',
           'item.price',
           'item.discount',
           'item.discountPrice',

@@ -112,7 +112,7 @@ const Cart = () => {
 
   const price = getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0));
 
-  const filteredCart = cart.filter(({ item }) => !item.deleted);
+  const filteredCart = cart.filter(({ item }) => !(item.deleted || item.isAbsent));
 
   const isFull = cartList.length === filteredCart.length;
   const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
@@ -389,18 +389,19 @@ const Cart = () => {
               renderItem={(item) => (
                 <List.Item className={cn({ 'd-flex flex-column align-items-start gap-1': isMobile })}>
                   <div className="d-flex gap-xl-3" style={isMobile ? {} : { height }}>
-                    <Checkbox className={cn({ 'not-padding': isMobile })} value={item} {...(item.item.deleted ? { checked: false, disabled: true } : {})}>
+                    <Checkbox className={cn({ 'not-padding': isMobile })} value={item} {...(item.item.deleted || item.item.isAbsent ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
                         height={height}
                         width={width}
                         deleted={!!item.item.deleted}
+                        isAbsent={!!item.item.isAbsent}
                         style={{ borderRadius: 7 }}
                         images={item.item?.images ?? []}
                       />
                     </Checkbox>
                     <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-                      <Link href={getHref(item.item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.item.deleted })}>
+                      <Link href={getHref(item.item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.item.deleted || item.item.isAbsent })}>
                         <span className="lh-1">{item.item.translations.find((translation) => translation.lang === lang)?.name}</span>
                         <span>{tPrice('price', { price: (item.item.price - item.item.discountPrice) * item.count })}</span>
                       </Link>

@@ -39,10 +39,11 @@ export const Favorites = () => {
               height={height}
               width={width}
               deleted={!!item.deleted}
+              isAbsent={!!item.isAbsent}
               images={item.images ?? []}
             />
             <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-              <Link href={getHref(item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.deleted })}>
+              <Link href={getHref(item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.deleted || item.isAbsent })}>
                 <span className="lh-1">{item.translations.find((translation) => translation.lang === lang)?.name}</span>
                 <span>{tPrice('price', { price: item.price - item.discountPrice })}</span>
               </Link>

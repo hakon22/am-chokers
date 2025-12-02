@@ -77,6 +77,13 @@ export class ItemEntity extends BaseEntity {
   })
   public new: boolean;
 
+  /** Временно отсутствующий товар */
+  @Column('boolean', {
+    default: false,
+    name: 'is_absent',
+  })
+  public isAbsent: boolean;
+
   /** Имя товара в транслите */
   @Index()
   @Column('character varying', {

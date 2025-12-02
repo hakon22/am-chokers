@@ -15,6 +15,7 @@ interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterf
   href?: string;
   name?: string;
   deleted?: boolean;
+  isAbsent?: boolean;
   description?: string;
   marker?: boolean;
   rating?: { rating?: ItemInterface['rating']; grades: ItemInterface['grades'] };
@@ -28,6 +29,7 @@ export const ImageHover = ({
   width = undefined,
   name = '',
   deleted = false,
+  isAbsent = false,
   description = '',
   marker = false,
   className = '',
@@ -80,6 +82,11 @@ export const ImageHover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
+          {isAbsent && (
+            <div className="image-label color-blue">
+              {tCart('isAbsent')}
+            </div>
+          )}
           {images.length
             ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
               <div key={image.id} style={i === index ? { width, height } : {}}>
@@ -92,7 +99,7 @@ export const ImageHover = ({
                 {image.src.endsWith('.mp4')
                   ? (
                     <video
-                      className={cn({ 'active': i === index })}
+                      className={cn({ 'active': i === index, 'opacity-50': !!isAbsent && i === index })}
                       autoPlay
                       loop
                       muted
@@ -108,8 +115,7 @@ export const ImageHover = ({
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
-                      className={cn({ 'active': i === index })}
-                      priority
+                      className={cn({ 'active': i === index, 'opacity-50': !!isAbsent && i === index })}
                     />
                   )
                 }
@@ -146,9 +152,9 @@ export const ImageHover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {deleted && (
-            <div className="image-label">
-              {tCart('deleted')}
+          {(deleted || isAbsent) && (
+            <div className={cn('image-label', { 'color-blue': isAbsent })}>
+              {tCart(deleted ? 'deleted' : 'isAbsent')}
             </div>
           )}
           {images.length
@@ -163,7 +169,7 @@ export const ImageHover = ({
                 {image.src.endsWith('.mp4')
                   ? (
                     <video
-                      className={cn({ 'active': i === index, 'opacity-50': !!deleted })}
+                      className={cn({ 'active': i === index, 'opacity-50': !!(deleted || isAbsent) && i === index })}
                       autoPlay
                       loop
                       muted
@@ -179,8 +185,7 @@ export const ImageHover = ({
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
-                      className={cn({ 'active': i === index, 'opacity-50': !!deleted })}
-                      priority
+                      className={cn({ 'active': i === index, 'opacity-50': !!(deleted || isAbsent) && i === index })}
                     />
                   )
                 }
