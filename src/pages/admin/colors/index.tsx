@@ -78,6 +78,15 @@ const CreateColor = () => {
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
 
+  const parseColor = (color: ColorInterface): ColorTableInterface => ({
+    ...color,
+    translations: {
+      [UserLangEnum.RU]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
+      [UserLangEnum.EN]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
+    },
+    key: color.id.toString(),
+  });
+
   const updateData = (color: ColorInterface, row?: ColorTableInterface) => {
     const index = data.findIndex((tableColor) => tableColor.key.toString() === color.id.toString());
     if (index !== -1) {
@@ -188,6 +197,13 @@ const CreateColor = () => {
         if (payloadCode === 1) {
           setColors((state) => [...state, color]);
           setEditingKey('');
+          setData((state) => {
+            const index = state.findIndex((value) => value.key === color.id.toString());
+            if (index !== -1) {
+              state[index] = parseColor(color);
+            }
+            return state;
+          });
         }
       }
       if (payloadCode === 2) {
@@ -211,7 +227,7 @@ const CreateColor = () => {
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted
-            ? <Tag color="volcano">{t('deleted')}</Tag>
+            ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag>
             : null}
         </div>
       ),
@@ -305,14 +321,7 @@ const CreateColor = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setColors(response.colors);
-            const newColors: ColorTableInterface[] = response.colors.sort((a, b) => b.id - a.id).map((color) => ({
-              ...color,
-              translations: {
-                [UserLangEnum.RU]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
-                [UserLangEnum.EN]: { name: color.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
-              },
-              key: color.id.toString(),
-            }));
+            const newColors: ColorTableInterface[] = response.colors.sort((a, b) => b.id - a.id).map(parseColor);
             setData(newColors);
           }
           setIsSubmit(false);

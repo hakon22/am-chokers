@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -92,6 +92,8 @@ const Message = () => {
     }
   };
 
+  const fetchDataEffect = useEffectEvent(fetchData);
+
   const onlyUnsentHandler = () => setOnlyUnsent(!onlyUnsent);
 
   const onPhoneSearch: SearchProps['onSearch'] = (value) => {
@@ -108,16 +110,15 @@ const Message = () => {
 
   useEffect(() => {
     if (axiosAuth) {
-      Promise.resolve().then(() => {
-        fetchData({
-          limit: pagination.limit || 10,
-          offset: 0,
-          types,
-          onlyUnsent,
-          ...(phone ? { phone } : {}),
-          ...(userIdParams ? { userId: +userIdParams } : {}),
-        }, true);
-      });
+      fetchDataEffect({
+        limit: pagination.limit || 10,
+        offset: 0,
+        types,
+        onlyUnsent,
+        ...(phone ? { phone } : {}),
+        ...(userIdParams ? { userId: +userIdParams } : {}),
+      }, true);
+      
     }
 
     return () => {

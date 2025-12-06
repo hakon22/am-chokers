@@ -157,6 +157,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
 
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
   const [autoPlay, setAutoPlay] = useState(false);
+  const [throttledHandleWheel, setThrottledHandleWheel] = useState(() => () => {});
 
   const coefficient = 1.3;
 
@@ -199,15 +200,24 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
     },
   };
 
-  const handleWheel = throttle((event: WheelEvent<HTMLDivElement>) => {
-    if (carouselRef.current) {
-      if (event.deltaY > 0) {
-        carouselRef.current.next(1);
-      } else {
-        carouselRef.current.previous(1);
+  useEffect(() => {
+    const handler = throttle((event: WheelEvent<HTMLDivElement>) => {
+      const carousel = carouselRef.current;
+      if (carousel) {
+        if (event.deltaY > 0) {
+          carousel.next(1);
+        } else {
+          carousel.previous(1);
+        }
       }
-    }
-  }, 1000);
+    }, 1000);
+
+    setThrottledHandleWheel(() => handler);
+  
+    return () => {
+      handler.cancel?.();
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(setAppData({ coverImages, specialItems }));
@@ -243,7 +253,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   }, []);
 
   return (
-    <div className="d-flex justify-content-center" onWheel={handleWheel}>
+    <div className="d-flex justify-content-center" onWheel={throttledHandleWheel}>
       <Helmet title={t('title')} description={t('description')} />
       {!isMobile && <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem', zIndex: 1 }}>{t('seeCatalog')}</Link>}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">

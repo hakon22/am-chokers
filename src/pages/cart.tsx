@@ -1,13 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
 import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState, useEffectEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import cn from 'classnames';
 import axios from 'axios';
 import type { CheckboxProps } from 'antd/lib';
-import type { CheckboxGroupProps } from 'antd/lib/checkbox';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -98,12 +97,12 @@ const Cart = () => {
 
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+  const setDeliveryEffect = useEffectEvent(setDelivery);
+  const setPromotionalEffect = useEffectEvent(setPromotional);
+
   const deliveryButton = useMemo(() => !!deliveryType, [deliveryType]);
-
   const isProcessConfirmed = useMemo(() => isConfirmed && tempUser.phone, [isConfirmed, tempUser.phone]);
-
   const user = useMemo(() => tempUser || ({ name: '', phone: '', lang: lang as UserLangEnum }), [isConfirmed, tempUser, lang]);
-
   const deliveryList = useMemo(() => deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })), [lang, deliveryServices]);
 
   const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count, item }));
@@ -306,13 +305,13 @@ const Cart = () => {
 
       if (!promotional.items.some(({ id }) => cartItemIds.includes(id))) {
         if (promotional && promotional.freeDelivery) {
-          setDelivery((state) => ({ ...state, price: savedDeliveryPrice }));
+          setDeliveryEffect((state) => ({ ...state, price: savedDeliveryPrice }));
         }
-        setPromotional(undefined);
+        setPromotionalEffect(undefined);
         form.setFieldValue('promotional', undefined);
       }
     }
-    setDelivery((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
+    setDeliveryEffect((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
   }, [count, promotional]);
 
   return (
@@ -428,8 +427,8 @@ const Cart = () => {
           <div className="d-flex justify-content-between align-items-center fs-5 mb-4 fw-300" style={{ color: '#ff9500' }}>
             <span>{t('promotional')}</span>
             {promotional
-              ? <div className="d-flex">
-                <Tag color="green" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={() => setPromotional(undefined)}>{t('promotionalName', { name: promotional.name })}</Tag>
+              ? <div className="d-flex gap-2">
+                <Tag color="green" variant="outlined" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={() => setPromotional(undefined)}>{t('promotionalName', { name: promotional.name })}</Tag>
                 <span>{t('promotionalDiscount', { discount: promotional && promotional.freeDelivery ? savedDeliveryPrice : getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">

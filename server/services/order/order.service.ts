@@ -123,7 +123,8 @@ export class OrderService extends BaseService {
           'images.path',
           'images.order',
         ])
-        .orderBy('order.id', 'DESC');
+        .orderBy('order.id', 'DESC')
+        .addOrderBy('images.order', 'ASC');
     }
 
     if (options?.userId) {

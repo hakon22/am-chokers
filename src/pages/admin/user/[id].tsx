@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { Checkbox, Descriptions, type DescriptionsProps } from 'antd';
 import moment from 'moment';
 import { chunk } from 'lodash';
@@ -145,9 +145,11 @@ const User = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =>
     }
   };
 
+  const fetchUserEffect = useEffectEvent(fetchUser);
+
   useEffect(() => {
     if (axiosAuth) {
-      Promise.resolve().then(() => fetchUser({ id }));
+      fetchUserEffect({ id });
     }
   }, [axiosAuth]);
 

@@ -312,7 +312,7 @@ const CreateItemGroup = () => {
       render: (_: any, record: ItemGroupTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.RU].name}</span>
-          {record.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
+          {record.deleted ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag> : null}
         </div>
       ),
     },

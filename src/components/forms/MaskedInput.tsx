@@ -1,15 +1,17 @@
 import { MaskedInput as Input } from 'antd-mask-input';
 import { Form, type GetRef } from 'antd';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import type { MaskedInputProps } from 'antd-mask-input/build/main/lib/MaskedInput';
 
-export const MaskedInput = (props: MaskedInputProps) => {
+export const MaskedInput = forwardRef<any, MaskedInputProps>((props, forwardedRef) => {
   const { status } = Form.Item.useStatus();
 
   const ref = useRef<GetRef<typeof Input>>(null);
 
+  useImperativeHandle(forwardedRef, () => ref.current, []);
+
   useEffect(() => {
-    if (ref?.current) {
+    if (ref.current) {
       ref.current.focus();
       ref.current.blur();
     }
@@ -26,4 +28,6 @@ export const MaskedInput = (props: MaskedInputProps) => {
       {...props}
     />
   );
-};
+});
+
+MaskedInput.displayName = 'MaskedInput';

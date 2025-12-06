@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Card, Form, Input, Rate, Tag, Tooltip, type UploadFile } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { useContext, useEffect, useEffectEvent, useRef, useState } from 'react';
 import moment from 'moment';
 import cn from 'classnames';
 import Link from 'next/link';
@@ -23,6 +22,7 @@ import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
+import { scrollTop } from '@/utilities/scrollTop';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import type { GradeFormInterface } from '@/types/order/Grade';
@@ -63,6 +63,8 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   
   const [form] = Form.useForm();
 
+  const setIsLoadedEffect = useEffectEvent(setIsLoaded);
+
   const { lang, isAdmin } = useAppSelector((state) => state.user);
   const { loadingStatus } = useAppSelector((state) => state.order);
 
@@ -75,8 +77,9 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
 
   const gradeFormInit = (positionId: number) => setGrade({ ...newGrade, position: { id: positionId } });
 
-  const handlePhoneCopy = (id: number) => {
-    setIsAnimating(id);
+  const handlePhoneCopy = (order: OrderInterface) => {
+    setIsAnimating(order.id);
+    navigator.clipboard.writeText(order.user.phone);
     setTimeout(() => setIsAnimating(undefined), 1000);
   };
 
@@ -97,17 +100,9 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
     if (code === 1) {
       clearGradeForm();
       toast(tToast('gradeSendSuccess'), 'success');
+      scrollTop();
     }
   };
-
-  useEffect(() => {
-    if (loadingStatus === 'finish' && !order) {
-      router.replace(routes.page.profile.orderHistory);
-      setIsLoaded(false);
-    } else if (order) {
-      setIsLoaded(false);
-    }
-  }, [order, loadingStatus]);
 
   useEffect(() => {
     if (inputRef?.current) {
@@ -121,6 +116,15 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
     }
   }, [grade.position]);
 
+  useEffect(() => {
+    if (loadingStatus === 'finish' && !order) {
+      router.replace(routes.page.profile.orderHistory);
+      setIsLoadedEffect(false);
+    } else if (order) {
+      setIsLoadedEffect(false);
+    }
+  }, [order, loadingStatus]);
+
   return order
     ? (
       <div className="d-flex flex-column gap-4 without-padding" style={{ ...(isMobile || orderParams ? {} : { width: '90%' }) }}>
@@ -132,11 +136,9 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                 {isAdmin && (
                   <div className={cn('d-flex flex-xl-row align-items-xl-center gap-2', { 'position-absolute top-0': !isMobile })}>
                     <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
-                    <CopyToClipboard text={order.user.phone}>
-                      <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order.id)}>
-                        <CopyOutlined className="fs-5" />{order.user.phone}
-                      </Button>
-                    </CopyToClipboard>
+                    <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order)}>
+                      <CopyOutlined className="fs-5" />{order.user.phone}
+                    </Button>
                   </div>
                 )}
               </div>
@@ -187,7 +189,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                   {order.comment && (
                     <div className="d-flex flex-column gap-4">
                       <span className="fs-4 fw-bold font-oswald">{t('orderInfo')}</span>
-                      <Tag color="#eaeef6" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#393644' }}>
+                      <Tag color="#eaeef6" variant="outlined" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#393644' }}>
                         <p className="fs-6 fw-bold font-oswald">{t('orderComment')}</p>
                         <p className="font-oswald">{order.comment}</p>
                       </Tag>

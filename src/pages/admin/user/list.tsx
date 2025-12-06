@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { Divider, Table } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -56,13 +56,15 @@ const UserList = () => {
     }
   };
 
+  const fetchUsersEffect = useEffectEvent(fetchUsers);
+
   useEffect(() => {
     if (axiosAuth) {
       const params: FetchUserInterface = {
         limit: 10,
         offset: 0,
       };
-      Promise.resolve().then(() => fetchUsers(params));
+      fetchUsersEffect(params);
     }
   }, [axiosAuth]);
 

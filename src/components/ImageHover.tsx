@@ -1,4 +1,4 @@
-import { useState, useEffect, CSSProperties, HTMLAttributes } from 'react';
+import { useState, useEffect, CSSProperties, HTMLAttributes, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -48,9 +48,9 @@ export const ImageHover = ({
     setLoading(false);
   };
 
-  const changeImage = () => {
+  const changeImage = useEffectEvent(() => {
     setIndex((prevIndex) => (prevIndex + 1) % images.length);
-  };
+  });
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -109,7 +109,6 @@ export const ImageHover = ({
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
                       className={cn({ 'active': i === index })}
-                      priority
                     />
                   )
                 }
@@ -180,7 +179,6 @@ export const ImageHover = ({
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
                       className={cn({ 'active': i === index, 'opacity-50': !!deleted })}
-                      priority
                     />
                   )
                 }

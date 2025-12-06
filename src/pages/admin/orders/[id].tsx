@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import type { InferGetServerSidePropsType } from 'next';
 
 import { routes } from '@/routes';
@@ -44,9 +44,11 @@ const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) =
     }
   };
 
+  const fetchOrderEffect = useEffectEvent(fetchOrder);
+
   useEffect(() => {
     if (axiosAuth) {
-      Promise.resolve().then(() => fetchOrder());
+      fetchOrderEffect();
       
     }
   }, [axiosAuth]);

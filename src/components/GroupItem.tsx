@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Tag } from 'antd';
 import cn from 'classnames';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import axios from 'axios';
 
 import { ImageHover } from '@/components/ImageHover';
@@ -38,6 +38,8 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [data, setData] = useState<ItemInterface[]>(items);
 
+  const setDataEffect = useEffectEvent(setData);
+
   const fetchItems = async (params: FetchItemInterface, replacement = false, onFetch = true) => {
     try {
       if (isLoading || !onFetch) {
@@ -59,7 +61,7 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
 
   useEffect(() => {
     dispatch(setPaginationParams(paginationParams));
-    setData(items);
+    setDataEffect(items);
   }, [itemGroup.code]);
 
   return (
@@ -76,7 +78,7 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
           id, price, images, group, deleted, translateName, translations,
         }) => (
           <Link href={getHref({ group, translateName } as ItemInterface)} key={id} className="position-relative" style={{ width }}>
-            {deleted ? <Tag color="volcano" className="m-0 py-1 px-2 z-1 top-0 end-0 position-absolute">{tCart('deleted')}</Tag> : null}
+            {deleted ? <Tag color="volcano" variant="outlined" className="m-0 py-1 px-2 z-1 top-0 end-0 position-absolute">{tCart('deleted')}</Tag> : null}
             <ImageHover
               className={cn('me-3', { 'opacity-50': deleted })}
               width={width}

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Divider, List } from 'antd';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import axios from 'axios';
 
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -58,13 +58,15 @@ export const Reviews = () => {
     }
   };
 
+  const fetchMyGradesEffect = useEffectEvent(fetchMyGrades);
+
   useEffect(() => {
     if (axiosAuth) {
       const params: PaginationQueryInterface = {
         limit: 10,
         offset: 0,
       };
-      Promise.resolve().then(() => fetchMyGrades(params));
+      fetchMyGradesEffect(params);
     }
   }, [axiosAuth]);
 

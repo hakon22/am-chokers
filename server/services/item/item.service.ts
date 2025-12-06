@@ -62,7 +62,7 @@ export class ItemService extends TranslationHelper {
           builder
             .leftJoin('item.rating', 'rating')
             .addSelect('rating.rating')
-            .orderBy('rating.rating', 'ASC');
+            .orderBy('rating.rating', 'DESC', 'NULLS LAST');
           break;
         case ItemSortEnum.BY_OVER_PRICE:
           builder
@@ -159,13 +159,14 @@ export class ItemService extends TranslationHelper {
           'groupTranslations.description',
           'groupTranslations.lang',
         ])
-        .addOrderBy('item.deleted IS NOT NULL', 'ASC');
+        .addOrderBy('item.deleted IS NOT NULL', 'ASC')
+        .addOrderBy('images.order', 'ASC');
     }
 
     if (query?.sort) {
       switch (query.sort) {
       case ItemSortEnum.BY_RATING:
-        builder.orderBy('rating.rating', 'ASC');
+        builder.orderBy('rating.rating', 'DESC', 'NULLS LAST');
         break;
       case ItemSortEnum.BY_OVER_PRICE:
         builder.orderBy('(item.price - item.discountPrice)', 'DESC');
@@ -254,6 +255,12 @@ export class ItemService extends TranslationHelper {
           .addSelect('grades.id');
       }
       if (options?.fullItem) {
+        if (!hasJoin(builder, 'compositions')) {
+          builder.leftJoin('item.compositions', 'compositions');
+        }
+        if (!hasJoin(builder, 'colors')) {
+          builder.leftJoin('item.colors', 'colors');
+        }
         builder
           .leftJoinAndSelect('item.collection', 'collection')
           .leftJoin('collection.translations', 'collectionTranslations')
@@ -261,13 +268,20 @@ export class ItemService extends TranslationHelper {
             'collectionTranslations.name',
             'collectionTranslations.lang',
           ])
-          .leftJoinAndSelect('item.compositions', 'compositions')
+          .addSelect([
+            'compositions.id',
+            'compositions.deleted',
+          ])
           .leftJoin('compositions.translations', 'compositionsTranslations')
           .addSelect([
             'compositionsTranslations.name',
             'compositionsTranslations.lang',
           ])
-          .leftJoinAndSelect('item.colors', 'colors')
+          .addSelect([
+            'colors.id',
+            'colors.hex',
+            'colors.deleted',
+          ])
           .leftJoin('colors.translations', 'colorsTranslations')
           .addSelect([
             'colorsTranslations.name',
@@ -352,6 +366,18 @@ export class ItemService extends TranslationHelper {
     const items = await this.findMany(query, { withGrades: true, ids: ids.map(({ id }) => id) });
 
     return [items, count];
+  };
+
+  public search = async (query: ItemQueryInterface, lang: UserLangEnum): Promise<{ name?: string; image: ImageEntity; }[]> => {
+    const idsBuilder = this.createQueryBuilder(query, { ...query, onlyIds: true });
+
+    const ids = await idsBuilder.getMany();
+
+    const items = await this.findMany(query, { withGrades: true, ids: ids.map(({ id }) => id) });
+
+    const shortItems = items.map((item) => ({ id: item.id, name: item.translations.find((translate) => translate.lang === lang)?.name, image: item.images[0] }));
+
+    return shortItems;
   };
 
   public createOne = async (body: ItemEntity, images: ImageEntity[], lang: UserLangEnum) => {
@@ -706,6 +732,7 @@ export class ItemService extends TranslationHelper {
         { header: isRu ? 'Длина' : 'Length', key: 'length', width: 50 },
         { header: isRu ? 'Новинка' : 'New', key: 'new', width: 15 },
         { header: isRu ? 'Бестселлер' : 'Bestseller', key: 'bestseller', width: 15 },
+        { header: isRu ? 'В наличии' : 'In stock', key: 'bestseller', width: 15 },
         { header: isRu ? 'Дата создания' : 'Created date', key: 'created', width: 20 },
       ];
 

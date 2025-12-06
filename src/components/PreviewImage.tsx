@@ -9,7 +9,7 @@ interface PreviewImageInterface {
 
 export const PreviewImage = ({ previewImage, previewOpen, setPreviewOpen, setPreviewImage }: PreviewImageInterface) => previewImage && (
   <Image
-    wrapperStyle={{ display: 'none' }}
+    styles={{ root: { display: 'none' } }}
     alt={previewImage}
     preview={{
       visible: previewOpen,

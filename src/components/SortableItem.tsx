@@ -31,13 +31,11 @@ export const SortableItem = ({ image, index, activeId, setImages, setFileList }:
   let boxShadow = '';
 
   if (transform && activeId === id) {
-    transform.scaleY = 1.1;
-    transform.scaleX = 1.05;
     boxShadow = '0px 6px 5px rgba(0, 0, 0, 0.24), 0px 9px 18px rgba(0, 0, 0, 0.18)';
   }
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Transform.toString(transform ? { ...transform, ...(transform && activeId === id ? { scaleY: 1.1, scaleX: 1.05 } : {}) } : null),
     transition,
     boxShadow,
   };

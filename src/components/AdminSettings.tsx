@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import axios from 'axios';
 import { Button, Descriptions, Skeleton } from 'antd';
 import cn from 'classnames';
@@ -29,6 +29,8 @@ export const AdminSettings = () => {
     }
   };
 
+  const getCacheInfoEffect = useEffectEvent(getCacheInfo);
+
   const synchronizationCache = async () => {
     try {
       setIsSubmit(true);
@@ -50,7 +52,7 @@ export const AdminSettings = () => {
 
   useEffect(() => {
     if (axiosAuth) {
-      Promise.resolve().then(() => getCacheInfo());
+      getCacheInfoEffect();
     }
   }, [axiosAuth]);
 

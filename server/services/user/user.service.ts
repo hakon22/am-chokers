@@ -4,7 +4,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response } from 'express';
-import type { EntityManager } from 'typeorm';
+import { Brackets, type EntityManager } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
@@ -21,7 +21,7 @@ import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { codeGen } from '@server/utilities/code-generator';
 import { passwordGen } from '@server/utilities/password-generator';
-import { paramsIdSchema, queryLanguageParams, queryPaginationSchema, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryLanguageParams, queryPaginationWithParams } from '@server/utilities/convertation.params';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import type { UserFormInterface, UserProfileType, UserCardInterface } from '@/types/user/User';
@@ -557,7 +557,7 @@ export class UserService extends BaseService {
 
   public getList = async (req: Request, res: Response) => {
     try {
-      const query = await queryPaginationSchema.validate(req.query);
+      const query = await queryPaginationWithParams.validate(req.query);
 
       const idsBuilder = UserEntity.createQueryBuilder('user')
         .select('user.id')
@@ -568,6 +568,20 @@ export class UserService extends BaseService {
         idsBuilder
           .limit(query.limit)
           .offset(query.offset);
+      }
+
+      if (query.withDeleted) {
+        idsBuilder.withDeleted();
+      }
+
+      if (query.search) {
+        idsBuilder
+          .setParameter('search', `%${query.search}%`)
+          .andWhere(new Brackets(qb => {
+            qb
+              .orWhere('user.name ILIKE :search')
+              .orWhere('user.phone ILIKE :search');
+          }));
       }
 
       const [ids, count] = await idsBuilder.getManyAndCount();

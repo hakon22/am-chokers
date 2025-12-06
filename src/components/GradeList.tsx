@@ -59,7 +59,7 @@ export const GradeListTitle = ({ grade, withTags, withLinkToOrder }: GradeListTi
         </div>
         <div>
           {withTags
-            ? grade.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan">{t('accepted')}</Tag> : null
+            ? grade.deleted ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag> : grade.checked ? <Tag color="cyan" variant="outlined">{t('accepted')}</Tag> : null
             : null}
         </div>
       </div>

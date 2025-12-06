@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { isEmpty, isNil } from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { AutoComplete, Badge, Button, Checkbox, Collapse, Drawer, FloatButton, Form, InputNumber, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
@@ -134,6 +134,8 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
   };
+
+  const fetchDataEffect = useEffectEvent(fetchData);
 
   const getFiltersCount = useMemo(() => (
     initialValues.groupIds?.length ?? 0) +
@@ -286,25 +288,15 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   ];
 
   useEffect(() => {
-    fetchData();
+    fetchDataEffect();
   }, []);
 
   useEffect(() => {
-    if (itemGroup?.id) {
-      if (Object.values(initialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) {
-        initialValues.groupIds = [itemGroup.id.toString()];
-      }
-    }
-    form.setFieldsValue(initialValues);
+    form.setFieldsValue({ ...initialValues, ...(itemGroup?.id && Object.values(initialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value)) ? { groupIds: [itemGroup.id.toString()] } : {}) });
   }, [itemGroup?.id, uuid, initialValues]);
 
   useEffect(() => {
-    if (itemGroup?.id) {
-      if (Object.values(initialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) {
-        initialValues.groupIds = [itemGroup.id.toString()];
-      }
-    }
-    setInitialValues(initialValues);
+    setInitialValues({ ...initialValues, ...(itemGroup?.id && Object.values(initialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value)) ? { groupIds: [itemGroup.id.toString()] } : {}) });
   }, [itemGroup?.id, uuid]);
 
   return isMobile
@@ -312,6 +304,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       <>
         <FloatButton
           style={{ right: '6.5%', top: '69px', zIndex: 5 }}
+          className="fs-6 border-0"
           badge={{ count: getFiltersCount, offset: [10, 2] }}
           icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
@@ -357,7 +350,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
                 ]}
               />
             </Form.Item>
-            <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" />
+            <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPlacement="end" />
           </Form>
         </Drawer>
       </>
@@ -398,7 +391,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
               ]}
             />
           </Form.Item>
-          <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPosition="end" />
+          <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPlacement="end" />
         </Form>
       </div>
     );

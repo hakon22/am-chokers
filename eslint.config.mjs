@@ -64,7 +64,7 @@ const eslint = [
       'consistent-return': 'off',
       'no-shadow': 'off',
       'no-return-assign': 'off',
-      '@typescript-eslint/no-shadow': 'error',
+      '@typescript-eslint/no-shadow': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       'no-underscore-dangle': [2, {
         allow: ['__filename', '__dirname'],

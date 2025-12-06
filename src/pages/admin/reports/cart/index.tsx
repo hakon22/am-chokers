@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Table, Divider, DatePicker } from 'antd';
 import Link from 'next/link';
@@ -66,7 +66,7 @@ const Cart = () => {
   const [from, setFrom] = useState(fromParams);
   const [to, setTo] = useState(toParams);
 
-  const fetchData = useCallback(async (params: CartQueryInterface, replace = false) => {
+  const fetchData = async (params: CartQueryInterface, replace = false) => {
     try {
       if (isSubmit) {
         return;
@@ -84,9 +84,9 @@ const Cart = () => {
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
-  }, [isSubmit, setIsSubmit, dispatch, tToast]);
+  };
 
-  const fetchDataWithParams = useCallback((replace = false) => {
+  const fetchDataWithParams = (replace = false) => {
     if (axiosAuth) {
       router.push({
         query: {
@@ -106,10 +106,12 @@ const Cart = () => {
       };
       fetchData(params, replace);
     }
-  }, [axiosAuth, router, pagination.limit, from, to, userIdParams, fetchData]);
+  };
+
+  const fetchDataWithParamsEffect = useEffectEvent(fetchDataWithParams);
 
   useEffect(() => {
-    Promise.resolve().then(() => fetchDataWithParams(true));
+    fetchDataWithParamsEffect(true);
 
     return () => {
       setPaginationParams({ limit: 0, offset: 0, count: 0 });

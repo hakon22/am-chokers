@@ -43,6 +43,8 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
 
   const [groupCode] = path;
 
+  const chunkNumber = 8;
+
   const filters = {
     ...(query?.collectionIds ? Array.isArray(query.collectionIds) ? { collectionIds: query.collectionIds } : { collectionIds: [query.collectionIds] } : {}),
     ...(query?.compositionIds ? Array.isArray(query.compositionIds) ? { compositionIds: query.compositionIds } : { compositionIds: [query.compositionIds] } : {}),
@@ -54,10 +56,12 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
     ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
   };
 
+  const limit = +(query?.page || 1) * chunkNumber;
+
   const [{ data: { items: payloadItems, paginationParams } }, { data: { statistics } }, { data: { itemGroup } }] = await Promise.all([
     axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: false }), {
       params: {
-        limit: +(query?.page || 1) * 8,
+        limit,
         offset: 0,
         ...(query?.groupIds || !isEmpty(filters) ? {} : { groupCode }),
         ...(query?.groupIds ? Array.isArray(query.groupIds) ? { groupIds: query.groupIds } : { groupIds: [query.groupIds] } : {}),
@@ -76,7 +80,11 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
   return {
     props: {
       items: payloadItems,
-      paginationParams,
+      paginationParams: {
+        limit: chunkNumber,
+        offset: limit !== chunkNumber ? limit - chunkNumber : 0,
+        count: paginationParams.count,
+      },
       itemGroup,
       statistics,
       uuid: uuidv4(),

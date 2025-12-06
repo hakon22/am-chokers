@@ -76,6 +76,15 @@ const CreateComposition = () => {
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
 
+  const parseComposition = (composition: CompositionInterface): CompositionTableInterface => ({
+    ...composition,
+    translations: {
+      [UserLangEnum.RU]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
+      [UserLangEnum.EN]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
+    },
+    key: composition.id.toString(),
+  });
+
   const updateData = (composition: CompositionInterface, row?: CompositionTableInterface) => {
     const index = data.findIndex((tableComposition) => tableComposition.key.toString() === composition.id.toString());
     if (index !== -1) {
@@ -185,6 +194,13 @@ const CreateComposition = () => {
         if (payloadCode === 1) {
           setCompositions((state) => [...state, composition]);
           setEditingKey('');
+          setData((state) => {
+            const index = state.findIndex((value) => value.key === composition.id.toString());
+            if (index !== -1) {
+              state[index] = parseComposition(composition);
+            }
+            return state;
+          });
         }
       }
       if (payloadCode === 2) {
@@ -208,7 +224,7 @@ const CreateComposition = () => {
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted
-            ? <Tag color="volcano">{t('deleted')}</Tag>
+            ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag>
             : null}
         </div>
       ),
@@ -298,14 +314,7 @@ const CreateComposition = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setCompositions(response.compositions);
-            const newCompositions: CompositionTableInterface[] = response.compositions.sort((a, b) => b.id - a.id).map((composition) => ({
-              ...composition,
-              translations: {
-                [UserLangEnum.RU]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name as string },
-                [UserLangEnum.EN]: { name: composition.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name as string },
-              },
-              key: composition.id.toString(),
-            }));
+            const newCompositions = response.compositions.sort((a, b) => b.id - a.id).map(parseComposition);
             setData(newCompositions);
           }
           setIsSubmit(false);

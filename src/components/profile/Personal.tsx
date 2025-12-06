@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import cn from 'classnames';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
 import { isEmpty } from 'lodash';
@@ -78,6 +78,8 @@ export const Personal = () => {
     }
   };
 
+  const updateProfileEffect = useEffectEvent(updateProfile);
+
   const telegramHandler = async () => {
     try {
       if (telegramId) {
@@ -130,7 +132,7 @@ export const Personal = () => {
 
   useEffect(() => {
     if (isConfirmed && updateValues) {
-      updateProfile(updateValues);
+      updateProfileEffect(updateValues);
     }
   }, [isConfirmed]);
 

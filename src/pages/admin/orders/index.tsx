@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Divider } from 'antd';
 import axios from 'axios';
@@ -59,6 +59,8 @@ const Orders = () => {
     }
   };
 
+  const fetchOrdersEffect = useEffectEvent(fetchOrders);
+
   useEffect(() => {
     if (axiosAuth) {
       const params: FetchOrdersInterface = {
@@ -67,7 +69,7 @@ const Orders = () => {
         statuses,
         ...(userIdParams ? { userId: +userIdParams } : {}),
       };
-      Promise.resolve().then(() => fetchOrders(params, true));
+      fetchOrdersEffect(params, true);
     }
 
     return () => {

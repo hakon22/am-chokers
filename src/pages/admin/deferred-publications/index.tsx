@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import { useRouter } from 'next/router';
 import { Table, Divider } from 'antd';
 import axios from 'axios';
@@ -70,9 +70,11 @@ const DeferredPublication = () => {
     }
   };
 
+  const fetchDataEffect = useEffectEvent(fetchData);
+
   useEffect(() => {
     if (axiosAuth) {
-      Promise.resolve().then(() => fetchData());
+      fetchDataEffect();
     }
   }, [axiosAuth]);
 

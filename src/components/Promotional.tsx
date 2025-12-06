@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { CopyOutlined } from '@ant-design/icons';
 import { Modal, Button } from 'antd';
 import cn from 'classnames';
@@ -20,6 +19,7 @@ export const Promotional = () => {
 
   const handleCopy = () => {
     setIsAnimating(true);
+    navigator.clipboard.writeText(PROMOTIONAL_NAME);
     setTimeout(() => setIsAnimating(false), 1000);
   };
 
@@ -45,12 +45,10 @@ export const Promotional = () => {
       <div className="d-flex flex-column font-oswald gap-3">
         <h3 className="text-center title">{t('title')}</h3>
         <div className="d-flex justify-content-center">
-          <CopyToClipboard text={PROMOTIONAL_NAME}>
-            <Button type="link" className={cn('promocode d-flex align-items-center fs-5 gap-5', { 'animate__animated animate__headShake': isAnimating })} onClick={handleCopy}>
-              {PROMOTIONAL_NAME}
-              <CopyOutlined className="fs-5" />
-            </Button>
-          </CopyToClipboard>
+          <Button type="link" className={cn('promocode d-flex align-items-center fs-5 gap-5', { 'animate__animated animate__headShake': isAnimating })} onClick={handleCopy}>
+            {PROMOTIONAL_NAME}
+            <CopyOutlined className="fs-5" />
+          </Button>
         </div>
         <div className="d-flex flex-column text-center fs-6 tutorial gap-2 mb-3">
           <span>{t('tutorial.span1')}</span>

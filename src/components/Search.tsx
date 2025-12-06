@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { AutoComplete } from 'antd';
+import { AutoComplete, Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import Image from 'next/image';
 
 import { routes } from '@/routes';
 import { NotFoundContent } from '@/components/NotFoundContent';
@@ -10,8 +11,9 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { Spinner } from '@/components/Spinner';
 import { onFocus } from '@/utilities/onFocus';
 import type { ItemInterface } from '@/types/item/Item';
+import type { ImageEntity } from '@server/db/entities/image.entity';
 
-type List = { name: string, image: string; }[];
+export type List = { id: number; name: string; image: ImageEntity; }[];
 
 interface SearchPropsInterface {
   items?: ItemInterface[];
@@ -49,7 +51,7 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
       }
       const timeout = setTimeout(async () => {
         setIsLoading(true);
-        const { data } = await axios.get<{ code: number; search: { name: string; image: string; }[] }>(routes.item.search, {
+        const { data } = await axios.get<{ code: number; search: List; }>(routes.item.search, {
           params: {
             search: value,
             withDeleted,
@@ -67,20 +69,21 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
     }
   };
 
-  const options = (d: List) => d.map(({ name }) => ({
-    label: (
-      <button
-        className="icon-button text-start w-100"
-        type="button"
-        title={name}
-        onClick={() => {
-          setSearch({ value: name, onFetch: true });
-          onFocus();
-        }}
-      >
-        {name}
-      </button>
-    ),
+  const options = (d: List) => d.map(({ name, image }) => ({
+    label: (<Button
+      className="w-100 h-100 py-0 ps-0 pe-5 d-flex justify-content-between align-items-center"
+      title={name}
+      onClick={() => {
+        setSearch({ value: name, onFetch: true });
+        onFocus();
+      }}
+    >
+      {image.src.endsWith('.mp4')
+        ? <video src={image.src} width={60} height={60} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
+        : <Image alt={name} width={60} height={60} unoptimized src={image.src} />
+      }
+      <span className="fs-6 text-wrap">{name}</span>
+    </Button>),
   }));
 
   return (

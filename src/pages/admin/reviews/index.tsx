@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { Button, Form, Popconfirm, Checkbox, List, Divider } from 'antd';
@@ -167,6 +167,8 @@ const Reviews = () => {
     }
   };
 
+  const fetchGradesEffect = useEffectEvent(fetchGrades);
+
   useEffect(() => {
     if ((withDeleted !== undefined || showAccepted !== undefined) && axiosAuth) {
       router.push({
@@ -186,7 +188,7 @@ const Reviews = () => {
         showAccepted,
         ...(userIdParams ? { userId: +userIdParams } : {}),
       };
-      Promise.resolve().then(() => fetchGrades(params, true));
+      fetchGradesEffect(params, true);
     }
   }, [withDeleted, showAccepted, userIdParams, axiosAuth]);
 

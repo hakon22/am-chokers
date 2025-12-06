@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Alert, Badge, Button, Card, Tag, Tooltip } from 'antd';
-import { useContext, useEffect, useState } from 'react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import moment from 'moment';
 import Image from 'next/image';
 import { StopOutlined, ForwardOutlined, BackwardOutlined, CopyOutlined } from '@ant-design/icons';
@@ -64,8 +63,11 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   const stateOrders = useAppSelector(selectors.selectAll);
 
-  const handlePhoneCopy = (orderId: number) => {
-    setIsAnimating(orderId);
+  const setOrdersEffect = useEffectEvent(setOrders);
+
+  const handlePhoneCopy = (order: OrderInterface) => {
+    setIsAnimating(order.id);
+    navigator.clipboard.writeText(order.user.phone);
     setTimeout(() => setIsAnimating(undefined), 1000);
   };
 
@@ -141,7 +143,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   useEffect(() => {
     if (stateOrders.length || data?.length) {
-      setOrders(isAdmin && data ? data : stateOrders);
+      setOrdersEffect(isAdmin && data ? data : stateOrders);
     }
   }, [stateOrders, data]);
 
@@ -179,12 +181,12 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                 </Link>
                 {!order.isPayment
                   ? isAdmin && order.user.id !== userId ? (
-                    <Tag color="#eaeef6" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
+                    <Tag color="#eaeef6" variant="outlined" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
                       <span>{t('notPayment', { price: getOrderPrice(order) })}</span>
                     </Tag>
                   ) : order.status !== OrderStatusEnum.CANCELED ? <Button className="button" onClick={() => onPay(order.id)}>{t('pay', { price: getOrderPrice(order) })}</Button> : null
                   : (
-                    <Tag color="#eaeef6" className="fs-6 text-wrap text-center text-xl-start" style={{ padding: '5px 10px', color: '#69788e' }}>
+                    <Tag color="#eaeef6" variant="outlined" className="fs-6 text-wrap text-center text-xl-start" style={{ padding: '5px 10px', color: '#69788e' }}>
                       <span>{t('payment')}</span>
                       <span className="fw-bold">{t('price', { price: getOrderPrice(order) })}</span>
                     </Tag>)}
@@ -192,17 +194,15 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
               {isAdmin && (
                 <div className={cn('d-flex flex-xl-row gap-2 mb-3 mb-xl-0 mt-3 mt-xl-0', { 'position-absolute top-0': !isMobile })}>
                   <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
-                  <CopyToClipboard text={order.user.phone}>
-                    <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order.id)}>
-                      <CopyOutlined className="fs-5" />{order.user.phone}
-                    </Button>
-                  </CopyToClipboard>
+                  <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order)}>
+                    <CopyOutlined className="fs-5" />{order.user.phone}
+                  </Button>
                 </div>
               )}
               <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">
                 <div className="d-flex flex-column gap-2 col-12 col-xl-4">
                   <div>
-                    <Tag color="#eaeef6" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
+                    <Tag color="#eaeef6" variant="outlined" className="fs-6 text-wrap" style={{ padding: '5px 10px', color: '#69788e' }}>
                       <span className="fw-bold">{getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}</span>
                     </Tag>
                   </div>

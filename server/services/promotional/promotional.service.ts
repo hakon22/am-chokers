@@ -42,6 +42,7 @@ export class PromotionalService extends BaseService {
         'users.phone',
       ])
       .orderBy('promotional.active', 'DESC')
+      .addOrderBy('promotional.id', 'DESC')
       .addOrderBy('promotional.end', 'DESC');
 
     if (options?.withOrders) {

@@ -17,7 +17,7 @@ interface WorkerConfigInterface {
 }
 
 export class BullMQWorker {
-  private TAG = 'BulMQWorker';
+  private TAG = 'BullMQWorker';
 
   private readonly loggerService = Container.get(LoggerService);
 

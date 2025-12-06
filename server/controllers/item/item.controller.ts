@@ -93,9 +93,10 @@ export class ItemController extends BaseService {
 
   public search = async (req: Request, res: Response) => {
     try {
+      const user = this.getCurrentUser(req);
       const query = await querySearchParams.validate(req.query);
 
-      const search = await this.itemService.findMany(query);
+      const search = await this.itemService.search(query, user.lang);
 
       res.json({ code: 1, search });
     } catch (e) {

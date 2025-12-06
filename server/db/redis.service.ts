@@ -82,13 +82,18 @@ export class RedisService {
    * @returns `true` по завершении операции
    */
   public setItems = async <T extends { id: string | number }>(key: RedisKeyEnum, items: T[]) => {
+    if (!items.length) {
+      return true;
+    }
+
+    this.loggerService.info(this.TAG, `Обновление значений по ключам: ${items.map(({ id }) => id).join(', ').trim()}`);
     const pipeline = this.redis.multi();
 
-    items.forEach((item) => {
+    for (const item of items) {
       if (item.id) {
         pipeline.set(`${this.commonOptions.prefix}${key}${item.id}`, JSON.stringify(item));
       }
-    });
+    }
 
     await pipeline.exec();
 

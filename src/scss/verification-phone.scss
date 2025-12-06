@@ -8,8 +8,10 @@
   align-items: center;
 }
 
-.ant-progress .ant-progress-bg {
-  animation: progress 60s linear;
+.ant-progress {
+  --ant-progress-default-color: $button-background-active;
+  border-radius: 7px;
+  animation: progress 61s linear;
   transition: none;
   background: $button-background-active;
 }

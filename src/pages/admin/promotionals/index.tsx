@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { useContext, useEffect, useEffectEvent, useRef, useState, type JSX } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -7,7 +7,7 @@ import { Button, Form, Input, Select, type TableProps, Table, Popconfirm, Checkb
 import axios from 'axios';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import moment, { type Moment } from 'moment';
-import { debounce, maxBy } from 'lodash';
+import { maxBy } from 'lodash';
 import type { TFunction } from 'i18next';
 import type { ValidationError } from 'yup';
 import type { LabeledValue } from 'antd/lib/select';
@@ -30,6 +30,7 @@ import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { UserEntity } from '@server/db/entities/user.entity';
+import type { List } from '@/components/Search';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
@@ -64,7 +65,7 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   setItems: React.Dispatch<React.SetStateAction<ItemInterface[]>>;
   fetchItems: (search?: string) => any;
   setUsers: React.Dispatch<React.SetStateAction<UserEntity[]>>;
-  fetchUsers: () => any;
+  fetchUsers: (search?: string) => any;
 }
 
 interface DebounceSelectProps<ValueType = any> extends Omit<SelectProps<ValueType | ValueType[]>, 'options' | 'children'> {
@@ -76,37 +77,66 @@ interface DebounceSelectProps<ValueType = any> extends Omit<SelectProps<ValueTyp
 const DebounceSelect = <ValueType extends LabeledValue & { id: number; button?: JSX.Element; } = any>({ fetchOptions, t, debounceTimeout = 300, ...props }: DebounceSelectProps<ValueType>) => {
   const [fetching, setFetching] = useState(false);
   const [options, setOptions] = useState<ValueType[]>();
-  const fetchRef = useRef(0);
+  const [searchValue, setSearchValue] = useState<string>('');
+  const fetchIdRef = useRef(0);
 
-  const debounceFetcher = useMemo(() => {
-    const loadOptions = (value?: string) => {
-      fetchRef.current += 1;
-      const fetchId = fetchRef.current;
-      setOptions([]);
-      setFetching(true);
+  const setFetchingEffect = useEffectEvent(setFetching);
+  const setOptionsEffect = useEffectEvent(setOptions);
 
-      fetchOptions(value).then((newOptions) => {
-        if (fetchId !== fetchRef.current) {
+  const runFetch = useEffectEvent(() => {
+    const fetchId = ++fetchIdRef.current;
+    setFetching(true);
+
+    fetchOptions()
+      .then((newOptions) => {
+        if (fetchId !== fetchIdRef.current) {
           return;
         }
-
         setOptions(newOptions);
-        setFetching(false);
+      })
+      .finally(() => {
+        if (fetchId === fetchIdRef.current) {
+          setFetching(false);
+        }
       });
-    };
-
-    return debounce(loadOptions, debounceTimeout);
-  }, [fetchOptions, debounceTimeout]);
+  });
 
   useEffect(() => {
-    debounceFetcher();
+    if (!searchValue) {
+      setOptionsEffect([]);
+      setFetchingEffect(false);
+      return;
+    }
+
+    const fetchId = ++fetchIdRef.current;
+    setFetchingEffect(true);
+
+    const handler = setTimeout(() => {
+      fetchOptions(searchValue)
+        .then((newOptions) => {
+          if (fetchId !== fetchIdRef.current) {
+            return;
+          }
+          setOptions(newOptions);
+        })
+        .finally(() => {
+          if (fetchId === fetchIdRef.current) {
+            setFetching(false);
+          }
+        });
+    }, debounceTimeout);
+
+    return () => clearTimeout(handler);
+  }, [searchValue, fetchOptions, debounceTimeout]);
+
+  useEffect(() => {
+    runFetch();
   }, []);
 
   return (
     <Select
       labelInValue
-      filterOption={false}
-      onSearch={debounceFetcher}
+      showSearch={{ onSearch: setSearchValue, filterOption: false }}
       notFoundContent={fetching ? <Spin size="small" /> : t('searchNotFound')}
       options={options}
       optionRender={(option) => option.data.button}
@@ -419,6 +449,13 @@ const CreatePromotional = () => {
         if (code === 1) {
           setPromotionals((state) => [promotional, ...state]);
           setEditingKey('');
+          setData((state) => {
+            const index = state.findIndex((value) => value.key === promotional.id.toString());
+            if (index !== -1) {
+              state[index] = { ...promotional, key: promotional.id.toString() };
+            }
+            return state;
+          });
         } else if (code === 2) {
           form.setFields([{ name: 'name', errors: [tToast('promotionalExist', { name })] }]);
           toast(tToast('promotionalExist', { name }), 'error');
@@ -433,23 +470,23 @@ const CreatePromotional = () => {
   const fetchItems = async (search?: string) => {
     let result: { label: string; value: number; }[] = [];
     try {
-      const response = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
-        params: { search, limit: 1000, offset: 0 },
+      const response = await axios.get<{ code: number; search: List; }>(routes.item.search, {
+        params: { search },
       });
       if (response.data.code === 1) {
-        result = response.data.items.map((item) => ({
-          label: item.translations.find((translation) => translation.lang === lang)?.name as string,
+        result = response.data.search.map((item) => ({
+          label: item.name,
           value: item.id,
           button: (
             <Button
               className="w-100 h-100 py-0 ps-0 pe-5 d-flex justify-content-between align-items-center"
-              title={item.translations.find((translation) => translation.lang === lang)?.name}
+              title={item.name}
             >
-              {item.images[0].src.endsWith('.mp4')
-                ? <video src={item.images[0].src} width={60} height={60} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
-                : <Image alt={item.translations.find((translation) => translation.lang === lang)?.name as string} width={60} height={60} unoptimized src={item.images[0].src} />
+              {item.image.src.endsWith('.mp4')
+                ? <video src={item.image.src} width={60} height={60} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
+                : <Image alt={item.name} width={60} height={60} unoptimized src={item.image.src} />
               }
-              <span className="fs-6 text-wrap">{item.translations.find((translation) => translation.lang === lang)?.name}</span>
+              <span className="fs-6 text-wrap">{item.name}</span>
             </Button>
           ),
         }));
@@ -460,11 +497,11 @@ const CreatePromotional = () => {
     return result;
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (search?: string) => {
     let result: { label: string; value: number; }[] = [];
     try {
       const response = await axios.get<PaginationEntityInterface<UserEntity>>(routes.reports.users, {
-        params: { limit: 1000, offset: 0 },
+        params: { search, limit: 1000, offset: 0 },
       });
       if (response.data.code === 1) {
         result = response.data.items.map((user) => ({
@@ -488,11 +525,11 @@ const CreatePromotional = () => {
         <div className="d-flex align-items-center gap-3">
           <span>{record.name}</span>
           {record.deleted
-            ? <Tag color="volcano">{t('deleted')}</Tag>
+            ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag>
             : !record.active && moment(record.end).isBefore(moment(), 'day')
-              ? <Tag color="magenta">{t('expired')}</Tag>
+              ? <Tag color="magenta" variant="outlined">{t('expired')}</Tag>
               : !record.active && !moment(record.end).isBefore(moment(), 'day')
-                ? <Tag color="purple">{t('notActive')}</Tag>
+                ? <Tag color="purple" variant="outlined">{t('notActive')}</Tag>
                 : null}
         </div>
       ),

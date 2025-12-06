@@ -79,6 +79,15 @@ const CreateItemCollection = () => {
   const [editingKey, setEditingKey] = useState('');
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
 
+  const parseCollection = (itemCollection: ItemCollectionInterface): ItemCollectionTableInterface => ({
+    ...itemCollection,
+    translations: {
+      [UserLangEnum.RU]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name },
+      [UserLangEnum.EN]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name },
+    },
+    key: itemCollection?.id.toString() as string,
+  } as ItemCollectionTableInterface);
+
   const updateData = (itemCollection: ItemCollectionInterface, row?: ItemCollectionTableInterface) => {
     const index = data.findIndex((collection) => collection.key.toString() === itemCollection?.id.toString());
     if (index !== -1) {
@@ -180,6 +189,13 @@ const CreateItemCollection = () => {
       if (payloadCode === 1) {
         setItemCollections((state) => [...state, itemCollection]);
         setEditingKey('');
+        setData((state) => {
+          const index = state.findIndex((value) => value.key === itemCollection?.id.toString());
+          if (index !== -1) {
+            state[index] = parseCollection(itemCollection);
+          }
+          return state;
+        });
       }
     }
     if (payloadCode === 2) {
@@ -199,7 +215,7 @@ const CreateItemCollection = () => {
       render: (_: any, record: ItemCollectionTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.RU].name}</span>
-          {record.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
+          {record.deleted ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag> : null}
         </div>
       ),
     },
@@ -284,14 +300,7 @@ const CreateItemCollection = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setItemCollections(response.itemCollections);
-            const newItemCollections = response.itemCollections.sort((a, b) => (b?.id ?? 0) - (a?.id ?? 0)).map((itemCollection) => ({
-              ...itemCollection,
-              translations: {
-                [UserLangEnum.RU]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name },
-                [UserLangEnum.EN]: { name: itemCollection?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name },
-              },
-              key: itemCollection?.id.toString() as string,
-            } as ItemCollectionTableInterface));
+            const newItemCollections = response.itemCollections.sort((a, b) => (b?.id ?? 0) - (a?.id ?? 0)).map(parseCollection);
             setData(newItemCollections);
           }
           setIsSubmit(false);

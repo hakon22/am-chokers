@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { LikeOutlined, DownloadOutlined } from '@ant-design/icons';
@@ -70,6 +70,8 @@ const ItemList = () => {
     }
   };
 
+  const fetchItemsEffect = useEffectEvent(fetchItems);
+
   const fetchItemsExcel = async () => {
     try {
       setIsSubmit(true);
@@ -133,7 +135,7 @@ const ItemList = () => {
         withDeleted,
         search: search?.value,
       };
-      Promise.resolve().then(() => fetchItems(params, true, search?.onFetch));
+      fetchItemsEffect(params, true, search?.onFetch);
     }
   }, [withDeleted, search?.value]);
 
@@ -156,7 +158,7 @@ const ItemList = () => {
         withDeleted,
         search: search?.value,
       };
-      Promise.resolve().then(() => fetchItems(params));
+      fetchItemsEffect(params);
     }
   }, [axiosAuth]);
 
@@ -221,7 +223,7 @@ const ItemList = () => {
                             <LikeOutlined />
                             <span>{tPrice('grades.gradeCount', { count: item.grades.length })}</span>
                           </div>
-                          {item.deleted ? <Tag color="volcano">{t('deleted')}</Tag> : null}
+                          {item.deleted ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag> : null}
                         </div>
                         <div className="d-flex flex-column fs-5-5 gap-3">
                           <span className="lh-1">{item?.translations.find((translation) => translation.lang === lang)?.name}</span>

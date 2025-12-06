@@ -41,7 +41,7 @@ export const OrderStatusFilter = ({ statuses, setStatuses, lang }: { statuses: O
       placeholder={tOrders('selectStatuses')}
       onChange={(state) => setStatuses(state)}
       onClear={() => setStatuses([])}
-      options={Object.values(OrderStatusEnum).map((status) => ({ label: <Tag color={getOrderStatusColor(status)}>{getOrderStatusTranslate(status, lang)}</Tag>, value: status }))}
+      options={Object.values(OrderStatusEnum).map((status) => ({ label: <Tag variant="solid" color={getOrderStatusColor(status)}>{getOrderStatusTranslate(status, lang)}</Tag>, value: status }))}
     />
   );
 };

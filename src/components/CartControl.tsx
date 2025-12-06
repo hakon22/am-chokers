@@ -68,9 +68,9 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
 
   return inCart ? (
     <div className="d-flex gap-3 justify-content-center align-items-center cart-control" style={width ? { width } : {}}>
-      <Button onClick={decrement}><MinusOutlined className="fs-6" title={t('remove')} /></Button>
+      <Button onClick={decrement} className="border-0"><MinusOutlined className="fs-6" title={t('remove')} /></Button>
       <span className={className}>{inCart.count}</span>
-      <Button onClick={increment}><PlusOutlined className="fs-6" title={t('add')} /></Button>
+      <Button onClick={increment} className="border-0"><PlusOutlined className="fs-6" title={t('add')} /></Button>
     </div>
   ) : (
     <Button className={cn('button border-button fs-5', classNameButton ? { [classNameButton]: classNameButton } : {})} title={t('addToCart')} onClick={add}>{t('addToCart')}</Button>

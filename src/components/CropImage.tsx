@@ -1,6 +1,7 @@
 import ImgCrop from 'antd-img-crop';
 import { useTranslation } from 'react-i18next';
 import type { JSX } from 'react';
+import type { RcFile } from 'antd/lib/upload';
 
 export const CropImage = ({ children }: { children: JSX.Element }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.imageCrop' });
@@ -14,7 +15,7 @@ export const CropImage = ({ children }: { children: JSX.Element }) => {
       modalTitle={t('modalTitle')}
       resetText={t('resetText')}
       fillColor="transparent"
-      beforeCrop={(file) => file.type !== 'video/mp4'}
+      beforeCrop={(file: RcFile) => file.type !== 'video/mp4'}
     >
       {children}
     </ImgCrop>

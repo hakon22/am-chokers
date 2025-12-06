@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useEffectEvent, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useRouter } from 'next/router';
 import axios from 'axios';
@@ -305,6 +305,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   const [isFilters, setIsFilters] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const [form] = Form.useForm<CatalogFiltersInterface>();
 
@@ -403,6 +404,23 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     }
   };
 
+  const handleLoadMore = useCallback(() => {
+    if (!hasInitialized) {
+      return;
+    }
+
+    onFilters(initialValues, {
+      limit: pagination.limit,
+      offset: (pagination.offset || 0) + chunkNumber,
+    });
+  }, [hasInitialized, pagination.offset, pagination.limit, onFilters, initialValues]);
+
+  const setItemsEffect = useEffectEvent(setItems);
+  const setInitialValuesEffect = useEffectEvent(setInitialValues);
+  const setStatisticsEffect = useEffectEvent(setStatistics);
+  const setIsFiltersEffect = useEffectEvent(setIsFilters);
+  const onFiltersEffect = useEffectEvent(onFilters);
+
   const resetFilters = async () => {
     setInitialValues(defaultInitialValues);
     form.setFieldsValue(defaultInitialValues);
@@ -456,6 +474,12 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, []);
 
   useEffect(() => {
+    if (!hasInitialized) {
+      setTimeout(setHasInitialized, 1000, true);
+    }
+  }, [hasInitialized]);
+
+  useEffect(() => {
     if (propsPaginationParams) {
       dispatch(setPaginationParams(propsPaginationParams));
     }
@@ -463,27 +487,24 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   useEffect(() => {
     if (searchParams) {
-      setInitialValues({ search: searchParams });
-      setItems(propsItems);
+      setInitialValuesEffect({ search: searchParams });
+      setItemsEffect(propsItems);
     } else if (!isSearch?.value) {
-      setInitialValues((state) => ({ ...state, search: undefined }));
+      setInitialValuesEffect((state) => ({ ...state, search: undefined }));
       if (isSearch?.needFetch) {
-        onFilters({ ...initialValues, search: undefined });
+        onFiltersEffect({ ...initialValues, search: undefined });
       } else if (isFilters) {
-        setIsFilters(false);
+        setIsFiltersEffect(false);
       } else {
-        setItems(propsItems);
+        setItemsEffect(propsItems);
       }
     }
   }, [searchParams, isSearch?.value]);
 
   useEffect(() => {
-    if (itemGroup?.id && Object.values(preparedInitialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) {
-      preparedInitialValues.groupIds = [itemGroup.id.toString()];
-    }
-    setItems(propsItems);
-    setInitialValues(preparedInitialValues);
-    setStatistics(propsStatistics);
+    setItemsEffect(propsItems);
+    setInitialValuesEffect({ ...preparedInitialValues, ...(itemGroup?.id && Object.values(preparedInitialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) ? { groupIds: [itemGroup.id.toString()] } : {} });
+    setStatisticsEffect(propsStatistics);
   }, [itemGroup?.id, uuid]);
 
   return (
@@ -494,8 +515,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         <div className="w-100">
           <InfiniteScroll
             dataLength={items.length}
-            next={() => onFilters(initialValues, { limit: pagination.limit, offset: (pagination.offset || 0) + chunkNumber })}
-            hasMore={items.length < pagination.count}
+            next={handleLoadMore}
+            hasMore={hasInitialized && items.length < pagination.count}
             loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton lang={lang as UserLangEnum} />}
             style={{ overflow: 'unset' }}
             className="w-100"

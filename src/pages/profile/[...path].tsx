@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useEffectEvent, useState, type JSX } from 'react';
 import { Button, Collapse, Divider, Menu, Skeleton } from 'antd';
 import type { InferGetServerSidePropsType } from 'next';
 import type { CollapseProps, MenuProps } from 'antd/lib';
@@ -41,6 +41,8 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   const { isMobile } = useContext(MobileContext);
 
   const [activeKey, setActiveKey] = useState(path);
+
+  const setActiveKeyEffect = useEffectEvent(setActiveKey);
 
   const { pagination } = useAppSelector((state) => state.app);
   const { id, isAdmin, favorites } = useAppSelector((state) => state.user);
@@ -158,7 +160,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   ];
 
   useEffect(() => {
-    setActiveKey(path[1] ? ['orders'] : path);
+    setActiveKeyEffect(path[1] ? ['orders'] : path);
   }, [path[0], path[1]]);
   
   return (

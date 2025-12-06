@@ -6,37 +6,43 @@
 @font-face {
   font-weight: 200;
   font-family: Oswald;
-  src: url('../fonts/Oswald-ExtraLight.ttf');
+  src: url('../fonts/Oswald-ExtraLight.woff2') format('woff2'),
+       url('../fonts/Oswald-ExtraLight.ttf') format('truetype');
 }
 
 @font-face {
   font-weight: 300;
   font-family: Oswald;
-  src: url('../fonts/Oswald-Light.ttf');
+  src: url('../fonts/Oswald-Light.woff2') format('woff2'),
+       url('../fonts/Oswald-Light.ttf') format('truetype');
 }
 
 @font-face {
   font-weight: 400;
   font-family: Oswald;
-  src: url('../fonts/Oswald-Regular.ttf');
+  src: url('../fonts/Oswald-Regular.woff2') format('woff2'),
+       url('../fonts/Oswald-Regular.ttf') format('truetype');
 }
 
 @font-face {
   font-weight: 500;
   font-family: Oswald;
-  src: url('../fonts/Oswald-Medium.ttf');
+  src: url('../fonts/Oswald-Medium.woff2') format('woff2'),
+       url('../fonts/Oswald-Medium.ttf') format('truetype');
 }
 
 @font-face {
   font-weight: 700;
   font-family: Oswald;
-  src: url('../fonts/Oswald-Bold.ttf');
+  src: url('../fonts/Oswald-Bold.woff2') format('woff2'),
+       url('../fonts/Oswald-Bold.ttf') format('truetype');
 }
 
 @font-face {
   font-weight: 400;
   font-family: GoodVibesPro;
-  src: url('../fonts/Good-Vibes-Pro.ttf');
+  src: url('../fonts/Good-Vibes-Pro.woff2') format('woff2'),
+       url('../fonts/Good-Vibes-Pro.ttf') format('truetype');
 }
 
 html {
@@ -144,7 +150,7 @@ h2 {
   }
 }
 
-.ant-input-group-addon .ant-btn-variant-solid {
+.ant-input-group-addon .ant-btn-variant-solid, .ant-btn.ant-btn-color-primary {
   background: $dark-blue !important;
 
   &:active, &:hover, &:disabled {
@@ -269,6 +275,10 @@ a {
   border-color: $dark-blue !important;
 }
 
+.ant-btn:not(:disabled):not(.ant-btn-disabled):hover {
+  color: $button-background-active;
+}
+
 .switch-large {
   display: flex;
   align-items: center;
@@ -363,6 +373,18 @@ a {
   background-color: $grey-light;
 }
 
+.ant-menu-light.ant-menu-horizontal > .ant-menu-item-selected {
+  color: $active-violet;
+
+  &::after {
+    border-bottom-color: $active-violet;
+  }
+}
+
+.ant-menu-light.ant-menu-horizontal > .ant-menu-item:hover::after {
+  border-bottom-color: $active-violet-hover;
+}
+
 .ant-menu-light {
 
   .ant-menu-submenu-selected > .ant-menu-submenu-title {
@@ -379,7 +401,7 @@ a {
 }
 
 .filter.ant-btn-variant-outlined:not(:disabled):not(.ant-btn-disabled):hover {
-  color: $dark-blue;
+  color: $dark-blue !important;
   background-color: $bg-navbar !important;
 }
 
@@ -434,7 +456,7 @@ a {
     align-items: center !important;
   }
 
-  input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper:not(.custom-size) {
+  input:not(.not-padding), textarea, .ant-select-selector, .ant-select-content-value, .ant-checkbox-wrapper:not(.custom-size) {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
@@ -485,6 +507,16 @@ a {
   box-shadow: none !important;
 }
 
+.css-var-root.ant-select-css-var {
+  --ant-select-hover-border-color: $button-background-active !important;
+  --ant-select-active-border-color: $dark-blue !important;
+}
+
+.css-var-root.ant-input-css-var {
+  --ant-input-active-border-color: $button-background-active !important;
+  --ant-input-hover-border-color: $dark-blue !important;
+}
+
 .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {
   background-color: #f7f9fc !important;
   border-color: #ced3dd !important;
@@ -530,6 +562,11 @@ a {
 
 .ant-float-btn-content .ant-float-btn-icon {
   color: $dark-blue !important;
+}
+
+.ant-float-btn {
+  height: 40px;
+  border: unset;
 }
 
 .instagram {

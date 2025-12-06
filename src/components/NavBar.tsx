@@ -83,11 +83,19 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
 const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: MobileNavBarInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
-  const container = useRef(null);
+  const container = useRef<HTMLDivElement>(null);
 
   const { isActive } = useContext(NavbarContext);
 
+  const [drawerContainer, setDrawerContainer] = useState<HTMLElement | null>(null);
+
   const navbarClassName = cn('menu-btn', { active: isActive });
+
+  useEffect(() => {
+    if (container?.current) {
+      setDrawerContainer(container.current);
+    }
+  }, []);
 
   return (
     <div className="w-100" ref={container}>
@@ -99,30 +107,32 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
           <span />
         </div>
       </div>
-      <Drawer
-        title={<div className="text-center"><Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} /></div>}
-        getContainer={container?.current || false}
-        closeIcon={null}
-        width="100%"
-        open={isActive}
-      >
-        <Menu
-          mode="inline"
-          expandIcon={null}
-          items={items}
-          onOpenChange={onOpenChange}
-          rootClassName="bg-transparent"
-          motion={{
-            motionName: 'ant-motion-collapse',
-            onAppearStart: () => ({ height: 0 }),
-            onAppearActive: (node) => ({ height: `${node.scrollHeight}px` }),
-            onEnterStart: () => ({ height: 0 }),
-            onEnterActive: (node) => ({ height: `${node.scrollHeight}px` }),
-            onLeaveStart: () => ({ height: 0, transition: 'none' }),
-            onLeaveActive: () => ({ height: 0, transition: 'none' }),
-          }}
-        />
-      </Drawer>
+      {drawerContainer && (
+        <Drawer
+          title={<div className="text-center"><Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} /></div>}
+          getContainer={() => drawerContainer}
+          closeIcon={null}
+          width="100%"
+          open={isActive}
+        >
+          <Menu
+            mode="inline"
+            expandIcon={null}
+            items={items}
+            onOpenChange={onOpenChange}
+            rootClassName="bg-transparent"
+            motion={{
+              motionName: 'ant-motion-collapse',
+              onAppearStart: () => ({ height: 0 }),
+              onAppearActive: (node) => ({ height: `${node.scrollHeight}px` }),
+              onEnterStart: () => ({ height: 0 }),
+              onEnterActive: (node) => ({ height: `${node.scrollHeight}px` }),
+              onLeaveStart: () => ({ height: 0, transition: 'none' }),
+              onLeaveActive: () => ({ height: 0, transition: 'none' }),
+            }}
+          />
+        </Drawer>
+      )}
     </div>
   );
 };
@@ -223,14 +233,15 @@ export const NavBar = () => {
   ];
 
   const onSearch = async () => {
+    const newQuery = { ...router.query };
     if (!search) {
-      delete router.query.search;
+      delete newQuery.search;
       setIsSearch({ value: false, needFetch: true });
     }
-    if (router.query?.path) {
-      delete router.query.path;
+    if (newQuery.path) {
+      delete newQuery.path;
     }
-    router.push({ query: search ? { search } : router.query, pathname: routes.page.base.catalog });
+    router.push({ query: search ? { search } : newQuery, pathname: routes.page.base.catalog });
     onFocus();
   };
 
@@ -244,8 +255,9 @@ export const NavBar = () => {
     setIsSearch({ value: !isSearch?.value, needFetch: isSearch?.value ? true : false });
     if (isSearch?.value) {
       setSearch('');
-      delete router.query.search;
-      router.push({ query: router.query }, undefined, { shallow: true });
+      const newQuery = { ...router.query };
+      delete newQuery.search;
+      router.push({ query: newQuery }, undefined, { shallow: true });
     }
   };
 
@@ -253,7 +265,7 @@ export const NavBar = () => {
     if (isSearch?.value && searchRef.current) {
       searchRef.current.focus();
     }
-  }, [isSearch?.value, searchRef.current]);
+  }, [isSearch?.value]);
 
   useEffect(() => {
     const defaultHeight = isMobile ? 60 : 108;

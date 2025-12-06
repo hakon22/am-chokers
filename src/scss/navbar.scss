@@ -46,6 +46,12 @@
     -webkit-transform: translate(-50%, -50%);
     -o-transform: translate(-50%, -50%);
   }
+
+  .ant-btn.ant-btn-color-default {
+    --ant-btn-color-hover: 0;
+    --ant-btn-shadow: 0;
+    --ant-btn-color-active: 0;
+  }
 }
 
 .ant-menu {

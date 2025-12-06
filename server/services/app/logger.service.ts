@@ -70,15 +70,15 @@ export class LoggerService {
           (info) => {
             const metadata = `${process.pid} ${info.timestamp} ${info.level}: ${info.module ? `[${info.module}]` : ''}`;
             if (process.env.NODE_ENV === 'production') {
-              return `${metadata}${info.message[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`} ${info.stack ? JSON.stringify(info.stack) : ''}`;
+              return `${metadata}${(info.message as string)[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`} ${info.stack ? JSON.stringify(info.stack) : ''}`;
             }
             switch (info.level) {
             case 'critical':
             case 'error':
             case 'debug':
-              return this.colorizer.colorize(info.level, `${metadata}${info.message[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`} ${info.stack ? JSON.stringify(info.stack) : ''}`);
+              return this.colorizer.colorize(info.level, `${metadata}${(info.message as string)[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`} ${info.stack ? JSON.stringify(info.stack) : ''}`);
             default:
-              return `${this.colorizer.colorize(info.level, metadata)}${info.message[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`}`;
+              return `${this.colorizer.colorize(info.level, metadata)}${(info.message as string)[0] === '[' ? info.message : ` ${typeof info.message === 'object' ? JSON.stringify(info.message) : info.message}`}`;
             }
           },
         ),

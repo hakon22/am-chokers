@@ -445,7 +445,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
           <p>{t('modal.body2')}</p>
         </Modal>
       ) : null}
-      {oldItem ? null : isMobile ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
+      {(oldItem || isMobile) ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
       <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '100px' } : {}}>
         {isMobile ? (
           <div className="d-flex align-items-center justify-content-between mb-4">

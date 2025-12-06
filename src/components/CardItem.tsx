@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag, DatePicker, Form } from 'antd';
 import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, LikeOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
-import { useEffect, useRef, useState, useContext } from 'react';
+import { useEffect, useRef, useState, useContext, useEffectEvent } from 'react';
 import ImageGallery from 'react-image-gallery';
 import Link from 'next/link';
 import cn from 'classnames';
@@ -76,6 +76,9 @@ const PublishModal = ({ publishData, isTgPublish, publicationDate, setPublicatio
   const [time, setTime] = useState<string | null>(null);
   const [publicationTime, setPublicationTime] = useState<string | null>(null);
 
+  const setPublicationTimeEffect = useEffectEvent(setPublicationTime);
+  const setTimeEffect = useEffectEvent(setTime);
+
   const onTgFinish = () => {
     form.validateFields().then((values) => {
       if ([date, time].filter(Boolean).length === 1) {
@@ -113,18 +116,18 @@ const PublishModal = ({ publishData, isTgPublish, publicationDate, setPublicatio
 
   useEffect(() => {
     if (isTgPublish) {
-      setTime(publishData.time ? moment(publishData.time).format(DateFormatEnum.HH_MM) : null);
+      setTimeEffect(publishData.time ? moment(publishData.time).format(DateFormatEnum.HH_MM) : null);
       form.resetFields();
       form.setFieldsValue(publishData);
     } else {
       form.resetFields();
-      setTime(null);
+      setTimeEffect(null);
     }
   }, [isTgPublish, publishData]);
 
   useEffect(() => {
     if (publicationDate) {
-      setPublicationTime(publicationDate ? moment(publicationDate).format(DateFormatEnum.HH_MM) : null);
+      setPublicationTimeEffect(publicationDate ? moment(publicationDate).format(DateFormatEnum.HH_MM) : null);
       publicationDateForm.resetFields();
       publicationDateForm.setFieldsValue({ 
         publicationDate, 
@@ -132,7 +135,7 @@ const PublishModal = ({ publishData, isTgPublish, publicationDate, setPublicatio
       });
     } else {
       publicationDateForm.resetFields();
-      setPublicationTime(null);
+      setPublicationTimeEffect(null);
     }
   }, [publicationDate]);
 
@@ -232,6 +235,8 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
     time: item?.deferredPublication?.date ? moment(item.deferredPublication.date).format(DateFormatEnum.HH_MM) : null,
     description: item.translations.find((translation) => translation.lang === lang)?.description as string,
   });
+
+  const setPublishDataEffect = useEffectEvent(setPublishData);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -371,7 +376,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
   };
 
   useEffect(() => {
-    setPublishData((state) => ({ ...state, description: item.translations.find((translation) => translation.lang === lang)?.description as string }));
+    setPublishDataEffect((state) => ({ ...state, description: item.translations.find((translation) => translation.lang === lang)?.description as string }));
   }, [lang]);
 
   return isAdmin
@@ -412,6 +417,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
             {item.publicationDate
               ? <Tag
                 color="cyan"
+                variant="outlined"
                 className="fs-6 d-flex align-items-center gap-2 position-absolute"
                 style={{ top: -40, padding: '5px 10px', color: '#69788e', width: 'min-content' }}
               >
@@ -441,6 +447,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
               : item.deferredPublication && !item.deferredPublication.isPublished
                 ? <Tag
                   color="purple"
+                  variant="outlined"
                   className="fs-6 d-flex align-items-center gap-2"
                   style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
                 >
@@ -467,6 +474,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
                 : (
                   <Tag
                     color="success"
+                    variant="outlined"
                     className="fs-6 d-flex gap-2"
                     style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
                   >
@@ -532,6 +540,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
 
+  const setItemEffect = useEffectEvent(setItem);
+  const setEditEffect = useEffectEvent(setEdit);
+
   const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
 
   const responsive = {
@@ -587,7 +598,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
     setContextItem(value);
   };
 
-  const fetchAdditionalItems = async () => {
+  const fetchAdditionalItems = useEffectEvent(async () => {
     try {
       const { data } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
         params: {
@@ -601,11 +612,11 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
     } catch (e) {
       axiosErrorHandler(e, tToast);
     }
-  };
+  });
 
   useEffect(() => {
     if (isAdmin) {
-      setEdit(booleanSchema.validateSync(editParams));
+      setEditEffect(booleanSchema.validateSync(editParams));
     }
   }, [editParams, isAdmin]);
 
@@ -617,7 +628,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   useEffect(() => {
     if (item.id !== id) {
-      setItem(fetchedItem);
+      setItemEffect(fetchedItem);
     }
   }, [id]);
 
@@ -651,12 +662,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 {collection
                   ? (
                     <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
-                      <Tag color="#eaeef6" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                      <Tag color="#eaeef6" variant="outlined" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
                     </Link>
                   )
                   : null}
                 {item.deleted && (
-                  <Tag color="volcano" className="py-1 px-2 fs-6 border-0">
+                  <Tag color="volcano" variant="outlined" className="py-1 px-2 fs-6 border-0">
                     {tCart('deleted')}
                   </Tag>
                 )}
@@ -770,12 +781,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                     {collection
                       ? (
                         <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
-                          <Tag color="#eaeef6" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                          <Tag color="#eaeef6" variant="outlined" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
                         </Link>
                       )
                       : null}
                     {item.deleted && (
-                      <Tag color="volcano" className="py-1 px-2 fs-6 border-0">
+                      <Tag color="volcano" variant="outlined" className="py-1 px-2 fs-6 border-0">
                         {tCart('deleted')}
                       </Tag>
                     )}
