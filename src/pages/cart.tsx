@@ -84,7 +84,7 @@ const Cart = () => {
     mailType: undefined,
   };
 
-  const filteredCart = useMemo(() => cart.filter(({ item }) => !item.deleted), [cart]);
+  const filteredCart = useMemo(() => cart.filter(({ item }) => !(item.deleted || item.isAbsent)), [cart]);
 
   const [cartList, setCartList] = useState<CartItemInterface[]>(filteredCart);
   const [promotional, setPromotional] = useState<PromotionalInterface>();
@@ -115,8 +115,6 @@ const Cart = () => {
   const priceForFreeDelivery = 10000;
 
   const price = getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0));
-
-  const filteredCart = cart.filter(({ item }) => !(item.deleted || item.isAbsent));
 
   const isFull = cartList.length === filteredCart.length;
   const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
