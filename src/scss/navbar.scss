@@ -199,4 +199,46 @@
   .ant-menu-light.ant-menu-root.ant-menu-inline {
     border-inline-end: unset;
   }
+
+  .breadcrumb-one-line {
+
+    & .ant-breadcrumb {
+      display: block;
+      width: 100%;
+      overflow: hidden;
+
+      & > ol {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        width: 100%;
+        min-width: 0;
+
+        & > li {
+          display: flex;
+          align-items: center;
+          flex: 0 0 auto;
+          min-width: 0;
+
+          &.ant-breadcrumb-separator {
+            flex: 0 0 auto;
+          }
+
+          &:last-child {
+            flex: 1 1 0%;
+            min-width: 0;
+
+            & .ant-breadcrumb-link {
+              display: block;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              min-width: 0;
+              max-width: 100%;
+            }
+          }
+        }
+      }
+    }
+  }
 }

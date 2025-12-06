@@ -227,6 +227,7 @@ export default {
         new: 'Новинка',
         collection: 'Коллекция',
         bestseller: 'Бестселлер',
+        isAbsent: 'Нет в наличии',
         publishToTelegram: 'Опубликовать в Telegram',
         placeholders: {
           name: 'Введите название товара',
@@ -412,6 +413,7 @@ export default {
         delete: 'Удалить',
         favorites: 'Избранное',
         deleted: 'Товар закончился',
+        isAbsent: 'Нет в наличии до 18.12',
         free: 'Бесплатно',
         promotional: 'Промокод',
         promotionalName: '{{ name }}',

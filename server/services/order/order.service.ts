@@ -26,6 +26,7 @@ import type { PassportRequestInterface } from '@server/types/user/user.request.i
 import type { FetchOrdersInterface, OrderInterface, CreateDeliveryInterface } from '@/types/order/Order';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartEntity } from '@server/db/entities/cart.entity';
+import type { ItemEntity } from '@server/db/entities/item.entity';
 
 @Singleton
 export class OrderService extends BaseService {
@@ -215,14 +216,30 @@ export class OrderService extends BaseService {
         );
       }
 
-      const deletedItem = cart.find(({ item }) => item.deleted);
+      const { deleted, absent } = cart.reduce((acc, { item }) => {
+        if (item.deleted) {
+          acc.deleted = item;
+        }
+        if (item.isAbsent) {
+          acc.absent = item;
+        }
+        return acc;
+      }, { deleted: null, absent: null } as { deleted: ItemEntity | null; absent: ItemEntity | null; });
 
-      if (deletedItem) {
-        const name = deletedItem.item.translations.find((translation) => translation.lang === user.lang)?.name;
+      if (deleted) {
+        const name = deleted.translations.find((translation) => translation.lang === user.lang)?.name;
 
         throw new Error(user.lang === UserLangEnum.RU
           ? `Заказ не может быть оформлен: Товар ${name} закончился`
           : `Order cannot be placed: Item ${name} is out of stock`);
+      }
+
+      if (absent) {
+        const name = absent.translations.find((translation) => translation.lang === user.lang)?.name;
+
+        throw new Error(user.lang === UserLangEnum.RU
+          ? `Заказ не может быть оформлен: Товара ${name} временно нет в наличии`
+          : `Order cannot be placed: Item ${name} is temporarily out of stock`);
       }
 
       const preparedPositions = cart.map((value) => ({

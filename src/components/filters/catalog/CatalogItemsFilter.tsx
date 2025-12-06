@@ -77,7 +77,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
   const [optionCompositions, setOptionCompositions] = useState<CompositionInterface[]>([]);
   const [optionColors, setOptionColors] = useState<ColorInterface[]>([]);
 
-  const itemGroupFilterOptions = itemGroups.map((item) => mapping({ ...item, isItemGroup: true, lang: lang as UserLangEnum, count: statistics[item.id] }));
+  const itemGroupFilterOptions = [...itemGroups].sort((a, b) => (a.order || 0) - (b.order || 0)).map((item) => mapping({ ...item, isItemGroup: true, lang: lang as UserLangEnum, count: statistics[item.id] }));
   const itemCollectionsFilterOptions = itemCollections.map((item) => mapping({ ...item as ItemCollectionEntity, lang: lang as UserLangEnum }));
   const compositionsFilterOptions = optionCompositions.map((item) => mapping({ ...item, lang: lang as UserLangEnum }));
   const colorsFilterOptions = optionColors.map((color) => ({

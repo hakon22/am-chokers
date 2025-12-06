@@ -686,6 +686,9 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 <Form.Item<ItemFormInterface> name="discountPrice" rules={[newItemValidation]} className="col-6 col-xl-3">
                   <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
+                <Form.Item<ItemFormInterface> name="isAbsent" valuePropName="checked" className="large-input mb-1 mb-xl-0">
+                  <Checkbox className={cn({ 'not-padding': isMobile })}>{t('isAbsent')}</Checkbox>
+                </Form.Item>
               </div>
               {!isMobile && (<div className="d-flex align-items-center gap-5 mb-4 position-relative">
                 {oldItem && <BackButton style={{ position: 'absolute', left: '60%' }} />}

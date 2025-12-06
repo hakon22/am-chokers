@@ -7,10 +7,10 @@ start:
 start-sender:
 	pm2 start "npm run start:sender:prod" -n am-chokers-sender
 
-start-local:
+api:
 	npm run start:server:dev
 
-start-local-sender:
+sender:
 	npm run start:sender:dev
 
 start-local-prod:

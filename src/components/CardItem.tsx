@@ -666,9 +666,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                     </Link>
                   )
                   : null}
-                {item.deleted && (
-                  <Tag color="volcano" variant="outlined" className="py-1 px-2 fs-6 border-0">
-                    {tCart('deleted')}
+                {(item.deleted || item.isAbsent) && (
+                  <Tag color={item.deleted ? 'volcano' : '#74b6d5'} variant="outlined" className="py-1 px-2 fs-6 border-0">
+                    {tCart(item.deleted ? 'deleted' : 'isAbsent')}
                   </Tag>
                 )}
               </div>
@@ -785,9 +785,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                         </Link>
                       )
                       : null}
-                    {item.deleted && (
-                      <Tag color="volcano" variant="outlined" className="py-1 px-2 fs-6 border-0">
-                        {tCart('deleted')}
+                    {(item.deleted || item.isAbsent) && (
+                      <Tag color={item.deleted ? 'volcano' : '#74b6d5'} variant="outlined" className="py-1 px-2 fs-6 border-0">
+                        {tCart(item.deleted ? 'deleted' : 'isAbsent')}
                       </Tag>
                     )}
                   </div>
