@@ -65,7 +65,7 @@ export const SortableItem = ({ image, index, activeId, setImages, setFileList }:
             style={{ ...style, width: 100, height: 100 }}
             {...attributes} {...listeners}
           />
-        ) : <Image src={src} width={100} height={100} alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />}
+        ) : <Image src={src} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />}
       </Badge>
     </Badge>
   );

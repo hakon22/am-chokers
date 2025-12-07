@@ -80,7 +80,7 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
     >
       {image.src.endsWith('.mp4')
         ? <video src={image.src} width={60} height={60} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
-        : <Image alt={name} width={60} height={60} src={image.src} />
+        : <Image alt={name} width={60} height={60} unoptimized src={image.src} />
       }
       <span className="fs-6 text-wrap">{name}</span>
     </Button>),

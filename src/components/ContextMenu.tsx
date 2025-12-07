@@ -193,7 +193,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
                   >
                     {images[0].src.endsWith('.mp4')
                       ? <video src={images[0].src} width={100} height={100} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
-                      : <Image alt={translations.find((translation) => translation.lang === lang)?.name as string} width={100} height={100} src={images[0].src} />
+                      : <Image alt={translations.find((translation) => translation.lang === lang)?.name as string} width={100} height={100} unoptimized src={images[0].src} />
                     }
                     <span className="fs-6">{translations.find((translation) => translation.lang === lang)?.name}</span>
                   </Button>,

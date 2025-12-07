@@ -17,7 +17,7 @@ const Page404 = () => {
     <>
       <Helmet title={t('title')} description={t('description')} />
       <Result
-        icon={<Image src={image404} unoptimized alt={t('title')} />}
+        icon={<Image src={image404} alt={t('title')} />}
         title={t('title')}
         subTitle={t('description')}
         style={{ marginTop: isMobile ? '100px' : '10%' }}

@@ -70,7 +70,7 @@ const Signup = () => {
         {!isMobile
           ? (
             <div className="col-5" style={{ marginTop: '12%' }}>
-              <Image src={loginImage} width={600} height={600} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
+              <Image src={loginImage} width={600} height={600} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
             </div>
           )
           : null}

@@ -395,7 +395,7 @@ const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
               ? <FloatButton onClick={onPublicationDateEdit} className="float-custom-icon" icon={<RubyOutlined width={40} height={40} />} />
               : null}
             {!item.message?.send && !item.deferredPublication?.date
-              ? <FloatButton onClick={() => setIsTgPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} unoptimized alt="Telegram" />} />
+              ? <FloatButton onClick={() => setIsTgPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} />
               : item.deferredPublication && !item.deferredPublication.isPublished
                 ? <FloatButton onClick={onDeferredPublicationEdit} className="float-custom-icon" icon={<Telegram width={40} height={40} color="purple" />} />
                 : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}

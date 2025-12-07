@@ -35,10 +35,10 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
           <ul>
             <li className="d-flex gap-3 mb-2">
               <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} title={t('telegram')} target="_blank">
-                <Image src={telegramIcon} width="35" unoptimized priority alt={t('telegram')} />
+                <Image src={telegramIcon} width="35" priority alt={t('telegram')} />
               </Link>
               <Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.page.base.homePage} className="instagram" title={t('instagram')} target="_blank">
-                <Image src={instagramIcon} width="35" unoptimized priority alt={t('instagram')} />
+                <Image src={instagramIcon} width="35" priority alt={t('instagram')} />
               </Link>
             </li>
             <li className="d-flex flex-column text-muted fs-6-5">

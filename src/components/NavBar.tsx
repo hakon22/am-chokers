@@ -110,7 +110,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, isMobile, it
       </div>
       {drawerContainer && (
         <Drawer
-          title={<div className="text-center"><Image src={logoImage} unoptimized priority className="nav-logo" alt={t('logo')} /></div>}
+          title={<div className="text-center"><Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} /></div>}
           getContainer={() => drawerContainer}
           closeIcon={null}
           width="100%"
@@ -318,7 +318,7 @@ export const NavBar = () => {
             </Radio.Group>
             <div className="nav-logo-container" {...(isMobile ? {} : { 'data-aos': 'fade-down' })}>
               <Link href={routes.page.base.homePage}>
-                <Image src={logoImage} priority className="nav-logo" alt={t('logo')} />
+                <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
               </Link>
             </div>
             {isSearch?.value

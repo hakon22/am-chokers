@@ -222,7 +222,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                           <Link href={getHref(position.item)}>{
                             position.item.images[0].src.endsWith('.mp4')
                               ? <video src={position.item.images[0].src} width={width} height={height} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
-                              : <Image src={position.item.images[0].src} width={width} height={height} alt={position.item.translations.find((translation) => translation.lang === lang)?.name as string} style={{ borderRadius: '5px' }} />}
+                              : <Image src={position.item.images[0].src} width={width} height={height} unoptimized alt={position.item.translations.find((translation) => translation.lang === lang)?.name as string} style={{ borderRadius: '5px' }} />}
                           </Link>
                         </Tooltip>
                       </div>
