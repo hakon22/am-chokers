@@ -212,6 +212,10 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
             suffixIcon={<SearchOutlined />}
             onClear={onClear}
             onChange={onChange}
+            classNames={{
+              content: 'custom-placeholder not-padding fs-6',
+              placeholder: 'custom-placeholder not-padding fs-6',
+            } as any}
             onInputKeyDown={({ key }) => {
               if (key === 'Enter') {
                 onFocus();
@@ -312,7 +316,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
         <FloatButton
           style={{ right: '6.5%', top: '69px', zIndex: 5 }}
           className="fs-6 border-0"
-          badge={{ count: getFiltersCount, offset: [10, 2] }}
+          badge={{ count: getFiltersCount, offset: [5, 2] }}
           icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />
