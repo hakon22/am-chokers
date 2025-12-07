@@ -28,6 +28,7 @@ interface MobileNavBarInterface {
   onChangeHandler: () => void;
   onOpenChange: (value: string[]) => void;
   items: MenuItem[];
+  isMobile: boolean;
 }
 
 const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; isOpen: boolean; }) => href
@@ -42,14 +43,14 @@ const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; 
     {isOpen ? <UpOutlined /> : <DownOutlined />}
   </div>;
 
-const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>) => {
+const NavBarIcons = ({ searchClick, isMobile }: Pick<MobileNavBarInterface, 'searchClick' | 'isMobile'>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const { favorites, name } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   return (
-    <div className="nav-icons" data-aos="fade-down">
+    <div className="nav-icons" {...(isMobile ? {} : { 'data-aos': 'fade-down' })}>
       <Button className="icon-button not-hovered" title={t('search')} onClick={searchClick}>
         <SearchOutlined className="icon" />
         <span className="visually-hidden">{t('search')}</span>
@@ -80,7 +81,7 @@ const NavBarIcons = ({ searchClick }: Pick<MobileNavBarInterface, 'searchClick'>
   );
 };
 
-const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: MobileNavBarInterface) => {
+const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, isMobile, items }: MobileNavBarInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
 
   const container = useRef<HTMLDivElement>(null);
@@ -100,7 +101,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
   return (
     <div className="w-100" ref={container}>
       <div className="d-flex justify-content-between align-items-center">
-        <NavBarIcons searchClick={searchClick} />
+        <NavBarIcons searchClick={searchClick} isMobile={isMobile} />
         <div className={navbarClassName} onClick={onChangeHandler} tabIndex={0} role="button" aria-label={t('title')} onKeyDown={() => undefined}>
           <span />
           <span />
@@ -114,6 +115,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, items }: Mob
           closeIcon={null}
           width="100%"
           open={isActive}
+          zIndex={1500}
         >
           <Menu
             mode="inline"
@@ -290,7 +292,7 @@ export const NavBar = () => {
       {isMobile
         ? (
           <>
-            <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} items={items} />
+            <MobileNavBar searchClick={searchClick} onOpenChange={onOpenChange} onChangeHandler={onChangeHandler} isMobile={isMobile} items={items} />
             {isSearch?.value
               ? (
                 <div className="mt-4 d-flex justify-content-center align-items-center gap-3 w-100 animate__animated animate__fadeInDown">
@@ -314,7 +316,7 @@ export const NavBar = () => {
             <Radio.Group className="nav-lang" value={lang} onChange={({ target }) => changeLanguage(target.value)} size="small">
               {Object.values(UserLangEnum).map((language) => <Radio.Button key={language} value={language}>{language}</Radio.Button>)}
             </Radio.Group>
-            <div className="nav-logo-container" data-aos="fade-down">
+            <div className="nav-logo-container" {...(isMobile ? {} : { 'data-aos': 'fade-down' })}>
               <Link href={routes.page.base.homePage}>
                 <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
               </Link>
@@ -338,7 +340,7 @@ export const NavBar = () => {
               : (
                 <div className="nav-menu">
                   <Menu
-                    data-aos="fade-down"
+                    {...(isMobile ? {} : { 'data-aos': 'fade-down' })}
                     items={items}
                     selectedKeys={[router.asPath.split('/')[1]]}
                     rootClassName="bg-transparent"
@@ -352,7 +354,7 @@ export const NavBar = () => {
                   />
                 </div>
               )}
-            <NavBarIcons searchClick={searchClick} />
+            <NavBarIcons searchClick={searchClick} isMobile={isMobile} />
           </>
         )}
     </nav>

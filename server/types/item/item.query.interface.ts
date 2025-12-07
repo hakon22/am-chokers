@@ -38,4 +38,6 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   withNotPublished?: boolean;
   /** Только неопубликованные */
   onlyNotPublished?: boolean;
+  /** В наличии */
+  inStock?: boolean;
 }

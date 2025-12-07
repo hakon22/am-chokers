@@ -52,11 +52,10 @@ export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroup
       }
     };
 
-    const timer = setTimeout(handleResize, 100);
+    handleResize();
     window.addEventListener('resize', handleResize);
 
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
     };
   }, [isMobile, footerRef]);
@@ -68,7 +67,7 @@ export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroup
         <NavBar />
         <Breadcrumb />
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: footerHeight }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: router.asPath === '/' ? footerHeight - 200 : footerHeight }}>
         <FloatButton.BackTop />
         <main className="container">
           {children}

@@ -657,6 +657,7 @@ export default {
             title: 'Additionally',
             new: 'New arrivals',
             bestseller: 'Best Sellers',
+            inStock: 'In stock',
           },
         },
         notFound: 'No items found :(',

@@ -51,7 +51,7 @@ export const Breadcrumb = () => {
         ? t('modules.navbar.menu.catalog')
         : item && pathArray.length - 1 === index ? itemName ?? '' : itemGroup?.translations.find((translation) => translation.lang === lang)?.name ?? '';
       return {
-        title: pathArray.length - 1 === index ? page : <Link href={link}>{page}</Link>,
+        title: pathArray.length - 1 === index && folder !== 'catalog' ? page : <Link href={link}>{page}</Link>,
       };
     }));
   }, [pathname, itemGroups.length, itemName, lang]);

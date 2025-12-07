@@ -226,10 +226,13 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
     }
     if (query?.new) {
-      builder.andWhere('item.new = TRUE');
+      builder.andWhere('item.new');
     }
     if (query?.bestseller) {
-      builder.andWhere('item.bestseller = TRUE');
+      builder.andWhere('item.bestseller');
+    }
+    if (query?.inStock) {
+      builder.andWhere('NOT item.isAbsent');
     }
     if (query?.groupCode) {
       if (!hasJoin(builder, 'group')) {
@@ -733,7 +736,7 @@ export class ItemService extends TranslationHelper {
         { header: isRu ? 'Длина' : 'Length', key: 'length', width: 50 },
         { header: isRu ? 'Новинка' : 'New', key: 'new', width: 15 },
         { header: isRu ? 'Бестселлер' : 'Bestseller', key: 'bestseller', width: 15 },
-        { header: isRu ? 'В наличии' : 'In stock', key: 'bestseller', width: 15 },
+        { header: isRu ? 'В наличии' : 'In stock', key: 'isAbsent', width: 15 },
         { header: isRu ? 'Дата создания' : 'Created date', key: 'created', width: 20 },
       ];
 
@@ -761,6 +764,7 @@ export class ItemService extends TranslationHelper {
         length: translateItem?.length,
         new: item.new ? yes : no,
         bestseller: item.bestseller ? yes : no,
+        isAbsent: !item.isAbsent ? yes : no,
         created: moment(item.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
       });
 

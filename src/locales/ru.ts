@@ -657,6 +657,7 @@ export default {
             title: 'Дополнительно',
             new: 'Новинки',
             bestseller: 'Бестселлеры',
+            inStock: 'В наличии',
           },
         },
         notFound: 'Товары не найдены',

@@ -306,7 +306,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </Carousel>
             </div>
           </section>
-          <section className="d-flex flex-column position-relative col-12 col-xl-11" data-aos="fade-right" data-aos-duration="1500" style={{ gap: '4rem' }}>
+          <section className="d-flex flex-column position-relative col-12 col-xl-11" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })} style={{ gap: '4rem' }}>
             <div className="d-flex flex-column justify-content-center justify-content-xl-start">
               <h2>{t('bestsellers')}</h2>
               <Link href={`${routes.page.base.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
@@ -358,7 +358,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12" data-aos="fade-left" data-aos-duration="1500" style={{ gap: '2rem' }}>
+          <section className="d-flex flex-column align-items-center col-12" {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })} style={{ gap: '2rem' }}>
             <h2 className="col-12 col-xxl-10 lh-base">
               {t('slogan.create')}
               <br />
@@ -394,7 +394,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
             </div>}
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={preparedCollections?.collection5} order={8} data-aos="fade-right" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection5} order={8} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
@@ -409,7 +409,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage13} cover={13} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage13} cover={13} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
@@ -418,13 +418,13 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                   />
                 </ContextMenu>
               </div>
-              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
+              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <Link href={preparedCollections?.collection5 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection5?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{preparedCollections?.collection5?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={preparedCollections?.collection1} order={4} data-aos="fade-right" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection1} order={4} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
@@ -439,7 +439,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage9} cover={9} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage9} cover={9} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
@@ -448,13 +448,13 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                   />
                 </ContextMenu>
               </div>
-              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
+              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <Link href={preparedCollections?.collection1 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection1?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{preparedCollections?.collection1?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={preparedCollections?.collection2} order={5} data-aos="fade-left" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection2} order={5} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
@@ -469,7 +469,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage10} cover={10} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage10} cover={10} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
@@ -478,13 +478,13 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                   />
                 </ContextMenu>
               </div>
-              <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
+              <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <Link href={preparedCollections?.collection2 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection2?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{preparedCollections?.collection2?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row-reverse col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row flex-xl-row-reverse justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={preparedCollections?.collection3} order={6} data-aos="fade-left" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection3} order={6} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
@@ -499,7 +499,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage11} cover={11} isCoverCollection data-aos="fade-left" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage11} cover={11} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
@@ -508,13 +508,13 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                   />
                 </ContextMenu>
               </div>
-              <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" data-aos="fade-right" data-aos-duration="1500">
+              <div className="d-flex justify-content-center col-xl-5 mb-5 mb-xl-0" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <Link href={preparedCollections?.collection3 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection3?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow">{preparedCollections?.collection3?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
             <div className={cn('d-flex flex-column flex-xl-row col-12', { 'flex-column-reverse': isMobile })}>
               <div className="d-flex flex-column gap-5 gap-xl-0 flex-xl-row justify-content-center justify-content-xl-between col-12 col-xl-8 col-xxl-7">
-                {!isMobile && <ContextMenu item={preparedCollections?.collection4} order={7} data-aos="fade-right" data-aos-duration="1500">
+                {!isMobile && <ContextMenu item={preparedCollections?.collection4} order={7} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <div className="d-flex flex-column flex-column-reverse flex-xl-row justify-content-between align-items-center align-items-xl-end gap-5 gap-xl-0">
                     <ImageHover
                       className="col-12 col-xl-6"
@@ -529,7 +529,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage12} cover={12} isCoverCollection data-aos="fade-right" data-aos-duration="1500">
+                <ContextMenu image={preparedCoverImages?.coverCollectionImage12} cover={12} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
@@ -538,14 +538,14 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                   />
                 </ContextMenu>
               </div>
-              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" data-aos="fade-left" data-aos-duration="1500">
+              <div className="col-xl-5 d-flex justify-content-center mb-5 mb-xl-0" {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <Link href={preparedCollections?.collection4 ? `${routes.page.base.catalog}?collectionIds=${preparedCollections?.collection4?.collection?.id}` : routes.page.base.catalog} className="h2 text-with-arrow-reverse">{preparedCollections?.collection4?.collection?.translations.find((translation) => translation.lang === lang)?.name}</Link>
               </div>
             </div>
           </section>
           <section className="d-flex flex-column col-12 gap-5">
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage1} cover={1} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage1} cover={1} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
@@ -555,7 +555,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('necklacesAndChokers')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage2} cover={2} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage2} cover={2} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
@@ -566,7 +566,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </ContextMenu>
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage3} cover={3} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage3} cover={3} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
@@ -576,7 +576,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}/bracelet`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('bracelets')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage4} cover={4} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage4} cover={4} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
@@ -587,7 +587,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </ContextMenu>
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage5} cover={5} data-aos="fade-right" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage5} cover={5} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
@@ -597,7 +597,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}/earrings`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('earrings')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage6} cover={6} data-aos="fade-left" data-aos-duration="1500">
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage6} cover={6} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
@@ -608,7 +608,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </ContextMenu>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12 text-center" data-aos="fade-right" data-aos-duration="1500" style={isMobile ? { marginBottom: '-200px' } : {}}>
+          <section className="d-flex flex-column align-items-center col-12 text-center" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })} style={isMobile ? { marginBottom: '-200px' } : {}}>
             <div className="font-good-vibes-pro mb-5" style={isMobile ? { fontSize: '24px' } : {}}>{t('iEmphasizeYourIndividuality')}</div>
             <p className="d-flex flex-column fw-light fs-5 mb-1">
               <span className="mb-1">{t('subscribe')}</span>

@@ -93,7 +93,8 @@ export const ImageHover = ({
                 {loading && i === index && (
                   <Skeleton.Image
                     active
-                    className="w-100 h-100"
+                    rootClassName="w-100 h-100"
+                    classNames={{ content: 'w-100 h-100' }}
                   />
                 )}
                 {image.src.endsWith('.mp4')
@@ -164,6 +165,7 @@ export const ImageHover = ({
                   <Skeleton.Image
                     active
                     className="w-100 h-100"
+                    classNames={{ content: 'w-100 h-100' }}
                   />
                 )}
                 {image.src.endsWith('.mp4')

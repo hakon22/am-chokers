@@ -1,4 +1,4 @@
 export const onFocus = () => {
   const target = document.body;
-  target.parentElement?.focus();
+  setTimeout(() => target.parentElement?.focus(), 1);
 };

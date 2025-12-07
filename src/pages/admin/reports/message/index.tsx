@@ -143,11 +143,11 @@ const Message = () => {
             allowClear
             className="col-12 col-xl-6"
             notFoundContent={<NotFoundContent />}
-            optionFilterProp="label"
             value={types}
-            filterOption={(input, option) => 
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
+            showSearch={{
+              optionFilterProp: 'label',
+              filterOption: (input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
+            }}
             placeholder={t('table.type')}
             onChange={(state) => setTypes(state)}
             onClear={() => setTypes([])}

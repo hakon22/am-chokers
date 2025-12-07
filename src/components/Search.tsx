@@ -90,6 +90,10 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
     <AutoComplete
       value={search?.value}
       className="d-flex col-xl-4"
+      classNames={{
+        content: 'custom-placeholder not-padding fs-6',
+        placeholder: 'custom-placeholder not-padding fs-6',
+      } as any}
       placeholder={t('title')}
       notFoundContent={search && !isLoading ? <NotFoundContent /> : search && <Spinner isLoaded />}
       allowClear

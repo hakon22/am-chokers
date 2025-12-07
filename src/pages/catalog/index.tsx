@@ -38,6 +38,7 @@ export interface CatalogFiltersInterface {
   new?: string | null;
   bestseller?: string | null;
   sort?: string | null;
+  inStock?: string | null;
 }
 
 export { getServerSideProps };
@@ -301,6 +302,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const searchParams = urlParams.get('search');
   const newParams = urlParams.get('new');
   const bestsellerParams = urlParams.get('bestseller');
+  const inStockParams = urlParams.get('inStock');
   const sortParams = urlParams.get('sort');
   const pageParams = urlParams.get('page');
 
@@ -320,6 +322,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     search: searchParams,
     new: newParams,
     bestseller: bestsellerParams,
+    inStock: inStockParams,
     sort: sortParams,
   };
 
@@ -333,6 +336,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     search: undefined,
     new: undefined,
     bestseller: undefined,
+    inStock: undefined,
     sort: undefined,
   };
 
@@ -371,6 +375,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         ...(values?.to ? { to: values.to } : {}),
         ...(values?.new ? { new: values.new } : {}),
         ...(values?.bestseller ? { bestseller: values.bestseller } : {}),
+        ...(values?.inStock ? { inStock: values.inStock } : {}),
         ...(values?.sort ? { sort: values.sort } : {}),
       };
 

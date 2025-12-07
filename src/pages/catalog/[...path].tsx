@@ -24,6 +24,7 @@ interface GetServerSidePropsInterface {
     search?: string;
     new?: boolean;
     bestseller?: boolean;
+    inStock?: boolean;
     sort?: string;
     page: number;
   },
@@ -54,6 +55,7 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
     ...(query?.search ? { search: query.search } : {}),
     ...(query?.new ? { new: query.new } : {}),
     ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
+    ...(query?.inStock ? { inStock: query.inStock } : {}),
   };
 
   const limit = +(query?.page || 1) * chunkNumber;

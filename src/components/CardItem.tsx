@@ -658,16 +658,16 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
           ? (
             <div className="d-flex flex-column align-items-md-center">
               <h1 className="mb-4 fs-3">{name}</h1>
-              <div className="d-flex mb-4">
+              <div className="d-flex mb-4 gap-2">
                 {collection
                   ? (
                     <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
-                      <Tag color="#eaeef6" variant="outlined" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                      <Tag color="#3b6099" variant="filled" className="py-1 px-2 fs-6" style={{ backgroundColor: '#eaeef6' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
                     </Link>
                   )
                   : null}
                 {(item.deleted || item.isAbsent) && (
-                  <Tag color={item.deleted ? 'volcano' : '#74b6d5'} variant="outlined" className="py-1 px-2 fs-6 border-0">
+                  <Tag {...(item.deleted ? { color: 'volcano' } : { style: { backgroundColor: '#74b6d5', color: 'white' } })} variant="filled" className="py-1 px-2 fs-6">
                     {tCart(item.deleted ? 'deleted' : 'isAbsent')}
                   </Tag>
                 )}
@@ -777,16 +777,16 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
               ? (
                 <>
                   <h1 className="mb-4 mt-xl-0 fs-3">{name}</h1>
-                  <div className="d-flex mb-4">
+                  <div className="d-flex mb-4 gap-2">
                     {collection
                       ? (
                         <Link href={`${routes.page.base.catalog}?collectionIds=${collection.id}`} style={{ width: 'min-content' }}>
-                          <Tag color="#eaeef6" variant="outlined" className="py-1 px-2 fs-6" style={{ color: '#3b6099' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
+                          <Tag color="#3b6099" variant="filled" className="py-1 px-2 fs-6" style={{ backgroundColor: '#eaeef6' }}>{t('collection', { name: collection.translations.find((translation) => translation.lang === lang)?.name })}</Tag>
                         </Link>
                       )
                       : null}
                     {(item.deleted || item.isAbsent) && (
-                      <Tag color={item.deleted ? 'volcano' : '#74b6d5'} variant="outlined" className="py-1 px-2 fs-6 border-0">
+                      <Tag {...(item.deleted ? { color: 'volcano' } : { style: { backgroundColor: '#74b6d5', color: 'white' } })} variant="filled" className="py-1 px-2 fs-6">
                         {tCart(item.deleted ? 'deleted' : 'isAbsent')}
                       </Tag>
                     )}

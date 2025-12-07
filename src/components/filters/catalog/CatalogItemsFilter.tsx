@@ -145,7 +145,9 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     (initialValues.from ? 1 : 0) +
     (initialValues.to ? 1 : 0) +
     (initialValues.new ? 1 : 0) +
-    (initialValues.bestseller ? 1 : 0), [
+    (initialValues.bestseller ? 1 : 0) +
+    (initialValues.inStock ? 1 : 0) +
+    (initialValues.sort ? 1 : 0), [
     initialValues.groupIds?.length,
     initialValues.collectionIds?.length,
     initialValues.compositionIds?.length,
@@ -154,9 +156,11 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     initialValues.to,
     initialValues.new,
     initialValues.bestseller,
+    initialValues.inStock,
+    initialValues.sort,
   ]);
 
-  const getActiveFields = () => {
+  const activeFields = useMemo(() => {
     const activeFields = ['1', '4'];
 
     if (initialValues.compositionIds?.length) {
@@ -165,7 +169,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     if (initialValues.collectionIds?.length) {
       activeFields.push('3');
     }
-    if (initialValues.new || initialValues.bestseller) {
+    if (initialValues.new || initialValues.bestseller || initialValues.inStock) {
       activeFields.push('5');
     }
     if (initialValues.colorIds?.length) {
@@ -173,7 +177,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     }
 
     return activeFields;
-  };
+  }, [initialValues.compositionIds?.length, initialValues.collectionIds?.length, initialValues.colorIds?.length, initialValues.new, initialValues.bestseller, initialValues.inStock]);
 
   const filters: CollapseProps['items'] = [
     {
@@ -244,10 +248,10 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       children: (
         <>
           <Form.Item<CatalogFiltersInterface> name="from" className="custom-placeholder">
-            <InputNumber className="w-100" size="small" placeholder={t('price.from')} suffix={t('price.suffix')} min={1} keyboard />
+            <InputNumber className="w-100" {...isMobile ? { classNames: { input: 'not-padding' } } : {}} size="small" placeholder={t('price.from')} suffix={t('price.suffix')} min={1} keyboard />
           </Form.Item>
           <Form.Item<CatalogFiltersInterface> name="to" className="custom-placeholder">
-            <InputNumber className="w-100" size="small" placeholder={t('price.to')} suffix={t('price.suffix')} min={1} keyboard />
+            <InputNumber className="w-100" {...isMobile ? { classNames: { input: 'not-padding' } } : {}} size="small" placeholder={t('price.to')} suffix={t('price.suffix')} min={1} keyboard />
           </Form.Item>
         </>
       ),
@@ -257,11 +261,14 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
       label: (
         <div className="d-flex align-items-center justify-content-between">
           <span className="font-oswald text-uppercase fw-400">{t('additionally.title')}</span>
-          {initialValues.new || initialValues.bestseller ? <Badge count={(initialValues.new ? 1 : 0) + (initialValues.bestseller ? 1 : 0)} color="#69788e" /> : null}
+          {initialValues.new || initialValues.bestseller || initialValues.inStock ? <Badge count={(initialValues.new ? 1 : 0) + (initialValues.bestseller ? 1 : 0) + (initialValues.inStock ? 1 : 0)} color="#69788e" /> : null}
         </div>
       ),
       children: (
         <>
+          <Form.Item<CatalogFiltersInterface> name="inStock" className="mb-2" valuePropName="checked">
+            <Checkbox className="d-flex align-items-center gap-2 custom-size fw-300">{t('additionally.inStock')}</Checkbox>
+          </Form.Item>
           <Form.Item<CatalogFiltersInterface> name="new" className="mb-2" valuePropName="checked">
             <Checkbox className="d-flex align-items-center gap-2 custom-size fw-300">{t('additionally.new')}</Checkbox>
           </Form.Item>
@@ -320,8 +327,12 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
             <FilterButtons t={t} {...(getFiltersCount ? { resetFilters } : {})} />
             <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
               <Select
-                className="w-100 mb-2 custom-placeholder"
                 placeholder={t('sort.title')}
+                classNames={{
+                  content: 'custom-placeholder not-padding fs-6',
+                  placeholder: 'custom-placeholder not-padding fs-6',
+                } as any}
+                onChange={onFocus}
                 options={[
                   {
                     value: ItemSortEnum.BY_RATING,
@@ -350,7 +361,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
                 ]}
               />
             </Form.Item>
-            <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPlacement="end" />
+            <Collapse defaultActiveKey={activeFields} ghost items={filters} expandIconPlacement="end" />
           </Form>
         </Drawer>
       </>
@@ -361,8 +372,12 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
           <FilterButtons t={t} {...(getFiltersCount ? { resetFilters } : {})} />
           <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
             <Select
-              className="w-100 mb-2 custom-placeholder"
               placeholder={t('sort.title')}
+              classNames={{
+                content: 'custom-placeholder not-padding fs-6',
+                placeholder: 'custom-placeholder not-padding fs-6',
+              } as any}
+              onChange={onFocus}
               options={[
                 {
                   value: ItemSortEnum.BY_RATING,
@@ -391,7 +406,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
               ]}
             />
           </Form.Item>
-          <Collapse defaultActiveKey={getActiveFields()} ghost items={filters} expandIconPlacement="end" />
+          <Collapse defaultActiveKey={activeFields} ghost items={filters} expandIconPlacement="end" />
         </Form>
       </div>
     );

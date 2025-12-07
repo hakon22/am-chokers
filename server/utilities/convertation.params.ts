@@ -100,6 +100,7 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     to: yup.number().optional(),
     new: booleanSchema,
     bestseller: booleanSchema,
+    inStock: booleanSchema,
     sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
     excludeIds: yup.array(yup.number().required()).optional(),
   }),

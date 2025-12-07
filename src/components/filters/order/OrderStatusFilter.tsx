@@ -33,11 +33,11 @@ export const OrderStatusFilter = ({ statuses, setStatuses, lang }: { statuses: O
       className="col-12 col-xl-6"
       size="large"
       notFoundContent={<NotFoundContent />}
-      optionFilterProp="label"
       value={statuses}
-      filterOption={(input, option) => 
-        option?.label.props.children.toLowerCase().includes(input.toLowerCase())
-      }
+      showSearch={{
+        optionFilterProp: 'label',
+        filterOption: (input, option) => option?.label.props.children.toLowerCase().includes(input.toLowerCase()),
+      }}
       placeholder={tOrders('selectStatuses')}
       onChange={(state) => setStatuses(state)}
       onClear={() => setStatuses([])}

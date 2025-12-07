@@ -630,17 +630,16 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
               <div className="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center mb-4">
                 <Form.Item<ItemFormInterface> name="group" className="large-input mb-4 mb-xl-0" rules={[newItemValidation]}>
                   <Select
-                    showSearch
+                    showSearch={{
+                      optionFilterProp: 'label',
+                      filterSort: (optionA, optionB) => (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase()),
+                    }}
                     allowClear
                     notFoundContent={<NotFoundContent />}
                     style={{ width: 200 }}
                     size="large"
                     placeholder={t('placeholders.group')}
                     variant={isMobile ? 'outlined' : 'borderless'}
-                    optionFilterProp="label"
-                    filterSort={(optionA, optionB) =>
-                      (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                    }
                     onSelect={(groupId: number) => {
                       const group = itemGroups.find(({ id }) => id === groupId);
                       setItemGroup(group);
@@ -652,17 +651,16 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </Form.Item>
                 <Form.Item<ItemFormInterface> name="collection" className="large-input mb-4 mb-xl-0">
                   <Select
-                    showSearch
+                    showSearch={{
+                      optionFilterProp: 'label',
+                      filterSort: (optionA, optionB) => (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase()),
+                    }}
                     allowClear
                     notFoundContent={<NotFoundContent />}
                     style={{ width: 200 }}
                     size="large"
                     placeholder={t('placeholders.collection')}
                     variant={isMobile ? 'outlined' : 'borderless'}
-                    optionFilterProp="label"
-                    filterSort={(optionA, optionB) =>
-                      (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                    }
                     onSelect={(collectionId: number) => {
                       const collection = itemCollections.find((value) => value?.id === collectionId);
                       setItemCollection(collection);
@@ -720,10 +718,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       notFoundContent={<NotFoundContent />}
                       placeholder={t('placeholders.composition')}
                       variant={isMobile ? 'outlined' : 'borderless'}
-                      optionFilterProp="label"
-                      filterSort={(optionA, optionB) =>
-                        (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase())
-                      }
+                      showSearch={{
+                        optionFilterProp: 'label',
+                        filterSort: (optionA, optionB) => (optionA?.label ?? '').toLowerCase().localeCompare((optionB?.label ?? '').toLowerCase()),
+                      }}
                       onChange={(state) => setItemCompositions(state)}
                       onClear={() => setItemCompositions([])}
                       options={compositions?.map(({ id, translations }) => ({ value: id, label: translations.find((translation) => translation.lang === lang)?.name }))}
@@ -741,10 +739,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                       notFoundContent={<NotFoundContent />}
                       placeholder={t('placeholders.color')}
                       variant={isMobile ? 'outlined' : 'borderless'}
-                      optionFilterProp="label"
-                      filterOption={(input, option) => 
-                        option?.label.props.children[1]?.props?.children?.toLowerCase().includes(input.toLowerCase())
-                      }
+                      showSearch={{
+                        optionFilterProp: 'label',
+                        filterOption: (input, option) => option?.label.props.children[1]?.props?.children?.toLowerCase().includes(input.toLowerCase()),
+                      }}
                       onChange={(state) => setItemColors(state)}
                       onClear={() => setItemColors([])}
                       options={colors?.map(({ id, translations, hex }) => ({ value: id, label: (

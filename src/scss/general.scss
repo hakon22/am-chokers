@@ -443,6 +443,10 @@ a {
 .ant-skeleton-image {
   border-radius: 7px !important;
 }
+.ant-input-number:hover, .ant-input-number:focus-within {
+  border-color: $button-background-active-dark;
+  box-shadow: unset;
+}
 
 .large-input {
   .ant-input-number-prefix {
@@ -456,7 +460,7 @@ a {
     align-items: center !important;
   }
 
-  input:not(.not-padding), textarea, .ant-select-selector, .ant-select-content-value, .ant-checkbox-wrapper:not(.custom-size) {
+  input:not(.not-padding), textarea, .ant-select-selector, .ant-select-content:not(.not-padding), .ant-select-placeholder:not(.not-padding), .ant-checkbox-wrapper:not(.custom-size) {
     font-size: 1.35rem !important;
     padding: 0 !important;
     font-family: Oswald, sans-serif !important;
@@ -472,7 +476,7 @@ a {
     }
   }
 
-  .custom-placeholder > .ant-select-selector, .custom-placeholder ~ .ant-input-number {
+  .custom-placeholder > .ant-select-selector, .custom-placeholder ~ .ant-select-content, .custom-placeholder ~ .ant-select-placeholder, .custom-placeholder ~ .ant-input-number {
     font-size: 1rem !important;
     padding-left: 0.6rem !important;
   }
@@ -481,7 +485,7 @@ a {
     
     & input {
       font-size: 0.95rem !important;
-      padding-left: 0.3rem !important;
+      padding: 0.2rem 0.3rem !important;
     }
 
     & textarea {
@@ -505,6 +509,16 @@ a {
 .ant-input-outlined:focus-within {
   border-color: $dark-blue !important;
   box-shadow: none !important;
+}
+
+.ant-select {
+  font-family: Oswald, sans-serif !important;
+
+  &.ant-select-outlined:not(.ant-select-disabled) {
+    &.ant-select-focused {
+      box-shadow: unset;
+    }
+  }
 }
 
 .css-var-root.ant-select-css-var {
@@ -618,12 +632,22 @@ a {
   }
 
   .large-input {
-    input:not(.not-padding), textarea, .ant-select-selector, .ant-checkbox-wrapper:not(.not-padding) {
+    input:not(.not-padding), textarea, .ant-select-selector, .ant-select-content:not(.not-padding), .ant-select-placeholder:not(.not-padding), .ant-checkbox-wrapper:not(.not-padding) {
       padding: 0.5rem !important;
     }
 
-    .ant-input-number-prefix {
-      padding: 0 0 0 0.5rem;
+    .ant-input-number {
+      input {
+        font-family: Oswald, sans-serif !important;
+      }
+
+      &-input {
+        padding: 0.2rem !important;
+      }
+
+      &-prefix {
+        padding: 0 0 0 0.5rem;
+      }
     }
   }
 
