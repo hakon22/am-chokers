@@ -11,7 +11,7 @@
     "start:sender:docker:dev": "cross-env DB='LOCAL' IS_DOCKER='TRUE' NODE_ENV=production node microservices/sender/src/main.js",
     "start:server:dev": "cross-env DB='LOCAL' NODE_ENV=development tsx server/server.ts",
     "start:sender:dev": "cross-env DB='LOCAL' NODE_ENV=development tsx microservices/sender/src/main.ts",
-    "build": "next build --no-lint",
+    "build": "next build",
     "lint": "eslint .",
     "migration:create": "typeorm migration:create",
     "migration:create:name": "tsx ./server/db/migrations/helpers/create.migration.helper.ts",

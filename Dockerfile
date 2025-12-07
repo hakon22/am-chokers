@@ -1,10 +1,10 @@
-FROM node:22-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
 # Этап сборки
-FROM node:22-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -49,7 +49,7 @@ RUN npm run build
 RUN npx tsc && npx tsc-alias --resolve-full-paths
 
 # Финальный образ
-FROM node:22-alpine AS app
+FROM node:25-alpine AS app
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist/cron ./cron
