@@ -277,6 +277,11 @@ a {
 
 .ant-btn:not(:disabled):not(.ant-btn-disabled):hover {
   color: $button-background-active;
+  background-color: unset;
+}
+
+.ant-btn.ant-btn-variant-outlined {
+  box-shadow: unset;
 }
 
 .switch-large {
@@ -336,6 +341,18 @@ a {
   letter-spacing: 3px;
   font-size: 40px;
   margin: 0;
+}
+
+.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  align-items: center;
+}
+
+.ant-collapse .ant-collapse-panel > .ant-collapse-body {
+  padding: 0 1.5rem;
+}
+
+.ant-collapse-ghost > .ant-collapse-item > .ant-collapse-panel > .ant-collapse-body {
+  padding-block: unset;
 }
 
 .collapse-without-padding .ant-collapse-content-box:has(> .without-padding) {
@@ -418,10 +435,11 @@ a {
   cursor: pointer;
 }
 
-.button-link {
+.button-link, .button-link:hover {
   background: unset;
-  border: 0;
+  border: unset !important;
   padding: 0;
+  background-color: unset;
 }
 
 .ant-card .ant-card-body {
