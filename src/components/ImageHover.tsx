@@ -111,7 +111,6 @@ export const ImageHover = ({
                   ) : (
                     <Image
                       src={image.src}
-                      unoptimized
                       onLoad={handleLoad}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -122,7 +121,7 @@ export const ImageHover = ({
                 }
               </div>
             ))
-            : <Image src={image404} alt="" className="active" />}
+            : <Image src={image404} unoptimized alt="" className="active" />}
         </Link>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
@@ -182,7 +181,6 @@ export const ImageHover = ({
                   ) : (
                     <Image
                       src={image.src}
-                      unoptimized
                       onLoad={handleLoad}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

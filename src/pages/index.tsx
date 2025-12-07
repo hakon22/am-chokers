@@ -366,7 +366,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
             </h2>
             <div className="guide col-12 col-xxl-10">
               <div className="d-flex lh-base">
-                {!isMobile && <Image src={uniqueDecoration} className="col-5" unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('slogan.uniqueDecoration')} priority />}
+                {!isMobile && <Image src={uniqueDecoration} className="col-5" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} alt={t('slogan.uniqueDecoration')} priority />}
                 <div className="guide-text w-100 d-flex flex-column">
                   <h3 className="mb-4 text-center text-xl-start">{t('slogan.title')}</h3>
                   <p className="fs-5 mb-4">{t('slogan.paragraph')}</p>

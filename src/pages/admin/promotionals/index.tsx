@@ -484,7 +484,7 @@ const CreatePromotional = () => {
             >
               {item.image.src.endsWith('.mp4')
                 ? <video src={item.image.src} width={60} height={60} style={{ borderRadius: '5px' }} autoPlay loop muted playsInline />
-                : <Image alt={item.name} width={60} height={60} unoptimized src={item.image.src} />
+                : <Image alt={item.name} width={60} height={60} src={item.image.src} />
               }
               <span className="fs-6 text-wrap">{item.name}</span>
             </Button>
