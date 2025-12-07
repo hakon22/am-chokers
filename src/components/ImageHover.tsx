@@ -113,6 +113,7 @@ export const ImageHover = ({
                       src={image.src}
                       onLoad={handleLoad}
                       fill
+                      preload
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
                       className={cn({ 'active': i === index, 'opacity-50': !!isAbsent && i === index })}
@@ -183,6 +184,7 @@ export const ImageHover = ({
                       src={image.src}
                       onLoad={handleLoad}
                       fill
+                      preload
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
                       className={cn({ 'active': i === index, 'opacity-50': !!(deleted || isAbsent) && i === index })}
