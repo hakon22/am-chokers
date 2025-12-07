@@ -244,5 +244,5 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
         ))}
       </div>
     )
-    : <Alert title={t('notFound')} type="success" style={{ height: '3rem' }} />;
+    : <Alert message={t('notFound')} type="success" style={{ height: '3rem' }} />;
 };

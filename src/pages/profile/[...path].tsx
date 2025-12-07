@@ -85,43 +85,43 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   };
 
   const mobileItems: CollapseItem[] = [
-    { key: 'personal', label: tMenu('menu.personal'), children: <Personal /> },
-    { key: 'orders', label: tMenu('menu.orders'), children: getPage() },
-    { key: 'favorites', label: tMenu('menu.favorites'), children: <Favorites /> },
-    { key: 'reviews', label: tMenu('menu.reviews'), children: <Reviews /> },
-    // { key: 'settings', label: tMenu('menu.settings'), children: <div /> },
+    { key: 'personal', label: tMenu('menu.personal'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Personal /> },
+    { key: 'orders', label: tMenu('menu.orders'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: getPage() },
+    { key: 'favorites', label: tMenu('menu.favorites'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Favorites /> },
+    { key: 'reviews', label: tMenu('menu.reviews'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <Reviews /> },
+    // { key: 'settings', label: tMenu('menu.settings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <div /> },
     ...(isAdmin
-      ? [{ key: 'admin', label: tMenu('menu.admin.title'), children: <Collapse
+      ? [{ key: 'admin', label: tMenu('menu.admin.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0 } }, children: <Collapse
         className="fs-6 font-oswald"
         accordion
         ghost
         items={[
-          { key: 'items', label: tMenu('menu.admin.items.title'), children: <Collapse
+          { key: 'items', label: tMenu('menu.admin.items.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0, paddingLeft: '2.5rem' } }, children: <Collapse
             accordion
             ghost
             items={[
-              { key: routes.page.admin.deferredPublication, label: <Button className="button-link text-start fs-6" href={routes.page.admin.deferredPublication} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.items.deferredPublication')}</Button>, showArrow: false, collapsible: 'disabled' },
-              { key: routes.page.admin.newItem, label: <Button className="button-link text-start fs-6" href={routes.page.admin.newItem} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.items.newItem')}</Button>, showArrow: false, collapsible: 'disabled' },
-              { key: routes.page.admin.itemGroupsControl, label: <Button className="button-link text-start fs-6" href={routes.page.admin.itemGroupsControl} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.items.itemGroups')}</Button>, showArrow: false, collapsible: 'disabled' },
-              { key: routes.page.admin.itemCollectionsControl, label: <Button className="button-link text-start fs-6" href={routes.page.admin.itemCollectionsControl} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.items.itemCollections')}</Button>, showArrow: false, collapsible: 'disabled' },
-              { key: routes.page.admin.itemList, label: <Button className="button-link text-start fs-6" href={routes.page.admin.itemList} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.items.itemList')}</Button>, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.deferredPublication, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.deferredPublication}>{tMenu('menu.admin.items.deferredPublication')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.newItem, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.newItem}>{tMenu('menu.admin.items.newItem')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.itemGroupsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemGroupsControl}>{tMenu('menu.admin.items.itemGroups')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.itemCollectionsControl, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemCollectionsControl}>{tMenu('menu.admin.items.itemCollections')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.page.admin.itemList, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.itemList}>{tMenu('menu.admin.items.itemList')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
-          { key: 'reports', label: tMenu('menu.admin.reports.title'), children: <Collapse
+          { key: 'reports', label: tMenu('menu.admin.reports.title'), styles: { header: { alignItems: 'center', paddingLeft: 0 }, body: { paddingTop: 0, paddingLeft: '2.5rem' } }, children: <Collapse
             accordion
             ghost
             items={[
-              { key: routes.reports.users, label: <Button className="button-link text-start fs-6" href={routes.page.admin.userList} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.users')}</Button>, showArrow: false, collapsible: 'disabled' },
-              { key: routes.reports.cart, label: <Button className="button-link text-start fs-6" href={routes.page.admin.cartReport} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.cart')}</Button>, showArrow: false, collapsible: 'disabled' },
-              { key: routes.reports.message, label: <Button className="button-link text-start fs-6" href={routes.page.admin.messageReport} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.message')}</Button>, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.users, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.userList}>{tMenu('menu.admin.reports.users')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.cart, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.cartReport}>{tMenu('menu.admin.reports.cart')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.message, label: <Button className="button-link text-start fs-6" style={{ boxShadow: 'none' }} href={routes.page.admin.messageReport}>{tMenu('menu.admin.reports.message')}</Button>, styles: { header: { paddingBottom: 5, paddingLeft: 0 } }, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
-          { key: routes.page.admin.allOrders, label: <Button className="button-link text-start fs-6" href={routes.page.admin.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.page.admin.moderationOfReview, label: <Button className="button-link text-start fs-6" href={routes.page.admin.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.page.admin.promotionalCodes, label: <Button className="button-link text-start fs-6" href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.page.admin.compositionsControl, label: <Button className="button-link text-start fs-6" href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: routes.page.admin.colorsControl, label: <Button className="button-link text-start fs-6" href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
-          { key: 'adminSettings', label: tMenu('menu.admin.adminSettings'), children: <AdminSettings /> },
+          { key: routes.page.admin.allOrders, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.moderationOfReview, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.promotionalCodes, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.compositionsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.colorsControl, label: <Button className="button-link text-start fs-6 ms-2" style={{ boxShadow: 'none' }} href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: 'adminSettings', label: tMenu('menu.admin.adminSettings'), styles: { header: { alignItems: 'center', paddingLeft: 0 } }, children: <AdminSettings /> },
         ]}
       /> }]
       : []),
@@ -179,7 +179,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
                     defaultActiveKey={path[1] ? ['orders'] : path}
                     activeKey={activeKey}
                     className="mb-3 fs-5 font-oswald"
-                    classNames={{ root: 'collapse-without-padding' }}
+                    rootClassName="collapse-without-padding"
                     accordion
                     ghost
                     onChange={onCollapse}
