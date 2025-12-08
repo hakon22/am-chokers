@@ -275,12 +275,12 @@ a {
   border-color: $dark-blue !important;
 }
 
-.ant-btn:not(:disabled):not(.ant-btn-disabled):hover {
+.ant-btn:not(:disabled):not(.ant-btn-disabled):not(.ant-float-btn):hover {
   color: $button-background-active;
   background-color: unset;
 }
 
-.ant-btn.ant-btn-variant-outlined {
+.ant-btn.ant-btn-variant-outlined:not(.ant-float-btn) {
   box-shadow: unset;
 }
 

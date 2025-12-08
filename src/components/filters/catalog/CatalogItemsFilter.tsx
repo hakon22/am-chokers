@@ -215,7 +215,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
             classNames={{
               content: 'custom-placeholder not-padding fs-6',
               placeholder: 'custom-placeholder not-padding fs-6',
-            } as any}
+            }}
             onInputKeyDown={({ key }) => {
               if (key === 'Enter') {
                 onFocus();
@@ -336,7 +336,6 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
                   content: 'custom-placeholder not-padding fs-6',
                   placeholder: 'custom-placeholder not-padding fs-6',
                 } as any}
-                onChange={onFocus}
                 options={[
                   {
                     value: ItemSortEnum.BY_RATING,
@@ -381,7 +380,6 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
                 content: 'custom-placeholder not-padding fs-6',
                 placeholder: 'custom-placeholder not-padding fs-6',
               } as any}
-              onChange={onFocus}
               options={[
                 {
                   value: ItemSortEnum.BY_RATING,

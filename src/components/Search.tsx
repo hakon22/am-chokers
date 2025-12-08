@@ -93,7 +93,7 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
       classNames={{
         content: 'custom-placeholder not-padding fs-6',
         placeholder: 'custom-placeholder not-padding fs-6',
-      } as any}
+      }}
       placeholder={t('title')}
       notFoundContent={search && !isLoading ? <NotFoundContent /> : search && <Spinner isLoaded />}
       allowClear
