@@ -897,10 +897,13 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('(item.price - item.discountPrice) <= :to', { to: query.to });
     }
     if (query?.new) {
-      builder.andWhere('item.new = TRUE');
+      builder.andWhere('item.new');
     }
     if (query?.bestseller) {
-      builder.andWhere('item.bestseller = TRUE');
+      builder.andWhere('item.bestseller');
+    }
+    if (query?.inStock) {
+      builder.andWhere('NOT item.isAbsent');
     }
 
     const statistics = await builder.getRawMany<{ groupId: number; count: number; }>();
