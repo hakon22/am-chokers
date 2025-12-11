@@ -11,13 +11,13 @@ export const useAccessHandler = () => {
   const adminPaths = Object.values(routes.page.admin);
 
   useEffect(() => {
-    if (adminPaths.some(path => router.asPath.startsWith(path))) {
+    if (adminPaths.some((path) => router.asPath.startsWith(path))) {
       const timeout = setTimeout(() => {
         if (!isAdmin) {
           router.push(routes.page.base.homePage);
         }
       }, process.env.NODE_ENV === 'development' ? 2000 : 300);
-      
+
       return () => clearTimeout(timeout);
     }
   }, [isAdmin, router.asPath]);

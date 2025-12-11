@@ -21,3 +21,6 @@ build:
 
 update-fids:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/update-fids.ts
+
+fetch-clicks:
+	cross-env DB='LOCAL' CRON='TRUE' tsx cron/yandex-direct.service.ts

@@ -269,6 +269,11 @@ a {
   }
 }
 
+.ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+  background: $button-background-active-dark;
+  background-color: $button-background-active-dark;
+}
+
 .ant-btn, .ant-btn-default:active {
   font-family: Oswald, sans-serif !important;
   font-weight: 400 !important;

@@ -261,9 +261,15 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
           <section className="mb-5 position-relative">
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
               <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
-                <h2 className="text-center text-xl-start">{t('newItems')}</h2>
+                {isMobile ? (
+                  <div className="d-flex justify-content-center">
+                    <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button" style={{ borderRadius: '6px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
+                  </div>
+                ) : (
+                  <h2 className="text-center text-xl-start">{t('newItems')}</h2>
+                )}
                 <Link href={`${routes.page.base.catalog}?new=true`} className="see-all color-dark-blue icon-button">
-                  <span>{t('seeAll')}</span>
+                  <span>{t(isMobile ? 'seeAllNews' : 'seeAll')}</span>
                   <ArrowRight />
                 </Link>
               </div>

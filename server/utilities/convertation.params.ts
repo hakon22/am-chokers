@@ -58,13 +58,19 @@ export const queryPaginationSchema = yup.object().shape({
     .notRequired(),
 });
 
-export const queryPaginationWithParams = queryPaginationSchema.concat(
-  userOptionalParamsSchema.concat(yup.object().shape({
-    withDeleted: booleanSchema,
-    showAccepted: booleanSchema,
-    search: yup.string().optional(),
-  })),
-);
+export const queryDatePeriodParams = yup.object().shape({
+  from: yup.string().optional(),
+  to: yup.string().optional(),
+});
+
+export const queryPaginationWithParams = queryPaginationSchema
+  .concat(queryDatePeriodParams.concat(
+    userOptionalParamsSchema.concat(yup.object().shape({
+      withDeleted: booleanSchema,
+      showAccepted: booleanSchema,
+      search: yup.string().optional(),
+    }))),
+  );
 
 export const queryOrderParams = queryPaginationSchema.concat(
   userOptionalParamsSchema.concat(yup.object().shape({

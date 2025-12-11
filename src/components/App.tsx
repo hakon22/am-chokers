@@ -67,7 +67,7 @@ export const App = ({ children, itemGroups }: { children: JSX.Element; itemGroup
         <NavBar />
         <Breadcrumb />
       </header>
-      <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: router.asPath === '/' ? footerHeight - 200 : footerHeight }}>
+      <div className={cn({ 'index-bg': router.asPath === routes.page.base.homePage })} style={{ paddingBottom: footerHeight }}>
         <FloatButton.BackTop />
         <main className="container">
           {children}

@@ -4,13 +4,16 @@ import { Container, Singleton } from 'typescript-ioc';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { MessageService } from '@server/services/message/message.service';
-import { queryPaginationWithParams, queryMessageReportParams } from '@server/utilities/convertation.params';
+import { MetricaReportService } from '@server/services/reports/metrica.report.service';
+import { queryPaginationWithParams, queryMessageReportParams, queryDatePeriodParams } from '@server/utilities/convertation.params';
 
 @Singleton
 export class ReportController extends BaseService {
   private readonly cartService = Container.get(CartService);
 
   private readonly messageService = Container.get(MessageService);
+
+  private readonly metricaReportService = Container.get(MetricaReportService);
 
   public cartReport = async (req: Request, res: Response) => {
     try {
@@ -43,6 +46,19 @@ export class ReportController extends BaseService {
       };
 
       res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public metricaReport = async (req: Request, res: Response) => {
+    try {
+      const user = this.getCurrentUser(req);
+      const query = await queryDatePeriodParams.validate(req.query);
+
+      const result = await this.metricaReportService.metricaReport(user.lang, query);
+
+      res.json({ code: 1, result });
     } catch (e) {
       this.errorHandler(e, res);
     }

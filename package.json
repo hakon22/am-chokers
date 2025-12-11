@@ -21,7 +21,8 @@
     "cron:promotional.status.control:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/promotional.status.control.js >> /srv/logs/promotional.status.control.log 2>&1",
     "cron:update-fids:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/update-fids.js >> /srv/logs/update-fids.log 2>&1",
     "cron:deferred-publication:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/deferred-publication.js >> /srv/logs/deferred-publication.log 2>&1",
-    "cron:clear-user-refresh-tokens:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/clear-user-refresh-tokens.js >> /srv/logs/clear-user-refresh-tokens.log 2>&1"
+    "cron:clear-user-refresh-tokens:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/clear-user-refresh-tokens.js >> /srv/logs/clear-user-refresh-tokens.log 2>&1",
+    "cron:fetch-yandex-metrics:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/yandex-direct.service.js >> /srv/logs/yandex-direct.service.log 2>&1"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
@@ -54,6 +55,7 @@
     "react-redux": "9.2.0",
     "react-toastify": "11.0.5",
     "react-verification-input": "4.2.2",
+    "recharts": "3.5.1",
     "sharp": "0.34.5",
     "tsx": "4.21.0",
     "yup": "1.7.1"

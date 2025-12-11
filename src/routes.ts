@@ -50,6 +50,7 @@ export const routes = {
       userCard: [adminPath, 'user'].join('/'),
       deferredPublication: [adminPath, 'deferred-publications'].join('/'),
       adminSettings: [adminPath, 'settings'].join('/'),
+      metricaReport: [adminPath, 'reports', 'metrica'].join('/'),
     },
   },
 
@@ -233,5 +234,6 @@ export const routes = {
     cart: [apiPath, 'reports', 'cart'].join('/'),
     message: [apiPath, 'reports', 'message'].join('/'),
     users: [apiPath, 'reports', 'user', 'list'].join('/'),
+    metrica: [apiPath, 'reports', 'metrica'].join('/'),
   },
 } as const;

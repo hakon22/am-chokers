@@ -3,7 +3,6 @@
   flex-direction: column;
   row-gap: 15rem;
   width: 100%;
-  margin-bottom: 10rem;
   margin-top: 100px;
 
   &-carousel {
@@ -98,11 +97,11 @@
 
 @media (max-width: 1199px) {
   .index-block-container {
-    margin-top: 30%;
-    margin-bottom: 70%;
+    margin-top: 85px;
     row-gap: 6rem;
 
     &-carousel {
+      top: 25px;
       margin-bottom: 3rem;
 
       .react-multiple-carousel__arrow--left {

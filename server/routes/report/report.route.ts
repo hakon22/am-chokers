@@ -11,5 +11,6 @@ export class ReportRoute extends BaseRouter {
   public set = (router: Router) => {
     router.get(this.routes.reports.cart, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.cartReport);
     router.get(this.routes.reports.message, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.messageReport);
+    router.get(this.routes.reports.metrica, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.metricaReport);
   };
 }
