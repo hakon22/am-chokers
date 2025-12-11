@@ -31,7 +31,7 @@ interface RequestReportInterface {
       DateFrom?: string;
     };
     DateRangeType: 'CUSTOM_DATE' | 'YESTERDAY';
-    FieldNames: ('Date' | 'CampaignId' | 'Clicks' | 'Cost')[];
+    FieldNames: ('Date' | 'CampaignId' | 'Clicks' | 'Cost' | 'Bounces')[];
     ReportName: string;
     ReportType: string;
     Format: string;
@@ -121,7 +121,7 @@ class YandexDirectServiceCron {
           ...(options?.to ? { DateTo: moment(options.to).format('YYYY-MM-DD') } : {}),
         },
         DateRangeType: (options?.from || options?.to) ? 'CUSTOM_DATE' : 'YESTERDAY',
-        FieldNames: ['Date', 'CampaignId', 'Clicks', 'Cost'],
+        FieldNames: ['Date', 'CampaignId', 'Clicks', 'Cost', 'Bounces'],
         ReportName: `Daily Clicks Report ${moment().unix()}`,
         ReportType: 'CUSTOM_REPORT',
         Format: 'TSV',
@@ -144,7 +144,7 @@ class YandexDirectServiceCron {
         continue;
       }
 
-      const [date, campaignId, clicksStr, costStr] = line.split(/\s+/);
+      const [date, campaignId, clicksStr, costStr, failureStr] = line.split(/\s+/);
 
       const id = campaigns.find(({ yandexCampaignId }) => yandexCampaignId === campaignId)?.id;
       if (!id) {
@@ -155,8 +155,9 @@ class YandexDirectServiceCron {
       if (date && id) {
         result.push({
           date: moment(date, 'YYYY-MM-DD').toDate(),
-          clicks: +clicksStr,
-          cost: +costStr / 1000000,
+          clicks: +clicksStr || 0,
+          cost: (+costStr / 1000000) || 0,
+          failure: +failureStr || 0,
           campaign: { id },
         } as YandexDirectStatisticsEntity);
       }
@@ -211,7 +212,7 @@ class YandexDirectServiceCron {
           .insert()
           .into(YandexDirectStatisticsEntity)
           .values(toSave)
-          .orUpdate(['clicks', 'cost'], ['date', 'campaign_id'])
+          .orUpdate(['clicks', 'cost', 'failure'], ['date', 'campaign_id'])
           .execute();
 
         this.loggerService.info(TAG, `Успешно сохранено записей: ${toSave.length}`);

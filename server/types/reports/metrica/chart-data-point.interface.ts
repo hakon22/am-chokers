@@ -4,10 +4,14 @@ export interface ChartDataPointInterface {
     [campaignId: number]: {
       clicks: number;
       cost: number;
+      failure: number;
+      failurePercentage: number;
     }
   };
   total: {
     clicks: number;
     cost: number;
+    failure: number;
+    failurePercentage: number;
   };
 }

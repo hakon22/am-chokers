@@ -37,6 +37,10 @@ export class YandexDirectStatisticsEntity extends BaseEntity {
   @Column('float')
   public cost: number;
 
+  /** Отказы */
+  @Column('int')
+  public failure: number;
+
   /** Уникальный `id` компании */
   @Index('yandex_direct_statistics__campaign_id__idx')
   @ManyToOne(() => YandexDirectCampaignEntity, {

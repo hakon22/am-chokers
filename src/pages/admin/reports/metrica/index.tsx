@@ -10,7 +10,6 @@ import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, X
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/hooks/reduxHooks';
-import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { BackButton } from '@/components/BackButton';
@@ -58,14 +57,15 @@ const Metrica = () => {
       const filteredPoint: ChartDataPointInterface = { 
         date: point.date, 
         campaigns: {}, 
-        total: { clicks: 0, cost: 0 }, 
+        total: { clicks: 0, cost: 0, failure: 0, failurePercentage: 0 }, 
       };
 
-      selectedCampaigns.forEach(campaignId => {
+      selectedCampaigns.forEach((campaignId) => {
         if (point.campaigns[campaignId]) {
           filteredPoint.campaigns[campaignId] = point.campaigns[campaignId];
           filteredPoint.total.clicks += point.campaigns[campaignId].clicks;
           filteredPoint.total.cost += point.campaigns[campaignId].cost;
+          filteredPoint.total.failure = point.campaigns[campaignId].failurePercentage;
         }
       });
 
@@ -75,17 +75,19 @@ const Metrica = () => {
 
   // Функция для преобразования данных в формат для Recharts
   const transformChartData = (chartData: ChartDataPointInterface[]) => {
-    return chartData.map(point => {
+    return chartData.map((point) => {
       const transformedPoint: any = {
         date: point.date,
         totalClicks: point.total.clicks,
         totalCost: point.total.cost,
+        totalFailure: point.total.failurePercentage,
       };
 
       // Добавляем данные по кампаниям
       Object.entries(point.campaigns).forEach(([campaignId, stats]) => {
         transformedPoint[`clicks_${campaignId}`] = stats.clicks;
         transformedPoint[`cost_${campaignId}`] = stats.cost;
+        transformedPoint[`failure_${campaignId}`] = stats.failurePercentage;
       });
 
       return transformedPoint;
@@ -127,6 +129,17 @@ const Metrica = () => {
             strokeWidth={1}
             strokeDasharray="3 3"
             hide={hiddenLines[`cost_${id}`]}
+          />
+          <Area
+            yAxisId="failure"
+            type="monotone"
+            dataKey={`failure_${id}`}
+            name={t('chart.actionFailure', { name: campaign.name })}
+            stroke={campaign.color[2]}
+            fill="transparent"
+            strokeWidth={1}
+            strokeDasharray="2 2"
+            hide={hiddenLines[`failure_${id}`]}
           />
         </Fragment>
       ));
@@ -227,10 +240,6 @@ const Metrica = () => {
 
   useEffect(() => {
     fetchDataWithParamsEffect();
-
-    return () => {
-      setPaginationParams({ limit: 0, offset: 0, count: 0 });
-    };
   }, [axiosAuth, from, to]);
 
   return isAdmin ? (
@@ -278,6 +287,7 @@ const Metrica = () => {
             <XAxis dataKey="date" />
             <YAxis yAxisId="left" label={{ value: t('chart.clicks'), angle: -90, position: 'insideLeft' }} />
             <YAxis yAxisId="right" orientation="right" label={{ value: t('chart.cost'), angle: 90, position: 'insideRight' }} />
+            <YAxis yAxisId="failure" orientation="right" label={{ value: t('chart.failure'), angle: 90, offset: 25, position: 'insideRight' }} />
             <Tooltip />
             <Legend 
               onClick={(entry) => handleLegendClick(entry.dataKey as string)}
@@ -316,6 +326,17 @@ const Metrica = () => {
               strokeDasharray="5 5"
               hide={hiddenLines['totalCost']}
             />
+            <Area
+              yAxisId="failure"
+              type="monotone"
+              dataKey="totalFailure"
+              name={t('chart.actionTotalFailure')}
+              stroke="#8884d8"
+              fill="transparent"
+              strokeWidth={2}
+              strokeDasharray="3 3"
+              hide={hiddenLines['totalFailure']}
+            />
           </AreaChart>
         </ResponsiveContainer>
         {/* Статистика */}
@@ -333,6 +354,7 @@ const Metrica = () => {
                       </h6>
                       <p>{t('chart.statistics.clicks')} {campaign.totalClicks}</p>
                       <p>{t('chart.statistics.cost', { cost: campaign.totalCost })}</p>
+                      <p>{t('chart.statistics.failure')} {campaign.totalFailure}</p>
                     </div>
                   </div>
                 </div>
@@ -344,6 +366,7 @@ const Metrica = () => {
                   <h6 className="card-title text-primary">{t('chart.statistics.total')}</h6>
                   <p>{t('chart.statistics.clicks')} {data?.totalStats?.totalClicks ?? 0}</p>
                   <p>{t('chart.statistics.cost', { cost: data?.totalStats?.totalCost ?? 0 })}</p>
+                  <p>{t('chart.statistics.failure')} {data?.totalStats?.totalFailure ?? 0}</p>
                 </div>
               </div>
             </div>

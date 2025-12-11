@@ -3,8 +3,6 @@ import type { ChartDataPointInterface } from '@server/types/reports/metrica/char
 import type { CampaignStatsInterface } from '@server/types/reports/metrica/campaign-stats.interface';
 
 export interface MetricaReportInterface {
-  // Все даты по периодам
-  allDates: Record<ChartPeriodEnum, string[]>;
   // Данные уже преобразованные для графика
   chartData: {
     [ChartPeriodEnum.DAY]: ChartDataPointInterface[];
@@ -19,5 +17,6 @@ export interface MetricaReportInterface {
   totalStats: {
     totalClicks: number;
     totalCost: number;
+    totalFailure: number;
   };
 }
