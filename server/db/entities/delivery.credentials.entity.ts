@@ -45,6 +45,7 @@ export class DeliveryCredentialsEntity extends BaseEntity {
   /** Тип доставки */
   @Column('enum', {
     enum: DeliveryTypeEnum,
+    enumName: 'delivery_type_enum',
   })
   public type: DeliveryTypeEnum;
 

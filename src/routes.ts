@@ -83,6 +83,9 @@ export const routes = {
       generateDescription: (id?: number) => [apiPath, 'gpt', id ?? ':id', 'generate-description'].join('/'),
       generateDescriptionWithoutItem: [apiPath, 'gpt', 'generate-description'].join('/'),
     },
+    cdek: {
+      root: [apiPath, 'cdek'].join('/'),
+    },
   },
 
   // order

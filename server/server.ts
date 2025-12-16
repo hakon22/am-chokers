@@ -10,6 +10,7 @@ import { Container } from 'typescript-ioc';
 import { RouterService } from '@server/services/app/router.service';
 import { BaseService } from '@server/services/app/base.service';
 import { ItemService } from '@server/services/item/item.service';
+import { CDEKService } from '@server/services/delivery/cdek.service';
 import { routes } from '@/routes';
 
 const {
@@ -20,6 +21,8 @@ class Server extends BaseService {
   private readonly routerService = Container.get(RouterService);
 
   private readonly itemService = Container.get(ItemService);
+
+  private readonly CDEKService = Container.get(CDEKService);
 
   private readonly telegramBot = new Telegraf(TELEGRAM_TOKEN ?? '');
 
@@ -34,6 +37,7 @@ class Server extends BaseService {
   private init = async () => {
     await this.databaseService.init();
     await this.redisService.init({ withoutSubscribles: true });
+    await this.CDEKService.init();
     await this.itemService.synchronizationCache();
 
     if (!this.dev) {

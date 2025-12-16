@@ -213,6 +213,45 @@ const Cart = () => {
     });
   };
 
+  const openCDEKDeliveryWidget = (items: CartItemInterface[]) => {
+    new window.CDEKWidget({
+      from: 'Москва',
+      apiKey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY, // API key for Yandex Maps
+      canChoose: true, // Ability to choose the pickup point
+      servicePath: routes.integration.cdek.root, // Path to the PHP file
+      hideFilters: {
+        have_cashless: false, // Control visibility of the "Cashless Payment" filter
+        have_cash: false, // Control visibility of the "Cash Payment" filter
+        is_dressing_room: false, // Control visibility of the "Dressing Room Available" filter
+        type: false, // Display the "Pickup Point Type" filter
+      },
+      goods: items.map(() => ({ width: 15, height: 15, length: 15, weight: 50 })),
+      debug: false, // Enable debug information output
+      defaultLocation: 'Москва', // Default address
+      currency: 'RUB',
+      lang: lang === UserLangEnum.EN ? 'eng' : 'rus', // Widget language
+      hideDeliveryOptions: {
+        office: false, // Ability to choose delivery to the pickup point
+        door: true, // Hide delivery to the door
+      },
+      popup: false, // Open the widget in a modal window
+
+      // Function called after the widget finishes loading
+      onReady: () => console.log('Widget is ready'),
+      // Function called after the customer selects a pickup point
+      onChoose: (delivery: string, rate: any, address: any) => {
+        console.log(delivery, rate, address);
+        setSavedDeliveryPrice(rate.delivery_sum);
+        setDelivery({
+          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : rate.delivery_sum,
+          address: [address.city, address.address].filter(Boolean).join(', ').trim(),
+          type: deliveryType,
+        });
+        setIsOpenDeliveryWidget(false);
+      },
+    });
+  };
+
   const resetPVZ = () => {
     setDelivery(defaultDelivery);
     setSavedDeliveryPrice(0);
@@ -295,6 +334,9 @@ const Cart = () => {
       case DeliveryTypeEnum.RUSSIAN_POST:
         openRussianPostDeliveryWidget(cartList);
         break;
+      case DeliveryTypeEnum.CDEK:
+        openCDEKDeliveryWidget(cartList);
+        break;
       }
     }
   }, [isOpenDeliveryWidget, deliveryType]);
@@ -345,6 +387,7 @@ const Cart = () => {
         <>
           <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
           <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+          <div id="cdek-map" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
         </>
       </Modal>
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title', { count: countCart })}</h1>

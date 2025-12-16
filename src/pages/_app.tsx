@@ -173,6 +173,17 @@ const Init = (props: InitPropsInterface) => {
                         console.error('Error loading Russian Post widget script', e);
                       }}
                     />
+                    <Script
+                      id="cdek-widget"
+                      src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3"
+                      strategy="lazyOnload"
+                      onLoad={() => {
+                        console.log('CDEK widget script loaded');
+                      }}
+                      onError={(e) => {
+                        console.error('Error CDEK widget script', e);
+                      }}
+                    />
                     <ToastContainer style={{ zIndex: 999999 }} />
                     <CookieConsent
                       containerClasses="justify-content-center text-center"

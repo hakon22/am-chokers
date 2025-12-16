@@ -3,4 +3,6 @@ export enum DeliveryTypeEnum {
   YANDEX_DELIVERY = 'YANDEX_DELIVERY',
   /** Почта России */
   RUSSIAN_POST = 'RUSSIAN_POST',
+  /** СДЭК */
+  CDEK = 'CDEK',
 }
