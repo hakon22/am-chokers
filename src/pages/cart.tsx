@@ -93,16 +93,18 @@ const Cart = () => {
   const [savedDeliveryPrice, setSavedDeliveryPrice] = useState(0);
   const [isOpenDeliveryWidget, setIsOpenDeliveryWidget] = useState(false);
   const [delivery, setDelivery] = useState(defaultDelivery);
+  const [user, setUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
   const [tempUser, setTempUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
 
+  const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+  const setUserEffect = useEffectEvent(setUser);
   const setDeliveryEffect = useEffectEvent(setDelivery);
   const setPromotionalEffect = useEffectEvent(setPromotional);
+  const setIsProcessConfirmedEffect = useEffectEvent(setIsProcessConfirmed);
 
   const deliveryButton = useMemo(() => !!deliveryType, [deliveryType]);
-  const isProcessConfirmed = useMemo(() => isConfirmed && tempUser.phone, [isConfirmed, tempUser.phone]);
-  const user = useMemo(() => tempUser || ({ name: '', phone: '', lang: lang as UserLangEnum }), [isConfirmed, tempUser, lang]);
   const deliveryList = useMemo(() => deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })), [lang, deliveryServices]);
 
   const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count, item }));
@@ -227,6 +229,7 @@ const Cart = () => {
     if (!name && !user.phone) {
       const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
       if (code === 1) {
+        setIsProcessConfirmed(true);
         setTempUser({ name: values.name, phone: values.phone, lang: lang as UserLangEnum });
       }
       if (code === 4) {
@@ -300,6 +303,13 @@ const Cart = () => {
   }, [isOpenDeliveryWidget, deliveryType]);
 
   useEffect(() => {
+    if (isConfirmed && tempUser.phone) {
+      setUserEffect(tempUser);
+      setIsProcessConfirmedEffect(false);
+    }
+  }, [isConfirmed, tempUser.phone]);
+
+  useEffect(() => {
     if (promotional?.items?.length) {
       const cartItemIds = cartList.map(({ item }) => item.id);
 
@@ -320,12 +330,11 @@ const Cart = () => {
       {isProcessConfirmed
         ? (
           <Modal
-            width={'100%'}
             centered
             zIndex={10000}
             open
             footer={null}
-            onCancel={() => setIsConfirmed(false)}
+            onCancel={() => setIsProcessConfirmed(false)}
           >
             <ConfirmPhone setState={setIsConfirmed} />
           </Modal>
