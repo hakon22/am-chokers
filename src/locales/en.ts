@@ -153,6 +153,7 @@ export default {
             orderComment: 'Order comment:',
             deliveryAddress: 'Delivery address',
             mailIndex: 'Postal code',
+            status: 'Delivery status',
             deliveryType: 'Delivery type',
             deliveryAmount: 'Delivery price',
             itemsAmount: 'Items price',
@@ -401,6 +402,7 @@ export default {
         resetPVZ: 'Reset pickup point',
         selectedPVZ: {
           title: 'Chosen pickup point:',
+          cdekDoorTitle: 'Selected address:',
           address: '{{ address }}',
         },
         total: 'Total:',

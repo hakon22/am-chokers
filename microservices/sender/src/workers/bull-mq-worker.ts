@@ -3,12 +3,14 @@ import { Container } from 'typescript-ioc';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
+import { CDEKService } from '@server/services/delivery/cdek.service';
 import { SmsService, type SmsCodeParameterInterface, type SmsPasswordParameterInterface } from '@server/services/integration/sms.service';
 import { redisConfig } from '@server/db/database.service';
 import { BullMQQueuesEnum } from '@microservices/sender/enums/bull-mq-queues.enum';
 import type { TelegramJobInterface, TelegramAdminJobInterface } from '@microservices/sender/types/telegram-job.interface';
+import type { OrderEntity } from '@server/db/entities/order.entity';
 
-type JobInterface = TelegramJobInterface & TelegramAdminJobInterface & SmsCodeParameterInterface & SmsPasswordParameterInterface;
+type JobInterface = TelegramJobInterface & TelegramAdminJobInterface & SmsCodeParameterInterface & SmsPasswordParameterInterface & OrderEntity;
 
 interface WorkerConfigInterface {
   queue: BullMQQueuesEnum;
@@ -25,6 +27,8 @@ export class BullMQWorker {
 
   private readonly smsService = Container.get(SmsService);
 
+  private readonly CDEKService = Container.get(CDEKService);
+
   private workers: Map<BullMQQueuesEnum, Worker> = new Map();
 
   public init = () => {
@@ -35,6 +39,7 @@ export class BullMQWorker {
       { queue: BullMQQueuesEnum.SMS_PASSWORD_QUEUE, processor: this.processSMSPasswordJob, name: 'SMS password' },
       { queue: BullMQQueuesEnum.TELEGRAM_QUEUE, processor: this.processTelegramJob, name: 'Telegram' },
       { queue: BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE, processor: this.processTelegramAdminJob, name: 'Telegram admin' },
+      { queue: BullMQQueuesEnum.CDEK_DELIVERY_QUEUE, processor: this.processCDEKDeliveryJob, name: 'CDEK delivery' },
     ];
 
     workerConfigs.forEach((config) => {
@@ -104,6 +109,19 @@ export class BullMQWorker {
       this.loggerService.info(this.TAG, `Telegram сообщение отправлено успешно: #${job.id}`);
     } catch (error) {
       this.loggerService.error(this.TAG, `Ошибка при обработке Telegram задачи #${job.id}:`, error);
+      throw error;
+    }
+  };
+
+  private processCDEKDeliveryJob = async (job: Job<OrderEntity>) => {
+    try {
+      this.loggerService.info(`Обработка CDEK задачи #${job.id}`, job.data);
+
+      await this.CDEKService.createOrder(job.data);
+
+      this.loggerService.info(this.TAG, `CDEK задача завершена успешно: #${job.id}`);
+    } catch (error) {
+      this.loggerService.error(this.TAG, `Ошибка при обработке CDEK задачи #${job.id}:`, error);
       throw error;
     }
   };

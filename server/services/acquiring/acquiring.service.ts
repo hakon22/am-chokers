@@ -2,6 +2,7 @@ import { In } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer, type IItemWithoutData } from '@a2seven/yoo-checkout';
 import { Container } from 'typescript-ioc';
+import moment from 'moment';
 
 import { BaseService } from '@server/services/app/base.service';
 import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
@@ -17,6 +18,7 @@ import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTransla
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
 import type { OrderInterface } from '@/types/order/Order';
@@ -74,7 +76,7 @@ export class AcquiringService extends BaseService {
     }
   };
 
-  public createOrder = async (order: OrderInterface, type: AcquiringTypeEnum, lang: UserLangEnum) => {
+  public createOrder = async (order: OrderInterface | OrderEntity, type: AcquiringTypeEnum, lang: UserLangEnum) => {
     const credential = await AcquiringCredentialsEntity.findOne({ where: { issuer: type, isDevelopment: process.env.NODE_ENV === 'development' } });
 
     if (!credential || credential?.deleted) {
@@ -95,6 +97,8 @@ export class AcquiringService extends BaseService {
     const amount = getOrderPrice(order);
     const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
+    const orderPositions = [...order.positions];
+
     if (order.deliveryPrice) {
       const deliveryPosition = {
         count: 1,
@@ -110,10 +114,10 @@ export class AcquiringService extends BaseService {
         },
       } as OrderPositionEntity;
 
-      order.positions.push(deliveryPosition);
+      orderPositions.push(deliveryPosition);
     }
 
-    const items = order.positions.filter((position) => position.price).map((position) => {
+    const items = orderPositions.filter((position) => position.price).map((position) => {
       let positionDiscountPercent = discountPercent;
       if (order.promotional && order.promotional.items.length) {
         if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
@@ -271,11 +275,15 @@ export class AcquiringService extends BaseService {
       const messageRu = [
         `‼️Оплачен заказ <b>№${order.id}</b>‼️`,
         '',
-        `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
         `Способ доставки: <b>${deliveryRu}</b>`,
         `Адрес доставки: <b>${order.delivery.address}</b>`,
         ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Тип доставки: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, UserLangEnum.RU)}</b>`] : []),
-        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
+        ...([DeliveryTypeEnum.RUSSIAN_POST, DeliveryTypeEnum.CDEK].includes(order.delivery.type) && order.delivery.index ? [`Индекс ПВЗ: <b>${order.delivery.index}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.platformStationTo ? [`Код ПВЗ клиента: <b>${order.delivery.platformStationTo}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffName ? [`Тариф: <b>${order.delivery.tariffName}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffDescription ? [`Описание тарифа: <b>${order.delivery.tariffDescription}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.deliveryFrom && order.delivery.deliveryTo ? [`Срок доставки: с <b>${moment(order.delivery.deliveryFrom).format(DateFormatEnum.DD_MM_YYYY)}</b> по <b>${moment(order.delivery.deliveryTo).format(DateFormatEnum.DD_MM_YYYY)}</b>`] : []),
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
       ];
@@ -283,7 +291,7 @@ export class AcquiringService extends BaseService {
       const messageEn = [
         `‼️Paid order <b>№${order.id}</b>‼️`,
         '',
-        `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        `Amount: <b>${getOrderPrice(order)} ₽</b>`,
         `Delivery method: <b>${deliveryEn}</b>`,
         `Delivery address: <b>${order.delivery.address}</b>`,
         ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, UserLangEnum.EN)}</b>`] : []),

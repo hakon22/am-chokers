@@ -69,6 +69,20 @@ export class MiddlewareService {
     res.status(401).json({ message: 'Unauthorized' });
   };
 
+  public accessCDEK = (req: Request, res: Response, next: NextFunction) => {
+    const subnets = [
+      '194.49.120.0/24',
+      '195.189.222.0/24',
+    ];
+
+    if (subnets.find((subnet) => this.checkIpService.isCorrectIP(this.getClientIp(req) as string, subnet))) {
+      next();
+      return;
+    }
+
+    res.status(401).json({ message: 'Unauthorized' });
+  };
+
   public optionalJwtAuth = (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate('jwt', { session: false }, (err: any, user: any) => {
       if (err) {

@@ -20,6 +20,7 @@ import { UploadImage } from '@/components/UploadImage';
 import { newGradeValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
+import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
 import { scrollTop } from '@/utilities/scrollTop';
@@ -200,6 +201,12 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                       <span>{tCart('deliveryType')}</span>
                       <span className="fw-500">{getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}</span>
                     </div>
+                    {order.delivery.status && (
+                      <div className="d-flex justify-content-between">
+                        <span className="col-5">{t('status')}</span>
+                        <span className="text-end fw-500 col-7 text-wrap">{getDeliveryStatusTranslate(order.delivery, lang as UserLangEnum)}</span>
+                      </div>
+                    )}
                     <div className="d-flex justify-content-between">
                       <span className="col-5">{t('deliveryAddress')}</span>
                       <span className="text-end fw-500 col-7 text-wrap">{order.delivery.address}</span>

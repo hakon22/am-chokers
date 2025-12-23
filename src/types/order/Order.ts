@@ -7,7 +7,7 @@ import type { PaginationQueryInterface } from '@server/types/pagination.query.in
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 import type { UserInterface } from '@/types/user/User';
-import type { RussianPostDeliveryDataInterface } from '@/types/delivery/russian.post.delivery.interface';
+import type { RussianPostDeliveryDataInterface } from '@server/types/delivery/russian.post.delivery.interface';
 
 export type OrderInterface = OmitBase<OrderEntity> & InitialState;
 
@@ -21,8 +21,16 @@ export interface CreateDeliveryInterface {
   price: number;
   address: string;
   type?: DeliveryTypeEnum;
-  indexTo?: RussianPostDeliveryDataInterface['indexTo'],
-  mailType?: RussianPostDeliveryDataInterface['mailType'],
+  cdekType?: 'office' | 'door';
+  index?: RussianPostDeliveryDataInterface['indexTo'];
+  mailType?: RussianPostDeliveryDataInterface['mailType'];
+  tariffName?: string;
+  tariffDescription?: string;
+  tariffCode?: number;
+  countryCode?: string;
+  deliveryFrom?: string;
+  deliveryTo?: string;
+  platformStationTo?: string;
 }
 
 export interface CreateOrderInterface {

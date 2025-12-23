@@ -1,9 +1,11 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { AfterLoad, BaseEntity, Column, CreateDateColumn, Entity, Index, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-import { YandexDeliveryStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.status.enum';
+import { OrderEntity } from '@server/db/entities/order.entity';
+import { YandexDeliveryStatusEnum } from '@server/types/delivery/yandex/enums/yandex.delivery.status.enum';
+import { CDEKDeliveryStatusEnum } from '@server/types/delivery/cdek/enums/cdek-delivery-status.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
-import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.reason.status.enum';
-import { RussianPostMailTypeEnum } from '@/types/delivery/russian.post.delivery.interface';
+import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/yandex/enums/yandex.delivery.reason.status.enum';
+import { RussianPostMailTypeEnum } from '@server/types/delivery/russian.post.delivery.interface';
 
 /** Доставка */
 @Entity({
@@ -68,19 +70,57 @@ export class DeliveryEntity extends BaseEntity {
   @Column('character varying')
   public address: string;
 
-  /** Статус доставки */
+  /** Статус доставки (Яндекс) */
   @Column({
     type: 'enum',
     enum: YandexDeliveryStatusEnum,
     nullable: true,
+    name: 'yandex_status',
   })
-  public status: YandexDeliveryStatusEnum;
+  public yandexStatus: YandexDeliveryStatusEnum;
 
-  /** Индекс почтового отделения (только для Почты России) */
+  /** Статус доставки (СДЭК) */
+  @Column({
+    type: 'enum',
+    enum: CDEKDeliveryStatusEnum,
+    nullable: true,
+    name: 'cdek_status',
+  })
+  public cdekStatus: CDEKDeliveryStatusEnum;
+
+  /** Индекс почтового отделения */
   @Column('character varying', {
     nullable: true,
   })
   public index?: string;
+
+  /** Наименование тарифа */
+  @Column('character varying', {
+    nullable: true,
+    name: 'tariff_name',
+  })
+  public tariffName?: string;
+
+  /** Описание тарифа */
+  @Column('character varying', {
+    nullable: true,
+    name: 'tariff_description',
+  })
+  public tariffDescription?: string;
+
+  /** Код тарифа */
+  @Column('int', {
+    nullable: true,
+    name: 'tariff_code',
+  })
+  public tariffCode?: number;
+
+  /** Код страны получателя */
+  @Column('character varying', {
+    nullable: true,
+    name: 'country_code',
+  })
+  public countryCode?: string;
 
   /** Выбранный тип доставки (только для Почты России) */
   @Column({
@@ -103,4 +143,23 @@ export class DeliveryEntity extends BaseEntity {
     nullable: true,
   })
   public reason?: YandexDeliveryReasonStatusEnum;
+
+  /** Заказ */
+  @OneToOne(() => OrderEntity, order => order.delivery)
+  public item: OrderEntity;
+
+  /** Статус доставки (определяется в момент загрузки сущности через TypeORM). НЕ ЯВЛЯЕТСЯ КОЛОНКОЙ */
+  public status: YandexDeliveryStatusEnum | CDEKDeliveryStatusEnum;
+
+  @AfterLoad()
+  getStatus() {
+    switch (this.type) {
+    case DeliveryTypeEnum.YANDEX_DELIVERY:
+      this.status = this.yandexStatus;
+      break;
+    case DeliveryTypeEnum.CDEK:
+      this.status = this.cdekStatus;
+      break;
+    }
+  }
 }

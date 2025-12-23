@@ -131,7 +131,7 @@ export class ItemCollectionService extends TranslationHelper {
           .createQueryBuilder('item')
           .update()
           .set({ collection: null })
-          .where('item.id IN(:...ids)', { ids: items.map(({ id }) => id) })
+          .where('"item"."id" IN(:...ids)', { ids: items.map(({ id }) => id) })
           .execute();
 
         await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);

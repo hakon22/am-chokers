@@ -40,6 +40,8 @@ export class OrderService extends BaseService {
 
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
+  private TAG = 'OrderService';
+
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
 
@@ -260,12 +262,7 @@ export class OrderService extends BaseService {
         positions,
         promotional,
         comment,
-        delivery: await deliveryRepo.create({
-          address: delivery.address,
-          type: delivery.type,
-          index: delivery.indexTo,
-          mailType: delivery.mailType,
-        }).save(),
+        delivery: await deliveryRepo.create(delivery).save(),
       } as OrderEntity);
 
       const newOrder = await this.findOne({ id: created.id }, user.lang, {}, { manager });
@@ -306,32 +303,42 @@ export class OrderService extends BaseService {
 
     this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
 
-    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, user.lang) as string;
+    const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA, user.lang) as string;
 
     await this.redisService.setEx(`checkOrderPayment_${order.id}`, {}, 60 * 60);
+
+    this.bullMQQueuesService.CDEKDeliveryHandler(order);
 
     return { order, url, refreshToken };
   };
 
-  public updateStatus = async (params: ParamsIdInterface, { status }: OrderInterface, lang: UserLangEnum) => {
-    const order = await this.findOne(params, lang);
+  public updateStatus = async (params: ParamsIdInterface, { status }: Pick<OrderInterface, 'status'>, lang: UserLangEnum, options?: OrderOptionsInterface) => {
+    const manager = options?.manager || this.databaseService.getManager();
 
-    const { back, next } = getNextOrderStatuses(order.status);
+    const order = await this.findOne(params, lang, {}, { ...(options || {}), manager });
 
-    if (![back, next].includes(status)) {
-      throw new Error(lang === UserLangEnum.RU
-        ? `Статус заказа №${order.id} со статусом ${order.status} нельзя поменять на статус ${status}. Доступные статусы: ${back}, ${next}`
-        : `Order status #${order.id} with status ${order.status} cannot be changed to status ${status}. Available statuses: ${back}, ${next}`);
+    if (!options?.withoutCheck) {
+      const { back, next } = getNextOrderStatuses(order.status);
+
+      if (![back, next].includes(status)) {
+        throw new Error(lang === UserLangEnum.RU
+          ? `Статус заказа №${order.id} со статусом ${order.status} нельзя поменять на статус ${status}. Доступные статусы: ${back}, ${next}`
+          : `Order status #${order.id} with status ${order.status} cannot be changed to status ${status}. Available statuses: ${back}, ${next}`);
+      }
     }
 
-    await OrderEntity.update(order.id, { status });
+    await manager
+      .getRepository(OrderEntity)
+      .update(order.id, { status });
 
     if (order.user.telegramId) {
-      const message = lang === UserLangEnum.RU
-        ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, lang)}</b> на <b>${getOrderStatusTranslate(status, lang)}</b>.`
-        : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, lang)}</b> to <b>${getOrderStatusTranslate(status, lang)}</b>.`;
+      const message = order.user.lang === UserLangEnum.RU
+        ? `Заказ <b>№${order.id}</b> сменил статус с <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> на <b>${getOrderStatusTranslate(status, order.user.lang)}</b>.`
+        : `Order <b>№${order.id}</b> changed status from <b>${getOrderStatusTranslate(order.status, order.user.lang)}</b> to <b>${getOrderStatusTranslate(status, order.user.lang)}</b>.`;
       this.bullMQQueuesService.sendTelegramMessage({ message, telegramId: order.user.telegramId });
     }
+
+    this.loggerService.info(this.TAG, `Изменился статус заказа с ${order.status} на ${status}`);
 
     order.status = status;
 
@@ -380,7 +387,7 @@ export class OrderService extends BaseService {
       const messageRu = [
         `Отмена заказа <b>№${order.id}</b>`,
         '',
-        `Сумма: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
       ];
@@ -388,7 +395,7 @@ export class OrderService extends BaseService {
       const messageEn = [
         `Cancel order <b>№${order.id}</b>`,
         '',
-        `Amount: <b>${getOrderPrice({ ...order } as OrderInterface)} ₽</b>`,
+        `Amount: <b>${getOrderPrice(order)} ₽</b>`,
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
       ];
@@ -406,7 +413,7 @@ export class OrderService extends BaseService {
       throw new Error(lang === UserLangEnum.RU ? 'Заказ уже оплачен' : 'The order has already been paid');
     }
 
-    const url = await this.acquiringService.createOrder({ ...order } as OrderInterface, AcquiringTypeEnum.YOOKASSA, lang);
+    const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA, lang);
   
     return url;
   };

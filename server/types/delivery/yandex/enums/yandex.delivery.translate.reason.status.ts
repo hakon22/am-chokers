@@ -1,4 +1,4 @@
-import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.reason.status.enum';
+import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/yandex/enums/yandex.delivery.reason.status.enum';
 
 export const yandexDeliveryTranslateReasonStatus: Record<YandexDeliveryReasonStatusEnum, string> = {
   [YandexDeliveryReasonStatusEnum.SHOP_CANCELLED]: 'Отправитель отменил заказ',

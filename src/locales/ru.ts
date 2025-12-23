@@ -153,6 +153,7 @@ export default {
             orderComment: 'Комментарий к заказу:',
             deliveryAddress: 'Адрес доставки',
             mailIndex: 'Почтовый индекс',
+            status: 'Статус доставки',
             deliveryType: 'Тип доставки',
             deliveryAmount: 'Стоимость доставки',
             itemsAmount: 'Стоимость товаров',
@@ -401,6 +402,7 @@ export default {
         resetPVZ: 'Сбросить ПВЗ',
         selectedPVZ: {
           title: 'Выбранный ПВЗ:',
+          cdekDoorTitle: 'Выбранный адрес:',
           address: '{{ address }}',
         },
         total: 'Итого:',

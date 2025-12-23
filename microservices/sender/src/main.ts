@@ -5,6 +5,8 @@ import { BullMQWorker } from '@microservices/sender/workers/bull-mq-worker';
 import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
 import { OrderService } from '@server/services/order/order.service';
+import { CDEKService } from '@server/services/delivery/cdek.service';
+
 
 class Sender {
   private readonly bullMQWorker = Container.get(BullMQWorker);
@@ -17,11 +19,14 @@ class Sender {
 
   private readonly orderService = Container.get(OrderService);
 
+  private readonly CDEKService = Container.get(CDEKService);
+
   public init = async () => {
     try {
       await this.databaseService.init();
       await this.redisService.init();
       await this.orderService.subscribe();
+      await this.CDEKService.init();
       this.bullMQWorker.init();
       this.loggerService.info('Сервис BullMQ Worker успешно запущен');
 

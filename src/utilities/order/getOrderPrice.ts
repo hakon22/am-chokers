@@ -23,7 +23,7 @@ export const getPositionPriceWithDiscount = (position: OrderPositionInterface, p
   return +(price - discount).toFixed(2);
 };
 
-export const getOrderDiscount = (order: OrderInterface) => {
+export const getOrderDiscount = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
   const percent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
   const totalDiscount = order.positions
@@ -37,7 +37,7 @@ export const getOrderDiscount = (order: OrderInterface) => {
   return +orderDiscount.toFixed(2);
 };
 
-export const getOrderPrice = (order: OrderInterface) => {
+export const getOrderPrice = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
   const discount = getOrderDiscount(order);
 
   const totalPrice = getPositionsPrice(order.positions, order.deliveryPrice);

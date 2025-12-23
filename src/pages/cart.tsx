@@ -33,9 +33,10 @@ import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 import type { UserSignupInterface } from '@/types/user/User';
-import type { YandexDeliveryDataInterface } from '@/types/delivery/yandex.delivery.interface';
-import type { RussianPostDeliveryDataInterface } from '@/types/delivery/russian.post.delivery.interface';
+import type { YandexDeliveryDataInterface } from '@server/types/delivery/yandex/yandex.delivery.interface';
+import type { RussianPostDeliveryDataInterface } from '@server/types/delivery/russian.post.delivery.interface';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
+import type { CDEKDeliveryDataType } from '@server/types/delivery/cdek/cdek-delivery.interface';
 
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -79,9 +80,6 @@ const Cart = () => {
   const defaultDelivery: CreateOrderInterface['delivery'] = {
     price: 0,
     address: '',
-    type: undefined,
-    indexTo: undefined,
-    mailType: undefined,
   };
 
   const filteredCart = useMemo(() => cart.filter(({ item }) => !(item.deleted || item.isAbsent)), [cart]);
@@ -206,7 +204,7 @@ const Cart = () => {
           price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : result.cashOfDelivery / 100,
           address: `${result.cityTo}, ${result.addressTo}`,
           type: deliveryType,
-          indexTo: result.indexTo,
+          index: result.indexTo,
           mailType: result.mailType,
         });
         setIsOpenDeliveryWidget(false);
@@ -218,36 +216,58 @@ const Cart = () => {
   const openCDEKDeliveryWidget = (items: CartItemInterface[]) => {
     new window.CDEKWidget({
       from: 'Москва',
-      apiKey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY, // API key for Yandex Maps
-      canChoose: true, // Ability to choose the pickup point
-      servicePath: routes.integration.cdek.root, // Path to the PHP file
+      apiKey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY,
+      canChoose: true,
+      servicePath: routes.integration.cdek.root,
       hideFilters: {
-        have_cashless: false, // Control visibility of the "Cashless Payment" filter
-        have_cash: false, // Control visibility of the "Cash Payment" filter
-        is_dressing_room: false, // Control visibility of the "Dressing Room Available" filter
-        type: false, // Display the "Pickup Point Type" filter
+        have_cashless: true,
+        have_cash: true,
+        is_dressing_room: true,
+        type: false,
       },
-      goods: items.map(() => ({ width: 15, height: 15, length: 15, weight: 50 })),
-      debug: false, // Enable debug information output
-      defaultLocation: 'Москва', // Default address
+      goods: items.map(() => ({ width: 20, height: 20, length: 20, weight: 50 })),
+      debug: false,
+      defaultLocation: 'Москва',
       currency: 'RUB',
-      lang: lang === UserLangEnum.EN ? 'eng' : 'rus', // Widget language
+      lang: lang === UserLangEnum.EN ? 'eng' : 'rus',
       hideDeliveryOptions: {
-        office: false, // Ability to choose delivery to the pickup point
-        door: true, // Hide delivery to the door
+        office: false,
+        door: true,
       },
-      popup: false, // Open the widget in a modal window
+      tariffs: {
+        office: [136, 234, 291, 510, 368, 378, 185, 498, 2485],
+        pickup: [136, 234, 291, 510, 368, 378, 185, 498, 2485],
+      },
+      popup: false,
+      onChoose: (...params: CDEKDeliveryDataType) => {
+        const [type, rate, address] = params;
+        let compoundAddress = '';
+        let code = undefined;
 
-      // Function called after the widget finishes loading
-      onReady: () => console.log('Widget is ready'),
-      // Function called after the customer selects a pickup point
-      onChoose: (delivery: string, rate: any, address: any) => {
-        console.log(delivery, rate, address);
+        switch (type) {
+        case 'office':
+          compoundAddress = [address.city, address.address].filter(Boolean).join(', ').trim();
+          code = address.code;
+          break;
+        case 'door':
+          compoundAddress = address.formatted;
+          break;
+        }
+
         setSavedDeliveryPrice(rate.delivery_sum);
         setDelivery({
           price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : rate.delivery_sum,
-          address: [address.city, address.address].filter(Boolean).join(', ').trim(),
+          address: compoundAddress,
           type: deliveryType,
+          cdekType: type,
+          tariffName: rate.tariff_name,
+          tariffDescription: rate.tariff_description,
+          tariffCode: rate.tariff_code,
+          deliveryFrom: rate.delivery_date_range?.min,
+          deliveryTo: rate.delivery_date_range?.max,
+          countryCode: address.country_code,
+          platformStationTo: code,
+          index: address.postal_code,
         });
         setIsOpenDeliveryWidget(false);
       },
@@ -442,7 +462,7 @@ const Cart = () => {
         </div>
         <div className="col-12 col-xl-4">
           <h3 className="mb-4 text-uppercase">{t('deliveryType')}</h3>
-          <Radio.Group size="large" disabled={!cartList.length} className="mb-4 border-0" options={deliveryList} value={deliveryType} onChange={({ target }) => setDeliveryType(target.value)} />
+          <Radio.Group size="large" disabled={!cartList.length} className="d-flex flex-column flex-xl-row gap-2 gap-xl-0 mb-4 border-0" options={deliveryList} value={deliveryType} onChange={({ target }) => setDeliveryType(target.value)} />
           {deliveryButton
             ? delivery.address
               ? <Button className="button mx-auto mb-4" onClick={resetPVZ}>{t('resetPVZ')}</Button>
@@ -451,7 +471,7 @@ const Cart = () => {
           {delivery.address
             ? (
               <div className="d-flex flex-column fs-5 mb-4 fw-300">
-                <span className="text-uppercase fw-bold">{t('selectedPVZ.title')}</span>
+                <span className="text-uppercase fw-bold">{t(delivery.cdekType === 'door' ? 'selectedPVZ.cdekDoorTitle' : 'selectedPVZ.title')}</span>
                 <span>{t('selectedPVZ.address', { address: delivery.address })}</span>
               </div>
             )

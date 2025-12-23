@@ -37,7 +37,7 @@ class Server extends BaseService {
   private init = async () => {
     await this.databaseService.init();
     await this.redisService.init({ withoutSubscribles: true });
-    await this.CDEKService.init();
+    await this.CDEKService.init({ withWebhooks: true });
     await this.itemService.synchronizationCache();
 
     if (!this.dev) {

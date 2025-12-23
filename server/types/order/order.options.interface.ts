@@ -11,4 +11,6 @@ export interface OrderOptionsInterface {
   withDeleted?: boolean;
   /** Менеджер typeorm */
   manager?: EntityManager;
+  /** Без проверки на статус заказа */
+  withoutCheck?: boolean;
 }

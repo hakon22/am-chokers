@@ -94,7 +94,7 @@ class DeferredPublicationCron {
         .createQueryBuilder('item')
         .update()
         .set({ publicationDate: null })
-        .where('item.id IN(:...ids)', { ids })
+        .where('"item"."id" IN(:...ids)', { ids })
         .execute();
 
       const needUpdateItems = await this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, ids);

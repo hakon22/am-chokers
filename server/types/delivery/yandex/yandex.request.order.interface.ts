@@ -1,5 +1,5 @@
-import { YandexDeliveryStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.status.enum';
-import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/enums/yandex/yandex.delivery.reason.status.enum';
+import { YandexDeliveryStatusEnum } from '@server/types/delivery/yandex/enums/yandex.delivery.status.enum';
+import { YandexDeliveryReasonStatusEnum } from '@server/types/delivery/yandex/enums/yandex.delivery.reason.status.enum';
 
 export interface YandexRequestOrderResponseInterface {
   route_id: any;

@@ -1,4 +1,4 @@
-import { RussianPostMailTypeEnum } from '@/types/delivery/russian.post.delivery.interface';
+import { RussianPostMailTypeEnum } from '@server/types/delivery/russian.post.delivery.interface';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 export const getRussianPostRussianPostTranslate = (type: RussianPostMailTypeEnum, lang: UserLangEnum) => {

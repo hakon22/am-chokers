@@ -21,6 +21,7 @@ export class IntegrationRoute extends BaseRouter {
     router.post(this.routes.integration.telegram.webhook, this.middlewareService.accessTelegram, this.telegramService.webhooks);
     router.post(this.routes.integration.yookassa.webhook, this.middlewareService.authorizationYookassaMiddleware, this.acquiringController.checkYookassaOrder);
     router.get(this.routes.integration.gpt.generateDescription(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.gptService.generateDescription);
+    router.post(this.routes.integration.cdek.webhooks, this.middlewareService.accessCDEK, this.CDEKService.webhooks);
     router.get(this.routes.integration.cdek.root, this.CDEKService.switch);
     router.post(this.routes.integration.cdek.root, this.CDEKService.switch);
   };

@@ -97,7 +97,17 @@ export class OrderController extends BaseService {
     try {
       const { cart, promotional, delivery, user, comment } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
 
-      const { order, url, refreshToken } = await this.orderService.createOne(cart, this.getCurrentUser(req) || user, delivery, comment, promotional);
+      const {
+        order,
+        url,
+        refreshToken,
+      } = await this.orderService.createOne(
+        cart,
+        this.getCurrentUser(req) || user,
+        delivery,
+        comment,
+        promotional,
+      );
 
       res.json({ code: 1, order, url, refreshToken });
     } catch (e) {

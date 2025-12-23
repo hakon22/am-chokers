@@ -229,7 +229,7 @@ export class ItemGroupService extends TranslationHelper {
           .createQueryBuilder('item')
           .update()
           .set({ deleted })
-          .where('item.id IN(:...ids)', { ids: items.map(({ id }) => id) })
+          .where('"item"."id" IN(:...ids)', { ids: items.map(({ id }) => id) })
           .execute();
 
         await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);
@@ -263,7 +263,7 @@ export class ItemGroupService extends TranslationHelper {
           .createQueryBuilder('item')
           .update()
           .set({ deleted: null })
-          .where('item.id IN(:...ids)', { ids: items.map(({ id }) => id) })
+          .where('"item"."id" IN(:...ids)', { ids: items.map(({ id }) => id) })
           .execute();
 
         await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, items);

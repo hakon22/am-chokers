@@ -267,8 +267,12 @@ const newOrderPositionSchema = yup.object().shape({
     price: numberSchema.min(0),
     address: stringSchema,
     type: yup.string().oneOf(Object.values(DeliveryTypeEnum)),
-    indexTo: yup.string().optional(),
+    index: yup.string().optional(),
     mailType: yup.string().optional(),
+    tariffName: yup.string().optional(),
+    tariffDescription: yup.string().optional(),
+    deliveryFrom: yup.string().optional(),
+    deliveryTo: yup.string().optional(),
   }),
   user: yup.object().shape({
     name: stringSchema,
