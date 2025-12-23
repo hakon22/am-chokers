@@ -19,6 +19,7 @@ import { CDEKWebhooksEnum } from '@server/types/delivery/cdek/enums/cdek-webhook
 import { routes, serverHost } from '@/routes';
 import { CDEKResponseStateEnum } from '@server/types/delivery/cdek/enums/cdek-response-state.enum';
 import { CDEKDeliveryStatusEnum } from '@server/types/delivery/cdek/enums/cdek-delivery-status.enum';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import type { CDEKOrderResponseInterface } from '@server/types/delivery/cdek/cdek-order-response.interface';
 import type { CDEKResponseInterface } from '@server/types/delivery/cdek/cdek-response.interface';
 import type { CDEKWebhooksRequestInterface } from '@server/types/delivery/cdek/cdek-webhooks-request.interface';
@@ -26,7 +27,6 @@ import type { CDEKCreateOrderFormInterface, CDEKItemsRequestInterface } from '@s
 import type { CDEKErrorInterface } from '@server/types/delivery/cdek/cdek-error.interface';
 import type { CDEKWebhooksResponseInterface } from '@server/types/delivery/cdek/cdek-webhooks-response.interface';
 import type { CDEKWebhooksFormInterface } from '@server/types/delivery/cdek/cdek-webhooks-form.interface';
-import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 
 @Singleton
 export class CDEKService extends BaseService {

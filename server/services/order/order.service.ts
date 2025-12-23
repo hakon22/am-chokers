@@ -42,8 +42,6 @@ export class OrderService extends BaseService {
 
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
-  private readonly CDEKService = Container.get(CDEKService);
-
   private TAG = 'OrderService';
 
   private createQueryBuilder = (query?: OrderQueryInterface, options?: OrderOptionsInterface) => {
@@ -408,7 +406,7 @@ export class OrderService extends BaseService {
     }
 
     if (order.delivery.type === DeliveryTypeEnum.CDEK) {
-      await this.CDEKService.deleteOrderByUuid(order.delivery.deliveryId);
+      await Container.get(CDEKService).deleteOrderByUuid(order.delivery.deliveryId);
     }
   
     return { order, cart };
