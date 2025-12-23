@@ -53,6 +53,7 @@ jobs:
           NEXT_PUBLIC_FIO_EN=${{ secrets.NEXT_PUBLIC_FIO_EN }}
           NEXT_PUBLIC_INN=${{ secrets.NEXT_PUBLIC_INN }}
           NEXT_PUBLIC_PROMO=${{ secrets.NEXT_PUBLIC_PROMO }}
+          NEXT_PUBLIC_YANDEX_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_YANDEX_MAPS_API_KEY }}
 
   deploy:
     runs-on: ubuntu-latest

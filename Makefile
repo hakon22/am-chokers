@@ -24,3 +24,9 @@ update-fids:
 
 fetch-clicks:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/yandex-direct.service.ts
+
+build-docker-dev:
+	docker compose -f docker-compose.dev.yml build
+
+start-docker-dev:
+	docker compose -f docker-compose.dev.yml up
