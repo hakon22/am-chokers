@@ -195,6 +195,20 @@ export class CDEKService extends BaseService {
     }
   };
 
+  public deleteOrderByUuid = async (uuid: string) => {
+    try {
+      if (!uuid) {
+        throw new Error('Отсутствует uuid');
+      }
+      const response = await this.axiosInstance.delete<CDEKOrderResponseInterface>(`/orders/${uuid}`);
+
+      return response.data;
+    } catch (e) {
+      this.loggerService.error(this.TAG, e);
+      throw new Error(`Delete order by uuid failed: ${e}`);
+    }
+  };
+
   public webhooks = async (req: Request, res: Response) => {
     try {
       const body = req.body as CDEKWebhooksRequestInterface;

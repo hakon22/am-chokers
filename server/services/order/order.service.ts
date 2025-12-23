@@ -11,7 +11,9 @@ import { AcquiringService } from '@server/services/acquiring/acquiring.service';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
+import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { CartService } from '@server/services/cart/cart.service';
+import { CDEKService } from '@server/services/delivery/cdek.service';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
@@ -39,6 +41,8 @@ export class OrderService extends BaseService {
   private readonly acquiringService = Container.get(AcquiringService);
 
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
+
+  private readonly CDEKService = Container.get(CDEKService);
 
   private TAG = 'OrderService';
 
@@ -401,6 +405,10 @@ export class OrderService extends BaseService {
       ];
 
       this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
+    }
+
+    if (order.delivery.type === DeliveryTypeEnum.CDEK) {
+      await this.CDEKService.deleteOrderByUuid(order.delivery.deliveryId);
     }
   
     return { order, cart };
