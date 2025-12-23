@@ -38,6 +38,8 @@ import type { RussianPostDeliveryDataInterface } from '@server/types/delivery/ru
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 import type { CDEKDeliveryDataType } from '@server/types/delivery/cdek/cdek-delivery.interface';
 
+const YANDEX_MAPS_API_KEY = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY as string;
+
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
 
@@ -216,7 +218,7 @@ const Cart = () => {
   const openCDEKDeliveryWidget = (items: CartItemInterface[]) => {
     new window.CDEKWidget({
       from: 'Москва',
-      apiKey: process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY,
+      apiKey: YANDEX_MAPS_API_KEY,
       canChoose: true,
       servicePath: routes.integration.cdek.root,
       hideFilters: {
