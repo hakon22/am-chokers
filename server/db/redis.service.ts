@@ -17,7 +17,7 @@ export class RedisService {
 
   public commonOptions = {
     socket: redisConfig,
-    prefix: `${process.env.NEXT_PUBLIC_APP_NAME ?? 'myapp'}:${process.env.NODE_ENV ?? 'dev'}:`.toUpperCase(),
+    prefix: `${process.env.NEXT_PUBLIC_APP_NAME ?? 'myapp'}:${process.env.NODE_ENV ?? 'development'}:`.toUpperCase(),
   };
 
   public init = async (options?: { withoutSubscribles?: boolean; }) => {

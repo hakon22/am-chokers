@@ -2,7 +2,7 @@ import path from 'path';
 
 import moment from 'moment';
 import { Container } from 'typescript-ioc';
-import { Between, IsNull } from 'typeorm';
+import { Between, IsNull, Or } from 'typeorm';
 import 'dotenv/config';
 
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity'; 
@@ -19,7 +19,6 @@ const TAG = 'DeferredPublication';
 
 /** Публикация товаров из отложенного списка */
 class DeferredPublicationCron {
-
   public readonly loggerService = Container.get(LoggerService);
 
   private readonly databaseService = Container.get(DatabaseService);
@@ -29,7 +28,6 @@ class DeferredPublicationCron {
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   public start = async () => {
-
     await this.databaseService.init();
     await this.redisService.init({ withoutSubscribles: true });
 
@@ -46,7 +44,7 @@ class DeferredPublicationCron {
           date: Between(from, to),
           isPublished: false,
           item: {
-            publicationDate: IsNull(),
+            publicationDate: Or(IsNull(), Between(from, to)),
           },
         },
         relations: ['item'],
@@ -62,6 +60,24 @@ class DeferredPublicationCron {
     if (!deferredPublications.length && !publicationItems.length) {
       this.loggerService.info(TAG, 'Нет товаров для публикации');
       process.exit(0);
+    }
+
+    if (publicationItems.length) {
+      const ids = publicationItems.map(({ id }) => id);
+
+      await ItemEntity
+        .createQueryBuilder('item')
+        .update()
+        .set({ publicationDate: null })
+        .where('"item"."id" IN(:...ids)', { ids })
+        .execute();
+
+      const needUpdateItems = await this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, ids);
+
+      needUpdateItems.forEach((item) => {
+        item.publicationDate = null;
+      });
+      await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, needUpdateItems);
     }
 
     const items = deferredPublications.length
@@ -85,24 +101,6 @@ class DeferredPublicationCron {
       this.publishProcess(item, deferredValue.description);
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
-    }
-
-    if (publicationItems.length) {
-      const ids = publicationItems.map(({ id }) => id);
-
-      await ItemEntity
-        .createQueryBuilder('item')
-        .update()
-        .set({ publicationDate: null })
-        .where('"item"."id" IN(:...ids)', { ids })
-        .execute();
-
-      const needUpdateItems = await this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, ids);
-
-      needUpdateItems.forEach((item) => {
-        item.publicationDate = null;
-      });
-      await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, needUpdateItems);
     }
 
     if (items.length) {

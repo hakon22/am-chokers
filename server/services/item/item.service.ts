@@ -413,11 +413,6 @@ export class ItemService extends TranslationHelper {
           ? 'Дата публикации в Telegram не должна быть раньше даты публикации товара'
           : 'The publication date in Telegram should not be earlier than the product publication date');
       }
-      if (moment(body.deferredPublication.date).isSame(moment(body.publicationDate), 'minutes')) {
-        throw new Error(lang === UserLangEnum.RU
-          ? 'Дата публикации в Telegram не должна быть равна дате публикации товара'
-          : 'The publication date in Telegram should not be same than the product publication date');
-      }
     }
 
     body.translateName = translate(body.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name);
@@ -559,7 +554,7 @@ export class ItemService extends TranslationHelper {
         : 'No group specified for sending to Telegram');
     }
 
-    const item = await this.findOne(params, lang);
+    const item = await this.findOne(params, lang, { withNotPublished: true });
 
     if (item.images.length < 2) {
       throw new Error(isRu
@@ -815,7 +810,7 @@ export class ItemService extends TranslationHelper {
 
   public synchronizationCache = async (options?: SynchronizationCacheInterface) => {
     // Товары
-    const items = await this.findMany({ withDeleted: true }, { onlyIds: true, withoutCache: true });
+    const items = await this.findMany({ withDeleted: true, withNotPublished: true }, { onlyIds: true, withoutCache: true });
     const cachedItems = await this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, items.map(({ id }) => id));
     if (!cachedItems?.length || items.length !== cachedItems.length || options?.forced) {
       if (items.length !== cachedItems.length && !options?.forced) {
@@ -823,7 +818,7 @@ export class ItemService extends TranslationHelper {
       } else if (options?.forced) {
         this.loggerService.info('ItemService', `Ручная синхронизация кэша товаров (PostgreSQL: ${items.length} / Redis: ${cachedItems.length})...`);
       }
-      const allItems = await this.findMany({ withDeleted: true }, { fullItem: true, withGrades: true, withoutCache: true });
+      const allItems = await this.findMany({ withDeleted: true, withNotPublished: true }, { fullItem: true, withGrades: true, withoutCache: true });
       await this.redisService.setItems(RedisKeyEnum.ITEM_BY_ID, allItems);
       this.loggerService.info('ItemService', `В Redis было успешно добавлено ${allItems.length} товаров.`);
     }
