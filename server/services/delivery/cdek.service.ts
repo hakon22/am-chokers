@@ -27,6 +27,7 @@ import type { CDEKCreateOrderFormInterface, CDEKItemsRequestInterface } from '@s
 import type { CDEKErrorInterface } from '@server/types/delivery/cdek/cdek-error.interface';
 import type { CDEKWebhooksResponseInterface } from '@server/types/delivery/cdek/cdek-webhooks-response.interface';
 import type { CDEKWebhooksFormInterface } from '@server/types/delivery/cdek/cdek-webhooks-form.interface';
+import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 
 @Singleton
 export class CDEKService extends BaseService {
@@ -216,7 +217,9 @@ export class CDEKService extends BaseService {
       this.loggerService.info(this.TAG, `Уведомление от СДЭК: ${JSON.stringify(body)}`);
 
       if (body.type === CDEKWebhooksEnum.ORDER_STATUS) {
-        const deliveryOrder = await this.getOrderByUuid(body.uuid);
+        const deliveryOrder = body.attributes.code !== CDEKDeliveryStatusEnum.REMOVED
+          ? await this.getOrderByUuid(body.uuid)
+          : null;
 
         let orderStatus: OrderStatusEnum;
 
@@ -252,18 +255,32 @@ export class CDEKService extends BaseService {
               .update()
               .set({
                 cdekStatus: body.attributes.code,
-                ...(deliveryOrder.entity.delivery_point ? { platformStationTo: deliveryOrder.entity.delivery_point } : {}),
-                ...(deliveryOrder.entity.to_location?.postal_code ? { index: deliveryOrder.entity.to_location.postal_code } : {}),
-                ...(deliveryOrder.entity.to_location?.address ? { address: deliveryOrder.entity.to_location.address } : {}),
+                ...(deliveryOrder?.entity.delivery_point ? { platformStationTo: deliveryOrder.entity.delivery_point } : {}),
+                ...(deliveryOrder?.entity.to_location?.postal_code ? { index: deliveryOrder.entity.to_location.postal_code } : {}),
+                ...(deliveryOrder?.entity.to_location?.address ? { address: deliveryOrder.entity.to_location.address } : {}),
               })
               .where('"delivery"."id" = :deliveryId', { deliveryId: delivery.id })
               .execute();
 
-            this.loggerService.info(this.TAG, `Изменился статус доставки с ${delivery.cdekStatus} на ${body.attributes.code}`);
+            let infoText: string;
+            if (delivery.cdekStatus) {
+              infoText = `Изменился статус доставки с ${delivery.cdekStatus} на ${body.attributes.code}`;
+            } else {
+              infoText = `Созданный заказ с типом СДЭК сменил статус на ${body.attributes.code}`;
+            }
+
+            this.loggerService.info(this.TAG, infoText);
 
             if (order) {
-              const messageRu = `По заказу <b>№${order.id}</b> изменился статус доставки с <b>${CDEKDeliveryTranslateStatus[UserLangEnum.RU][delivery.cdekStatus]}</b> на <b>${CDEKDeliveryTranslateStatus[UserLangEnum.RU][body.attributes.code]}</b>.`;
-              const messageEn = `For order <b>№${order.id}</b> the delivery status has changed from <b>${CDEKDeliveryTranslateStatus[UserLangEnum.EN][delivery.cdekStatus]}</b> to <b>${CDEKDeliveryTranslateStatus[UserLangEnum.EN][body.attributes.code]}</b>.`;
+              let messageRu: string;
+              let messageEn: string;
+              if (delivery.cdekStatus) {
+                messageRu = `По заказу <b>№${order.id}</b> изменился статус доставки с <b>${CDEKDeliveryTranslateStatus[UserLangEnum.RU][delivery.cdekStatus]}</b> на <b>${CDEKDeliveryTranslateStatus[UserLangEnum.RU][body.attributes.code]}</b>.`;
+                messageEn = `For order <b>№${order.id}</b> the delivery status has changed from <b>${CDEKDeliveryTranslateStatus[UserLangEnum.EN][delivery.cdekStatus]}</b> to <b>${CDEKDeliveryTranslateStatus[UserLangEnum.EN][body.attributes.code]}</b>.`;
+              } else {
+                messageRu = `По заказу <b>№${order.id}</b> создана доставка через службу <b>${getDeliveryTypeTranslate(delivery.type, UserLangEnum.RU)}</b>.`;
+                messageEn = `For order <b>№${order.id}</b> delivery through the service has been created <b>${getDeliveryTypeTranslate(delivery.type, UserLangEnum.EN)}</b>.`;
+              }
               this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
 
               if (order.user.telegramId && !order.user.isAdmin) {
@@ -365,7 +382,7 @@ export class CDEKService extends BaseService {
             name_i18n: position.item.translations.find(({ lang }) => lang === UserLangEnum.EN)?.name as string,
             ware_key: position.item.id.toString(),
             payment: {
-              value: positionsAmount[position.id],
+              value: 0,
             },
             weight: 50,
             weight_gross: 50,
@@ -422,7 +439,6 @@ export class CDEKService extends BaseService {
             .update()
             .set({
               deliveryId: deliveryOrder.entity.uuid,
-              cdekStatus: CDEKDeliveryStatusEnum.CREATED,
               ...(deliveryOrder.entity.delivery_point ? { platformStationTo: deliveryOrder.entity.delivery_point } : {}),
               ...(deliveryOrder.entity.to_location?.postal_code ? { index: deliveryOrder.entity.to_location.postal_code } : {}),
               ...(deliveryOrder.entity.to_location?.address ? { address: deliveryOrder.entity.to_location.address } : {}),

@@ -329,6 +329,10 @@ export class OrderService extends BaseService {
       }
     }
 
+    if (order.status === status) {
+      return;
+    }
+
     await manager
       .getRepository(OrderEntity)
       .update(order.id, { status });
