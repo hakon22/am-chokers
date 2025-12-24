@@ -43,7 +43,7 @@ export class CDEKService extends BaseService {
 
   private isRefreshing = false;
 
-  private refreshSubscribers: ((token: string) => void)[] = [];
+  private refreshSubscribers: { resolve: (token: string) => void; reject: (err: any) => void; }[] = [];
 
   private TAG = 'CDEKService';
 
@@ -90,10 +90,13 @@ export class CDEKService extends BaseService {
         originalRequest._retry = true;
 
         if (this.isRefreshing) {
-          return new Promise((resolve) => {
-            this.refreshSubscribers.push((token: string) => {
-              originalRequest.headers['Authorization'] = `Bearer ${token}`;
-              resolve(this.axiosInstance(originalRequest));
+          return new Promise((resolve, reject) => {
+            this.refreshSubscribers.push({
+              resolve: (token: string) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                resolve(this.axiosInstance(originalRequest));
+              },
+              reject,
             });
           });
         }
@@ -102,18 +105,21 @@ export class CDEKService extends BaseService {
 
         try {
           await this.getAuthToken();
-          originalRequest.headers.Authorization = `Bearer ${this.authToken}`;
 
-          this.refreshSubscribers.forEach((callback) => callback(this.authToken!));
+          this.refreshSubscribers.forEach(({ resolve }) => resolve(this.authToken));
           this.refreshSubscribers = [];
 
+          originalRequest.headers.Authorization = `Bearer ${this.authToken}`;
           return this.axiosInstance(originalRequest);
         } catch (e) {
-          this.refreshSubscribers.forEach((callback) => callback(this.authToken!));
+          this.refreshSubscribers.forEach(({ reject }) => reject(e));
           this.refreshSubscribers = [];
           return Promise.reject(e);
+        } finally {
+          this.isRefreshing = false;
         }
       }
+
       return Promise.reject(error);
     });
   };
@@ -246,7 +252,7 @@ export class CDEKService extends BaseService {
           const deliveryRepo = manager.getRepository(DeliveryEntity);
           const orderRepo = manager.getRepository(OrderEntity);
 
-          const delivery = await deliveryRepo.findOne({ select: ['id', 'cdekStatus'], where: { deliveryId: body.uuid } });
+          const delivery = await deliveryRepo.findOne({ select: ['id', 'type', 'cdekStatus'], where: { deliveryId: body.uuid } });
           const order = await orderRepo.findOne({ select: ['id', 'user'], where: { delivery: { deliveryId: body.uuid } }, relations: ['delivery', 'user'] });
 
           if (delivery) {
