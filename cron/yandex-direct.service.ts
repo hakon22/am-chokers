@@ -7,6 +7,7 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { DatabaseService } from '@server/db/database.service';
 import { YandexDirectCampaignEntity } from '@server/db/entities/yandex.direct.campaign.entity';
 import { YandexDirectStatisticsEntity } from '@server/db/entities/yandex.direct.statistics.entity';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 
 interface GetDailyClicksOptions {
   date?: moment.Moment;
@@ -109,16 +110,16 @@ class YandexDirectServiceCron {
 
   private getDailyClicks = async (campaigns: YandexDirectCampaignEntity[], options?: GetDailyClicksOptions): Promise<void> => {
     const now = options?.date || moment();
-    const from = options?.from || now.clone().subtract(1, 'day').format('YYYY-MM-DD');
-    const to = options?.to || now.clone().subtract(1, 'day').format('YYYY-MM-DD');
+    const from = options?.from || now.clone().subtract(1, 'day').format(DateFormatEnum.YYYY_MM_DD);
+    const to = options?.to || now.clone().subtract(1, 'day').format(DateFormatEnum.YYYY_MM_DD);
 
     this.loggerService.info(TAG, `Получаем клики за период с ${from} по ${to}...`);
 
     const body: RequestReportInterface = {
       params: {
         SelectionCriteria: {
-          ...(options?.from ? { DateFrom: moment(options.from).format('YYYY-MM-DD') } : {}),
-          ...(options?.to ? { DateTo: moment(options.to).format('YYYY-MM-DD') } : {}),
+          ...(options?.from ? { DateFrom: moment(options.from).format(DateFormatEnum.YYYY_MM_DD) } : {}),
+          ...(options?.to ? { DateTo: moment(options.to).format(DateFormatEnum.YYYY_MM_DD) } : {}),
         },
         DateRangeType: (options?.from || options?.to) ? 'CUSTOM_DATE' : 'YESTERDAY',
         FieldNames: ['Date', 'CampaignId', 'Clicks', 'Cost', 'Bounces'],
@@ -154,7 +155,7 @@ class YandexDirectServiceCron {
 
       if (date && id) {
         result.push({
-          date: moment(date, 'YYYY-MM-DD').toDate(),
+          date: moment(date, DateFormatEnum.YYYY_MM_DD).toDate(),
           clicks: +clicksStr || 0,
           cost: (+costStr / 1000000) || 0,
           failure: +failureStr || 0,
@@ -162,6 +163,22 @@ class YandexDirectServiceCron {
         } as YandexDirectStatisticsEntity);
       }
     }
+
+    _.uniq(result.map(({ date }) => moment(date).format(DateFormatEnum.YYYY_MM_DD))).forEach((date) => {
+      const resultValues = result.filter((value) => moment(value.date).format(DateFormatEnum.YYYY_MM_DD) === date);
+      if (resultValues.length !== campaigns.length) {
+        const nullableCampaigns = campaigns.filter(({ id }) => !resultValues.find(({ campaign }) => campaign.id === id));
+        nullableCampaigns.forEach(({ id }) => {
+          result.push({
+            date: moment(date, DateFormatEnum.YYYY_MM_DD).toDate(),
+            clicks: 0,
+            cost: 0,
+            failure: 0,
+            campaign: { id },
+          } as YandexDirectStatisticsEntity);
+        });
+      }
+    });
 
     return result;
   };
