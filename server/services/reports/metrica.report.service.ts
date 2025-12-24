@@ -69,6 +69,7 @@ export class MetricaReportService extends BaseService {
         totalClicks: 0,
         totalCost: 0,
         totalFailure: 0,
+        totalFailurePercentage: 0,
       },
     };
 
@@ -140,15 +141,15 @@ export class MetricaReportService extends BaseService {
       });
     });
 
-    if (result.totalStats.totalClicks > 0) {
-      result.totalStats.totalFailure = +(result.totalStats.totalFailure / result.totalStats.totalClicks * 100).toFixed(2);
+    if (result.totalStats.totalClicks) {
+      result.totalStats.totalFailurePercentage = +(result.totalStats.totalFailure / result.totalStats.totalClicks * 100).toFixed(2);
     }
 
     // Рассчитываем проценты для кампаний
-    Object.keys(result.campaignStats).forEach(campaignId => {
+    Object.keys(result.campaignStats).forEach((campaignId) => {
       const campaign = result.campaignStats[+campaignId];
       if (campaign.totalClicks) {
-        campaign.totalFailure = +(campaign.totalFailure / campaign.totalClicks * 100).toFixed(2);
+        campaign.totalFailurePercentage = +(campaign.totalFailure / campaign.totalClicks * 100).toFixed(2);
       }
     });
 

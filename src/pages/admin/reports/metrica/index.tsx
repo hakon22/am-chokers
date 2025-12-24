@@ -80,7 +80,7 @@ const Metrica = () => {
         date: point.date,
         totalClicks: point.total.clicks,
         totalCost: point.total.cost,
-        totalFailure: point.total.failurePercentage,
+        totalFailurePercentage: point.total.failurePercentage,
       };
 
       // Добавляем данные по кампаниям
@@ -329,13 +329,13 @@ const Metrica = () => {
             <Area
               yAxisId="failure"
               type="monotone"
-              dataKey="totalFailure"
+              dataKey="totalFailurePercentage"
               name={t('chart.actionTotalFailure')}
               stroke="#8884d8"
               fill="transparent"
               strokeWidth={2}
               strokeDasharray="3 3"
-              hide={hiddenLines['totalFailure']}
+              hide={hiddenLines['totalFailurePercentage']}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -354,7 +354,7 @@ const Metrica = () => {
                       </h6>
                       <p>{t('chart.statistics.clicks')} {campaign.totalClicks}</p>
                       <p>{t('chart.statistics.cost', { cost: campaign.totalCost })}</p>
-                      <p>{t('chart.statistics.failure')} {campaign.totalFailure}</p>
+                      <p>{t('chart.statistics.failure')} {campaign.totalFailurePercentage}</p>
                     </div>
                   </div>
                 </div>
@@ -366,7 +366,7 @@ const Metrica = () => {
                   <h6 className="card-title text-primary">{t('chart.statistics.total')}</h6>
                   <p>{t('chart.statistics.clicks')} {data?.totalStats?.totalClicks ?? 0}</p>
                   <p>{t('chart.statistics.cost', { cost: data?.totalStats?.totalCost ?? 0 })}</p>
-                  <p>{t('chart.statistics.failure')} {data?.totalStats?.totalFailure ?? 0}</p>
+                  <p>{t('chart.statistics.failure')} {data?.totalStats?.totalFailurePercentage ?? 0}</p>
                 </div>
               </div>
             </div>

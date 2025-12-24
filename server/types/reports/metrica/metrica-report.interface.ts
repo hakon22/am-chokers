@@ -18,5 +18,6 @@ export interface MetricaReportInterface {
     totalClicks: number;
     totalCost: number;
     totalFailure: number;
+    totalFailurePercentage: number;
   };
 }
