@@ -72,6 +72,7 @@ export class MiddlewareService {
   public accessCDEK = (req: Request, res: Response, next: NextFunction) => {
     const subnets = [
       '194.49.120.0/24',
+      '194.49.121.0/24',
       '195.189.222.0/24',
     ];
 

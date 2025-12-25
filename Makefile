@@ -25,6 +25,9 @@ update-fids:
 fetch-clicks:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/yandex-direct.service.ts
 
+deferred:
+	cross-env DB='LOCAL' CRON='TRUE' tsx cron/deferred-publication.ts
+
 build-docker-dev:
 	docker compose -f docker-compose.dev.yml build
 
