@@ -7,6 +7,7 @@ import {
   useCallback, useEffect, useMemo, useState,
 } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
@@ -20,6 +21,7 @@ import { routes } from '@/routes';
 import { isMobileDevice } from '@/utilities/isMobileDevice';
 import { removeToken as removeUserToken } from '@/slices/userSlice';
 import { removeMany as removeManyCart } from '@/slices/cartSlice';
+import { scrollTop } from '@/utilities/scrollTop';
 import { removeMany } from '@/slices/orderSlice';
 import { Promotional } from '@/components/Promotional';
 import favicon16 from '@/images/favicons/favicon16x16.png';
@@ -60,6 +62,8 @@ const Init = (props: InitPropsInterface) => {
 
   const closeNavbar = () => setIsActive(false);
 
+  const pathname = usePathname();
+
   const logIn = () => setLoggedIn(true);
   const logOut = useCallback(async () => {
     const refreshTokenStorage = window.localStorage.getItem(storageKey);
@@ -85,6 +89,10 @@ const Init = (props: InitPropsInterface) => {
     AOS.init();
     dispatch(setAppData({ itemGroups }));
   }, []);
+
+  useEffect(() => {
+	  scrollTop('instant');
+  }, [pathname]);
 
   return (
     <I18nextProvider i18n={i18n}>
