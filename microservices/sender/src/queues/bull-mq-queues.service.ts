@@ -27,5 +27,5 @@ export class BullMQQueuesService {
 
   public sendTelegramAdminMessage = (data: TelegramAdminJobInterface) => this.queues[BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE].add(BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE, data);
 
-  public CDEKDeliveryHandler = (data: OrderEntity) => this.queues[BullMQQueuesEnum.CDEK_DELIVERY_QUEUE].add(BullMQQueuesEnum.CDEK_DELIVERY_QUEUE, data);
+  public CDEKCreateDeliveryOrder = (data: OrderEntity) => this.queues[BullMQQueuesEnum.CDEK_DELIVERY_QUEUE].add(BullMQQueuesEnum.CDEK_DELIVERY_QUEUE, data);
 }

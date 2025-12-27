@@ -309,7 +309,9 @@ export class OrderService extends BaseService {
 
     await this.redisService.setEx(`checkOrderPayment_${order.id}`, {}, 60 * 60);
 
-    this.bullMQQueuesService.CDEKDeliveryHandler(order);
+    if (order.delivery.type === DeliveryTypeEnum.CDEK) {
+      this.bullMQQueuesService.CDEKCreateDeliveryOrder(order);
+    }
 
     return { order, url, refreshToken };
   };
