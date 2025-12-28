@@ -1,6 +1,7 @@
  
 import { useEffect, useState, useContext, type JSX, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Breadcrumb as BreadcrumbAntd } from 'antd';
@@ -54,7 +55,7 @@ export const Breadcrumb = () => {
         title: pathArray.length - 1 === index && folder !== 'catalog' ? page : <Link href={link} title={page}>{page}</Link>,
       };
     }));
-  }, [pathname, itemGroups.length, itemName, lang]);
+  }, [pathname, itemGroups.length, itemName, i18next.resolvedLanguage]);
 
   return router.pathname.includes(catalogPath)
     ? (
