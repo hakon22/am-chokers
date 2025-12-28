@@ -123,6 +123,9 @@ export default {
           receipt: 'Чек',
           actions: {
             stop: 'Отменить заказ',
+            cancelConfirm: 'Уверены, что хотите отменить заказ?',
+            cancel: 'Нет',
+            okText: 'Да',
             change: 'Перевести в статус {{ status }}',
           },
           statuses: {

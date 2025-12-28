@@ -123,6 +123,9 @@ export default {
           receipt: 'Receipt',
           actions: {
             stop: 'Cancel the order',
+            cancelConfirm: 'Are you sure you want to cancel your order?',
+            cancel: 'No',
+            okText: 'Yes',
             change: 'Change status to {{ status }}',
           },
           statuses: {

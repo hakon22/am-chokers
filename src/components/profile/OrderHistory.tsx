@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Alert, Badge, Button, Card, Tag, Tooltip } from 'antd';
+import { Alert, Badge, Button, Card, Popconfirm, Tag, Tooltip } from 'antd';
 import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import moment from 'moment';
 import Image from 'next/image';
@@ -117,19 +117,23 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
     return isAdmin
       ? [
         ...(order.status === OrderStatusEnum.CANCELED ? [] : [
-          <div key="stop" title={t('actions.stop')} onClick={() => cancelOrderHandler(orderId)}>
-            <span className="me-2">{t('actions.stop')}</span>
-            <StopOutlined />
-          </div>,
+          <Popconfirm key="stop" title={t('actions.cancelConfirm')} okText={t('actions.okText')} cancelText={t('actions.cancel')} onConfirm={() => cancelOrderHandler(orderId)}>
+            <button className="icon-button text-muted" type="button" title={t('actions.stop')}>
+              <span className="me-1">{t('actions.stop')}</span>
+              <StopOutlined />
+            </button>
+          </Popconfirm>,
         ]),
         ...(back ? [<BackwardOutlined key="back" onClick={() => changeStatusHandler(back, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${back}`) })} />] : []),
         ...(next ? [<ForwardOutlined key="next" onClick={() => changeStatusHandler(next, orderId)} className="fs-5" title={t('actions.change', { status: t(`statuses.${next}`) })} />] : []),
       ]
       : !order.isPayment ? [
-        <div key="stop" title={t('actions.stop')} onClick={() => cancelOrderHandler(orderId)}>
-          <span className="me-2">{t('actions.stop')}</span>
-          <StopOutlined />
-        </div>,
+        <Popconfirm key="stop" title={t('actions.cancelConfirm')} okText={t('actions.okText')} cancelText={t('actions.cancel')} onConfirm={() => cancelOrderHandler(orderId)}>
+          <button className="icon-button text-muted" type="button" title={t('actions.stop')}>
+            <span className="me-1">{t('actions.stop')}</span>
+            <StopOutlined />
+          </button>
+        </Popconfirm>,
       ] : [];
   };
 
@@ -180,6 +184,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
           <Badge.Ribbon key={order.id} text={t(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
             <Card
               actions={getActions(order, order.id)}
+              classNames={{ actions: 'd-flex justify-content-center align-items-center' }}
             >
               <div className="d-flex flex-column flex-xl-row justify-content-xl-between align-items-xl-center mb-2 mb-xl-4 gap-2">
                 <Link href={`${setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory}/${order.id}`} className="fs-5 fw-bold font-oswald text-decoration-underline text-primary text-muted fw-light text-center text-xl-start">
