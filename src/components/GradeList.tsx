@@ -76,7 +76,7 @@ export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen, s
         <div className="d-flex gap-3 mt-3">
           {grade?.comment?.images.map(({ id: imageId, src, name: imageName }) => (
             <div key={imageId}>
-              <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+              <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64({ url: src, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit })} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
             </div>
           ))}
         </div>
@@ -96,7 +96,7 @@ export const GradeListDescription = ({ grade, setPreviewImage, setPreviewOpen, s
                   <div className="d-flex gap-3 mt-3">
                     {comment.images.map(({ id: imageId, src, name: imageName }) => (
                       <div key={imageId}>
-                        <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64(src, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit)} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                        <Image src={src} width={50} height={50} unoptimized alt={imageName} style={{ borderRadius: '7px' }} onClick={() => urlToBase64({ url: src, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit })} className="cursor-pointer" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                       </div>
                     ))}
                   </div>

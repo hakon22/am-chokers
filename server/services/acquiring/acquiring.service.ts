@@ -10,7 +10,7 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
-import { getDiscountPercent, getOrderPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
+import { getDiscountPercent, getOrderPrice, getPositionAmount, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -294,13 +294,46 @@ export class AcquiringService extends BaseService {
         `Amount: <b>${getOrderPrice(order)} ₽</b>`,
         `Delivery method: <b>${deliveryEn}</b>`,
         `Delivery address: <b>${order.delivery.address}</b>`,
-        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, UserLangEnum.EN)}</b>`] : []),
-        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.index ? [`Pickup index: <b>${order.delivery.index}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.RUSSIAN_POST && order.delivery.mailType ? [`Delivery type: <b>${getRussianPostRussianPostTranslate(order.delivery.mailType, UserLangEnum.RU)}</b>`] : []),
+        ...([DeliveryTypeEnum.RUSSIAN_POST, DeliveryTypeEnum.CDEK].includes(order.delivery.type) && order.delivery.index ? [`Pickup point index: <b>${order.delivery.index}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.platformStationTo ? [`Pickup point code: <b>${order.delivery.platformStationTo}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffName ? [`Tariff: <b>${order.delivery.tariffName}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffDescription ? [`Tariff description: <b>${order.delivery.tariffDescription}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.deliveryFrom && order.delivery.deliveryTo ? [`Delivery time: from <b>${moment(order.delivery.deliveryFrom).format(DateFormatEnum.DD_MM_YYYY)}</b> to <b>${moment(order.delivery.deliveryTo).format(DateFormatEnum.DD_MM_YYYY)}</b>`] : []),
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
       ];
 
+      const positions = [...order.positions];
+
+      if (order.deliveryPrice) {
+        const deliveryPosition = {
+          id: 0,
+          count: 1,
+          price: order.deliveryPrice,
+          discountPrice: 0,
+          discount: 0,
+          grade: { id: 0, grade: 0 },
+          item: {
+            translations: [
+              { lang: UserLangEnum.RU, name: 'Доставка' },
+              { lang: UserLangEnum.EN, name: 'Delivery' },
+            ],
+          },
+        } as OrderPositionEntity;
+
+        positions.push(deliveryPosition);
+      }
+
+      const positionsAmount = getPositionAmount({ ...order, positions } as OrderInterface);
+      const items = positions.map(({ id, count, item }) => ({
+        name: item.translations.find(({ lang }) => lang === UserLangEnum.RU)?.name as string,
+        quantity: count,
+        amount: positionsAmount[id],
+      }));
+
       this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
+      this.bullMQQueuesService.NPDNalogCreateOrder({ order: transaction.order, items });
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);
     }

@@ -91,6 +91,13 @@ export class OrderEntity extends BaseEntity {
   })
   public comment: string;
 
+  /** `id` чека в налоговой */
+  @Column('character varying', {
+    nullable: true,
+    name: 'receipt_id',
+  })
+  public receiptId: string;
+
   /** Позиции */
   @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
   public positions: OrderPositionEntity[];
@@ -102,12 +109,26 @@ export class OrderEntity extends BaseEntity {
   /** Статус оплаты */
   public isPayment: boolean;
 
+  /** Ссылка на чек */
+  public receiptUrl: string;
+
   @AfterLoad()
+  async afterLoad() {
+    await this.checkPayment();
+    this.setReceiptUrl();
+  }
+
   async checkPayment() {
     if (this.transactions) {
       this.isPayment = !!this.transactions.find((transaction) => transaction.status === TransactionStatusEnum.PAID);
     } else {
       this.isPayment = !!(await AcquiringTransactionEntity.exists({ where: { order: { id: this.id }, status: TransactionStatusEnum.PAID } }));
+    }
+  }
+
+  setReceiptUrl() {
+    if (this.receiptId) {
+      this.receiptUrl = `https://lknpd.nalog.ru/api/v1/receipt/${process.env.NEXT_PUBLIC_INN}/${this.receiptId}/print`;
     }
   }
 }

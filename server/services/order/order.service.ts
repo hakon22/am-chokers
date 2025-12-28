@@ -72,6 +72,7 @@ export class OrderService extends BaseService {
           'order.deliveryPrice',
           'order.deleted',
           'order.comment',
+          'order.receiptId',
         ])
         .leftJoin('order.user', 'user')
         .addSelect([

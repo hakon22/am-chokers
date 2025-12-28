@@ -4,7 +4,7 @@ import { Alert, Badge, Button, Card, Tag, Tooltip } from 'antd';
 import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import moment from 'moment';
 import Image from 'next/image';
-import { StopOutlined, ForwardOutlined, BackwardOutlined, CopyOutlined } from '@ant-design/icons';
+import { StopOutlined, ForwardOutlined, BackwardOutlined, CopyOutlined, ContainerOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
 import axios from 'axios';
@@ -26,6 +26,8 @@ import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter'
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { PreviewImage } from '@/components/PreviewImage';
+import { urlToBase64, getBase64 } from '@/components/UploadImage';
 import type { OrderInterface } from '@/types/order/Order';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
@@ -58,6 +60,9 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
   const [orders, setOrders] = useState<OrderInterface[]>([]);
   const [isAnimating, setIsAnimating] = useState<number>();
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
 
   const { id: userId, isAdmin, lang } = useAppSelector((state) => state.user);
 
@@ -169,6 +174,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   return orders.length
     ? (
       <div className={cn('d-flex flex-column gap-4 w-100 without-padding', { 'ms-xl-3': !setData })}>
+        <PreviewImage previewImage={previewImage} previewOpen={previewOpen} setPreviewImage={setPreviewImage} setPreviewOpen={setPreviewOpen} />
         {!setData && <OrderStatusFilter statuses={statuses} setStatuses={setStatuses} lang={lang as UserLangEnum} />}
         {orders.sort((a, b) => b.id - a.id).filter((order) => !statuses.length || statuses.includes(order.status)).map((order) => (
           <Badge.Ribbon key={order.id} text={t(`statuses.${order.status}`)} color={getOrderStatusColor(order.status)}>
@@ -236,8 +242,9 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                   )}
                 </div>
               </div>
-              <div className="d-flex justify-content-between fs-6 text-muted fw-bold mt-4 mt-xl-0">
+              <div className="d-flex align-items-center fs-6 text-muted fw-bold mt-4 mt-xl-0 gap-3">
                 <span>{t('totalAmount', { price: getOrderPrice(order) } )}</span>
+                {order.receiptUrl && <ContainerOutlined title={t('receipt')} style={{ color: 'green' }} onClick={() => urlToBase64({ url: order.receiptUrl, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit, withoutAuth: true })} />}
               </div>
             </Card>
           </Badge.Ribbon>

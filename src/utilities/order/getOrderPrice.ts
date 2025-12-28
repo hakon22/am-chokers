@@ -44,3 +44,20 @@ export const getOrderPrice = (order: Omit<OrderInterface, 'error' | 'loadingStat
 
   return +(totalPrice - discount).toFixed(2);
 };
+
+export const getPositionAmount = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
+  const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
+
+  const positionsAmount = order.positions.reduce((acc, position) => {
+    let positionDiscountPercent = discountPercent;
+    if (order.promotional && order.promotional.items.length) {
+      if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
+        positionDiscountPercent = 0;
+      }
+    }
+    acc[position.id] = getPositionPriceWithDiscount(position, positionDiscountPercent);
+    return acc;
+  }, {} as Record<number, number>);
+
+  return positionsAmount;
+};

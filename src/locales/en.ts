@@ -120,6 +120,7 @@ export default {
           selectStatuses: 'Select status',
           rateYourOrder: 'Rate items',
           totalAmount: 'Amount: {{ price }} ₽',
+          receipt: 'Receipt',
           actions: {
             stop: 'Cancel the order',
             change: 'Change status to {{ status }}',

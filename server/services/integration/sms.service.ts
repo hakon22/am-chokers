@@ -20,6 +20,10 @@ export interface SmsPasswordParameterInterface extends SmsParameterInterface {
   password: string;
 }
 
+export interface SmsReceiptParameterInterface extends SmsParameterInterface {
+  receipt: string;
+}
+
 @Singleton
 export class SmsService {
   private readonly TAG = 'SMS Service';
@@ -52,6 +56,39 @@ export class SmsService {
         const data = { request_id: Date.now().toString(), error: 'null' };
         console.log(object.txt);
         return { ...data, code };
+      }
+    } catch (e) {
+      this.loggerService.error(this.TAG, e);
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Произошла ошибка при отправке SMS'
+        : 'There was an error sending SMS');
+    }
+  };
+
+  public sendReceipt = async (phone: string, receipt: string, lang: UserLangEnum): Promise<{ request_id: string, receipt: string }> => {
+    try {
+      const object = { to: phone, txt: `Ваш чек: ${receipt}` };
+
+      const { message } = await this.messageService.createOne({ text: object.txt, type: MessageTypeEnum.SMS, phone });
+
+      if (process.env.NODE_ENV === 'production') {
+        this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
+
+        const { data } = await axios.post('https://api3.greensms.ru/sms/send', object, {
+          headers: { Authorization: `Bearer ${process.env.SMS_API_KEY}` },
+        });
+
+        if (data.request_id) {
+          message.send = true;
+          await message.save();
+          return { ...data, receipt };
+        }
+
+        throw new Error(data.error);
+      } else {
+        const data = { request_id: Date.now().toString(), error: 'null' };
+        console.log(object.txt);
+        return { ...data, receipt };
       }
     } catch (e) {
       this.loggerService.error(this.TAG, e);

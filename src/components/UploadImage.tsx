@@ -26,13 +26,27 @@ interface UploadImageInterface {
   setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const urlToBase64 = async (url: string, setPreviewImage: React.Dispatch<React.SetStateAction<string>>, setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>, getBase64: (file: FileType) => Promise<string>, setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>) => {
-  setIsSubmit(true);
-  const { data } = await axios.get(url, { responseType: 'blob' });
-  const base64 = await getBase64(data);
-  setIsSubmit(false);
-  setPreviewImage(base64);
-  setPreviewOpen(true);
+interface UrlToBase64ParamsInterface {
+  url: string;
+  setPreviewImage: React.Dispatch<React.SetStateAction<string>>;
+  setPreviewOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  getBase64: (file: FileType) => Promise<string>;
+  setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
+  withoutAuth?: boolean;
+}
+
+export const urlToBase64 = async ({ url, setPreviewImage, setPreviewOpen, getBase64, setIsSubmit, withoutAuth } : UrlToBase64ParamsInterface) => {
+  try {
+    setIsSubmit(true);
+    const { data } = await axios.get(url, { responseType: 'blob', ...(withoutAuth ? { headers: { Authorization: undefined } } : {}) });
+    const base64 = await getBase64(data);
+    setIsSubmit(false);
+    setPreviewImage(base64);
+    setPreviewOpen(true);
+  } catch (e) {
+    console.log(e);
+    setIsSubmit(false);
+  }
 };
 
 export const getBase64 = (file: FileType): Promise<string> =>

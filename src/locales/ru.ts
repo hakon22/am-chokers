@@ -120,6 +120,7 @@ export default {
           selectStatuses: 'Выберите статусы',
           rateYourOrder: 'Оценить товары',
           totalAmount: 'Сумма: {{ price }} ₽',
+          receipt: 'Чек',
           actions: {
             stop: 'Отменить заказ',
             change: 'Перевести в статус {{ status }}',

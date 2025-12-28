@@ -10,7 +10,7 @@ import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues
 import { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';
 import { OrderEntity } from '@server/db/entities/order.entity';
-import { getDiscountPercent, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
+import { getPositionAmount } from '@/utilities/order/getOrderPrice';
 import { CDEKDeliveryTranslateStatus } from '@server/types/delivery/cdek/enums/cdek-delivery-translate.status';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -356,18 +356,7 @@ export class CDEKService extends BaseService {
 
   public createOrder = async (order: OrderEntity): Promise<void> => {
     try {
-      const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
-
-      const positionsAmount = order.positions.reduce((acc, position) => {
-        let positionDiscountPercent = discountPercent;
-        if (order.promotional && order.promotional.items.length) {
-          if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
-            positionDiscountPercent = 0;
-          }
-        }
-        acc[position.id] = getPositionPriceWithDiscount(position, positionDiscountPercent);
-        return acc;
-      }, {} as Record<number, number>);
+      const positionsAmount = getPositionAmount(order);
 
       const body: CDEKCreateOrderFormInterface = {
         type: 1,
