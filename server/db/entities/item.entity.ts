@@ -78,11 +78,11 @@ export class ItemEntity extends BaseEntity {
   public new: boolean;
 
   /** Временно отсутствующий товар */
-  @Column('boolean', {
-    default: false,
-    name: 'is_absent',
+  @Column('timestamp without time zone', {
+    nullable: true,
+    name: 'out_stock',
   })
-  public isAbsent: boolean;
+  public outStock: Date;
 
   /** Имя товара в транслите */
   @Index()

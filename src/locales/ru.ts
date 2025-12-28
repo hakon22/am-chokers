@@ -421,7 +421,7 @@ export default {
         delete: 'Удалить',
         favorites: 'Избранное',
         deleted: 'Товар закончился',
-        isAbsent: 'Нет в наличии до 18.12',
+        isAbsent: 'Нет в наличии до {{ date }}',
         free: 'Бесплатно',
         promotional: 'Промокод',
         promotionalName: '{{ name }}',

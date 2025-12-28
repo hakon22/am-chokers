@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import cn from 'classnames';
+import moment from 'moment';
 import { Rate, Skeleton } from 'antd';
 import { LikeOutlined } from '@ant-design/icons';
 
 import image404 from '@/images/404.svg';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import type { ItemInterface } from '@/types/item/Item';
 
 interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterface, 'images'> {
@@ -15,7 +17,7 @@ interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterf
   href?: string;
   name?: string;
   deleted?: boolean;
-  isAbsent?: boolean;
+  outStock?: string | Date;
   description?: string;
   marker?: boolean;
   rating?: { rating?: ItemInterface['rating']; grades: ItemInterface['grades'] };
@@ -29,7 +31,7 @@ export const ImageHover = ({
   width = undefined,
   name = '',
   deleted = false,
-  isAbsent = false,
+  outStock,
   description = '',
   marker = false,
   className = '',
@@ -82,9 +84,9 @@ export const ImageHover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {isAbsent && (
+          {outStock && (
             <div className="image-label color-blue">
-              {tCart('isAbsent')}
+              {tCart('isAbsent', { date: moment(outStock).format(DateFormatEnum.DD_MM) })}
             </div>
           )}
           {images.length
@@ -100,7 +102,7 @@ export const ImageHover = ({
                 {image.src.endsWith('.mp4')
                   ? (
                     <video
-                      className={cn({ 'active': i === index, 'opacity-50': !!isAbsent && i === index })}
+                      className={cn({ 'active': i === index, 'opacity-50': !!outStock && i === index })}
                       autoPlay
                       loop
                       muted
@@ -116,7 +118,7 @@ export const ImageHover = ({
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
-                      className={cn({ 'active': i === index, 'opacity-50': !!isAbsent && i === index })}
+                      className={cn({ 'active': i === index, 'opacity-50': !!outStock && i === index })}
                     />
                   )
                 }
@@ -153,9 +155,9 @@ export const ImageHover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {(deleted || isAbsent) && (
-            <div className={cn('image-label', { 'color-blue': isAbsent })}>
-              {tCart(deleted ? 'deleted' : 'isAbsent')}
+          {(deleted || outStock) && (
+            <div className={cn('image-label', { 'color-blue': outStock })}>
+              {tCart(deleted ? 'deleted' : 'isAbsent', { date: moment(outStock).format(DateFormatEnum.DD_MM) })}
             </div>
           )}
           {images.length
@@ -171,7 +173,7 @@ export const ImageHover = ({
                 {image.src.endsWith('.mp4')
                   ? (
                     <video
-                      className={cn({ 'active': i === index, 'opacity-50': !!(deleted || isAbsent) && i === index })}
+                      className={cn({ 'active': i === index, 'opacity-50': !!(deleted || outStock) && i === index })}
                       autoPlay
                       loop
                       muted
@@ -187,7 +189,7 @@ export const ImageHover = ({
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       alt={`Image ${index + 1}`}
-                      className={cn({ 'active': i === index, 'opacity-50': !!(deleted || isAbsent) && i === index })}
+                      className={cn({ 'active': i === index, 'opacity-50': !!(deleted || outStock) && i === index })}
                     />
                   )
                 }

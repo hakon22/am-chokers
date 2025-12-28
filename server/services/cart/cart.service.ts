@@ -45,7 +45,7 @@ export class CartService extends BaseService {
           'item.discount',
           'item.discountPrice',
           'item.deleted',
-          'item.isAbsent',
+          'item.outStock',
           'item.translateName',
         ])
         .leftJoin('item.translations', 'translations')

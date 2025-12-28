@@ -421,7 +421,7 @@ export default {
         delete: 'Delete',
         favorites: 'Favorites',
         deleted: 'Item is out of stock',
-        isAbsent: 'Out of stock till 18.12',
+        isAbsent: 'Out of stock till {{ date }}',
         free: 'For free',
         promotional: 'Discount code',
         promotionalName: '{{ name }}',

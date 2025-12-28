@@ -86,7 +86,7 @@ const Cart = () => {
     address: '',
   };
 
-  const filteredCart = useMemo(() => cart.filter(({ item }) => !(item.deleted || item.isAbsent)), [cart]);
+  const filteredCart = useMemo(() => cart.filter(({ item }) => !(item.deleted || item.outStock)), [cart]);
 
   const [cartList, setCartList] = useState<CartItemInterface[]>(filteredCart);
   const [promotional, setPromotional] = useState<PromotionalInterface>();
@@ -443,19 +443,19 @@ const Cart = () => {
               renderItem={(item) => (
                 <List.Item className={cn({ 'd-flex flex-column align-items-start gap-1': isMobile })}>
                   <div className="d-flex gap-xl-3" style={isMobile ? {} : { height }}>
-                    <Checkbox className={cn({ 'not-padding': isMobile })} value={item} {...(item.item.deleted || item.item.isAbsent ? { checked: false, disabled: true } : {})}>
+                    <Checkbox className={cn({ 'not-padding': isMobile })} value={item} {...(item.item.deleted || item.item.outStock ? { checked: false, disabled: true } : {})}>
                       <ImageHover
                         className="ms-3"
                         height={height}
                         width={width}
                         deleted={!!item.item.deleted}
-                        isAbsent={!!item.item.isAbsent}
+                        outStock={item.item.outStock}
                         style={{ borderRadius: 7 }}
                         images={item.item?.images ?? []}
                       />
                     </Checkbox>
                     <div className="d-flex flex-column justify-content-between font-oswald fs-5-5">
-                      <Link href={getHref(item.item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.item.deleted || item.item.isAbsent })}>
+                      <Link href={getHref(item.item)} className={cn('d-flex flex-column gap-3', { 'opacity-50': item.item.deleted || item.item.outStock })}>
                         <span className="lh-1">{item.item.translations.find((translation) => translation.lang === lang)?.name}</span>
                         <span>{tPrice('price', { price: (item.item.price - item.item.discountPrice) * item.count })}</span>
                       </Link>

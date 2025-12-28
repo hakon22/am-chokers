@@ -678,14 +678,24 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </Form.Item>
               </div>
               <div className={cn('d-flex flex-column flex-xl-row mb-4 gap-2 fs-2', { 'justify-content-between': !oldItem })}>
-                <Form.Item<ItemFormInterface> name="price" rules={[newItemValidation]} className="col-6 col-xl-3">
+                <Form.Item<ItemFormInterface> name="price" rules={[newItemValidation]} className="d-flex align-items-center col-6 col-xl-3">
                   <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.price')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                <Form.Item<ItemFormInterface> name="discountPrice" rules={[newItemValidation]} className="col-6 col-xl-3">
+                <Form.Item<ItemFormInterface> name="discountPrice" rules={[newItemValidation]} className="d-flex align-items-center col-6 col-xl-3">
                   <InputNumber size="large" variant={isMobile ? 'outlined' : 'borderless'} placeholder={t('placeholders.discountPrice')} prefix="₽" className="large-input ps-0 w-100" />
                 </Form.Item>
-                <Form.Item<ItemFormInterface> name="isAbsent" valuePropName="checked" className="large-input mb-1 mb-xl-0">
-                  <Checkbox className={cn({ 'not-padding': isMobile })}>{t('isAbsent')}</Checkbox>
+                <Form.Item<ItemFormInterface> className="d-flex align-items-center col-6 col-xl-3" name="outStock" rules={[newItemValidation]} getValueProps={(value) => ({ value: value ? moment(value) : value })}>
+                  <MomentDatePicker
+                    className="large-input ps-0 w-100"
+                    size="large"
+                    variant={isMobile ? 'outlined' : 'borderless'}
+                    minDate={moment().add(1, 'day')}
+                    placeholder={t('isAbsent')}
+                    allowClear
+                    showNow={false}
+                    format={DateFormatEnum.DD_MM_YYYY}
+                    locale={lang === UserLangEnum.RU ? locale : undefined}
+                  />
                 </Form.Item>
               </div>
               {!isMobile && (<div className="d-flex align-items-center gap-5 mb-4 position-relative">

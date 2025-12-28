@@ -117,7 +117,7 @@ export class ItemService extends TranslationHelper {
           'item.id',
           'item.created',
           'item.deleted',
-          'item.isAbsent',
+          'item.outStock',
           'item.price',
           'item.discount',
           'item.discountPrice',
@@ -232,7 +232,7 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('item.bestseller');
     }
     if (query?.inStock) {
-      builder.andWhere('NOT item.isAbsent');
+      builder.andWhere('item.outStock IS NULL');
     }
     if (query?.groupCode) {
       if (!hasJoin(builder, 'group')) {
@@ -759,7 +759,7 @@ export class ItemService extends TranslationHelper {
         length: translateItem?.length,
         new: item.new ? yes : no,
         bestseller: item.bestseller ? yes : no,
-        isAbsent: !item.isAbsent ? yes : no,
+        isAbsent: !item.outStock ? yes : no,
         created: moment(item.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
       });
 
@@ -898,7 +898,7 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('item.bestseller');
     }
     if (query?.inStock) {
-      builder.andWhere('NOT item.isAbsent');
+      builder.andWhere('item.outStock IS NULL');
     }
 
     const statistics = await builder.getRawMany<{ groupId: number; count: number; }>();

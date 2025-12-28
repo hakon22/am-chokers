@@ -225,7 +225,7 @@ export class OrderService extends BaseService {
         if (item.deleted) {
           acc.deleted = item;
         }
-        if (item.isAbsent) {
+        if (item.outStock) {
           acc.absent = item;
         }
         return acc;

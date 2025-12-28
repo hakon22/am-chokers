@@ -666,9 +666,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                     </Link>
                   )
                   : null}
-                {(item.deleted || item.isAbsent) && (
+                {(item.deleted || item.outStock) && (
                   <Tag {...(item.deleted ? { color: 'volcano' } : { style: { backgroundColor: '#74b6d5', color: 'white' } })} variant="filled" className="py-1 px-2 fs-6">
-                    {tCart(item.deleted ? 'deleted' : 'isAbsent')}
+                    {tCart(item.deleted ? 'deleted' : 'isAbsent', { date: moment(item.outStock).format(DateFormatEnum.DD_MM) })}
                   </Tag>
                 )}
               </div>
@@ -785,9 +785,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                         </Link>
                       )
                       : null}
-                    {(item.deleted || item.isAbsent) && (
+                    {(item.deleted || item.outStock) && (
                       <Tag {...(item.deleted ? { color: 'volcano' } : { style: { backgroundColor: '#74b6d5', color: 'white' } })} variant="filled" className="py-1 px-2 fs-6">
-                        {tCart(item.deleted ? 'deleted' : 'isAbsent')}
+                        {tCart(item.deleted ? 'deleted' : 'isAbsent', { date: moment(item.outStock).format(DateFormatEnum.DD_MM) })}
                       </Tag>
                     )}
                   </div>
