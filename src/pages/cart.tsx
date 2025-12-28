@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
 import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { useContext, useEffect, useMemo, useState, useEffectEvent } from 'react';
+import { useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import cn from 'classnames';
@@ -78,6 +78,8 @@ const Cart = () => {
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
+
+  const cdekWidgetRef = useRef<{ app: { mount: () => void; } }>(null);
 
   const defaultDelivery: CreateOrderInterface['delivery'] = {
     price: 0,
@@ -216,64 +218,68 @@ const Cart = () => {
   };
 
   const openCDEKDeliveryWidget = (items: CartItemInterface[]) => {
-    new window.CDEKWidget({
-      from: 'Москва',
-      apiKey: YANDEX_MAPS_API_KEY,
-      canChoose: true,
-      servicePath: routes.integration.cdek.root,
-      hideFilters: {
-        have_cashless: true,
-        have_cash: true,
-        is_dressing_room: true,
-        type: false,
-      },
-      goods: items.map(() => ({ width: 20, height: 20, length: 20, weight: 50 })),
-      debug: false,
-      defaultLocation: 'Москва',
-      currency: 'RUB',
-      lang: lang === UserLangEnum.EN ? 'eng' : 'rus',
-      hideDeliveryOptions: {
-        office: false,
-        door: true,
-      },
-      tariffs: {
-        office: [136, 234, 291, 510, 368, 378, 185, 498, 2485],
-        pickup: [136, 234, 291, 510, 368, 378, 185, 498, 2485],
-      },
-      popup: false,
-      onChoose: (...params: CDEKDeliveryDataType) => {
-        const [type, rate, address] = params;
-        let compoundAddress = '';
-        let code = undefined;
+    if (cdekWidgetRef?.current) {
+      cdekWidgetRef.current.app.mount();
+    } else {
+      cdekWidgetRef.current = new window.CDEKWidget({
+        from: 'Москва',
+        apiKey: YANDEX_MAPS_API_KEY,
+        canChoose: true,
+        servicePath: routes.integration.cdek.root,
+        hideFilters: {
+          have_cashless: true,
+          have_cash: true,
+          is_dressing_room: true,
+          type: false,
+        },
+        goods: items.map(() => ({ width: 20, height: 20, length: 20, weight: 50 })),
+        debug: false,
+        defaultLocation: 'Москва',
+        currency: 'RUB',
+        lang: lang === UserLangEnum.EN ? 'eng' : 'rus',
+        hideDeliveryOptions: {
+          office: false,
+          door: true,
+        },
+        tariffs: {
+          office: [136, 234, 291, 510, 368, 378, 185, 498, 2485],
+          pickup: [136, 234, 291, 510, 368, 378, 185, 498, 2485],
+        },
+        popup: false,
+        onChoose: (...params: CDEKDeliveryDataType) => {
+          const [type, rate, address] = params;
+          let compoundAddress = '';
+          let code = undefined;
 
-        switch (type) {
-        case 'office':
-          compoundAddress = [address.city, address.address].filter(Boolean).join(', ').trim();
-          code = address.code;
-          break;
-        case 'door':
-          compoundAddress = address.formatted;
-          break;
-        }
+          switch (type) {
+          case 'office':
+            compoundAddress = [address.city, address.address].filter(Boolean).join(', ').trim();
+            code = address.code;
+            break;
+          case 'door':
+            compoundAddress = address.formatted;
+            break;
+          }
 
-        setSavedDeliveryPrice(rate.delivery_sum);
-        setDelivery({
-          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : rate.delivery_sum,
-          address: compoundAddress,
-          type: deliveryType,
-          cdekType: type,
-          tariffName: rate.tariff_name,
-          tariffDescription: rate.tariff_description,
-          tariffCode: rate.tariff_code,
-          deliveryFrom: rate.delivery_date_range?.min,
-          deliveryTo: rate.delivery_date_range?.max,
-          countryCode: address.country_code,
-          platformStationTo: code,
-          index: address.postal_code,
-        });
-        setIsOpenDeliveryWidget(false);
-      },
-    });
+          setSavedDeliveryPrice(rate.delivery_sum);
+          setDelivery({
+            price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : rate.delivery_sum,
+            address: compoundAddress,
+            type: deliveryType,
+            cdekType: type,
+            tariffName: rate.tariff_name,
+            tariffDescription: rate.tariff_description,
+            tariffCode: rate.tariff_code,
+            deliveryFrom: rate.delivery_date_range?.min,
+            deliveryTo: rate.delivery_date_range?.max,
+            countryCode: address.country_code,
+            platformStationTo: code,
+            index: address.postal_code,
+          });
+          setIsOpenDeliveryWidget(false);
+        },
+      });
+    }
   };
 
   const resetPVZ = () => {
