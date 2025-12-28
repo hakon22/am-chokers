@@ -446,7 +446,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
         </Modal>
       ) : null}
       {(oldItem || isMobile) ? null : <Breadcrumb items={breadcrumbs} className="fs-5 mb-5 font-oswald" separator={<RightOutlined className="fs-6" />} style={{ paddingTop: '10.5%' }} />}
-      <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: '100px' } : {}}>
+      <div className="d-flex flex-column flex-xl-row mb-5 justify-content-between" style={isMobile ? { marginTop: oldItem ? '125px' : '100px' } : {}}>
         {isMobile ? (
           <div className="d-flex align-items-center justify-content-between mb-4">
             {oldItem && <BackButton style={{}} className="px-2 py-0" />}
@@ -628,7 +628,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </Form.Item>
               </div>
               <div className="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center mb-4">
-                <Form.Item<ItemFormInterface> name="group" className="large-input mb-4 mb-xl-0" rules={[newItemValidation]}>
+                <Form.Item<ItemFormInterface> name="group" className={cn('mb-4 mb-xl-0', { 'large-input': !isMobile })} rules={[newItemValidation]}>
                   <Select
                     showSearch={{
                       optionFilterProp: 'label',
@@ -649,7 +649,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                     options={itemGroups.map(({ id, translations }) => ({ value: id, label: translations.find((translation) => translation.lang === lang)?.name }))}
                   />
                 </Form.Item>
-                <Form.Item<ItemFormInterface> name="collection" className="large-input mb-4 mb-xl-0">
+                <Form.Item<ItemFormInterface> name="collection" className={cn('mb-4 mb-xl-0', { 'large-input': !isMobile })}>
                   <Select
                     showSearch={{
                       optionFilterProp: 'label',
@@ -686,7 +686,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </Form.Item>
                 <Form.Item<ItemFormInterface> className="d-flex align-items-center col-6 col-xl-3" name="outStock" rules={[newItemValidation]} getValueProps={(value) => ({ value: value ? moment(value) : value })}>
                   <MomentDatePicker
-                    className="large-input ps-0 w-100"
+                    className="large-input w-100"
                     size="large"
                     variant={isMobile ? 'outlined' : 'borderless'}
                     minDate={moment().add(1, 'day')}
