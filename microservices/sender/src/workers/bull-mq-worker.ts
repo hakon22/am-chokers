@@ -47,7 +47,7 @@ export class BullMQWorker {
     const workerConfigs: WorkerConfigInterface[] = [
       { queue: BullMQQueuesEnum.SMS_CODE_QUEUE, processor: this.processSMSCodeJob, name: 'SMS code' },
       { queue: BullMQQueuesEnum.SMS_PASSWORD_QUEUE, processor: this.processSMSPasswordJob, name: 'SMS password' },
-      { queue: BullMQQueuesEnum.SMS_RECEIPT_QUEUE, processor: this.processSMSReceiptJob, name: 'SMS password' },
+      { queue: BullMQQueuesEnum.SMS_RECEIPT_QUEUE, processor: this.processSMSReceiptJob, name: 'SMS receipt' },
       { queue: BullMQQueuesEnum.TELEGRAM_QUEUE, processor: this.processTelegramJob, name: 'Telegram' },
       { queue: BullMQQueuesEnum.TELEGRAM_ADMIN_QUEUE, processor: this.processTelegramAdminJob, name: 'Telegram admin' },
       { queue: BullMQQueuesEnum.CDEK_DELIVERY_QUEUE, processor: this.processCDEKDeliveryJob, name: 'CDEK delivery' },

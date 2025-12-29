@@ -137,7 +137,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
 
   const fetchDataEffect = useEffectEvent(fetchData);
 
-  const getFiltersCount = useMemo(() => (
+  const filtersCount = useMemo(() => (
     initialValues.groupIds?.length ?? 0) +
     (initialValues.collectionIds?.length ?? 0) +
     (initialValues.compositionIds?.length ?? 0) +
@@ -316,7 +316,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
         <FloatButton
           style={{ right: '6.5%', top: '69px', zIndex: 5 }}
           className="fs-6 border-0"
-          badge={{ count: getFiltersCount, offset: [5, 2] }}
+          badge={{ count: filtersCount, offset: [5, 2] }}
           icon={<FunnelFill />}
           onClick={() => setShowDrawer(true)}
         />
@@ -328,7 +328,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
           zIndex={10001}
         >
           <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-            <FilterButtons t={t} {...(getFiltersCount ? { resetFilters } : {})} />
+            <FilterButtons t={t} {...(filtersCount ? { resetFilters } : {})} />
             <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
               <Select
                 placeholder={t('sort.title')}
@@ -372,7 +372,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
     : (
       <div className="d-flex col-2">
         <Form className="large-input w-100" onFinish={onFinish} form={form} initialValues={initialValues}>
-          <FilterButtons t={t} {...(getFiltersCount ? { resetFilters } : {})} />
+          <FilterButtons t={t} {...(filtersCount ? { resetFilters } : {})} />
           <Form.Item<CatalogFiltersInterface> name="sort" style={{ padding: '0 12px' }}>
             <Select
               placeholder={t('sort.title')}

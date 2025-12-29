@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import axios from 'axios';
 import qs from 'qs';
 import { Container, Singleton } from 'typescript-ioc';
@@ -24,6 +26,28 @@ export interface SmsReceiptParameterInterface extends SmsParameterInterface {
   receipt: string;
 }
 
+interface MainSmsRequestInterface {
+  [key: string]: string | string[] | 1 | 0 | undefined;
+  test?: 1 | 0;
+  sender?: string;
+  project: string;
+  recipients: string | string[];
+  message: string;
+}
+
+interface MainSmsResponseInterface {
+  status?: 'success' | 'error';
+  recipients?: string[];
+  parts?: number;
+  count?: number;
+  price?: string;
+  balance?: string;
+  messages_id?: number[];
+  test?: 0 | 1;
+  error?: number;
+  message?: string;
+}
+
 @Singleton
 export class SmsService {
   private readonly TAG = 'SMS Service';
@@ -42,7 +66,7 @@ export class SmsService {
         this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
 
         const { data } = await axios.post('https://api3.greensms.ru/sms/send', object, {
-          headers: { Authorization: `Bearer ${process.env.SMS_API_KEY}` },
+          headers: { Authorization: `Bearer ${process.env.SMS_PROSTO_API_KEY}` },
         });
 
         if (data.request_id) {
@@ -65,29 +89,27 @@ export class SmsService {
     }
   };
 
-  public sendReceipt = async (phone: string, receipt: string, lang: UserLangEnum): Promise<{ request_id: string, receipt: string }> => {
+  public sendReceipt = async (phone: string, receipt: string, lang: UserLangEnum): Promise<MainSmsResponseInterface & { receipt: string }> => {
     try {
-      const object = { to: phone, txt: `Ваш чек: ${receipt}` };
+      const text = `Receipt: ${receipt}`;
 
-      const { message } = await this.messageService.createOne({ text: object.txt, type: MessageTypeEnum.SMS, phone });
+      const { message } = await this.messageService.createOne({ text, type: MessageTypeEnum.SMS, phone });
 
       if (process.env.NODE_ENV === 'production') {
         this.loggerService.info(this.TAG, `Отправка SMS по номеру телефона: ${phone}`);
 
-        const { data } = await axios.post('https://api3.greensms.ru/sms/send', object, {
-          headers: { Authorization: `Bearer ${process.env.SMS_API_KEY}` },
-        });
+        const { data } = await axios.get<MainSmsResponseInterface>(`https://mainsms.ru/api/message/send?${this.getMainSmsUrlParams({ message: text, recipients: phone, project: 'am_chokers' })}`);
 
-        if (data.request_id) {
+        if (data?.messages_id?.length) {
           message.send = true;
           await message.save();
           return { ...data, receipt };
         }
 
-        throw new Error(data.error);
+        throw new Error(data.message);
       } else {
-        const data = { request_id: Date.now().toString(), error: 'null' };
-        console.log(object.txt);
+        const data = { message_id: [Date.now()] };
+        console.log(text);
         return { ...data, receipt };
       }
     } catch (e) {
@@ -103,7 +125,7 @@ export class SmsService {
       const object = {
         method: 'push_msg',
         format: 'json',
-        key: process.env.SMS_API_KEY_PASS,
+        key: process.env.GREEN_SMS_API_KEY,
         text: `Ваш пароль для входа: ${password} ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}`,
         phone,
         sender_name: 'AM-PROJECTS',
@@ -126,5 +148,32 @@ export class SmsService {
         ? 'Произошла ошибка при отправке SMS'
         : 'There was an error sending SMS');
     }
+  };
+
+  private getMainSmsUrlParams = (options: MainSmsRequestInterface) => {
+    let signature = '';
+    let params = '';
+    const keys = Object.keys(options).sort();
+
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i];
+      const value = options[key];
+
+      if (value || value === '' || value === 0) {
+        signature += value + ';';
+        if (key === 'message') {
+          params += key + '=' + encodeURIComponent(typeof value !== 'string' ? value.toString() : value) + '&';
+        } else {
+          params += key + '=' + value + '&';
+        }
+      }
+    }
+
+    signature += process.env.MAIN_SMS_API_KEY;
+    signature = crypto.createHash('sha1').update(signature).digest('hex');
+    signature = crypto.createHash('md5').update(signature).digest('hex');
+
+    params += 'sign=' + signature;
+    return params;
   };
 }

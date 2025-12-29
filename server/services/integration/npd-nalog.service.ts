@@ -23,16 +23,18 @@ export class NpdNalogService extends BaseService {
   public addIncome = async (payload: NpdNalogOrderInterface) => {
     const { order, items } = payload;
     try {
-      const instance = await this.getInstance();
-      const receiptId = await instance.addIncome(items);
+      if (!order.receiptId) {
+        const instance = await this.getInstance();
+        const receiptId = await instance.addIncome(items);
 
-      if (receiptId) {
-        await OrderEntity
-          .createQueryBuilder('order')
-          .update()
-          .set({ receiptId })
-          .where('"order"."id" = :orderId', { orderId: order.id })
-          .execute();
+        if (receiptId) {
+          await OrderEntity
+            .createQueryBuilder('order')
+            .update()
+            .set({ receiptId })
+            .where('"order"."id" = :orderId', { orderId: order.id })
+            .execute();
+        }
       }
 
       const newOrder = await this.orderService.findOne({ id: order.id }, UserLangEnum.RU);
