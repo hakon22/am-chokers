@@ -28,6 +28,9 @@ fetch-clicks:
 deferred:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/deferred-publication.ts
 
+increase-item-prices:
+	cross-env DB='LOCAL' CRON='TRUE' tsx cron/increase-item-prices.ts 10 100
+
 build-docker-dev:
 	docker compose -f docker-compose.dev.yml build
 
