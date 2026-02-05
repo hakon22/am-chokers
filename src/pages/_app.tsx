@@ -23,7 +23,6 @@ import { removeToken as removeUserToken } from '@/slices/userSlice';
 import { removeMany as removeManyCart } from '@/slices/cartSlice';
 import { scrollTop } from '@/utilities/scrollTop';
 import { removeMany } from '@/slices/orderSlice';
-import { Promotional } from '@/components/Promotional';
 import favicon16 from '@/images/favicons/favicon16x16.png';
 import favicon32 from '@/images/favicons/favicon32x32.png';
 import favicon57 from '@/images/favicons/favicon57x57.png';
@@ -204,7 +203,6 @@ const Init = (props: InitPropsInterface) => {
                         <Link className="text-decoration-underline" href={routes.page.base.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
                       </>
                     </CookieConsent>
-                    <Promotional />
                     <App itemGroups={itemGroups}>
                       <Component {...pageProps} />
                     </App>

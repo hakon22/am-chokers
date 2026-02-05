@@ -40,6 +40,11 @@ export class UploadPathService {
         ? join(this.uploadFilesPath, UploadPathEnum.COVER, fileName)
         : join(this.uploadFilesPath, UploadPathEnum.COVER);
       break;
+    case UploadPathEnum.BANNER:
+      path = fileName
+        ? join(this.uploadFilesPath, UploadPathEnum.BANNER, fileName)
+        : join(this.uploadFilesPath, UploadPathEnum.BANNER);
+      break;
     }
     return path;
   };
@@ -60,6 +65,9 @@ export class UploadPathService {
       break;
     case UploadPathEnum.COVER:
       path = join(routes.page.base.homePage, UploadPathEnum.COVER);
+      break;
+    case UploadPathEnum.BANNER:
+      path = join(routes.page.base.homePage, UploadPathEnum.BANNER);
       break;
     }
     return path;

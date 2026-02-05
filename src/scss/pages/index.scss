@@ -1,14 +1,8 @@
 .index-block-container {
   display: flex;
   flex-direction: column;
-  row-gap: 15rem;
   width: 100%;
   margin-top: 100px;
-
-  &-carousel {
-    top: 9.6vw;
-    margin-bottom: 2rem;
-  }
 
   .guide {
     background-color: $dark-blue;
@@ -95,6 +89,12 @@
   z-index: 1;
 }
 
+.index-banner-carousel {
+  width: 116.8%;
+  margin-left: 0;
+  overflow: hidden;
+}
+
 @media (max-width: 1199px) {
   .index-block-container {
     margin-top: 85px;
@@ -117,7 +117,7 @@
 
     .see-all {
       position: absolute;
-      bottom: -13vw;
+      bottom: -8vw;
       right: calc(var(--ratio) * 3vw);
     }
 
@@ -132,5 +132,17 @@
         border-bottom-left-radius: 40px;
       }
     }
+  }
+}
+
+@media (min-width: 540px) and (max-width: 768px) {
+  .index-banner-carousel {
+    width: 800px;
+  }
+}
+
+@media (max-width: 500px) {
+  .index-banner-carousel {
+    width: 500px;
   }
 }

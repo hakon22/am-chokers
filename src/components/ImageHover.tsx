@@ -107,6 +107,7 @@ export const ImageHover = ({
                       loop
                       muted
                       playsInline
+                      preload="metadata"
                       onLoadedData={handleLoad}
                       src={image.src}
                     />
@@ -178,6 +179,7 @@ export const ImageHover = ({
                       loop
                       muted
                       playsInline
+                      preload="metadata"
                       onLoadedData={handleLoad}
                       src={image.src}
                     />

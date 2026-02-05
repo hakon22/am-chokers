@@ -244,6 +244,26 @@ const newItemGroupSchema = yup.object().shape({
   translations: translationSchema('group'),
 });
 
+const linkSchema = yup
+  .string()
+  .transform((value, originalValue) => (originalValue === '' ? null : value))
+  .nullable()
+  .optional();
+
+const copyValueSchema = yup
+  .string()
+  .transform((value, originalValue) => (originalValue === '' ? null : value))
+  .nullable()
+  .optional();
+
+const newBannerSchema = yup.object().shape({
+  name: stringSchema,
+  link: linkSchema,
+  copyValue: copyValueSchema,
+  desktopVideo: requiredIdSchema,
+  mobileVideo: requiredIdSchema,
+});
+
 export const itemGroupSchema = yup.array(requiredIdSchema).required();
 
 const newCartItemSchema = yup.object().shape({
@@ -398,3 +418,4 @@ export const newCompositionValidation = validate(newCompositionSchema);
 export const setCoverImageValidation = validate(setCoverImageSchema);
 export const newColorValidation = validate(newColorSchema);
 export const publishTelegramValidation = validate(publishTelegramSchema);
+export const newBannerValidation = validate(newBannerSchema);

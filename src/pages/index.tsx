@@ -7,6 +7,7 @@ import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import cn from 'classnames';
 import axios from 'axios';
+import { Skeleton } from 'antd';
 import type { InferGetServerSidePropsType } from 'next';
 
 import uniqueDecoration from '@/images/unique-decoration.jpg';
@@ -20,13 +21,16 @@ import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { setAppData } from '@/slices/appSlice';
+import { toast } from '@/utilities/toast';
 import type { ItemInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { BannerInterface, BannerListResponseInterface } from '@/types/banner/BannerInterface';
 
 export const getServerSideProps = async () => {
-  const [{ data: { specialItems } }, { data: { coverImages } }] = await Promise.all([
+  const [{ data: { specialItems } }, { data: { coverImages } }, { data: { banners } }] = await Promise.all([
     axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
     axios.get<{ coverImages: ImageEntity[]; }>(routes.storage.image.getCoverImages({ isServer: false })),
+    axios.get<BannerListResponseInterface>(routes.banner.findMany({ isServer: false })),
   ]);
 
   const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
@@ -141,13 +145,93 @@ export const getServerSideProps = async () => {
       preparedCoverImages,
       specialItems,
       coverImages,
+      banners,
     },
   };
 };
 
-const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+interface BannerSlideProps {
+  banner: BannerInterface;
+  isMobile: boolean;
+  width: number;
+  height: number;
+  countBanners: number;
+  onCopyValue: (value: string) => void;
+}
+
+const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValue }: BannerSlideProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) {
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      });
+    },
+    { rootMargin: '200px' },
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const video = isMobile ? banner.mobileVideo : banner.desktopVideo;
+  const bannerVideo = video ? { ...video, order: video.order ?? 0 } : undefined;
+
+  const handleCopy = () => {
+    if (banner.copyValue) {
+      onCopyValue(banner.copyValue);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleCopy();
+    }
+  };
+
+  const clickableProps = !banner.link && banner.copyValue
+    ? {
+      role: 'button',
+      tabIndex: 0,
+      onClick: handleCopy,
+      onKeyDown: handleKeyDown,
+    }
+    : {};
+
+  return (
+    <div ref={containerRef}>
+      {isVisible && bannerVideo ? (
+        <ImageHover
+          className={cn('index-banner-carousel__card', { 'align-items-center': countBanners === 1 })}
+          height={height}
+          width={width}
+          images={[bannerVideo as ImageEntity]}
+          href={banner.link ?? undefined}
+          style={banner.link || banner.copyValue ? { cursor: 'pointer' } : {}}
+          {...clickableProps}
+        />
+      ) : (
+        <Skeleton.Image active style={{ width, height }} />
+      )}
+    </div>
+  );
+};
+
+const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages, banners }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tBanner } = useTranslation('translation', { keyPrefix: 'modules.banner' });
 
   const dispatch = useAppDispatch();
 
@@ -157,6 +241,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
 
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
   const [autoPlay, setAutoPlay] = useState(false);
+  const [bannerAutoPlay, setBannerAutoPlay] = useState(false);
   const [throttledHandleWheel, setThrottledHandleWheel] = useState(() => () => {});
 
   const coefficient = 1.3;
@@ -164,7 +249,24 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   const width = 230;
   const height = width * coefficient;
 
+  const bannerDesktopWidth = 550;
+  const bannerDesktopHeight = 310;
+  const bannerMobileWidth = 300;
+  const bannerMobileHeight = Math.round(bannerMobileWidth * coefficient);
+  const bannerWidth = isMobile ? bannerMobileWidth : bannerDesktopWidth;
+  const bannerHeight = isMobile ? bannerMobileHeight : bannerDesktopHeight;
+
   const carouselRef = useRef<Carousel>(null);
+
+  const handleCopyValue = (value: string) => {
+    try {
+      navigator.clipboard.writeText(value);
+      toast(tBanner('copySuccess'), 'success');
+    } catch (e) {
+      console.error(e);
+      toast(tBanner('copyError'), 'error');
+    }
+  };
 
   const responsive = {
     desktop: {
@@ -181,7 +283,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
       partialVisibilityGutter: 130,
     },
     tv: {
-      breakpoint: { max: 990, min: 768 },
+      breakpoint: { max: 991, min: 768 },
       items: 2,
     },
     largeMobile: {
@@ -197,6 +299,44 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
     mobile: {
       breakpoint: { max: 499, min: 0 },
       items: 1,
+    },
+  };
+
+  const bannerResponsive = {
+    desktop: {
+      breakpoint: { max: 5000, min: 1400 },
+      items: 2,
+      partialVisibilityGutter: 177,
+    },
+    largeTv: {
+      breakpoint: { max: 1399, min: 1200 },
+      items: 2,
+      partialVisibilityGutter: 55,
+    },
+    tv: {
+      breakpoint: { max: 1199, min: 991 },
+      items: 3,
+      partialVisibilityGutter: 30,
+    },
+    tablet: {
+      breakpoint: { max: 991, min: 767 },
+      items: 2,
+      partialVisibilityGutter: 60,
+    },
+    mobile: {
+      breakpoint: { max: 767, min: 539 },
+      items: 2,
+      partialVisibilityGutter: 70,
+    },
+    smallMobile: {
+      breakpoint: { max: 539, min: 500 },
+      items: 1,
+      partialVisibilityGutter: 220,
+    },
+    miniMobile: {
+      breakpoint: { max: 500, min: 0 },
+      items: 1,
+      partialVisibilityGutter: banners.length === 1 ? undefined : 180,
     },
   };
 
@@ -223,6 +363,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
     dispatch(setAppData({ coverImages, specialItems }));
 
     setTimeout(setAutoPlay, 2000, true);
+    setTimeout(setBannerAutoPlay, 2000, true);
 
     const handleResize = () => {
       const extension = getWidth();
@@ -255,15 +396,57 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   return (
     <div className="d-flex justify-content-center" onWheel={throttledHandleWheel}>
       <Helmet title={t('title')} description={t('description')} />
-      {!isMobile && <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button position-absolute" style={{ borderRadius: '6px', top: '150px', padding: '0.5rem 0.7rem', zIndex: 1 }}>{t('seeCatalog')}</Link>}
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
-          <section className="mb-5 position-relative">
+          <section className="position-relative mt-4 mt-xl-5 mb-xl-5">
+            {banners.length ? (
+              <Carousel
+                autoPlaySpeed={3500}
+                containerClass={cn('index-banner-carousel', { 'w-100': banners.length === 1 })}
+                itemClass="index-banner-carousel__item"
+                focusOnSelect={false}
+                arrows={false}
+                minimumTouchDrag={80}
+                renderArrowsWhenDisabled={false}
+                renderButtonGroupOutside={false}
+                renderDotsOutside={false}
+                partialVisible={true}
+                responsive={bannerResponsive}
+                shouldResetAutoplay
+                showDots={false}
+                slidesToSlide={1}
+                infinite
+                ssr={true}
+                swipeable
+                draggable
+                autoPlay={bannerAutoPlay}
+                pauseOnHover
+              >
+                {[...banners]
+                  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                  .map((banner) => (
+                    <BannerSlide
+                      key={banner.id}
+                      banner={banner}
+                      isMobile={isMobile}
+                      width={bannerWidth}
+                      height={bannerHeight}
+                      countBanners={banners.length}
+                      onCopyValue={handleCopyValue}
+                    />
+                  ))}
+              </Carousel>
+            ) : null}
+          </section>
+          <section className="position-relative" style={{ marginBottom: isMobile ? '7rem' : '10rem' }}>
+            {!isMobile && (<div className="d-flex justify-content-center" style={{ marginBottom: '7rem' }}>
+              <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button" style={{ borderRadius: '6px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
+            </div>)}
             <div className="d-flex flex-column flex-xl-row justify-content-between col-12">
-              <div className="d-flex flex-column justify-content-xl-end justify-content-center justify-content-xl-start col-12 col-xl-2">
+              <div className="d-flex flex-column justify-content-center justify-content-xl-start col-12 col-xl-2">
                 {isMobile ? (
                   <div className="d-flex justify-content-center">
-                    <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button" style={{ borderRadius: '6px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
+                    <Link href={routes.page.base.catalog} title={t('seeCatalog')} className="button border-button mb-5" style={{ borderRadius: '6px', padding: '0.5rem 0.7rem' }}>{t('seeCatalog')}</Link>
                   </div>
                 ) : (
                   <h2 className="text-center text-xl-start">{t('newItems')}</h2>
@@ -312,16 +495,16 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </Carousel>
             </div>
           </section>
-          <section className="d-flex flex-column position-relative col-12 col-xl-11" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })} style={{ gap: '4rem' }}>
+          <section className="d-flex flex-column position-relative col-12 col-xl-11" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })} style={{ gap: '4rem', marginBottom: isMobile ? '7rem' : '10rem' }}>
             <div className="d-flex flex-column justify-content-center justify-content-xl-start">
               <h2>{t('bestsellers')}</h2>
-              <Link href={`${routes.page.base.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button">
+              <Link href={`${routes.page.base.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button bottom-0">
                 <span>{t('seeAll')}</span>
                 <ArrowRight />
               </Link>
             </div>
-            <div className="d-flex flex-column flex-xl-row justify-content-between gap-4 gap-xl-0">
-              <div className="d-flex flex-column col-12 col-xl-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
+            <div className="d-flex flex-column flex-md-row justify-content-between gap-4 gap-xl-0">
+              <div className="d-flex flex-column col-12 col-md-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
                 <ContextMenu item={preparedBestsellers?.bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
                   <ImageHover
                     height={height}
@@ -364,7 +547,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center col-12" {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })} style={{ gap: '2rem' }}>
+          <section className="d-flex flex-column align-items-center col-12" {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })} style={{ gap: '2rem', marginBottom: isMobile ? '7rem' : '10rem' }}>
             <h2 className="col-12 col-xxl-10 lh-base">
               {t('slogan.create')}
               <br />
@@ -394,7 +577,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column align-items-center" style={{ rowGap: isMobile ? '4rem' : '7rem' }}>
+          <section className="d-flex flex-column align-items-center" style={{ rowGap: isMobile ? '4rem' : '7rem', marginBottom: isMobile ? '7rem' : '10rem' }}>
             {!isMobile && <div className="col-5">
               <h2 className="text-center">{t('collections')}</h2>
             </div>}
@@ -549,7 +732,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </div>
             </div>
           </section>
-          <section className="d-flex flex-column col-12 gap-5">
+          <section className="d-flex flex-column col-12 gap-5" style={{ marginBottom: '10rem' }}>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
               <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage1} cover={1} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover

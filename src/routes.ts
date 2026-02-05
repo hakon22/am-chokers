@@ -1,4 +1,4 @@
-export const serverHost = process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://localhost:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+export const serverHost = process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.1.61:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 interface ServerClientInterface {
@@ -51,6 +51,7 @@ export const routes = {
       deferredPublication: [adminPath, 'deferred-publications'].join('/'),
       adminSettings: [adminPath, 'settings'].join('/'),
       metricaReport: [adminPath, 'reports', 'metrica'].join('/'),
+      banners: [adminPath, 'banners'].join('/'),
     },
   },
 
@@ -197,6 +198,16 @@ export const routes = {
     updateOne: (id?: number) => [apiPath, 'color', id ?? ':id', 'update'].join('/'),
     restoreOne: (id?: number) => [apiPath, 'color', id ?? ':id', 'restore'].join('/'),
     deleteOne: (id?: number) => [apiPath, 'color', id ?? ':id', 'delete'].join('/'),
+  },
+
+  // banner
+  banner: {
+    findMany: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'banner'].join('/'),
+    createOne: [apiPath, 'banner'].join('/'),
+    updateOne: (id?: number | React.Key) => [apiPath, 'banner', id ?? ':id'].join('/'),
+    restoreOne: (id?: number | React.Key) => [apiPath, 'banner', id ?? ':id', 'restore'].join('/'),
+    deleteOne: (id?: number | React.Key) => [apiPath, 'banner', id ?? ':id'].join('/'),
+    reorder: [apiPath, 'banner', 'reorder'].join('/'),
   },
 
   // deferred publications

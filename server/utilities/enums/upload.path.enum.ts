@@ -7,4 +7,6 @@ export enum UploadPathEnum {
   COMMENT = 'comments',
   /** Обложки */
   COVER = 'covers',
+  /** Баннеры */
+  BANNER = 'banners',
 }

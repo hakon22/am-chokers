@@ -122,6 +122,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
           { key: routes.page.admin.promotionalCodes, label: <Button className="button-link text-start fs-6" href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.page.admin.compositionsControl, label: <Button className="button-link text-start fs-6" href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: routes.page.admin.colorsControl, label: <Button className="button-link text-start fs-6" href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Button>, showArrow: false, collapsible: 'disabled' },
+          { key: routes.page.admin.banners, label: <Button className="button-link text-start fs-6" href={routes.page.admin.banners}>{tMenu('menu.admin.banners')}</Button>, showArrow: false, collapsible: 'disabled' },
           { key: 'adminSettings', label: tMenu('menu.admin.adminSettings'), children: <AdminSettings /> },
         ]}
       /> }]
@@ -154,6 +155,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
         { key: routes.page.admin.promotionalCodes, label: <Link href={routes.page.admin.promotionalCodes}>{tMenu('menu.admin.promotionalCodes')}</Link> },
         { key: routes.page.admin.compositionsControl, label: <Link href={routes.page.admin.compositionsControl}>{tMenu('menu.admin.compositions')}</Link> },
         { key: routes.page.admin.colorsControl, label: <Link href={routes.page.admin.colorsControl}>{tMenu('menu.admin.colors')}</Link> },
+        { key: routes.page.admin.banners, label: <Link href={routes.page.admin.banners}>{tMenu('menu.admin.banners')}</Link> },
         { key: routes.page.admin.adminSettings, label: <Link href={routes.page.admin.adminSettings}>{tMenu('menu.admin.adminSettings')}</Link> },
       ],
       } : null,

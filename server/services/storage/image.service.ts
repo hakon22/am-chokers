@@ -1,6 +1,6 @@
 import { unlink, writeFileSync } from 'fs';
 
-import sharp from 'sharp';
+import sharp, { type ResizeOptions } from 'sharp';
 import { Container, Singleton } from 'typescript-ioc';
 import multer from 'multer';
 import ffmpeg from 'fluent-ffmpeg';
@@ -19,11 +19,24 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { setCoverImageValidation } from '@/validations/validations';
+import { BannerMediaTypeEnum } from '@server/types/banner/enums/banner.media.type.enum';
 import type { ImageQueryInterface } from '@server/types/storage/image.query.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
 ffmpeg.setFfmpegPath(ffmpegPath as string);
 ffmpeg.setFfprobePath(ffprobePath.path);
+
+const DEFAULT_VIDEO_RATIO = 1 / 1.3; // ширина:высота
+const BANNER_MEDIA_SIZES: Record<BannerMediaTypeEnum, { width: number; height: number; }> = {
+  [BannerMediaTypeEnum.DESKTOP]: { width: 550, height: 310 },
+  [BannerMediaTypeEnum.MOBILE]: { width: 300, height: Math.round(300 * 1.3) },
+};
+
+interface BannerMediaOptions {
+  width: number;
+  height: number;
+  ratio: number;
+}
 
 @Singleton
 export class ImageService extends BaseService {
@@ -122,10 +135,13 @@ export class ImageService extends BaseService {
         return;
       }
 
-      const isVideo = file.mimetype === 'video/mp4';
+      const query = await queryUploadImageParams.validate(reqQuery);
+      const bannerOptions = this.getBannerMediaOptions(query.bannerType as BannerMediaTypeEnum | undefined);
+      const isVideo = file.mimetype?.startsWith('video/');
 
       if (isVideo) {
-        const name = `${uuid()}.mp4`;
+        const originalExtension = file.originalname?.includes('.') ? `.${file.originalname.split('.').pop()}` : '.mp4';
+        const name = `${uuid()}${originalExtension}`;
         const outputName = `${uuid()}.mp4`;
 
         const inputPath = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, name);
@@ -137,7 +153,13 @@ export class ImageService extends BaseService {
         }
 
         // Сжатие видео с помощью FFmpeg
-        await this.cropVideo(inputPath, outputPath);
+        await this.cropVideo(inputPath, outputPath, bannerOptions
+          ? {
+            targetRatio: bannerOptions.ratio,
+            targetWidth: bannerOptions.width,
+            targetHeight: bannerOptions.height,
+          }
+          : { targetRatio: DEFAULT_VIDEO_RATIO });
 
         const image = await ImageEntity.save({
           name: outputName,
@@ -148,27 +170,36 @@ export class ImageService extends BaseService {
 
         res.json({ code: 1, image });
       } else {
-        const query = await queryUploadImageParams.validate(reqQuery);
+        let resizeOptions: ResizeOptions;
+        if (bannerOptions) {
+          resizeOptions = {
+            width: bannerOptions.width,
+            height: bannerOptions.height,
+            fit: sharp.fit.cover,
+          };
+        } else {
+          let maxWidth = 800; // максимальная ширина
+          let maxHeight = Math.round(maxWidth * 1.3); // максимальная высота
 
-        let maxWidth = 800; // максимальная ширина
-        let maxHeight = Math.round(maxWidth * 1.3); // максимальная высота
+          if (query.cover) {
+            maxHeight = 460;
+            maxWidth = Math.round(maxHeight * 2.2);
+          } else if (query.coverCollection) {
+            maxHeight = 299;
+            maxWidth = Math.round(maxHeight * 1.505);
+          }
 
-        if (query.cover) {
-          maxHeight = 460;
-          maxWidth = Math.round(maxHeight * 2.2);
-        } else if (query.coverCollection) {
-          maxHeight = 299;
-          maxWidth = Math.round(maxHeight * 1.505);
-        }
-
-        // Используем sharp для обработки изображения
-        const data = await sharp(file.buffer)
-          .resize({
+          resizeOptions = {
             width: maxWidth,
             height: maxHeight,
             fit: sharp.fit.inside, // сохраняет пропорции
             withoutEnlargement: true, // не увеличивает изображение
-          })
+          };
+        }
+
+        // Используем sharp для обработки изображения
+        const data = await sharp(file.buffer)
+          .resize(resizeOptions)
           .toFormat('jpeg')
           .toBuffer();
 
@@ -275,6 +306,20 @@ export class ImageService extends BaseService {
     await manager.getRepository(ImageEntity).save(updatedImages);
   };
 
+  private getBannerMediaOptions = (bannerType?: BannerMediaTypeEnum): BannerMediaOptions | null => {
+    if (!bannerType) {
+      return null;
+    }
+    const target = BANNER_MEDIA_SIZES[bannerType];
+    if (!target) {
+      return null;
+    }
+    return {
+      ...target,
+      ratio: target.width / target.height,
+    };
+  };
+
   private getSrc = (image: ImageEntity) => [image.path, image.name].join('/').replaceAll('\\', '/');
 
   private getVideoInfo = async (videoPath: string): Promise<ffmpeg.FfprobeData> => {
@@ -289,16 +334,15 @@ export class ImageService extends BaseService {
     });
   };
 
-  private calculateCropParams = async (videoPath: string) => {
+  private calculateCropParams = async (videoPath: string, targetRatio: number) => {
     const info = await this.getVideoInfo(videoPath);
   
     // Вытаскиваем разрешение первого видеопотока
     const videoStream = info.streams.find(s => s.codec_type === 'video') as ffmpeg.FfprobeStream;
     const originalWidth = videoStream.width as number;
     const originalHeight = videoStream.height as number;
-  
-    // Соотношение сторон: 1:1.3 (ширина:высота)
-    const targetRatio = 1 / 1.3; // ≈ 0.769
+
+    // Соотношение сторон: ширина / высота
   
     // Если оригинал уже нужного соотношения — ничего не делаем
     if (Math.abs(originalWidth / originalHeight - targetRatio) < 0.01) {
@@ -333,9 +377,18 @@ export class ImageService extends BaseService {
     }
   };
 
-  private cropVideo = async (input: string, output: string): Promise<void> => {
-    const { cropWidth, cropHeight, cropX, cropY } = await this.calculateCropParams(input);
-    const filter = `crop=${cropWidth}:${cropHeight}:${cropX}:${cropY},setsar=1`;
+  private cropVideo = async (
+    input: string,
+    output: string,
+    options: { targetRatio: number; targetWidth?: number; targetHeight?: number; },
+  ): Promise<void> => {
+    const { cropWidth, cropHeight, cropX, cropY } = await this.calculateCropParams(input, options.targetRatio);
+    const filters = [`crop=${cropWidth}:${cropHeight}:${cropX}:${cropY}`];
+    if (options.targetWidth && options.targetHeight) {
+      filters.push(`scale=${options.targetWidth}:${options.targetHeight}`);
+    }
+    filters.push('setsar=1');
+    const filter = filters.join(',');
   
     return new Promise((resolve, reject) => {
       ffmpeg(input)

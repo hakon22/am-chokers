@@ -28,6 +28,7 @@ import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.e
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import { YandexDirectCampaignEntity } from '@server/db/entities/yandex.direct.campaign.entity';
 import { YandexDirectStatisticsEntity } from '@server/db/entities/yandex.direct.statistics.entity';
+import { BannerEntity } from '@server/db/entities/banner.entity';
 
 export const entities = [
   UserEntity,
@@ -60,4 +61,5 @@ export const entities = [
   DeferredPublicationEntity,
   YandexDirectCampaignEntity,
   YandexDirectStatisticsEntity,
+  BannerEntity,
 ];

@@ -4,6 +4,7 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { BannerMediaTypeEnum } from '@server/types/banner/enums/banner.media.type.enum';
 
 export const userOptionalParamsSchema = yup.object().shape({
   userId: yup
@@ -85,6 +86,10 @@ export const queryPromotionalParams = yup.object().shape({
   name: yup.string().optional(),
 });
 
+export const queryBannerParams = yup.object().shape({
+  withDeleted: booleanSchema,
+});
+
 export const querySearchParams = yup.object().shape({
   withDeleted: booleanSchema,
   search: yup.string(),
@@ -93,6 +98,7 @@ export const querySearchParams = yup.object().shape({
 export const queryUploadImageParams = yup.object().shape({
   cover: booleanSchema,
   coverCollection: booleanSchema,
+  bannerType: yup.string().oneOf(Object.values(BannerMediaTypeEnum)).optional(),
 });
 
 export const queryItemsParams = queryPaginationWithParams.concat(
