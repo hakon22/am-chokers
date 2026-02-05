@@ -160,9 +160,9 @@ export class BannerService extends BaseService {
   private moveVideo = async (video: ImageEntity, manager: EntityManager) => {
     const tempPath = this.uploadPathService.getUrlPath(UploadPathEnum.TEMP);
     if (video.path === tempPath) {
-      this.uploadPathService.checkFolder(UploadPathEnum.BANNER, 0);
-      this.uploadPathService.moveFile(UploadPathEnum.BANNER, 0, video.name);
-      video.path = this.uploadPathService.getUrlPath(UploadPathEnum.BANNER);
+      this.uploadPathService.checkFolder(UploadPathEnum.PROMOTIONAL, 0);
+      this.uploadPathService.moveFile(UploadPathEnum.PROMOTIONAL, 0, video.name);
+      video.path = this.uploadPathService.getUrlPath(UploadPathEnum.PROMOTIONAL);
       await manager.getRepository(ImageEntity).save(video);
     }
 

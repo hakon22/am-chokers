@@ -8,5 +8,5 @@ export enum UploadPathEnum {
   /** Обложки */
   COVER = 'covers',
   /** Баннеры */
-  BANNER = 'banners',
+  PROMOTIONAL = 'promotionals',
 }
