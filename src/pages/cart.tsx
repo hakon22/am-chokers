@@ -288,6 +288,32 @@ const Cart = () => {
     setDeliveryType(undefined);
   };
 
+  const sendOrderToYandex = (order: OrderInterface) => {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({
+        ecommerce: {
+          currencyCode: 'RUB',
+          purchase: {
+            actionField: {
+              id: order.id.toString(),
+              coupon: order.promotional?.name,
+              goal_id: 486782149,
+              revenue: getOrderPrice(order) - order.deliveryPrice,
+            },
+            products: cartList.map(({ item, count }, index) => ({
+              id: item.id.toString(),
+              name: item.translations.find((translation) => translation.lang === lang)?.name as string,
+              price: item.price - item.discountPrice,
+              discount: item.discountPrice,
+              quantity: count,
+              position: index + 1,
+            })),
+          },
+        },
+      });
+    }
+  };
+
   const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone' | 'lang'> & { comment: string; }) => {
     setIsSubmit(true);
     if (!delivery.address) {
@@ -306,8 +332,9 @@ const Cart = () => {
         form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
       }
     } else {
-      const { payload: { code, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
+      const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
       if (code === 1) {
+        sendOrderToYandex(order);
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));

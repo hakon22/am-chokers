@@ -85,6 +85,7 @@ const Init = (props: InitPropsInterface) => {
   const mobileService = useMemo(() => ({ isMobile, setIsMobile }), [isMobile]);
 
   useEffect(() => {
+    window.dataLayer = window.dataLayer || [];
     AOS.init();
     dispatch(setAppData({ itemGroups }));
   }, []);
@@ -151,7 +152,10 @@ const Init = (props: InitPropsInterface) => {
                             clickmap:true,
                             trackLinks:true,
                             accurateTrackBounce:true,
-                            webvisor:true
+                            webvisor:true,
+                            ecommerce:"dataLayer",
+                            referrer:document.referrer,
+                            url:location.href
                         });
                     `,
                             }}
