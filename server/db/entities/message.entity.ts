@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import type { MediaGroup } from 'telegraf/typings/telegram-types';
+import type { InputMediaPhoto, InputMediaVideo } from 'telegraf/types';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
@@ -87,5 +87,5 @@ export class MessageEntity extends BaseEntity {
     array: true,
     default: [],
   })
-  public mediaFiles: MediaGroup;
+  public mediaFiles: (InputMediaPhoto | InputMediaVideo)[];
 }

@@ -2,7 +2,8 @@ import { Container, Singleton } from 'typescript-ioc';
 import type { Context } from 'telegraf';
 import type { Message } from 'typegram/message';
 import type { Request, Response } from 'express';
-import type { ExtraReplyMessage, MediaGroup } from 'telegraf/typings/telegram-types';
+import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+import type { InputMediaPhoto, InputMediaVideo } from 'telegraf/types';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
@@ -94,7 +95,7 @@ export class TelegramService {
   public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
-    const media: MediaGroup = images.map((image, i) => ({
+    const media: (InputMediaPhoto | InputMediaVideo)[] = images.map((image, i) => ({
       type: image.endsWith('.mp4') ? 'video' : 'photo',
       media: image,
       ...(!i ? { caption: text, parse_mode: 'HTML' } : {}),
