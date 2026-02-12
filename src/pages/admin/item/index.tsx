@@ -283,7 +283,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
       const values = form.getFieldsValue();
 
       if (!values.compositions?.length || !images.length) {
-        form.setFields([{ name: isSubmitTgModal ? ['deferredPublication', 'description'] : ['translations', lang as UserLangEnum, 'description'], errors: [tToast('requiredFields')] }]);
+        form.setFields([{ name: (isSubmitTgModal ? ['deferredPublication', 'description'] : ['translations', lang as UserLangEnum, 'description']) as Parameters<typeof form.setFieldValue>[0], errors: [tToast('requiredFields')] }]);
         throw new Error(tToast('requiredFields'));
       }
 
@@ -294,10 +294,11 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
       if (data.code === 1) {
         if (!isSubmitTgModal) {
-          form.setFields([{ name: ['translations', lang as UserLangEnum, 'description'], errors: [] }]);
-          form.setFieldValue(['translations', lang as UserLangEnum, 'description'], data.description);
+          const descFieldName = ['translations', lang as UserLangEnum, 'description'] as Parameters<typeof form.setFieldValue>[0];
+          form.setFields([{ name: descFieldName, errors: [] }]);
+          form.setFieldValue(descFieldName, data.description);
         } else {
-          form.setFieldValue(['deferredPublication', 'description'], data.description);
+          form.setFieldValue(['deferredPublication', 'description'] as Parameters<typeof form.setFieldValue>[0], data.description);
         }
       }
       setIsSubmit(false);
