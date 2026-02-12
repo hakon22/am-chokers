@@ -1,8 +1,8 @@
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { Telegraf } from 'telegraf';
 import { Container, Singleton } from 'typescript-ioc';
-import type { Context } from 'telegraf';
 import type { ExtraReplyMessage, MediaGroup } from 'telegraf/typings/telegram-types';
+import type { Context } from 'telegraf';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { routes } from '@/routes';
