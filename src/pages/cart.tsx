@@ -297,7 +297,7 @@ const Cart = () => {
             actionField: {
               id: order.id.toString(),
               coupon: order.promotional?.name,
-              goal_id: 486782149,
+              goal_id: 511960192,
               revenue: getOrderPrice(order) - order.deliveryPrice,
             },
             products: cartList.map(({ item, count }, index) => ({
