@@ -58,6 +58,7 @@
     "react-verification-input": "4.2.2",
     "recharts": "3.5.1",
     "sharp": "0.34.5",
+    "socks-proxy-agent": "8.0.5",
     "tsx": "4.21.0",
     "yup": "1.7.1"
   },

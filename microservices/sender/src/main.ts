@@ -6,7 +6,7 @@ import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
 import { OrderService } from '@server/services/order/order.service';
 import { CDEKService } from '@server/services/delivery/cdek.service';
-
+import { TelegramBotService } from '@server/services/integration/telegram-bot.service';
 
 class Sender {
   private readonly bullMQWorker = Container.get(BullMQWorker);
@@ -21,12 +21,15 @@ class Sender {
 
   private readonly CDEKService = Container.get(CDEKService);
 
+  private readonly telegramBotService = Container.get(TelegramBotService);
+
   public init = async () => {
     try {
       await this.databaseService.init();
       await this.redisService.init();
       await this.orderService.subscribe();
       await this.CDEKService.init();
+      await this.telegramBotService.init();
       this.bullMQWorker.init();
       this.loggerService.info('Сервис BullMQ Worker успешно запущен');
 

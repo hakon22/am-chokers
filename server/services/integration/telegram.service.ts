@@ -1,9 +1,8 @@
-import axios from 'axios';
 import { Container, Singleton } from 'typescript-ioc';
-import { Context } from 'telegraf';
-import { Message } from 'typegram/message';
+import type { Context } from 'telegraf';
+import type { Message } from 'typegram/message';
 import type { Request, Response } from 'express';
-import type { InputMedia } from 'telegraf/typings/core/types/typegram';
+import type { ExtraReplyMessage, MediaGroup } from 'telegraf/typings/telegram-types';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
@@ -11,34 +10,23 @@ import { DeferredPublicationEntity } from '@server/db/entities/deferred.publicat
 import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
 import { RedisService } from '@server/db/redis.service';
+import { TelegramBotService } from '@server/services/integration/telegram-bot.service';
 import { phoneTransform } from '@server/utilities/phone.transform';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
 
-export interface OptionsTelegramMessageInterface {
-  reply_markup?: {
-    keyboard: {
-      text: string;
-      request_contact?: boolean;
-    }[][];
-    resize_keyboard?: boolean;
-    one_time_keyboard?: boolean;
-    remove_keyboard?: boolean;
-  },
-  caption?: string;
-  parse_mode?: 'HTML' | 'Markdown';
-}
-
 @Singleton
 export class TelegramService {
-  private readonly TAG = 'TelegramBotService';
+  private readonly TAG = 'TelegramService';
 
   private readonly loggerService = Container.get(LoggerService);
 
   private readonly messageService = Container.get(MessageService);
 
   private readonly redisService = Container.get(RedisService);
+
+  private readonly telegramBotService = Container.get(TelegramBotService);
 
   public webhooks = async (req: Request, res: Response) => {
     try {
@@ -88,61 +76,39 @@ export class TelegramService {
     await this.sendMessage('Пожалуйста, предоставьте ваш номер телефона через кнопку ниже:', telegramId, { reply_markup: replyMarkup });
   };
 
-  public sendMessage = async (message: string | string[], telegramId: string, options?: OptionsTelegramMessageInterface) => {
+  public sendMessage = async (message: string | string[], telegramId: string, options?: ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
     const { message: messageHistory } = await this.messageService.createOne({ text, type: MessageTypeEnum.TELEGRAM, telegramId });
 
-    try {
-      const { data } = await axios.post<{ ok: boolean; result: { message_id: string; } }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
-        chat_id: telegramId,
-        parse_mode: 'HTML',
-        text,
-        ...options,
-      });
-      if (data?.ok) {
-        this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
-        messageHistory.send = true;
-        messageHistory.messageId = data.result.message_id;
-        await messageHistory.save();
-        return { ...data, text, history: messageHistory };
-      }
-    } catch (e) {
-      let errorMessage;
-      if (axios.isAxiosError(e)) {
-        errorMessage = e.response?.data?.description;
-      } else {
-        errorMessage = e;
-      }
-      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, errorMessage);
-      throw new Error(errorMessage);
+    const result = await this.telegramBotService.sendMessage(text, telegramId, options);
+    if (result?.message_id) {
+      this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
+      messageHistory.send = true;
+      messageHistory.messageId = result.message_id.toString();
+      await messageHistory.save();
+      return { ...result, text, history: messageHistory };
     }
   };
 
-  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: OptionsTelegramMessageInterface) => {
+  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
-    const media: InputMedia[] = images.map((image, i) => ({
+    const media: MediaGroup = images.map((image, i) => ({
       type: image.endsWith('.mp4') ? 'video' : 'photo',
       media: image,
       ...(!i ? { caption: text, parse_mode: 'HTML' } : {}),
     }));
 
-    const request = {
-      chat_id: telegramId,
-      media,
-      ...options,
-    };
-
     const { message: messageHistory } = await this.messageService.createOne({ text, mediaFiles: media, type: MessageTypeEnum.TELEGRAM, telegramId });
 
     try {
-      const { data } = await axios.post<{ ok: boolean; result: { message_id: string; }[] }>(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMediaGroup`, request);
+      const result = await this.telegramBotService.sendMediaGroup(media, telegramId, options);
 
-      if (data?.ok) {
+      if (result?.length && result.every(({ message_id }) => message_id)) {
         this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
         messageHistory.send = true;
-        messageHistory.messageId = data.result.map(({ message_id }) => message_id).join(', ').trim();
+        messageHistory.messageId = result.map(({ message_id }) => message_id.toString()).join(', ').trim();
         await messageHistory.save();
         if (item) {
           await ItemEntity.update(item.id, { message: messageHistory });
@@ -154,21 +120,15 @@ export class TelegramService {
           }
           await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
         }
-        return { ...data, text, history: messageHistory };
+        return { ...result, text, history: messageHistory };
       }
     } catch (e) {
-      let errorMessage;
-      if (axios.isAxiosError(e)) {
-        errorMessage = e.response?.data?.description;
-      } else {
-        errorMessage = e;
-      }
-      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, errorMessage);
-      throw new Error(errorMessage);
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
+      throw e;
     }
   };
 
-  public sendAdminMessages = async (messageRu: string | string[], messageEn: string | string[], options?: OptionsTelegramMessageInterface) => {
+  public sendAdminMessages = async (messageRu: string | string[], messageEn: string | string[], options?: ExtraReplyMessage) => {
     for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
       const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
 

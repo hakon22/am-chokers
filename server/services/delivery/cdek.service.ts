@@ -69,16 +69,20 @@ export class CDEKService extends BaseService {
 
     this.setupResponseInterceptor();
 
-    if (!this.authToken) {
-      await this.getAuthToken();
-    }
-
-    if (options?.withWebhooks) {
-      const webhooks = await this.getWebhooks();
-
-      if (!webhooks.find(({ type }) => type === CDEKWebhooksEnum.ORDER_STATUS)) {
-        await this.setWebhook(CDEKWebhooksEnum.ORDER_STATUS);
+    try {
+      if (!this.authToken) {
+        await this.getAuthToken();
       }
+
+      if (options?.withWebhooks) {
+        const webhooks = await this.getWebhooks();
+
+        if (!webhooks.find(({ type }) => type === CDEKWebhooksEnum.ORDER_STATUS)) {
+          await this.setWebhook(CDEKWebhooksEnum.ORDER_STATUS);
+        }
+      }
+    } catch (e) {
+      this.loggerService.error(this.TAG, e);
     }
   };
 

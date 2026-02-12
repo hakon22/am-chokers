@@ -1,12 +1,13 @@
+import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+
 import type { ItemEntity } from '@server/db/entities/item.entity';
-import type { OptionsTelegramMessageInterface } from '@server/services/integration/telegram.service';
 
 export interface TelegramJobInterface {
   message: string | string[];
   telegramId: string;
   images?: string[];
   item?: ItemEntity;
-  options?: OptionsTelegramMessageInterface;
+  options?: ExtraReplyMessage;
 }
 
 export interface TelegramAdminJobInterface extends Pick<TelegramJobInterface, 'options'> {
