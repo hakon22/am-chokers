@@ -44,7 +44,19 @@ export class AcquiringService extends BaseService {
     try {
       this.loggerService.info(this.TAG, `Обработка уведомления от YooKassa со статусом ${payment.status} для платежа id: ${payment.id}`);
 
-      const transaction = await AcquiringTransactionEntity.findOne({ where: { transactionId: payment.id }, relations: ['order', 'order.user', 'order.promotional', 'order.promotional.items', 'order.delivery', 'order.positions', 'order.positions.item'] });
+      const transaction = await AcquiringTransactionEntity.findOne({
+        where: { transactionId: payment.id },
+        relations: [
+          'order',
+          'order.user',
+          'order.promotional',
+          'order.promotional.items',
+          'order.delivery',
+          'order.positions',
+          'order.positions.item',
+          'order.positions.item.translations',
+        ],
+      });
 
       if (!transaction) {
         if (payment.status === 'succeeded') {
