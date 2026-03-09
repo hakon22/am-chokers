@@ -91,7 +91,9 @@ const Init = (props: InitPropsInterface) => {
   }, []);
 
   useEffect(() => {
-	  scrollTop('instant');
+	  if (pathname !== routes.page.base.catalog) {
+      scrollTop('instant');
+    }
   }, [pathname]);
 
   return (
