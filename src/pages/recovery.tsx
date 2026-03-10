@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PhoneOutlined } from '@ant-design/icons';
-import { Button, Form, Result } from 'antd';
+import { Button, Checkbox, Form, Result } from 'antd';
 import { useContext, useState } from 'react';
 import axios from 'axios';
 
@@ -25,6 +25,8 @@ const Recovery = () => {
   const router = useRouter();
 
   const [form] = Form.useForm();
+
+  const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { loggedIn } = useContext(AuthContext);
@@ -67,17 +69,31 @@ const Recovery = () => {
                 <Form.Item<RecoveryType> name="phone" rules={[loginValidation]}>
                   <MaskedInput mask="+7 (000) 000-00-00" size="large" prefix={<PhoneOutlined rotate={90} />} placeholder={t('phone')} />
                 </Form.Item>
+                <Form.Item
+                  name="personalDataConsent"
+                  valuePropName="checked"
+                  rules={[
+                    {
+                      validator: (_, value) => (value ? Promise.resolve() : Promise.reject(new Error(tValidation('personalDataConsentRequired')))),
+                    },
+                  ]}
+                  className="mb-3"
+                >
+                  <Checkbox className="text-muted">
+                    {t('personalDataConsent')}
+                    <Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}> {t('policy')}</Link>
+                  </Checkbox>
+                </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
                   <Link className="text-primary fw-light" href={routes.page.base.loginPage}>
                     {t('rememberPassword')}
                   </Link>
                 </div>
                 <div className="d-flex justify-content-center col-12 mb-3">
-                  <Button htmlType="submit" className="button fs-5" disabled={isSubmit}>
+                  <Button htmlType="submit" className="button fs-5" disabled={isSubmit || !isPersonalDataConsent}>
                     {t('submitButton')}
                   </Button>
                 </div>
-                <p className="text-muted text-center">{t('accept', { submitButton: t('submitButton') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
               </Form>
             </div>
           </div>

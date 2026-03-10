@@ -365,8 +365,9 @@ const Cart = () => {
   };
 
   const promotionalValue = Form.useWatch('promotional', form);
-  const selectPromotionField = !!promotionalValue;
   const deliveryDateTimeValue = Form.useWatch(['delivery', 'deliveryDateTime'], form);
+  const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);
+  const selectPromotionField = !!promotionalValue;
 
   const onDeliveryTypeChange = (value: DeliveryTypeEnum) => {
     resetPVZ();
@@ -480,7 +481,7 @@ const Cart = () => {
         </>
       </Modal>
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title', { count: countCart })}</h1>
-      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '', deliveryDateTime: undefined, telegramNickname: '' }}>
+      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '', deliveryDateTime: undefined, telegramNickname: '', personalDataConsent: false }}>
         <div className="d-flex flex-column align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
@@ -603,11 +604,25 @@ const Cart = () => {
             <span>{t('total')}</span>
             <span>{tPrice('price', { price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
           </div>
+          <Form.Item
+            name="personalDataConsent"
+            valuePropName="checked"
+            rules={[
+              {
+                validator: (_, value) => (value ? Promise.resolve() : Promise.reject(new Error(tValidation('personalDataConsentRequired')))),
+              },
+            ]}
+            className="mb-4"
+          >
+            <Checkbox className="custom-size gap-2 text-muted">
+              {t('personalDataConsent')}
+              <Link className="text-primary fw-light fs-6" href={routes.page.base.privacyPolicy} title={t('policy')}> {t('policy')}</Link>
+            </Checkbox>
+          </Form.Item>
           {selectPromotionField
-            ? <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} className="button w-100 mb-3" onClick={onPromotional}>{t('acceptPromotional')}</Button>
-            : <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} className="button w-100 mb-3" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
+            ? <Button disabled={!filteredCart.length || !delivery.address || !isPersonalDataConsent || !count || isSubmit || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} className="button w-100 mb-3" onClick={onPromotional}>{t('acceptPromotional')}</Button>
+            : <Button disabled={!filteredCart.length || !delivery.address || !isPersonalDataConsent || !count || isSubmit || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} className="button w-100 mb-3" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
           }
-          <p className="text-muted text-center">{t('accept', { submitButton: t(!name && !user.phone ? 'confirmPhone' : 'submitPay') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
         </div>
       </Form>
     </div>

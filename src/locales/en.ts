@@ -189,6 +189,7 @@ export default {
         forgotPassword: 'Forgot password?',
         accept: 'By clicking the {{ submitButton }} you agree to ',
         policy: 'privacy policy',
+        personalDataConsent: 'I consent to the processing of my personal data in accordance with the ',
         submitButton: 'Log in',
       },
       signup: {
@@ -201,6 +202,7 @@ export default {
         next: 'Confirm phone number',
         accept: 'By clicking the {{ submitButton }} you agree to ',
         policy: 'privacy policy',
+        personalDataConsent: 'I consent to the processing of my personal data in accordance with the ',
         haveAccount: 'Already have an account?',
       },
       recovery: {
@@ -211,6 +213,7 @@ export default {
         submitButton: 'Recover your password',
         accept: 'By clicking the {{ submitButton }} you agree to ',
         policy: 'privacy policy',
+        personalDataConsent: 'I consent to the processing of my personal data in accordance with the ',
         home: 'Back to main page',
         resultTitle: 'Password has been successfully recovered!',
         resultSubTitle: 'New login password has been sent to you via SMS.',
@@ -468,6 +471,7 @@ export default {
         comment: 'Please share your wishes regarding size, color, or other changes you want to make in the item',
         accept: 'By clicking the {{ submitButton }} button you agree with ',
         policy: 'Privacy Policy',
+        personalDataConsent: 'I consent to the processing of my personal data in accordance with the ',
         delete: 'Delete',
         favorites: 'Favorites',
         deleted: 'Item is out of stock',
@@ -1059,6 +1063,7 @@ export default {
       incorrectColor: 'Invalid color value',
       translationsRequired: 'All languages are required',
       uniqueLanguages: 'Unique languages required',
+      personalDataConsentRequired: 'You must consent to the processing of personal data',
     },
     toast: {
       sendSmsSuccess: 'SMS has been sent successfully',

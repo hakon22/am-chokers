@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Form, Input } from 'antd';
+import { Button, Checkbox, Form, Input } from 'antd';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState } from 'react';
 
@@ -39,11 +39,13 @@ const Signup = () => {
 
   const [form] = Form.useForm();
 
+  const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);
+
   const onFinish = async (values: UserSignupInterface) => {
     setIsSubmit(true);
     const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
     if (code === 1) {
-      setUser(values);
+      setUser({ name: values.name, phone: values.phone, password: values.password, confirmPassword: values.confirmPassword, lang: lang as UserLangEnum });
       setIsProcessConfirmed(true);
     }
     if (code === 4) {
@@ -105,17 +107,31 @@ const Signup = () => {
                 >
                   <Input.Password size="large" prefix={<LockOutlined />} type="password" placeholder={t('confirmPassword')} />
                 </Form.Item>
+                <Form.Item
+                  name="personalDataConsent"
+                  valuePropName="checked"
+                  rules={[
+                    {
+                      validator: (_, value) => (value ? Promise.resolve() : Promise.reject(new Error(tValidation('personalDataConsentRequired')))),
+                    },
+                  ]}
+                  className="mb-3"
+                >
+                  <Checkbox className="text-muted">
+                    {t('personalDataConsent')}
+                    <Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}> {t('policy')}</Link>
+                  </Checkbox>
+                </Form.Item>
                 <div className="d-flex justify-content-end mb-3-5">
                   <Link className="text-primary fw-light"href={routes.page.base.loginPage}>
                     {t('haveAccount')}
                   </Link>
                 </div>
                 <div className="d-flex col-12 mb-3">
-                  <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit}>
+                  <Button htmlType="submit" className="w-100 button fs-5" disabled={isSubmit || !isPersonalDataConsent}>
                     {t('next')}
                   </Button>
                 </div>
-                <p className="text-muted text-center">{t('accept', { submitButton: t('next') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
               </Form>
             </>
           )}
