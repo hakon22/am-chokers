@@ -15,6 +15,10 @@ export const getDeliveryStatusTranslate = (delivery: DeliveryEntity, lang: UserL
       [UserLangEnum.RU]: null,
       [UserLangEnum.EN]: null,
     },
+    [DeliveryTypeEnum.PICKUP]: {
+      [UserLangEnum.RU]: null,
+      [UserLangEnum.EN]: null,
+    },
   };
 
   if (!delivery.status) {

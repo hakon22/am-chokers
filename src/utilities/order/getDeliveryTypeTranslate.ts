@@ -6,12 +6,14 @@ export const getDeliveryTypeTranslate = (type: DeliveryTypeEnum, lang: UserLangE
     [DeliveryTypeEnum.YANDEX_DELIVERY]: 'Яндекс Доставка',
     [DeliveryTypeEnum.RUSSIAN_POST]: 'Почта России',
     [DeliveryTypeEnum.CDEK]: 'СДЭК',
+    [DeliveryTypeEnum.PICKUP]: 'Самовывоз',
   };
 
   const deliveryTypeTranslateEn: Record<DeliveryTypeEnum, string> = {
     [DeliveryTypeEnum.YANDEX_DELIVERY]: 'Yandex Delivery',
     [DeliveryTypeEnum.RUSSIAN_POST]: 'Russian Post',
     [DeliveryTypeEnum.CDEK]: 'CDEK',
+    [DeliveryTypeEnum.PICKUP]: 'Pickup',
   };
 
   const translates: Record<UserLangEnum, Record<DeliveryTypeEnum, string>> = {

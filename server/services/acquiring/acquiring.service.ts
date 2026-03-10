@@ -296,6 +296,8 @@ export class AcquiringService extends BaseService {
         ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffName ? [`Тариф: <b>${order.delivery.tariffName}</b>`] : []),
         ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffDescription ? [`Описание тарифа: <b>${order.delivery.tariffDescription}</b>`] : []),
         ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.deliveryFrom && order.delivery.deliveryTo ? [`Срок доставки: с <b>${moment(order.delivery.deliveryFrom).format(DateFormatEnum.DD_MM_YYYY)}</b> по <b>${moment(order.delivery.deliveryTo).format(DateFormatEnum.DD_MM_YYYY)}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.PICKUP && order.delivery.deliveryDateTime ? [`Дата и время самовывоза: <b>${moment(order.delivery.deliveryDateTime).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.PICKUP && order.delivery.telegramNickname ? [`Telegram: <code>${order.delivery.telegramNickname}</code>`] : []),
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
       ];
@@ -312,6 +314,8 @@ export class AcquiringService extends BaseService {
         ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffName ? [`Tariff: <b>${order.delivery.tariffName}</b>`] : []),
         ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.tariffDescription ? [`Tariff description: <b>${order.delivery.tariffDescription}</b>`] : []),
         ...(order.delivery.type === DeliveryTypeEnum.CDEK && order.delivery.deliveryFrom && order.delivery.deliveryTo ? [`Delivery time: from <b>${moment(order.delivery.deliveryFrom).format(DateFormatEnum.DD_MM_YYYY)}</b> to <b>${moment(order.delivery.deliveryTo).format(DateFormatEnum.DD_MM_YYYY)}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.PICKUP && order.delivery.deliveryDateTime ? [`Pickup date and time: <b>${moment(order.delivery.deliveryDateTime).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</b>`] : []),
+        ...(order.delivery.type === DeliveryTypeEnum.PICKUP && order.delivery.telegramNickname ? [`Telegram: <code>${order.delivery.telegramNickname}</code>`] : []),
         '',
         `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
       ];

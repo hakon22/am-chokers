@@ -293,6 +293,12 @@ const newOrderPositionSchema = yup.object().shape({
     tariffDescription: yup.string().optional(),
     deliveryFrom: yup.string().optional(),
     deliveryTo: yup.string().optional(),
+    deliveryDateTime: yup.string().nullable().optional().when('type', {
+      is: DeliveryTypeEnum.PICKUP,
+      then: (schema) => schema.required(t('validation.required')).test('not-in-past', t('validation.dateNotInPast'), (value) => (value ? moment(value).isSameOrAfter(moment()) : false)),
+      otherwise: (schema) => schema.optional(),
+    }),
+    telegramNickname: yup.string().optional(),
   }),
   user: yup.object().shape({
     name: stringSchema,

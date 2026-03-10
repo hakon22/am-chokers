@@ -144,6 +144,20 @@ export class DeliveryEntity extends BaseEntity {
   })
   public reason?: YandexDeliveryReasonStatusEnum;
 
+  /** Дата и время самовывоза */
+  @Column('timestamp with time zone', {
+    name: 'delivery_date_time',
+    nullable: true,
+  })
+  public deliveryDateTime?: Date;
+
+  /** Имя пользователя в Telegram (для самовывоза) */
+  @Column('character varying', {
+    name: 'telegram_nickname',
+    nullable: true,
+  })
+  public telegramNickname?: string;
+
   /** Заказ */
   @OneToOne(() => OrderEntity, order => order.delivery)
   public item: OrderEntity;
@@ -159,6 +173,8 @@ export class DeliveryEntity extends BaseEntity {
       break;
     case DeliveryTypeEnum.CDEK:
       this.status = this.cdekStatus;
+      break;
+    case DeliveryTypeEnum.PICKUP:
       break;
     }
   }

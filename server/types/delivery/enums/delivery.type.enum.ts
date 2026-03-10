@@ -5,4 +5,6 @@ export enum DeliveryTypeEnum {
   RUSSIAN_POST = 'RUSSIAN_POST',
   /** СДЭК */
   CDEK = 'CDEK',
+  /** Самовывоз */
+  PICKUP = 'PICKUP',
 }

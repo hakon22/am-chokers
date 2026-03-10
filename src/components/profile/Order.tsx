@@ -24,6 +24,7 @@ import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusT
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
 import { scrollTop } from '@/utilities/scrollTop';
+import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import type { GradeFormInterface } from '@/types/order/Grade';
@@ -221,6 +222,18 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                       <div className="d-flex justify-content-between">
                         <span>{t('deliveryType')}</span>
                         <span className="fw-500">{getRussianPostRussianPostTranslate(order.delivery.mailType, lang as UserLangEnum)}</span>
+                      </div>
+                    )}
+                    {order.delivery.type === DeliveryTypeEnum.PICKUP && order.delivery.deliveryDateTime && (
+                      <div className="d-flex justify-content-between">
+                        <span>{tCart('deliveryDateTime')}</span>
+                        <span className="fw-500">{moment(order.delivery.deliveryDateTime).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>
+                      </div>
+                    )}
+                    {order.delivery.type === DeliveryTypeEnum.PICKUP && order.delivery.telegramNickname && (
+                      <div className="d-flex justify-content-between">
+                        <span>{tCart('telegramUsername')}</span>
+                        <span className="fw-500">{order.delivery.telegramNickname}</span>
                       </div>
                     )}
                     <div className="d-flex justify-content-between">

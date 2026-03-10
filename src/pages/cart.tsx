@@ -1,13 +1,18 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
+import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio, DatePicker } from 'antd';
 import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
+import { Telegram } from 'react-bootstrap-icons';
 import { useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
+import moment, { type Moment } from 'moment';
+import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import cn from 'classnames';
 import axios from 'axios';
 import type { CheckboxProps } from 'antd/lib';
 
+import { locale } from '@/locales/pickers.locale.ru';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
@@ -39,6 +44,7 @@ import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 import type { CDEKDeliveryDataType } from '@server/types/delivery/cdek/cdek-delivery.interface';
 
 const YANDEX_MAPS_API_KEY = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY as string;
+const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
 const ControlButtons = ({ item, isMobile, width, setCartList }: { item: CartItemInterface; isMobile?: boolean; width?: number; setCartList: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -286,6 +292,7 @@ const Cart = () => {
     setDelivery(defaultDelivery);
     setSavedDeliveryPrice(0);
     setDeliveryType(undefined);
+    form.setFieldsValue({ deliveryDateTime: undefined, telegramNickname: '' });
   };
 
   const sendOrderToYandex = (order: OrderInterface) => {
@@ -314,11 +321,16 @@ const Cart = () => {
     }
   };
 
-  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone' | 'lang'> & { comment: string; }) => {
+  const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone' | 'lang'> & { comment: string; telegramNickname?: string; delivery?: { deliveryDateTime?: Moment; }; }) => {
     setIsSubmit(true);
     if (!delivery.address) {
       toast(tValidation('notSelectedPVZ'), 'error');
+      setIsSubmit(false);
+      return;
     }
+    const deliveryPayload: CreateOrderInterface['delivery'] = deliveryType === DeliveryTypeEnum.PICKUP
+      ? { ...delivery, telegramNickname: values.telegramNickname ?? '', deliveryDateTime: values.delivery?.deliveryDateTime?.toISOString?.() }
+      : delivery;
     if (!name && !user.phone) {
       const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
       if (code === 1) {
@@ -332,7 +344,7 @@ const Cart = () => {
         form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
       }
     } else {
-      const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
+      const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
       if (code === 1) {
         sendOrderToYandex(order);
         const ids = cartList.map(({ id }) => id);
@@ -354,6 +366,19 @@ const Cart = () => {
 
   const promotionalValue = Form.useWatch('promotional', form);
   const selectPromotionField = !!promotionalValue;
+  const deliveryDateTimeValue = Form.useWatch(['delivery', 'deliveryDateTime'], form);
+
+  const onDeliveryTypeChange = (value: DeliveryTypeEnum) => {
+    resetPVZ();
+    setDeliveryType(value);
+    if (value === DeliveryTypeEnum.PICKUP) {
+      setDelivery({
+        type: DeliveryTypeEnum.PICKUP,
+        price: 0,
+        address: t('pickupAddress'),
+      });
+    }
+  };
 
   useEffect(() => {
     axios.get<{ code: number; deliveryList: DeliveryCredentialsEntity[]; }>(routes.delivery.findMany)
@@ -455,7 +480,7 @@ const Cart = () => {
         </>
       </Modal>
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title', { count: countCart })}</h1>
-      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '' }}>
+      <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '', deliveryDateTime: undefined, telegramNickname: '' }}>
         <div className="d-flex flex-column align-items-between col-12 col-xl-8 mb-5 mb-xl-0">
           <Checkbox className={cn('mb-4', { 'not-padding': isMobile })} indeterminate={indeterminate} onChange={onCheckAllChange} checked={isFull}>
             {t('checkAll')}
@@ -497,13 +522,44 @@ const Cart = () => {
         </div>
         <div className="col-12 col-xl-4">
           <h3 className="mb-4 text-uppercase">{t('deliveryType')}</h3>
-          <Radio.Group size="large" disabled={!cartList.length} className="d-flex flex-column flex-xl-row gap-2 gap-xl-0 mb-4 border-0" options={deliveryList} value={deliveryType} onChange={({ target }) => setDeliveryType(target.value)} />
-          {deliveryButton
+          <Radio.Group size="large" disabled={!cartList.length} className="d-flex flex-column flex-xl-row flex-wrap gap-2 mb-4 border-0" options={deliveryList} value={deliveryType} onChange={({ target }) => onDeliveryTypeChange(target.value)} />
+          {deliveryButton && deliveryType !== DeliveryTypeEnum.PICKUP
             ? delivery.address
               ? <Button className="button mx-auto mb-4" onClick={resetPVZ}>{t('resetPVZ')}</Button>
               : <Button className="button mx-auto mb-4" onClick={() => setIsOpenDeliveryWidget(true)}>{t('selectPVZ')}</Button>
             : null}
-          {delivery.address
+          {deliveryType === DeliveryTypeEnum.PICKUP && delivery.address
+            ? (
+              <div className="d-flex flex-column fs-5 mb-4 fw-300 gap-2">
+                <span className="fw-300 mb-4">{t('pickupDescription')}</span>
+                <Form.Item
+                  name={['delivery', 'deliveryDateTime']}
+                  label={<span className="fs-5 font-oswald">{t('deliveryDateTime')}</span>}
+                  rules={[newOrderPositionValidation]}
+                >
+                  <MomentDatePicker
+                    className="w-100 border border-secondary"
+                    size="small"
+                    showTime
+                    format={DateFormatEnum.DD_MM_YYYY_HH_MM}
+                    showNow={false}
+                    disabledDate={(current) => current && current < moment().startOf('day')}
+                    disabledTime={() => ({
+                      disabledHours: () => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23],
+                      disabledMinutes: () => [],
+                      disabledSeconds: () => [],
+                    })}
+                    locale={lang === UserLangEnum.RU ? locale : undefined}
+                    styles={{ popup: isMobile ? { root: { maxHeight: '80vh', overflow: 'auto', maxWidth: 'min(375px, calc(100vw - 30px))' } } : undefined }}
+                  />
+                </Form.Item>
+                <Form.Item name="telegramNickname" label={<span className="fs-5 font-oswald">{t('telegramUsername')}</span>}>
+                  <Input size="small" prefix={<Telegram className="fs-5" color="#0088cc" />} placeholder={t('telegramPlaceholder')} />
+                </Form.Item>
+              </div>
+            )
+            : null}
+          {delivery.address && deliveryType !== DeliveryTypeEnum.PICKUP
             ? (
               <div className="d-flex flex-column fs-5 mb-4 fw-300">
                 <span className="text-uppercase fw-bold">{t(delivery.cdekType === 'door' ? 'selectedPVZ.cdekDoorTitle' : 'selectedPVZ.title')}</span>
@@ -540,7 +596,7 @@ const Cart = () => {
                 <span>{t('promotionalDiscount', { discount: promotional && promotional.freeDelivery ? savedDeliveryPrice : getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">
-                <Input disabled={!filteredCart.length || !delivery.address} placeholder={t('promotional')} className="not-padding" size="large" />
+                <Input disabled={!filteredCart.length || !delivery.address || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} placeholder={t('promotional')} className="not-padding" size="large" />
               </Form.Item>}
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 text-uppercase fw-bold">
@@ -548,8 +604,8 @@ const Cart = () => {
             <span>{tPrice('price', { price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
           </div>
           {selectPromotionField
-            ? <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100 mb-3" onClick={onPromotional}>{t('acceptPromotional')}</Button>
-            : <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit} className="button w-100 mb-3" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
+            ? <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} className="button w-100 mb-3" onClick={onPromotional}>{t('acceptPromotional')}</Button>
+            : <Button disabled={!filteredCart.length || !delivery.address || !count || isSubmit || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} className="button w-100 mb-3" htmlType="submit">{t(!name && !user.phone ? 'confirmPhone' : 'submitPay')}</Button>
           }
           <p className="text-muted text-center">{t('accept', { submitButton: t(!name && !user.phone ? 'confirmPhone' : 'submitPay') })}<Link className="text-primary fw-light" href={routes.page.base.privacyPolicy} title={t('policy')}>{t('policy')}</Link></p>
         </div>

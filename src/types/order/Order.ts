@@ -31,6 +31,10 @@ export interface CreateDeliveryInterface {
   deliveryFrom?: string;
   deliveryTo?: string;
   platformStationTo?: string;
+  /** Дата и время самовывоза (ISO строка), обязательно при type === PICKUP */
+  deliveryDateTime?: string;
+  /** Имя пользователя в Telegram (для самовывоза) */
+  telegramNickname?: string;
 }
 
 export interface CreateOrderInterface {

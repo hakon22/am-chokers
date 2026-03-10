@@ -97,6 +97,8 @@ export class DeliveryService extends BaseService {
     case DeliveryTypeEnum.YANDEX_DELIVERY:
       delivery = this.yandexService.createOrder;
       break;
+    case DeliveryTypeEnum.PICKUP:
+      return;
     }
 
     if (!delivery) {
