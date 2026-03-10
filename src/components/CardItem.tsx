@@ -539,6 +539,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [originalHeight, setOriginalHeight] = useState(416);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   const setItemEffect = useEffectEvent(setItem);
   const setEditEffect = useEffectEvent(setEdit);
@@ -716,8 +717,10 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             infinite
             showBullets={isMobile}
             showNav={!isMobile}
+            onSlide={(index) => setCurrentSlideIndex(index)}
             onScreenChange={(fullscreen) => {
               if (fullscreen) {
+                const indexToShow = currentSlideIndex;
                 setIsFullscreen(true);
                 setOriginalHeight(getHeight());
                 document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
@@ -731,7 +734,11 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
                   setShowThumbnails(false);
                 }
+                requestAnimationFrame(() => {
+                  galleryRef.current?.slideToIndex?.(indexToShow);
+                });
               } else {
+                const indexToRestore = currentSlideIndex;
                 setIsFullscreen(false);
                 setOriginalHeight(416);
                 document.documentElement.style.setProperty('--galleryWidth', '320px');
@@ -745,6 +752,9 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   document.documentElement.style.setProperty('--galleryWidth', '320px');
                   setShowThumbnails(true);
                 }
+                requestAnimationFrame(() => {
+                  galleryRef.current?.slideToIndex?.(indexToRestore);
+                });
               }
             }}
             showThumbnails={showThumbnails}
