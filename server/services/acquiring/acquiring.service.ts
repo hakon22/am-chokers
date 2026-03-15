@@ -54,6 +54,7 @@ export class AcquiringService extends BaseService {
           'order.delivery',
           'order.positions',
           'order.positions.item',
+          'order.positions.item.translations',
         ],
       });
 
