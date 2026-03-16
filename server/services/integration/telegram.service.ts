@@ -41,7 +41,7 @@ export class TelegramService {
       } else if (message?.contact?.phone_number) {
         const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
         if (user) {
-          await UserEntity.update(user.id, { telegramId: id });
+          await UserEntity.update(user.id, { telegramId: id, telegramUsername: message.from?.username ?? null });
           await this.sendMessage(user.lang === UserLangEnum.RU
             ? 'Вы успешно подписались на уведомления.'
             : 'You have successfully subscribed to notifications.', id as string, { reply_markup: { keyboard: [], remove_keyboard: true } });

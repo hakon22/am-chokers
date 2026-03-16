@@ -203,11 +203,14 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                     </Tag>)}
               </div>
               {isAdmin && (
-                <div className={cn('d-flex flex-xl-row gap-2 mb-3 mb-xl-0 mt-3 mt-xl-0', { 'position-absolute top-0': !isMobile })}>
-                  <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
-                  <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order)}>
-                    <CopyOutlined className="fs-5" />{order.user.phone}
-                  </Button>
+                <div className={cn('d-flex flex-column flex-xl-row gap-2 mb-3 mb-xl-0 mt-3 mt-xl-0', { 'position-absolute top-0': !isMobile })}>
+                  <div className="d-flex gap-2">
+                    <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className="fs-5">{order.user.name}</Link>
+                    <Button type="dashed" style={{ color: 'orange' }} className={cn('d-flex align-items-center fs-5', { 'animate__animated animate__headShake': isAnimating === order.id })} onClick={() => handlePhoneCopy(order)}>
+                      <CopyOutlined className="fs-5" />{order.user.phone}
+                    </Button>
+                  </div>
+                  {order.user.telegramUsername && <Link href={`https://t.me/${order.user.telegramUsername}`} className="fs-5">{`@${order.user.telegramUsername}`}</Link>}
                 </div>
               )}
               <div className="d-flex flex-column flex-xl-row col-12 gap-3 gap-xl-0">

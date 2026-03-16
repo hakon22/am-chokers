@@ -60,6 +60,13 @@ export class UserEntity extends BaseEntity {
   })
   public telegramId: string | null;
 
+  /** Никнейм пользователя в Telegram */
+  @Column('character varying', {
+    name: 'telegram_username',
+    nullable: true,
+  })
+  public telegramUsername: string | null;
+
   /** Роль пользователя */
   @Column('enum', {
     enum: UserRoleEnum,

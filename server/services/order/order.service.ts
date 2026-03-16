@@ -81,6 +81,7 @@ export class OrderService extends BaseService {
           'user.lang',
           'user.phone',
           'user.telegramId',
+          'user.telegramUsername',
         ])
         .leftJoin('order.positions', 'positions')
         .addSelect([

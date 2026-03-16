@@ -194,7 +194,7 @@ const Cart = () => {
         delivery_term: lang === UserLangEnum.RU ? 'от 2 до 7 дней' : 'from 2 to 7 days',
         show_select_button: true,
         filter: {
-          type: ['pickup_point', 'terminal'],
+          type: ['pickup_point'],
           is_yandex_branded: true,
           payment_methods: ['already_paid'],
           payment_methods_filter: 'and',
