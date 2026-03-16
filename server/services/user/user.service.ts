@@ -415,7 +415,7 @@ export class UserService extends BaseService {
           : 'Telegram account not found');
       }
 
-      await UserEntity.update(id, { telegramId: null });
+      await UserEntity.update(id, { telegramId: null, telegramUsername: null });
 
       res.json({ code: 1 });
     } catch (e) {
