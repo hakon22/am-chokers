@@ -41,6 +41,7 @@ interface PromotionalTableInterface {
   discountPercent: number | null;
   discount: number | null;
   freeDelivery: boolean;
+  buyTwoGetOne: boolean;
   start: Date | Moment | string | null;
   end: Date | Moment | string | null;
   active: boolean;
@@ -152,6 +153,17 @@ const getFields = (dataIndex: string, title: string, record: PromotionalTableInt
   if (['active', 'freeDelivery'].includes(dataIndex)) {
     return <Checkbox checked={dataIndex === 'active' ? record.active : record.freeDelivery} />;
   }
+  if (dataIndex === 'buyTwoGetOne') {
+    return editing ? (
+      <Checkbox
+        onChange={(event) => {
+          if (event.target.checked) {
+            form.setFieldsValue({ discount: null, discountPercent: null });
+          }
+        }}
+      />
+    ) : <Checkbox checked={!!record.buyTwoGetOne} disabled />;
+  }
   if (['items'].includes(dataIndex)) {
     const source = editing ? items : record.items as ItemEntity[];
     const values = source.map((item) => ({
@@ -232,7 +244,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   setUsers,
   fetchUsers,
 }) => (
-  <td className={['active', 'freeDelivery'].includes(dataIndex) ? 'text-center' : undefined}>
+  <td className={['active', 'freeDelivery', 'buyTwoGetOne'].includes(dataIndex) ? 'text-center' : undefined}>
     {editing ? (
       <Form.Item
         name={dataIndex}
@@ -249,36 +261,60 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
               return Promise.reject(new Error(tValidation(dataIndex === 'start' ? 'isInFuture' : 'isAfterStart')));
             },
           })]
-          : ['discount', 'discountPercent', 'freeDelivery'].includes(dataIndex)
+          : ['discount', 'discountPercent', 'freeDelivery', 'buyTwoGetOne'].includes(dataIndex)
             ? [({ getFieldValue }) => ({
               validator(_, value) {
-                const keys = {} as { key1: 'discount' | 'discountPercent' | 'freeDelivery', key2: 'discount' | 'discountPercent' | 'freeDelivery' };
+                const discount = getFieldValue('discount');
+                const discountPercent = getFieldValue('discountPercent');
+                const freeDelivery = getFieldValue('freeDelivery');
+                const buyTwoGetOne = getFieldValue('buyTwoGetOne');
 
-                switch (dataIndex) {
-                case 'discount':
-                  keys.key1 = 'discountPercent';
-                  keys.key2 = 'freeDelivery';
-                  break;
-                case 'discountPercent':
-                  keys.key1 = 'discount';
-                  keys.key2 = 'freeDelivery';
-                  break;
-                case 'freeDelivery':
-                  keys.key1 = 'discount';
-                  keys.key2 = 'discountPercent';
-                  break;
-                }
-
-                const val = getFieldValue(keys.key1);
-                const val2 = getFieldValue(keys.key2);
-                if (!!value === true && !val && !val2 ? true : !!value === false && (val || val2) ? true : false) {
+                if (dataIndex === 'buyTwoGetOne') {
+                  if (value && (discount || discountPercent || freeDelivery)) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  const hasOtherBenefit = !!(discount || discountPercent || freeDelivery);
+                  if (!value && !hasOtherBenefit) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error(tValidation('oneOfValue')));
+
+                if (dataIndex === 'discount') {
+                  if (value && (discountPercent || freeDelivery || buyTwoGetOne)) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  if (!value && !discountPercent && !freeDelivery && !buyTwoGetOne) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  return Promise.resolve();
+                }
+
+                if (dataIndex === 'discountPercent') {
+                  if (value && (discount || freeDelivery || buyTwoGetOne)) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  if (!value && !discount && !freeDelivery && !buyTwoGetOne) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  return Promise.resolve();
+                }
+
+                if (dataIndex === 'freeDelivery') {
+                  if (value && (discount || discountPercent || buyTwoGetOne)) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  if (!value && !discount && !discountPercent && !buyTwoGetOne) {
+                    return Promise.reject(new Error(tValidation('oneOfValue')));
+                  }
+                  return Promise.resolve();
+                }
+
+                return Promise.resolve();
               },
             })]
             : [newPromotionalValidation]}
-        valuePropName={['active', 'freeDelivery'].includes(dataIndex) ? 'checked' : undefined}
+        valuePropName={['active', 'freeDelivery', 'buyTwoGetOne'].includes(dataIndex) ? 'checked' : undefined}
       >
         {getFields(dataIndex, title, record, lang, form, items, users, t, setItems, fetchItems, setUsers, fetchUsers)}
       </Form.Item>
@@ -369,6 +405,7 @@ const CreatePromotional = () => {
       end: null,
       active: true,
       freeDelivery: false,
+      buyTwoGetOne: false,
       items: [],
       users: [],
       key: ((maxId || 0) + 1).toString(),
@@ -436,16 +473,16 @@ const CreatePromotional = () => {
         row.end = row.end.format(DateFormatEnum.YYYY_MM_DD);
       }
 
-      const { name, description, discount, discountPercent, freeDelivery, start, end, active, items: rowItems, users: rowUsers } = row;
+      const { name, description, discount, discountPercent, freeDelivery, buyTwoGetOne, start, end, active, items: rowItems, users: rowUsers } = row;
 
       const exist = promotionals.find((promotional) => promotional.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems, users: rowUsers } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, buyTwoGetOne, items: rowItems, users: rowUsers } as PromotionalFormInterface);
         if (code === 1) {
           updateData(promotional, row);
         }
       } else {
-        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, items: rowItems, users: rowUsers } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, buyTwoGetOne, items: rowItems, users: rowUsers } as PromotionalFormInterface);
         if (code === 1) {
           setPromotionals((state) => [promotional, ...state]);
           setEditingKey('');
@@ -555,6 +592,11 @@ const CreatePromotional = () => {
       editable: true,
     },
     {
+      title: t('columns.buyTwoGetOne'),
+      dataIndex: 'buyTwoGetOne',
+      editable: true,
+    },
+    {
       title: t('columns.start'),
       dataIndex: 'start',
       editable: true,
@@ -650,6 +692,7 @@ const CreatePromotional = () => {
   const discount = Form.useWatch('discount', form);
   const discountPercent = Form.useWatch('discountPercent', form);
   const freeDelivery = Form.useWatch('freeDelivery', form);
+  const buyTwoGetOne = Form.useWatch('buyTwoGetOne', form);
 
   useEffect(() => {
     if (start && end) {
@@ -660,12 +703,19 @@ const CreatePromotional = () => {
   }, [start, end]);
 
   useEffect(() => {
-    if (discount || discountPercent || freeDelivery) {
-      discountAndDiscountPercentSchema.validate({ discount, discountPercent, freeDelivery }, { abortEarly: false })
-        .then((values) => form.setFields(Object.keys(values).map((name) => ({ name, errors: [] }))))
-        .catch((e: ValidationError) => form.setFields(e.inner.map(({ path, message }) => ({ name: path, errors: [message] }))));
+    if (!discount && !discountPercent && !freeDelivery && !buyTwoGetOne) {
+      form.setFields([
+        { name: 'discount', errors: [] },
+        { name: 'discountPercent', errors: [] },
+        { name: 'freeDelivery', errors: [] },
+        { name: 'buyTwoGetOne', errors: [] },
+      ]);
+      return;
     }
-  }, [discount, discountPercent, freeDelivery]);
+    discountAndDiscountPercentSchema.validate({ discount, discountPercent, freeDelivery, buyTwoGetOne }, { abortEarly: false })
+      .then((values) => form.setFields(Object.keys(values).map((name) => ({ name, errors: [] }))))
+      .catch((e: ValidationError) => form.setFields(e.inner.map(({ path, message }) => ({ name: path, errors: [message] }))));
+  }, [discount, discountPercent, freeDelivery, buyTwoGetOne]);
 
   useEffect(() => {
     if ((withExpired !== undefined || withDeleted !== undefined || !promotionals.length) && axiosAuth) {
@@ -688,7 +738,11 @@ const CreatePromotional = () => {
         .then(({ data: response }) => {
           if (response.code === 1) {
             setPromotionals(response.promotionals);
-            const newPromotionals: PromotionalTableInterface[] = response.promotionals.map((promotional) => ({ ...promotional, key: promotional.id.toString() }));
+            const newPromotionals: PromotionalTableInterface[] = response.promotionals.map((promotional) => ({
+              ...promotional,
+              buyTwoGetOne: promotional.buyTwoGetOne ?? false,
+              key: promotional.id.toString(),
+            }));
             setData(newPromotionals);
           }
           setIsSubmit(false);

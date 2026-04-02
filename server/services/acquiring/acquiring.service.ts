@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer, type IItemWithoutData } from '@a2seven/yoo-checkout';
 import { Container } from 'typescript-ioc';
 import moment from 'moment';
+import _ from 'lodash';
 
 import { BaseService } from '@server/services/app/base.service';
 import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
@@ -10,7 +11,7 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
-import { getDiscountPercent, getOrderPrice, getPositionAmount, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
+import { getDiscountPercent, getOrderPrice, getPositionAmount, getPositionPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -39,6 +40,24 @@ export class AcquiringService extends BaseService {
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private readonly TAG = 'AcquiringService';
+
+  private readonly YOOKASSA_MAX_RECEIPT_POSITIONS = 6;
+
+  /**
+   * ЮKassa: не более 6 строк в чеке — товарные позиции с ненулевой ценой + одна строка доставки при deliveryPrice > 0.
+   * Доставка 0 ₽ в чек не входит. Используется в `OrderService` и при формировании платежа.
+   */
+  public assertYookassaReceiptPositionsWithinLimit = (productLines: { price: number; }[], deliveryPrice: number, lang: UserLangEnum): void => {
+    const productLineCount = productLines.filter((line) => line.price).length;
+    const deliveryLineCount = deliveryPrice ? 1 : 0;
+    const receiptPositionCount = productLineCount + deliveryLineCount;
+    if (receiptPositionCount > this.YOOKASSA_MAX_RECEIPT_POSITIONS) {
+      const message = lang === UserLangEnum.RU
+        ? `Максимум ${this.YOOKASSA_MAX_RECEIPT_POSITIONS} позиций в одном заказе (включая доставку). Доставка 0 ₽ не учитывается.`
+        : `Maximum ${this.YOOKASSA_MAX_RECEIPT_POSITIONS} items per order (including delivery). Free delivery does not count as a line.`;
+      throw new Error(message);
+    }
+  };
 
   public checkYookassaOrder = async (payment: Payment) => {
     try {
@@ -106,8 +125,11 @@ export class AcquiringService extends BaseService {
 
     const orderId = `${order.id}-1${transactions.length}`;
 
+    this.assertYookassaReceiptPositionsWithinLimit(order.positions, order.deliveryPrice, lang);
+
     const amount = getOrderPrice(order);
     const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
+    const buyTwoGetOneAmountByPosition = order.promotional?.buyTwoGetOne ? getPositionAmount(order) : undefined;
 
     const orderPositions = [...order.positions];
 
@@ -130,16 +152,24 @@ export class AcquiringService extends BaseService {
     }
 
     const items = orderPositions.filter((position) => position.price).map((position) => {
-      let positionDiscountPercent = discountPercent;
-      if (order.promotional && order.promotional.items.length) {
-        if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
-          positionDiscountPercent = 0;
+      let lineTotal: number;
+      if (buyTwoGetOneAmountByPosition && !_.isNil(position.id) && buyTwoGetOneAmountByPosition[position.id]) {
+        lineTotal = buyTwoGetOneAmountByPosition[position.id];
+      } else if (order.promotional?.buyTwoGetOne) {
+        lineTotal = getPositionPrice(position);
+      } else {
+        let positionDiscountPercent = discountPercent;
+        if (order.promotional && order.promotional.items.length) {
+          if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
+            positionDiscountPercent = 0;
+          }
         }
+        lineTotal = getPositionPriceWithDiscount(position, positionDiscountPercent);
       }
       return {
         description: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
         amount: {
-          value: getPositionPriceWithDiscount(position, positionDiscountPercent).toString(),
+          value: lineTotal.toString(),
           currency: 'RUB',
         },
         quantity: position.count.toString(),
@@ -148,12 +178,6 @@ export class AcquiringService extends BaseService {
         payment_mode: 'full_payment',
       };
     }) as IItemWithoutData[];
-
-    if (items.length > 6) {
-      throw new Error(lang === UserLangEnum.RU
-        ? 'Максимум 6 позиций в одном заказе (включая доставку)'
-        : 'Maximum 6 items per order (including delivery)');
-    }
 
     const positionsAmount = items.reduce((acc, item) => acc + (+item.amount.value * 100), 0);
     const centAmount = amount * 100;

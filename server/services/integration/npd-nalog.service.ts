@@ -21,6 +21,10 @@ export class NpdNalogService extends BaseService {
   };
 
   public addIncome = async (payload: NpdNalogOrderInterface) => {
+    if (process.env.NODE_ENV === 'development') {
+      return;
+    }
+
     const { order, items } = payload;
     try {
       if (!order.receiptId) {

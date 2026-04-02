@@ -114,6 +114,7 @@ export class OrderService extends BaseService {
           'promotional.discount',
           'promotional.discountPercent',
           'promotional.freeDelivery',
+          'promotional.buyTwoGetOne',
         ])
         .leftJoin('promotional.items', 'items')
         .addSelect('items.id')
@@ -248,6 +249,12 @@ export class OrderService extends BaseService {
           : `Order cannot be placed: Item ${name} is temporarily out of stock`);
       }
 
+      this.acquiringService.assertYookassaReceiptPositionsWithinLimit(
+        cart.map(({ item }) => ({ price: item.price })),
+        delivery.price,
+        user.lang,
+      );
+
       const preparedPositions = cart.map((value) => ({
         count: value.count,
         price: value.item.price,
@@ -290,7 +297,7 @@ export class OrderService extends BaseService {
     const messageRu = [
       `Создан заказ <b>№${order.id}</b>`,
       '',
-      `Сумма: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+      `Сумма: <b>${getOrderPrice(order)} ₽</b>`,
       ...(comment ? [`Комментарий: <b>${comment}</b>`] : []),
       '',
       `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,
@@ -299,7 +306,7 @@ export class OrderService extends BaseService {
     const messageEn = [
       `Order <b>№${order.id}</b> created.`,
       '',
-      `Amount: <b>${getOrderPrice({ ...order, promotional } as OrderInterface)} ₽</b>`,
+      `Amount: <b>${getOrderPrice(order)} ₽</b>`,
       ...(comment ? [`Comment: <b>${comment}</b>`] : []),
       '',
       `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.page.admin.allOrders}/${order.id}`,

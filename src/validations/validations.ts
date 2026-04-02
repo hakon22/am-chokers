@@ -350,28 +350,47 @@ export const periodSchema = yup.object().shape({
 });
 
 export const discountAndDiscountPercentSchema = yup.object().shape({
+  buyTwoGetOne: yup
+    .boolean()
+    .optional()
+    .test('one-of-group', t('validation.oneOfValue'), function (value) {
+      const { discount, discountPercent, freeDelivery } = this.parent;
+      if (value) {
+        return !discount && !discountPercent && !freeDelivery;
+      }
+      return !!(discount || discountPercent || freeDelivery);
+    }),
   discount: yup
     .number()
     .nullable()
     .min(1)
     .test('one-of', t('validation.oneOfValue'), function (value) {
-      const { discountPercent, freeDelivery } = this.parent;
-      return !!value === true && !discountPercent && !freeDelivery ? true : !!value === false && (discountPercent || freeDelivery) ? true : false;
+      const { discountPercent, freeDelivery, buyTwoGetOne } = this.parent;
+      if (value) {
+        return !discountPercent && !freeDelivery && !buyTwoGetOne;
+      }
+      return !!(discountPercent || freeDelivery || buyTwoGetOne);
     }),
   discountPercent: yup
     .number()
     .nullable()
     .min(1)
     .test('one-of', t('validation.oneOfValue'), function (value) {
-      const { discount, freeDelivery } = this.parent;
-      return !!value === true && !discount && !freeDelivery ? true : !!value === false && (discount || freeDelivery) ? true : false;
+      const { discount, freeDelivery, buyTwoGetOne } = this.parent;
+      if (value) {
+        return !discount && !freeDelivery && !buyTwoGetOne;
+      }
+      return !!(discount || freeDelivery || buyTwoGetOne);
     }),
   freeDelivery: yup
     .boolean()
     .nullable()
     .test('one-of', t('validation.oneOfValue'), function (value) {
-      const { discountPercent, discount } = this.parent;
-      return !!value === true && !discount && !discountPercent ? true : !!value === false && (discount || discountPercent) ? true : false;
+      const { discountPercent, discount, buyTwoGetOne } = this.parent;
+      if (value) {
+        return !discount && !discountPercent && !buyTwoGetOne;
+      }
+      return !!(discount || discountPercent || buyTwoGetOne);
     }),
 });
 
