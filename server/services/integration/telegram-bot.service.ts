@@ -1,4 +1,4 @@
-import { SocksProxyAgent } from 'socks-proxy-agent';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Telegraf } from 'telegraf';
 import { Container, Singleton } from 'typescript-ioc';
 import type { ExtraReplyMessage, MediaGroup } from 'telegraf/typings/telegram-types';
@@ -15,16 +15,16 @@ export class TelegramBotService {
 
   private bot: Telegraf<Context>;
 
-  private readonly socksProxyAgent = process.env.PROXY_USER && process.env.PROXY_PASS && process.env.PROXY_HOST
-    ? new SocksProxyAgent(`socks5://${process.env.PROXY_USER}:${process.env.PROXY_PASS}@${process.env.PROXY_HOST}`)
+  private readonly proxyAgent = process.env.PROXY_USER && process.env.PROXY_PASS && process.env.PROXY_HOST
+    ? new HttpsProxyAgent(`http://${process.env.PROXY_USER}:${process.env.PROXY_PASS}@${process.env.PROXY_HOST}`)
     : null;
 
   public init = async (options?: { withWebhooks?: boolean; }) => {
     try {
-      this.bot = new Telegraf(process.env.TELEGRAM_TOKEN ?? '', this.socksProxyAgent
+      this.bot = new Telegraf(process.env.TELEGRAM_TOKEN ?? '', this.proxyAgent
         ? {
           telegram: {
-            agent: this.socksProxyAgent,
+            agent: this.proxyAgent,
           },
         }
         : {});

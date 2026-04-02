@@ -61,6 +61,13 @@ export class PromotionalEntity extends BaseEntity {
   })
   public freeDelivery: boolean;
 
+  /** Акция 2+1 */
+  @Column('boolean', {
+    default: false,
+    name: 'buy_two_get_one',
+  })
+  public buyTwoGetOne: boolean;
+
   /** Старт действия промокода */
   @Column('date')
   public start: Date;

@@ -23,6 +23,7 @@ export class PromotionalService extends BaseService {
         'promotional.discount',
         'promotional.discountPercent',
         'promotional.freeDelivery',
+        'promotional.buyTwoGetOne',
         'promotional.start',
         'promotional.end',
         'promotional.active',

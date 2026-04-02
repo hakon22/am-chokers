@@ -254,7 +254,13 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
                       <Tooltip title={order.promotional.name} trigger={['click', 'hover']} placement={isMobile ? 'bottom' : 'left'} color="#4d689e">
                         <div className="d-flex justify-content-between">
                           <span>{tOrders('promotional')}</span>
-                          <span className="fw-500 text-danger">{order.promotional.freeDelivery ? tPromotionalCodes('columns.freeDelivery') : `- ${tOrders('price', { price: getOrderDiscount(order) })}`}</span>
+                          <span className="fw-500 text-danger">
+                            {order.promotional.freeDelivery && order.promotional.buyTwoGetOne
+                              ? `${tPromotionalCodes('columns.freeDelivery')} · − ${tOrders('price', { price: getOrderDiscount(order) })}`
+                              : order.promotional.freeDelivery
+                                ? tPromotionalCodes('columns.freeDelivery')
+                                : `− ${tOrders('price', { price: getOrderDiscount(order) })}`}
+                          </span>
                         </div>
                       </Tooltip>
                     )}

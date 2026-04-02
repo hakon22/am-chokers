@@ -115,7 +115,7 @@ const Cart = () => {
   const deliveryButton = useMemo(() => !!deliveryType, [deliveryType]);
   const deliveryList = useMemo(() => deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })), [lang, deliveryServices]);
 
-  const positions = cartList.map(({ item, count }) => ({ price: item.price, discountPrice: item.discountPrice, count, item }));
+  const positions = cartList.map(({ id, item, count }) => ({ id, price: item.price, discountPrice: item.discountPrice, count, item })) as unknown as OrderPositionInterface[];
 
   const getPreparedOrder = (items: OrderPositionInterface[], deliveryPrice: number, promo?: PromotionalInterface) => ({ positions: items, deliveryPrice, promotional: promo }) as OrderInterface;
 
@@ -124,7 +124,7 @@ const Cart = () => {
 
   const priceForFreeDelivery = 10000;
 
-  const price = getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0));
+  const price = getOrderPrice(getPreparedOrder(positions, 0));
 
   const isFull = cartList.length === filteredCart.length;
   const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
@@ -207,11 +207,11 @@ const Cart = () => {
     window.ecomStartWidget({
       id: 55091,
       weight: items.length * 200,
-      sumoc: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)),
+      sumoc: getOrderPrice(getPreparedOrder(positions, delivery.price, promotional)),
       callbackFunction: (result: RussianPostDeliveryDataInterface) => {
         setSavedDeliveryPrice(result.cashOfDelivery / 100);
         setDelivery({
-          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : result.cashOfDelivery / 100,
+          price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : result.cashOfDelivery / 100,
           address: `${result.cityTo}, ${result.addressTo}`,
           type: deliveryType,
           index: result.indexTo,
@@ -269,7 +269,7 @@ const Cart = () => {
 
           setSavedDeliveryPrice(rate.delivery_sum);
           setDelivery({
-            price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : rate.delivery_sum,
+            price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : rate.delivery_sum,
             address: compoundAddress,
             type: deliveryType,
             cdekType: type,
@@ -394,7 +394,7 @@ const Cart = () => {
       const detail = data.detail as YandexDeliveryDataInterface;
       setSavedDeliveryPrice(300);
       setDelivery({
-        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : 300,
+        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : 300,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });
@@ -444,7 +444,7 @@ const Cart = () => {
         form.setFieldValue('promotional', undefined);
       }
     }
-    setDeliveryEffect((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
+    setDeliveryEffect((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
   }, [count, promotional]);
 
   return (
@@ -587,14 +587,18 @@ const Cart = () => {
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 fw-300">
             <span>{t('delivery')}</span>
-            <span>{(promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], 0, promotional)) >= priceForFreeDelivery) ? t('free') : tPrice('price', { price: delivery.price })}</span>
+            <span>{(promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? t('free') : tPrice('price', { price: delivery.price })}</span>
           </div>
           <div className="d-flex justify-content-between align-items-center fs-5 mb-4 fw-300" style={{ color: '#ff9500' }}>
             <span>{t('promotional')}</span>
             {promotional
               ? <div className="d-flex gap-2">
                 <Tag color="green" variant="outlined" className="d-flex align-items-center fs-6 py-1" closeIcon={<CloseOutlined className="fs-6-5" />} onClose={() => setPromotional(undefined)}>{t('promotionalName', { name: promotional.name })}</Tag>
-                <span>{t('promotionalDiscount', { discount: promotional && promotional.freeDelivery ? savedDeliveryPrice : getOrderDiscount(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
+                <span>{t('promotionalDiscount', { discount: promotional.freeDelivery && promotional.buyTwoGetOne
+                  ? savedDeliveryPrice + getOrderDiscount(getPreparedOrder(positions, delivery.price, promotional))
+                  : promotional.freeDelivery
+                    ? savedDeliveryPrice
+                    : getOrderDiscount(getPreparedOrder(positions, delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">
                 <Input disabled={!filteredCart.length || !delivery.address || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} placeholder={t('promotional')} className="not-padding" size="large" />
@@ -602,7 +606,7 @@ const Cart = () => {
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 text-uppercase fw-bold">
             <span>{t('total')}</span>
-            <span>{tPrice('price', { price: getOrderPrice(getPreparedOrder(positions as OrderPositionInterface[], delivery.price, promotional)) })}</span>
+            <span>{tPrice('price', { price: getOrderPrice(getPreparedOrder(positions, delivery.price, promotional)) })}</span>
           </div>
           <Form.Item
             name="personalDataConsent"
