@@ -1,0 +1,37 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.breadcrumbWrap {
+  width: 100%;
+  padding-bottom: 12px;
+  background: v2.$v2-bg-main;
+
+  &.mobile {
+    position: fixed;
+    top: 56px; // mobileHeader(56)
+    z-index: 5;
+    background: v2.$v2-bg-main;
+  }
+
+  :global(.ant-breadcrumb) {
+    padding-top: 12px;
+
+    :global(.ant-breadcrumb-link) {
+      font-size: 13px;
+      color: v2.$v2-text-secondary;
+      font-family: 'Inter', sans-serif;
+
+      a {
+        color: v2.$v2-text-secondary;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: v2.$v2-navy-primary;
+        }
+      }
+    }
+
+    :global(.ant-breadcrumb-separator) {
+      color: v2.$v2-border;
+    }
+  }
+}

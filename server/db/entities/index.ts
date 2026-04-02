@@ -29,6 +29,7 @@ import { DeferredPublicationEntity } from '@server/db/entities/deferred.publicat
 import { YandexDirectCampaignEntity } from '@server/db/entities/yandex.direct.campaign.entity';
 import { YandexDirectStatisticsEntity } from '@server/db/entities/yandex.direct.statistics.entity';
 import { BannerEntity } from '@server/db/entities/banner.entity';
+import { SiteSettingsEntity } from '@server/db/entities/site.settings.entity';
 
 export const entities = [
   UserEntity,
@@ -62,4 +63,5 @@ export const entities = [
   YandexDirectCampaignEntity,
   YandexDirectStatisticsEntity,
   BannerEntity,
+  SiteSettingsEntity,
 ];

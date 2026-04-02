@@ -1,15 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import axios from 'axios';
-import { Button, Descriptions, Skeleton } from 'antd';
+import {
+  Button, Card, Descriptions, Select, Skeleton,
+} from 'antd';
 import cn from 'classnames';
 import type { DescriptionsProps } from 'antd';
 
-import { SubmitContext } from '@/components/Context';
+import { SubmitContext, VersionContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { routes } from '@/routes';
+import type { SiteVersion } from '@/types/SiteVersion';
 import type { CacheInfoInterface, CacheItemInterface } from '@server/types/db/cache-info.interface';
 
 export const AdminSettings = () => {
@@ -17,10 +20,12 @@ export const AdminSettings = () => {
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { setIsSubmit } = useContext(SubmitContext);
+  const { version: currentVersion } = useContext(VersionContext);
 
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const [cacheInfo, setCacheInfo] = useState<CacheInfoInterface>();
+  const [siteVersion, setSiteVersion] = useState<SiteVersion>(currentVersion);
 
   const getCacheInfo = async () => {
     const { data } = await axios.get<{ code: number; result: CacheInfoInterface; }>(routes.item.getCacheInfo);
@@ -30,6 +35,19 @@ export const AdminSettings = () => {
   };
 
   const getCacheInfoEffect = useEffectEvent(getCacheInfo);
+
+  const updateSiteVersion = async (version: SiteVersion) => {
+    try {
+      setIsSubmit(true);
+      await axios.patch(routes.settings.updateSiteVersion, { version });
+      setSiteVersion(version);
+      toast(tToast('siteVersionUpdated'), 'success');
+    } catch (e) {
+      axiosErrorHandler(e, tToast, setIsSubmit);
+    } finally {
+      setIsSubmit(false);
+    }
+  };
 
   const synchronizationCache = async () => {
     try {
@@ -58,6 +76,19 @@ export const AdminSettings = () => {
 
   return (
     <div className="d-flex flex-column col-11">
+      <Card title={t('siteVersion.title')} className="col-12 col-xl-6 mb-5">
+        <p className="text-muted mb-3">{t('siteVersion.description')}</p>
+        <Select
+          value={siteVersion}
+          onChange={updateSiteVersion}
+          style={{ width: 220 }}
+          options={[
+            { value: 'v1', label: t('siteVersion.v1Label') },
+            { value: 'v2', label: t('siteVersion.v2Label') },
+            { value: 'v3', label: t('siteVersion.v3Label') },
+          ]}
+        />
+      </Card>
       {cacheInfo ? (
         <div className="d-flex flex-column">
           <Descriptions bordered style={{ marginBottom: '20px' }} className="col-12 col-xl-6" title={t('cache.items')} items={parsedInfo(cacheInfo.items)} />

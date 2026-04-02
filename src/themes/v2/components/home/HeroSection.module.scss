@@ -1,0 +1,215 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.hero {
+  display: grid;
+  grid-template-columns: 52% 48%;
+  min-height: 520px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.heroLeft {
+  background: linear-gradient(135deg, v2.$v2-navy-primary 0%, v2.$v2-navy-secondary 100%);
+  display: flex;
+  align-items: center;
+  padding: 72px 80px;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, v2.$v2-navy-medium, transparent);
+  }
+
+  @media (max-width: 768px) {
+    padding: 48px 24px;
+  }
+}
+
+.heroInner {
+  max-width: 460px;
+}
+
+.heroEyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: v2.$v2-text-muted;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+
+  &::before {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: v2.$v2-text-muted;
+    flex-shrink: 0;
+  }
+}
+
+.heroH1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 52px;
+  font-weight: 300;
+  line-height: 1.15;
+  color: v2.$v2-white;
+  margin-bottom: 16px;
+
+  em {
+    font-style: italic;
+    color: v2.$v2-text-muted;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 38px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 32px;
+  }
+}
+
+.heroSub {
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.7;
+  margin-bottom: 36px;
+}
+
+.heroBtns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  background: v2.$v2-white !important;
+  color: v2.$v2-navy-primary !important;
+  border-color: v2.$v2-white !important;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+
+  &:hover {
+    background: v2.$v2-bg-alt !important;
+  }
+}
+
+.btnOutline {
+  background: transparent !important;
+  color: v2.$v2-white !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+
+  &:hover {
+    border-color: v2.$v2-white !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+}
+
+.heroRight {
+  background: v2.$v2-bg-alt;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 520px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.heroImgPlaceholder {
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(160deg, v2.$v2-bg-alt 0%, #F7F9FC 100%);
+}
+
+.heroImgLabel {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 15px;
+  font-style: italic;
+  color: v2.$v2-text-muted;
+}
+
+.heroCard {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
+  background: v2.$v2-white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: v2.$v2-sh-lg;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 200px;
+}
+
+.heroCardNum {
+  font-size: 22px;
+  font-weight: 600;
+  color: v2.$v2-navy-primary;
+  line-height: 1;
+}
+
+.heroCardLbl {
+  font-size: 11px;
+  color: v2.$v2-text-secondary;
+  margin-top: 2px;
+}
+
+.heroCardDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #52c41a;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+
+.heroTag {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  background: v2.$v2-navy-primary;
+  color: v2.$v2-white;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: v2.$v2-navy-secondary;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}

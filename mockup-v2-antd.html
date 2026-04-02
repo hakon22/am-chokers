@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM Chokers v2 — Ant Design Mockup</title>
+<!--
+  КАК ИНТЕГРИРОВАТЬ:
+  1. V2_THEME       → src/themes/v2/theme.ts
+  2. CSS overrides  → src/scss/general.scss  (внутрь body.v2-theme)
+  3. Компоненты     → каждый помечен src/pages/...
+
+  КАК ОТКРЫТЬ: через npx serve . → http://localhost:<port>/mockup-v2-antd.html
+  (или любой локальный сервер — CDN не работает с file://)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.19.4/dist/reset.css">
+<style>
+:root {
+  --gold:      #c9a84c;
+  --gold-l:    #e8c96b;
+  --gold-bg:   rgba(201,168,76,0.13);
+  --gold-bdr:  rgba(201,168,76,0.22);
+  --navy:      #0b0f1e;
+  --navy-s:    #111827;
+  --navy-c:    #131d35;
+  --navy-n:    #090d18;
+  --text:      #f0ece2;
+  --text-m:    #8a9bb5;
+  --text-d:    #556072;
+  --bdr:       rgba(255,255,255,0.07);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: Oswald, 'Segoe UI', sans-serif; background: var(--navy); color: var(--text); }
+
+/* ── СПИННЕР (из src/scss/spinner.scss, цвета под v2) ── */
+.inner-circles-loader:not(:required) {
+  position: relative; display: inline-block;
+  width: 80px; height: 80px;
+  background: var(--gold-bg);
+  border-radius: 50%; overflow: hidden; text-indent: -9999px;
+  -webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
+}
+.inner-circles-loader:not(:required):before,
+.inner-circles-loader:not(:required):after {
+  content: ''; position: absolute; top: 0;
+  display: inline-block; width: 80px; height: 80px; border-radius: 50%;
+}
+.inner-circles-loader:not(:required):before {
+  animation: icl 3s infinite; transform-origin: 0 50%; left: 0;
+  background: var(--gold);
+}
+.inner-circles-loader:not(:required):after {
+  animation: icl 3s .2s reverse infinite; transform-origin: 100% 50%; right: 0;
+  background: rgba(201,168,76,0.4);
+}
+@keyframes icl {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ── LOADING SCREEN ── */
+#v2-load {
+  position: fixed; inset: 0; background: var(--navy);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 24px; z-index: 9999; transition: opacity .4s;
+}
+
+/* ── AntD OVERRIDES (→ body.v2-theme в general.scss) ── */
+.ant-btn, .ant-menu, .ant-input, .ant-select-selector,
+.ant-table, .ant-tabs-tab, .ant-pagination,
+.ant-breadcrumb, .ant-form-item-label > label {
+  font-family: Oswald, 'Segoe UI', sans-serif !important;
+}
+
+/* ── HERO ── */
+.v2-hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #070a14 0%, #0d1428 55%, #111d3a 100%);
+  padding: 84px 0 104px;
+}
+.v2-hero::before {
+  content: ''; position: absolute;
+  width: 680px; height: 680px; right: -60px; top: 50%; transform: translateY(-50%);
+  background: radial-gradient(circle, rgba(201,168,76,.07), transparent 65%);
+  border-radius: 50%; pointer-events: none;
+}
+.v2-hero::after {
+  content: ''; position: absolute;
+  width: 400px; height: 400px; right: 90px; top: 50%; transform: translateY(-50%);
+  border-radius: 50%; border: 1px solid rgba(201,168,76,.1); pointer-events: none;
+}
+.v2-hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gold-bg); border: 1px solid var(--gold-bdr);
+  border-radius: 40px; padding: 5px 16px;
+  font-size: 11px; letter-spacing: 2.5px; color: var(--gold);
+  text-transform: uppercase; margin-bottom: 24px;
+}
+.v2-hero-badge::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+}
+/* ── SECTION ── */
+.v2-ey  { font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+.v2-div { width:40px; height:1px; background:var(--gold); margin:12px 0 36px; }
+/* ── CAT CARD ── */
+.v2-cat {
+  position: relative; height: 260px; border-radius: 12px; overflow: hidden;
+  cursor: pointer; border: 1px solid var(--bdr);
+  transition: transform .25s, border-color .25s;
+}
+.v2-cat:hover { transform: translateY(-4px); border-color: var(--gold); }
+.v2-cat-ico { position:absolute; top:50%; left:50%; transform:translate(-50%,-58%); font-size:58px; opacity:.18; line-height:1; }
+.v2-cat-foot { position:absolute; bottom:0; left:0; right:0; padding:20px; background:linear-gradient(to top,rgba(0,0,0,.75),transparent); }
+/* ── PRODUCT CARD ── */
+.v2-pc { transition: transform .25s, box-shadow .25s, border-color .25s !important; cursor:pointer; }
+.v2-pc:hover { transform: translateY(-6px) !important; box-shadow: 0 20px 40px rgba(0,0,0,.55) !important; }
+.v2-pi { height:230px; display:flex; align-items:center; justify-content:center; background:linear-gradient(145deg,#131d35,#0d1428); border-radius:12px 12px 0 0; overflow:hidden; }
+.v2-pi span { font-size:70px; transition:transform .4s; line-height:1; display:block; }
+.v2-pc:hover .v2-pi span { transform:scale(1.07); }
+/* ── PROMO ── */
+.v2-promo {
+  position:relative; overflow:hidden;
+  background:linear-gradient(135deg,#111d3a,#0d1428,#1a1a2e);
+  border:1px solid var(--gold-bdr); border-radius:20px;
+  padding:52px 56px; margin-bottom:80px;
+}
+.v2-promo::after {
+  content:''; position:absolute;
+  width:480px; height:480px; right:-80px; top:50%; transform:translateY(-50%);
+  background:radial-gradient(circle,rgba(201,168,76,.09),transparent 65%);
+  border-radius:50%; pointer-events:none;
+}
+/* ── FILTER LABEL ── */
+.v2-fl { display:block; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:12px; }
+/* ── ACCOUNT ── */
+.v2-am { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:8px; cursor:pointer; font-size:14px; color:var(--text-m); transition:background .2s,color .2s; margin-bottom:2px; }
+.v2-am:hover, .v2-am.on { background:var(--gold-bg); color:var(--gold); }
+/* ── QTY ── */
+.v2-qty { display:flex; align-items:center; background:var(--navy-c); border:1px solid var(--bdr); border-radius:8px; overflow:hidden; }
+.v2-qty-n { width:48px; text-align:center; font-size:16px; color:var(--text); border-left:1px solid var(--bdr); border-right:1px solid var(--bdr); }
+/* ── STATUS TAGS ── */
+.st-done { background:rgba(39,174,96,.14)  !important; color:#27ae60 !important; border-color:rgba(39,174,96,.3)  !important; }
+.st-ship { background:rgba(52,152,219,.14) !important; color:#3498db !important; border-color:rgba(52,152,219,.3) !important; }
+.st-proc { background:rgba(201,168,76,.14) !important; color:var(--gold) !important; border-color:rgba(201,168,76,.3) !important; }
+/* ── SWATCH ── */
+.v2-sw { width:26px; height:26px; border-radius:50%; cursor:pointer; position:relative; flex-shrink:0; transition:transform .2s; }
+.v2-sw:hover { transform:scale(1.15); }
+.v2-sw.on::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid var(--gold); }
+/* ── GALLERY THUMB ── */
+.v2-thumb { width:80px; height:98px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; background:#0d1428; transition:border-color .2s; font-size:28px; }
+/* ── MOBILE NAV ── */
+.v2-mn { display:none; position:fixed; bottom:0; left:0; right:0; z-index:200; background:var(--navy-n); border-top:1px solid var(--gold-bdr); padding:8px 0 12px; }
+.v2-mn-row { display:flex; justify-content:space-around; }
+.v2-mn-item { display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 12px; color:var(--text-d); font-size:10px; letter-spacing:.5px; cursor:pointer; transition:color .2s; }
+.v2-mn-item:hover, .v2-mn-item.on { color:var(--gold); }
+@media (max-width:768px) {
+  .v2-mn  { display:block; }
+  .v2-dsk { display:none !important; }
+  body    { padding-bottom:72px; }
+  .v2-hero { padding:60px 0 80px; }
+  .v2-promo { padding:32px 24px; }
+  .v2-pi { height:170px; }
+  .v2-pi span { font-size:48px; }
+}
+</style>
+</head>
+<body>
+
+<div id="v2-load">
+  <div style="font-family:Oswald,sans-serif;font-size:26px;letter-spacing:5px;color:#c9a84c;font-weight:300">AM CHOKERS</div>
+  <span class="inner-circles-loader">Loading...</span>
+  <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#556072">Загрузка...</div>
+</div>
+
+<div id="root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/antd@5.19.4/dist/antd.min.js" crossorigin="anonymous"></script>
+
+<script>
+// Нет Babel, нет JSX — чистый React.createElement
+// h(Tag, props, ...children) — короткий псевдоним
+var h = React.createElement;
+
+// ── AntD компоненты ──────────────────────────────────────────
+var ConfigProvider = antd.ConfigProvider;
+var Layout      = antd.Layout;
+var Menu        = antd.Menu;
+var Button      = antd.Button;
+var Card        = antd.Card;
+var Row         = antd.Row;
+var Col         = antd.Col;
+var Typography  = antd.Typography;
+var Rate        = antd.Rate;
+var Badge       = antd.Badge;
+var Tag         = antd.Tag;
+var Breadcrumb  = antd.Breadcrumb;
+var Table       = antd.Table;
+var Form        = antd.Form;
+var Input       = antd.Input;
+var Select      = antd.Select;
+var Checkbox    = antd.Checkbox;
+var Slider      = antd.Slider;
+var Tabs        = antd.Tabs;
+var Divider     = antd.Divider;
+var Avatar      = antd.Avatar;
+var Space       = antd.Space;
+var Pagination  = antd.Pagination;
+var Tooltip     = antd.Tooltip;
+var Descriptions= antd.Descriptions;
+var Statistic   = antd.Statistic;
+var Radio       = antd.Radio;
+var Header      = Layout.Header;
+var Content     = Layout.Content;
+var Footer      = Layout.Footer;
+var Title       = Typography.Title;
+var Text        = Typography.Text;
+var Paragraph   = Typography.Paragraph;
+
+// ── ТЕМА (→ src/themes/v2/theme.ts) ─────────────────────────
+var V2_THEME = {
+  algorithm: antd.theme.darkAlgorithm,
+  token: {
+    colorPrimary:         '#c9a84c',
+    colorBgBase:          '#0b0f1e',
+    colorBgContainer:     '#131d35',
+    colorBgElevated:      '#1a253f',
+    colorBgLayout:        '#090d18',
+    colorText:            '#f0ece2',
+    colorTextSecondary:   '#8a9bb5',
+    colorTextDescription: '#556072',
+    colorTextDisabled:    '#3d4a5c',
+    colorBorder:          'rgba(201,168,76,0.22)',
+    colorBorderSecondary: 'rgba(255,255,255,0.07)',
+    borderRadius:         8,
+    borderRadiusLG:       12,
+    fontFamily:           'Oswald, "Segoe UI", Arial, sans-serif',
+    fontSize:             14,
+  },
+  components: {
+    Layout:     { headerBg:'#090d18', bodyBg:'#0b0f1e', footerBg:'#090d18' },
+    Menu:       { darkItemBg:'transparent', darkItemSelectedBg:'rgba(201,168,76,0.13)', darkItemSelectedColor:'#c9a84c', darkItemHoverColor:'#c9a84c', darkItemColor:'#8a9bb5' },
+    Button:     { primaryColor:'#0b0f1e', primaryShadow:'none', defaultBg:'transparent', defaultBorderColor:'rgba(201,168,76,0.35)', defaultColor:'#c9a84c', defaultHoverBg:'rgba(201,168,76,0.1)', defaultHoverBorderColor:'#c9a84c', defaultHoverColor:'#c9a84c' },
+    Card:       { colorBgContainer:'#131d35', borderRadiusLG:12 },
+    Table:      { colorBgContainer:'#131d35', headerBg:'#0d1428', borderColor:'rgba(255,255,255,0.07)', rowHoverBg:'rgba(255,255,255,0.02)' },
+    Input:      { colorBgContainer:'#0d1428', activeBorderColor:'#c9a84c', hoverBorderColor:'#c9a84c', activeShadow:'none' },
+    Select:     { colorBgContainer:'#0d1428', colorBgElevated:'#1a253f', optionSelectedBg:'rgba(201,168,76,0.13)', optionSelectedColor:'#c9a84c' },
+    Slider:     { trackBg:'#c9a84c', trackHoverBg:'#e8c96b', handleColor:'#c9a84c', railBg:'rgba(255,255,255,0.1)' },
+    Checkbox:   { colorPrimary:'#c9a84c', colorPrimaryHover:'#e8c96b' },
+    Radio:      { buttonSolidCheckedBg:'#c9a84c', buttonSolidCheckedColor:'#0b0f1e', buttonSolidCheckedHoverBg:'#e8c96b' },
+    Pagination: { itemActiveBg:'#c9a84c' },
+    Tabs:       { inkBarColor:'#c9a84c', itemSelectedColor:'#c9a84c', itemHoverColor:'#e8c96b', colorBorderSecondary:'rgba(255,255,255,0.07)' },
+    Rate:       { starColor:'#c9a84c' },
+    Breadcrumb: { linkColor:'#8a9bb5', linkHoverColor:'#c9a84c', separatorColor:'#3d4a5c', lastItemColor:'#556072' },
+    Tag:        { defaultBg:'rgba(255,255,255,0.06)', defaultColor:'#8a9bb5' },
+    Divider:    { colorSplit:'rgba(255,255,255,0.07)' },
+    Form:       { labelColor:'#556072', labelFontSize:12, itemMarginBottom:20 },
+  },
+};
+
+// ── ДАННЫЕ ───────────────────────────────────────────────────
+var PRODUCTS = [
+  { id:1, cat:'Чокер',   name:'Midnight Crystal', mat:'Серебро 925 + Swarovski',       price:2490, old:3200, badge:'Хит',     e:'💎' },
+  { id:2, cat:'Колье',   name:'Golden Moon',      mat:'Позолота 24K + лазурит',        price:3890, old:null, badge:null,      e:'📿' },
+  { id:3, cat:'Браслет', name:'Luna Eclipse',     mat:'Серебро 925 + лунный камень',   price:1750, old:2490, badge:'−30%',    e:'🌙' },
+  { id:4, cat:'Серьги',  name:'Star Dust',        mat:'Позолота + натуральный жемчуг', price:2190, old:null, badge:null,      e:'✨' },
+  { id:5, cat:'Чокер',   name:'Aurora Borealis',  mat:'Серебро 925 + лазурит',         price:4200, old:null, badge:'Новинка', e:'💫' },
+  { id:6, cat:'Серьги',  name:'Celeste Drop',     mat:'Нерж. сталь + хрусталь',        price:1490, old:null, badge:null,      e:'🌟' },
+];
+var ORDERS = [
+  { key:'1', num:'#AM-2847', date:'15 мар 2025', items:'Midnight Crystal × 1',             total:'2 490 ₽', s:'done', sl:'Получен'     },
+  { key:'2', num:'#AM-2901', date:'18 мар 2025', items:'Luna Eclipse × 2, Star Dust × 1', total:'5 530 ₽', s:'ship', sl:'В пути'       },
+  { key:'3', num:'#AM-2934', date:'20 мар 2025', items:'Golden Moon × 1',                  total:'3 890 ₽', s:'proc', sl:'В обработке' },
+];
+var CATS = [
+  { label:'Чокеры',   n:142, e:'📿', bg:'linear-gradient(160deg,#1a2a4a,#0d1428)' },
+  { label:'Колье',    n:98,  e:'💎', bg:'linear-gradient(160deg,#1e1a2e,#0b0e1a)' },
+  { label:'Браслеты', n:76,  e:'🌙', bg:'linear-gradient(160deg,#1a2636,#0d1820)' },
+  { label:'Серьги',   n:184, e:'✨', bg:'linear-gradient(160deg,#2a1a1a,#1a0d0d)' },
+];
+
+// ── HELPERS ──────────────────────────────────────────────────
+function px(v) { return typeof v === 'number' ? v+'px' : v; }
+
+// ── ProductCard — src/components/ProductCard/ ────────────────
+function ProductCard(props) {
+  var p = props.p; var onClick = props.onClick;
+  return h(Badge.Ribbon,
+    { text: p.badge || '', color: p.badge === '−30%' ? '#e74c3c' : '#c9a84c', style: { display: p.badge ? undefined : 'none' } },
+    h(Card, {
+      hoverable: true,
+      className: 'v2-pc',
+      style: { background:'#131d35', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12 },
+      styles: { body:{ padding:'16px' } },
+      cover: h('div', { className:'v2-pi', onClick:onClick },
+        h('span', null, p.e)
+      ),
+      onClick: onClick,
+    },
+      h('div', { className:'v2-ey', style:{ fontSize:10, marginBottom:4 } }, p.cat),
+      h(Text, { strong:true, style:{ display:'block', fontSize:15, color:'#f0ece2', marginBottom:2 } }, p.name),
+      h(Text, { style:{ display:'block', fontSize:12, color:'#556072', marginBottom:14 } }, p.mat),
+      h(Row, { justify:'space-between', align:'middle' },
+        h(Col, null,
+          h(Text, { style:{ fontSize:20, fontWeight:500, color:'#c9a84c' } }, p.price.toLocaleString('ru') + ' ₽'),
+          p.old ? h(Text, { style:{ fontSize:13, color:'#556072', textDecoration:'line-through', marginLeft:8 } }, p.old.toLocaleString('ru') + ' ₽') : null
+        ),
+        h(Col, null,
+          h(Button, { type:'primary', style:{ width:38, height:38, padding:0, fontSize:22, display:'flex', alignItems:'center', justifyContent:'center' }, onClick: function(e){ e.stopPropagation(); } }, '+')
+        )
+      )
+    )
+  );
+}
+
+// ── AppHeader — src/components/Navbar/Navbar.tsx ─────────────
+function AppHeader(props) {
+  var page = props.page; var go = props.go;
+  return h(Header, {
+    className: 'nav',
+    style: { position:'sticky', top:0, zIndex:100, display:'flex', alignItems:'center', padding:'0 32px', gap:24, height:68, borderBottom:'1px solid rgba(201,168,76,0.15)' },
+  },
+    h('div', { style:{ flexShrink:0, cursor:'pointer', userSelect:'none' }, onClick: function(){ go('home'); } },
+      h(Text, { style:{ fontSize:23, letterSpacing:4, color:'#c9a84c', fontWeight:300 } }, 'AM'),
+      h(Text, { style:{ fontSize:23, letterSpacing:4, color:'#f0ece2', fontWeight:200 } }, ' Chokers')
+    ),
+    h('div', { className:'nav-menu v2-dsk', style:{ flex:1 } },
+      h(Menu, {
+        mode:'horizontal', theme:'dark',
+        selectedKeys: [page],
+        items: [
+          { key:'home',    label:'Главная'   },
+          { key:'catalog', label:'Каталог'   },
+          { key:'product', label:'Коллекции' },
+          { key:'account', label:'О бренде'  },
+        ],
+        onClick: function(info){ go(info.key); },
+        style: { background:'transparent', borderBottom:'none', fontSize:13, letterSpacing:1.5 },
+      })
+    ),
+    h(Space, { className:'nav-icons v2-dsk', size:8, align:'center' },
+      h(Input.Search, { placeholder:'Поиск украшений...', style:{ width:200 }, styles:{ input:{ background:'#0d1428' } } }),
+      h(Button, { type:'text', style:{ color:'#8a9bb5', fontSize:20, padding:'4px 8px', height:40 } }, '♡'),
+      h(Badge, { count:3, color:'#c9a84c', size:'small' },
+        h(Button, { type:'text', style:{ color:'#8a9bb5', fontSize:20, padding:'4px 8px', height:40 } }, '🛍')
+      ),
+      h(Button, { type:'text', style:{ color:'#8a9bb5', fontSize:20, padding:'4px 8px', height:40 }, onClick: function(){ go('account'); } }, '👤')
+    )
+  );
+}
+
+// ── AppFooter — src/components/Footer/Footer.tsx ─────────────
+function AppFooter() {
+  return h(Footer, { style:{ padding:'52px 32px 28px', borderTop:'1px solid rgba(201,168,76,0.15)' } },
+    h('div', { style:{ maxWidth:1280, margin:'0 auto' } },
+      h(Row, { gutter:[48,32], style:{ marginBottom:32 } },
+        h(Col, { xs:24, sm:10 },
+          h('div', { style:{ marginBottom:14 } },
+            h(Text, { style:{ fontSize:22, letterSpacing:4, color:'#c9a84c', fontWeight:300 } }, 'AM'),
+            h(Text, { style:{ fontSize:22, letterSpacing:4, color:'#f0ece2', fontWeight:200 } }, ' Chokers')
+          ),
+          h(Paragraph, { style:{ color:'#8a9bb5', fontSize:14, maxWidth:280, lineHeight:1.7 } }, 'Авторские украшения ручной работы. Каждое изделие создаётся с любовью.'),
+          h(Space, null,
+            h(Button, { shape:'circle', style:{ color:'#8a9bb5', fontSize:11 } }, 'ВК'),
+            h(Button, { shape:'circle', style:{ color:'#8a9bb5', fontSize:18 } }, '✈'),
+            h(Button, { shape:'circle', style:{ color:'#8a9bb5', fontSize:20 } }, '⬡')
+          )
+        ),
+        [
+          { t:'Каталог',     ls:['Чокеры','Колье','Браслеты','Серьги','Новинки'] },
+          { t:'Покупателям', ls:['Доставка и оплата','Возврат','Уход за украшениями','FAQ'] },
+          { t:'Контакты',    ls:['info@am-chokers.ru','Telegram','О нас','Оферта'] },
+        ].map(function(col){
+          return h(Col, { xs:8, sm:4, key:col.t },
+            h('div', { className:'v2-ey', style:{ marginBottom:14 } }, col.t),
+            h(Space, { direction:'vertical', size:8 },
+              col.ls.map(function(l){ return h(Text, { key:l, style:{ fontSize:13, color:'#8a9bb5', cursor:'pointer' } }, l); })
+            )
+          );
+        })
+      ),
+      h(Divider, null),
+      h(Row, { justify:'space-between', align:'middle' },
+        h(Col, null, h(Text, { style:{ fontSize:12, color:'#556072' } }, '© 2025 AM Chokers. Все права защищены.')),
+        h(Col, null, h(Space, null, ['Visa','MasterCard','МИР','СБП'].map(function(p){ return h(Tag, { key:p, style:{ fontSize:11 } }, p); })))
+      )
+    )
+  );
+}
+
+// ── MobileNav — src/components/MobileNavbar/ ─────────────────
+function MobileNav(props) {
+  var page = props.page; var go = props.go;
+  var items = [
+    { k:'home',    i:'⌂', l:'Главная'  },
+    { k:'catalog', i:'◫', l:'Каталог'  },
+    { k:'product', i:'💎', l:'Товар'   },
+    { k:'account', i:'👤', l:'Кабинет' },
+  ];
+  return h('nav', { className:'v2-mn' },
+    h('div', { className:'v2-mn-row' },
+      items.map(function(item){
+        return h('div', { key:item.k, className:'v2-mn-item' + (page===item.k ? ' on':''), onClick: function(){ go(item.k); } },
+          h('span', { style:{ fontSize:20 } }, item.i),
+          h('span', null, item.l)
+        );
+      })
+    )
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: HOME — src/pages/index.tsx
+// ══════════════════════════════════════════════════════════════
+function HomePage(props) {
+  var go = props.go;
+  return h('div', null,
+
+    // Hero
+    h('section', { className:'v2-hero' },
+      h('div', { style:{ maxWidth:1280, margin:'0 auto', padding:'0 32px', position:'relative', zIndex:1 } },
+        h(Row, { gutter:[32,32], align:'middle' },
+          h(Col, { xs:24, md:14 },
+            h('div', { className:'v2-hero-badge' }, '✦ Новая коллекция 2025'),
+            h(Title, { style:{ fontSize:'clamp(28px,4.5vw,56px)', fontWeight:200, letterSpacing:2, lineHeight:1.1, color:'#f0ece2', marginBottom:20 } },
+              'Украшения, которые ',
+              h('span', { style:{ color:'#c9a84c', fontWeight:400 } }, 'говорят'),
+              ' за тебя'
+            ),
+            h(Paragraph, { style:{ fontSize:16, color:'#8a9bb5', marginBottom:36, maxWidth:460, lineHeight:1.7 } },
+              'Авторские чокеры, колье и браслеты ручной работы. Каждое украшение — маленькая история.'
+            ),
+            h(Space, { size:14, wrap:true },
+              h(Button, { type:'primary', size:'large', style:{ height:50, padding:'0 38px', letterSpacing:1 }, onClick: function(){ go('catalog'); } }, 'Смотреть коллекцию'),
+              h(Button, { size:'large', style:{ height:50, padding:'0 30px' } }, 'О бренде')
+            )
+          ),
+          h(Col, { xs:0, md:10 },
+            h(Row, { gutter:[12,12] },
+              ['💎','📿','✨','🌙'].map(function(e,i){
+                return h(Col, { span:12, key:i },
+                  h('div', { style:{ height: i%2===0 ? 200:170, background:'#131d35', borderRadius:12, border:'1px solid rgba(201,168,76,0.12)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:52, marginTop: i%2===1 ? 24:0 } }, e)
+                );
+              })
+            )
+          )
+        )
+      )
+    ),
+
+    // Stats
+    h('div', { style:{ background:'#111827', borderBottom:'1px solid rgba(255,255,255,0.06)', padding:'16px 32px' } },
+      h(Row, { style:{ maxWidth:1280, margin:'0 auto' } },
+        [
+          { v:'500+',    d:'украшений в каталоге'       },
+          { v:'12 000+', d:'довольных покупательниц'    },
+          { v:'7 лет',   d:'создаём красоту'            },
+          { v:'4.9 ★',   d:'средняя оценка'             },
+        ].map(function(s,i){
+          return h(Col, { xs:12, sm:6, key:i },
+            h(Statistic, {
+              title: h('span', { style:{ fontSize:11, letterSpacing:1.5, textTransform:'uppercase', color:'#556072' } }, s.d),
+              value: s.v,
+              valueStyle: { color:'#c9a84c', fontFamily:'Oswald,sans-serif', fontWeight:300, letterSpacing:1 },
+              style: { textAlign:'center', padding:'10px 0', borderRight: i<3 ? '1px solid rgba(255,255,255,0.06)':'none' },
+            })
+          );
+        })
+      )
+    ),
+
+    // Категории
+    h('section', { style:{ maxWidth:1280, margin:'0 auto', padding:'68px 32px 56px' } },
+      h('div', { className:'v2-ey' }, 'Коллекции'),
+      h(Title, { level:2, style:{ fontWeight:300, letterSpacing:2, color:'#f0ece2', marginBottom:0 } }, 'Найди своё украшение'),
+      h('div', { className:'v2-div' }),
+      h(Row, { gutter:[16,16] },
+        CATS.map(function(c){
+          return h(Col, { xs:12, lg:6, key:c.label },
+            h('div', { className:'v2-cat', style:{ background:c.bg }, onClick: function(){ go('catalog'); } },
+              h('div', { className:'v2-cat-ico' }, c.e),
+              h('div', { className:'v2-cat-foot' },
+                h('div', { style:{ fontSize:17, fontWeight:300, letterSpacing:2.5, textTransform:'uppercase', color:'#f0ece2', marginBottom:4 } }, c.label),
+                h(Text, { style:{ fontSize:12, color:'#c9a84c', letterSpacing:1 } }, c.n + ' украшений')
+              )
+            )
+          );
+        })
+      )
+    ),
+
+    // Хиты
+    h('section', { style:{ maxWidth:1280, margin:'0 auto', padding:'0 32px 72px' } },
+      h(Row, { justify:'space-between', align:'bottom', style:{ marginBottom:32 } },
+        h(Col, null,
+          h('div', { className:'v2-ey' }, 'Избранное'),
+          h(Title, { level:2, style:{ fontWeight:300, letterSpacing:2, color:'#f0ece2', marginBottom:0 } }, 'Хиты продаж'),
+          h('div', { className:'v2-div', style:{ marginBottom:0 } })
+        ),
+        h(Col, null, h(Button, { onClick: function(){ go('catalog'); } }, 'Смотреть все →'))
+      ),
+      h(Row, { gutter:[20,20] },
+        PRODUCTS.slice(0,4).map(function(p){
+          return h(Col, { xs:12, sm:12, lg:6, key:p.id }, h(ProductCard, { p:p, onClick: function(){ go('product'); } }));
+        })
+      )
+    ),
+
+    // Промо
+    h('div', { style:{ maxWidth:1280, margin:'0 auto', padding:'0 32px' } },
+      h('div', { className:'v2-promo' },
+        h(Row, { gutter:[40,32], align:'middle' },
+          h(Col, { xs:24, md:16, style:{ position:'relative', zIndex:1 } },
+            h('div', { style:{ fontSize:11, letterSpacing:3, color:'#c9a84c', textTransform:'uppercase', marginBottom:16 } }, '✦ Специальное предложение'),
+            h(Title, { level:2, style:{ fontWeight:200, letterSpacing:2, color:'#f0ece2', marginBottom:12, lineHeight:1.2 } }, 'Персональный подбор украшений'),
+            h(Paragraph, { style:{ fontSize:15, color:'#8a9bb5', marginBottom:28, maxWidth:500, lineHeight:1.7 } }, 'Расскажи нам о себе — и мы подберём идеальное украшение. Бесплатно.'),
+            h(Space, { size:14, wrap:true },
+              h(Button, { type:'primary', size:'large', style:{ height:46 } }, 'Начать подбор'),
+              h(Button, { size:'large', style:{ height:46 } }, 'Узнать подробнее')
+            )
+          ),
+          h(Col, { xs:0, md:8 },
+            h('div', { style:{ position:'relative', height:220, display:'flex', alignItems:'center', justifyContent:'center' } },
+              [260,180,100].map(function(sz,i){
+                return h('div', { key:i, style:{ position:'absolute', width:sz, height:sz, borderRadius:'50%', border:'1px solid rgba(201,168,76,'+(0.08+i*0.1)+')', background: i===2 ? 'rgba(201,168,76,0.07)':'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize: i===2 ? 40:0 } }, i===2 ? '💎' : null);
+              })
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: CATALOG — src/pages/catalog/index.tsx
+// ══════════════════════════════════════════════════════════════
+function CatalogPage(props) {
+  var go = props.go;
+  var priceState = React.useState([500, 8000]);
+  var price = priceState[0]; var setPrice = priceState[1];
+  var catState = React.useState('Все');
+  var cat = catState[0]; var setCat = catState[1];
+  var cats = ['Все','Чокеры','Колье','Браслеты','Серьги'];
+  var catMap = { 'Чокеры':'Чокер', 'Колье':'Колье', 'Браслеты':'Браслет', 'Серьги':'Серьги' };
+  var filtered = cat === 'Все' ? PRODUCTS : PRODUCTS.filter(function(p){ return p.cat === catMap[cat]; });
+
+  var sidebar = h(Card, { style:{ position:'sticky', top:80 }, styles:{ body:{ padding:'20px' } } },
+    h(Row, { justify:'space-between', align:'middle', style:{ marginBottom:20, paddingBottom:14, borderBottom:'1px solid rgba(255,255,255,0.07)' } },
+      h(Col, null, h(Text, { style:{ fontSize:12, letterSpacing:2, textTransform:'uppercase' } }, 'Фильтры')),
+      h(Col, null, h(Button, { type:'link', size:'small', style:{ padding:0, color:'#556072', height:'auto', fontSize:12 } }, 'Сбросить'))
+    ),
+    // Категория
+    h('div', { style:{ marginBottom:24 } },
+      h('span', { className:'v2-fl' }, 'Категория'),
+      h(Space, { wrap:true },
+        cats.map(function(c){
+          return h(Button, { key:c, size:'small', type: cat===c ? 'primary':'default', onClick: function(){ setCat(c); }, style:{ borderRadius:40, fontSize:12 } }, c);
+        })
+      )
+    ),
+    // Цена
+    h('div', { style:{ marginBottom:24 } },
+      h('span', { className:'v2-fl' }, 'Цена, ₽'),
+      h(Slider, { range:true, min:0, max:15000, step:100, value:price, onChange:setPrice, tooltip:{ formatter: function(v){ return v != null ? v.toLocaleString('ru') + ' ₽' : ''; } } }),
+      h(Row, { justify:'space-between' },
+        h(Col, null, h(Text, { style:{ fontSize:12, color:'#8a9bb5' } }, 'от ' + price[0].toLocaleString('ru') + ' ₽')),
+        h(Col, null, h(Text, { style:{ fontSize:12, color:'#8a9bb5' } }, 'до ' + price[1].toLocaleString('ru') + ' ₽'))
+      )
+    ),
+    // Материал
+    h('div', { style:{ marginBottom:24 } },
+      h('span', { className:'v2-fl' }, 'Материал'),
+      h(Checkbox.Group, { defaultValue:['silver','gold'], style:{ display:'flex', flexDirection:'column', gap:10 },
+        options:[
+          { label:'Серебро 925 (84)',  value:'silver' },
+          { label:'Позолота 24K (62)', value:'gold'   },
+          { label:'Нерж. сталь (41)',  value:'steel'  },
+          { label:'Латунь (29)',       value:'brass'  },
+        ]
+      })
+    ),
+    // Камень
+    h('div', { style:{ marginBottom:24 } },
+      h('span', { className:'v2-fl' }, 'Камень'),
+      h(Checkbox.Group, { defaultValue:['moon'], style:{ display:'flex', flexDirection:'column', gap:10 },
+        options:[
+          { label:'Кристалл Swarovski (56)', value:'sw'   },
+          { label:'Лунный камень (33)',       value:'moon' },
+          { label:'Жемчуг (28)',              value:'perl' },
+          { label:'Без камня (71)',            value:'none' },
+        ]
+      })
+    ),
+    // Наличие
+    h('div', { style:{ marginBottom:24 } },
+      h('span', { className:'v2-fl' }, 'Наличие'),
+      h(Radio.Group, { defaultValue:'in', buttonStyle:'solid', size:'small' },
+        h(Radio.Button, { value:'in' }, 'В наличии'),
+        h(Radio.Button, { value:'ord' }, 'Под заказ')
+      )
+    ),
+    h(Button, { type:'primary', block:true, style:{ letterSpacing:1 } }, 'Применить')
+  );
+
+  return h('div', { style:{ maxWidth:1280, margin:'0 auto', padding:'24px 32px 80px' } },
+    h(Breadcrumb, { items:[{ title:'Главная' },{ title:'Каталог' }], style:{ marginBottom:24 } }),
+    h('div', { className:'v2-ey' }, 'Все украшения'),
+    h(Title, { level:2, style:{ fontWeight:300, letterSpacing:2, color:'#f0ece2', marginBottom:0 } }, 'Каталог'),
+    h('div', { className:'v2-div' }),
+    h(Row, { gutter:[28,0] },
+      h(Col, { xs:0, lg:6 }, sidebar),
+      h(Col, { xs:24, lg:18 },
+        h(Row, { justify:'space-between', align:'middle', style:{ marginBottom:20, paddingBottom:16, borderBottom:'1px solid rgba(255,255,255,0.07)' } },
+          h(Col, null, h(Text, { style:{ color:'#8a9bb5', fontSize:13 } }, 'Найдено: ', h(Text, { strong:true, style:{ color:'#f0ece2' } }, '147'), ' украшений')),
+          h(Col, null, h(Select, { defaultValue:'popular', style:{ width:195 }, options:[
+            { value:'popular',    label:'По популярности' },
+            { value:'price_asc',  label:'Сначала дешевле' },
+            { value:'price_desc', label:'Сначала дороже'  },
+            { value:'new',        label:'Новинки'         },
+          ] }))
+        ),
+        filtered.length === 0 && h('div', { style:{ padding:'48px 0', textAlign:'center', color:'#556072' } },
+          h('div', { style:{ fontSize:40, marginBottom:12 } }, '🔍'),
+          h(Text, { style:{ fontSize:14, color:'#556072' } }, 'Нет украшений в этой категории')
+        ),
+        h(Row, { gutter:[20,20] },
+          filtered.filter(function(p){ return p.price >= price[0] && p.price <= price[1]; }).map(function(p){
+            return h(Col, { xs:12, sm:8, key:p.id }, h(ProductCard, { p:p, onClick: function(){ go('product'); } }));
+          })
+        ),
+        h(Row, { justify:'center', style:{ marginTop:48 } },
+          h(Pagination, { defaultCurrent:1, total:147, pageSize:12, showSizeChanger:false })
+        )
+      )
+    )
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: PRODUCT — src/pages/catalog/[slug].tsx
+// ══════════════════════════════════════════════════════════════
+function ProductPage() {
+  var qtyS  = React.useState(1);   var qty = qtyS[0];  var setQty = qtyS[1];
+  var sizeS = React.useState('38 см'); var size = sizeS[0]; var setSize = sizeS[1];
+  var thumbS= React.useState(0);   var thumb=thumbS[0]; var setThumb=thumbS[1];
+  var thumbs = ['💎','📿','✨','🌙'];
+  var sizes  = ['35 см','38 см','40 см','42 см','45 см'];
+
+  return h('div', { style:{ maxWidth:1280, margin:'0 auto', padding:'24px 32px 80px' } },
+    h(Breadcrumb, { items:[{ title:'Главная' },{ title:'Каталог' },{ title:'Чокеры' },{ title:'Midnight Crystal' }], style:{ marginBottom:36 } }),
+    h(Row, { gutter:[56,40] },
+      // Gallery
+      h(Col, { xs:24, md:11 },
+        h(Row, { gutter:[12,0] },
+          h(Col, { flex:'82px' },
+            h(Space, { direction:'vertical', size:10 },
+              thumbs.map(function(e,i){
+                return h('div', { key:i, className:'v2-thumb', onClick: function(){ setThumb(i); }, style:{ border:'1px solid '+(thumb===i ? '#c9a84c':'rgba(255,255,255,0.07)'), color: thumb===i ? 'rgba(201,168,76,0.45)':'rgba(201,168,76,0.18)' } }, e);
+              })
+            )
+          ),
+          h(Col, { flex:'1' },
+            h('div', { style:{ aspectRatio:'3/4', background:'#131d35', borderRadius:12, border:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:110, position:'relative', overflow:'hidden', userSelect:'none' } },
+              thumbs[thumb],
+              h('div', { style:{ position:'absolute', top:14, left:14 } }, h(Tag, { color:'#c9a84c', style:{ color:'#0b0f1e', fontWeight:700 } }, 'Хит продаж')),
+              h(Space, { direction:'vertical', size:8, style:{ position:'absolute', top:14, right:14 } },
+                ['⊕','♡','↗'].map(function(ico,i){
+                  return h(Button, { key:i, shape:'circle', type:'text', size:'small', style:{ background:'rgba(11,15,30,0.75)', backdropFilter:'blur(8px)', border:'1px solid rgba(255,255,255,0.1)', color:'#8a9bb5', width:40, height:40, fontSize:18, display:'flex', alignItems:'center', justifyContent:'center' } }, ico);
+                })
+              )
+            )
+          )
+        )
+      ),
+      // Info
+      h(Col, { xs:24, md:13 },
+        h(Text, { style:{ fontSize:11, letterSpacing:3, textTransform:'uppercase', color:'#c9a84c' } }, 'AM Chokers'),
+        h(Title, { level:1, style:{ fontSize:30, fontWeight:300, letterSpacing:1.5, color:'#f0ece2', marginTop:8, marginBottom:4 } }, 'Midnight Crystal'),
+        h(Text, { style:{ fontSize:15, color:'#8a9bb5', display:'block', marginBottom:18 } }, 'Чокер с кристаллом Swarovski, серебро 925'),
+        h(Space, { size:12, style:{ marginBottom:22 } },
+          h(Rate, { disabled:true, defaultValue:5, style:{ fontSize:14 } }),
+          h(Text, { style:{ color:'#8a9bb5', fontSize:13 } }, '4.9 (128 отзывов)')
+        ),
+        h(Space, { size:12, align:'baseline', style:{ display:'flex', marginBottom:28, paddingBottom:28, borderBottom:'1px solid rgba(255,255,255,0.07)' } },
+          h(Text, { style:{ fontSize:36, fontWeight:500, color:'#c9a84c', letterSpacing:1 } }, '2 490 ₽'),
+          h(Text, { style:{ fontSize:18, color:'#556072', textDecoration:'line-through' } }, '3 200 ₽'),
+          h(Tag, { color:'error', style:{ fontSize:12, fontWeight:700 } }, '−22%')
+        ),
+        // Размер
+        h('div', { style:{ marginBottom:24 } },
+          h(Row, { justify:'space-between', style:{ marginBottom:12 } },
+            h(Col, null, h(Text, { style:{ fontSize:12, letterSpacing:1.5, textTransform:'uppercase', color:'#8a9bb5' } }, 'Длина цепочки')),
+            h(Col, null, h(Button, { type:'link', size:'small', style:{ padding:0, height:'auto', fontSize:12 } }, 'Таблица размеров'))
+          ),
+          h(Radio.Group, { value:size, onChange: function(e){ setSize(e.target.value); }, buttonStyle:'outline' },
+            sizes.map(function(s){ return h(Radio.Button, { key:s, value:s, disabled:s==='45 см', style:{ marginRight:8, marginBottom:8 } }, s); })
+          )
+        ),
+        // Цвет
+        h('div', { style:{ marginBottom:28 } },
+          h(Text, { style:{ fontSize:12, letterSpacing:1.5, textTransform:'uppercase', color:'#8a9bb5', display:'block', marginBottom:14 } }, 'Цвет металла'),
+          h(Space, { size:14 },
+            [
+              { l:'Серебро',        bg:'#c0c8d8', on:true  },
+              { l:'Позолота',       bg:'#c9a84c'           },
+              { l:'Розовое золото', bg:'#d4a0a0'           },
+              { l:'Чёрный родий',   bg:'#2a2a3a', bdr:true },
+            ].map(function(sw){
+              return h(Tooltip, { key:sw.l, title:sw.l, placement:'top' },
+                h('div', { className:'v2-sw' + (sw.on ? ' on':''), style:{ background:sw.bg, border: sw.bdr ? '1px solid rgba(255,255,255,0.15)':'none' } })
+              );
+            })
+          )
+        ),
+        // Корзина
+        h(Space, { size:12, style:{ marginBottom:28, flexWrap:'wrap' } },
+          h('div', { className:'v2-qty' },
+            h(Button, { type:'text', style:{ width:44, height:48, fontSize:22 }, onClick: function(){ setQty(function(q){ return Math.max(1,q-1); }); } }, '−'),
+            h('div', { className:'v2-qty-n' }, qty),
+            h(Button, { type:'text', style:{ width:44, height:48, fontSize:22 }, onClick: function(){ setQty(function(q){ return q+1; }); } }, '+')
+          ),
+          h(Button, { type:'primary', size:'large', style:{ flex:1, minWidth:150, height:48, letterSpacing:1 } }, 'В корзину'),
+          h(Button, { size:'large', style:{ height:48, padding:'0 14px', fontSize:22 } }, '♡')
+        ),
+        // Мета
+        h(Card, { styles:{ body:{ padding:'14px 18px' } }, style:{ marginBottom:24 } },
+          h(Descriptions, { column:2, size:'small' },
+            [['Материал','Серебро 925'],['Камень','Swarovski'],['Застёжка','Карабин']].map(function(kv){
+              return h(Descriptions.Item, { key:kv[0], label: h(Text, { style:{ color:'#556072', fontSize:11 } }, kv[0]) },
+                h(Text, { style:{ color:'#f0ece2' } }, kv[1])
+              );
+            }),
+            h(Descriptions.Item, { label: h(Text, { style:{ color:'#556072', fontSize:11 } }, 'В наличии') },
+              h(Text, { style:{ color:'#27ae60' } }, '✓ Есть (7 шт.)')
+            )
+          )
+        ),
+        // Вкладки
+        h(Tabs, { defaultActiveKey:'desc', items:[
+          { key:'desc',     label:'Описание',
+            children: h(Paragraph, { style:{ color:'#8a9bb5', lineHeight:1.85, fontSize:14 } }, 'Изящный чокер создан вручную из серебра 925 пробы. Центральный элемент — кристалл Swarovski в ажурной оправе — отражает свет. Регулируемая длина.') },
+          { key:'specs',    label:'Характеристики', children: h(Text, { style:{ color:'#8a9bb5' } }, 'Таблица характеристик...') },
+          { key:'reviews',  label:'Отзывы (128)',   children: h(Text, { style:{ color:'#8a9bb5' } }, 'Отзывы покупателей...') },
+          { key:'delivery', label:'Доставка',       children: h(Text, { style:{ color:'#8a9bb5' } }, 'Условия доставки...') },
+        ] })
+      )
+    )
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGE: ACCOUNT — src/pages/account/index.tsx
+// ══════════════════════════════════════════════════════════════
+function AccountPage() {
+  var secS = React.useState('orders'); var sec = secS[0]; var setSec = secS[1];
+  var menu = [
+    { k:'orders',    i:'📋', l:'Мои заказы',       badge:2 },
+    { k:'wishlist',  i:'♡',  l:'Избранное' },
+    { k:'profile',   i:'◉',  l:'Профиль' },
+    { k:'addresses', i:'🛍', l:'Адреса доставки' },
+    { k:'notifs',    i:'🔔', l:'Уведомления' },
+  ];
+  var cols = [
+    { title:'Заказ',   dataIndex:'num',   key:'num',   render: function(v){ return h(Text, { style:{ color:'#c9a84c' } }, v); } },
+    { title:'Дата',    dataIndex:'date',  key:'date',  render: function(v){ return h(Text, { style:{ color:'#8a9bb5' } }, v); } },
+    { title:'Состав',  dataIndex:'items', key:'items', ellipsis:true },
+    { title:'Сумма',   dataIndex:'total', key:'total', render: function(v){ return h(Text, { strong:true, style:{ color:'#f0ece2' } }, v); } },
+    { title:'Статус',  dataIndex:'sl', key:'status',   render: function(v,r){ return h(Tag, { className:'st-'+r.s, style:{ borderRadius:20, padding:'2px 12px' } }, v); } },
+    { title:'', key:'act', render: function(_,r){ return h(Button, { type:'link', size:'small', style:{ color:'#c9a84c', padding:0, fontSize:12 } }, r.s==='done'?'Повторить':r.s==='ship'?'Отследить':'Детали'); } },
+  ];
+
+  return h('div', { style:{ maxWidth:1280, margin:'0 auto', padding:'24px 32px 80px' } },
+    h(Breadcrumb, { items:[{ title:'Главная' },{ title:'Личный кабинет' }], style:{ marginBottom:32 } }),
+    h(Row, { gutter:[28,28] },
+      h(Col, { xs:24, lg:5 },
+        h(Card, { styles:{ body:{ padding:'0 0 16px' } } },
+          h('div', { style:{ textAlign:'center', padding:'28px 20px 20px', borderBottom:'1px solid rgba(255,255,255,0.07)', marginBottom:12 } },
+            h(Avatar, { size:72, style:{ background:'rgba(201,168,76,0.12)', color:'#c9a84c', fontSize:28, marginBottom:12 } }, 'А'),
+            h('div', { style:{ fontSize:15, color:'#f0ece2', marginBottom:3 } }, 'Анна Петрова'),
+            h(Text, { style:{ fontSize:12, color:'#556072' } }, 'anna@example.com')
+          ),
+          h('div', { style:{ padding:'0 12px' } },
+            menu.map(function(item){
+              return h('div', { key:item.k, className:'v2-am' + (sec===item.k ? ' on':''), onClick: function(){ setSec(item.k); } },
+                h('span', { style:{ fontSize:18 } }, item.i),
+                h('span', { style:{ flex:1 } }, item.l),
+                item.badge ? h(Badge, { count:item.badge, color:'#c9a84c' }) : null
+              );
+            }),
+            h(Divider, { style:{ margin:'10px 0' } }),
+            h('div', { className:'v2-am', style:{ color:'#556072' } }, h('span', { style:{ fontSize:18 } }, '⎋'), h('span', null, 'Выйти'))
+          )
+        )
+      ),
+      h(Col, { xs:24, lg:19 },
+        sec === 'orders' && h(Card, {
+          title: h(Row, { justify:'space-between', align:'middle' },
+            h(Col, null, h(Text, { style:{ fontSize:13, letterSpacing:2, textTransform:'uppercase' } }, 'История заказов')),
+            h(Col, null, h(Button, { size:'small' }, 'Все заказы'))
+          ),
+          styles:{ body:{ padding:0 } },
+        }, h(Table, { dataSource:ORDERS, columns:cols, pagination:false, size:'middle' })),
+
+        sec === 'profile' && h(Card, {
+          title: h(Row, { justify:'space-between', align:'middle' },
+            h(Col, null, h(Text, { style:{ fontSize:13, letterSpacing:2, textTransform:'uppercase' } }, 'Данные профиля')),
+            h(Col, null, h(Button, { type:'primary', size:'small', style:{ letterSpacing:.5 } }, 'Сохранить'))
+          ),
+        },
+          h(Form, { layout:'vertical' },
+            h(Row, { gutter:20 },
+              [['Имя','Анна'],['Фамилия','Петрова'],['Email','anna@example.com'],['Телефон','+7 (999) 123-45-67']].map(function(f){
+                return h(Col, { xs:24, sm:12, key:f[0] },
+                  h(Form.Item, { label:f[0] }, h(Input, { defaultValue:f[1], size:'large' }))
+                );
+              }),
+              h(Col, { xs:24, sm:12 }, h(Form.Item, { label:'День рождения', style:{ marginBottom:0 } }, h(Input, { placeholder:'Не указано', size:'large' })))
+            )
+          )
+        ),
+
+        sec !== 'orders' && sec !== 'profile' && h(Card, null,
+          h('div', { style:{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'60px 20px' } },
+            h(Text, { style:{ fontSize:52, marginBottom:12 } }, menu.find(function(m){ return m.k===sec; }).i),
+            h(Text, { style:{ fontSize:16, color:'#556072' } }, menu.find(function(m){ return m.k===sec; }).l)
+          )
+        )
+      )
+    )
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// APP ROOT
+// ══════════════════════════════════════════════════════════════
+function App() {
+  var pageS = React.useState('home'); var page = pageS[0]; var setPage = pageS[1];
+
+  function go(key) {
+    setPage(key);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  React.useEffect(function(){
+    var el = document.getElementById('v2-load');
+    if (el) { el.style.opacity = '0'; setTimeout(function(){ el.remove(); }, 450); }
+  }, []);
+
+  var pages = {
+    home:    h(HomePage,    { go:go }),
+    catalog: h(CatalogPage, { go:go }),
+    product: h(ProductPage, null),
+    account: h(AccountPage, null),
+  };
+
+  return h(ConfigProvider, { theme: V2_THEME },
+    h(Layout, { style:{ minHeight:'100vh', background:'#0b0f1e' } },
+      h(AppHeader, { page:page, go:go }),
+      h(Content,   { style:{ background:'#0b0f1e' } }, pages[page]),
+      h(AppFooter, null)
+    ),
+    h(MobileNav, { page:page, go:go })
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App, null));
+</script>
+</body>
+</html>

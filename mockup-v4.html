@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM Chokers — v4 Blue Slate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.19.4/dist/reset.css">
+<style>
+/* ── PALETTE ───────────────────────────────────────────────────── */
+:root {
+  --c1:   #2B3C5F;   /* primary dark navy      */
+  --c2:   #3B5382;   /* medium navy             */
+  --c3:   #5A6E96;   /* accent blue             */
+  --c4:   #CED3DD;   /* border / divider        */
+  --c5:   #363B44;   /* body text               */
+  --c6:   #69788E;   /* muted text              */
+  --c7:   #A1B3CD;   /* muted accent            */
+  --c8:   #EAEEF6;   /* section bg              */
+  --c9:   #F9FAFC;   /* page bg                 */
+  --c10:  #F7F9FC;   /* alt bg                  */
+  --white: #ffffff;
+  --shadow-sm: 0 1px 4px rgba(43,60,95,.08);
+  --shadow-md: 0 4px 16px rgba(43,60,95,.12);
+  --shadow-lg: 0 8px 32px rgba(43,60,95,.16);
+  --radius:    8px;
+  --radius-lg: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 14px; }
+body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--c9); color: var(--c5); -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { cursor: pointer; font-family: inherit; }
+
+/* ── SPINNER ─────────────────────────────────────────────────── */
+#load {
+  position: fixed; inset: 0; background: var(--c9);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; z-index: 9999; transition: opacity .5s ease;
+}
+#load-brand {
+  font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300;
+  letter-spacing: 12px; text-transform: uppercase; color: var(--c1);
+}
+.spin {
+  width: 36px; height: 36px; border: 2px solid var(--c8);
+  border-top-color: var(--c2); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── PROMO BAR ───────────────────────────────────────────────── */
+.promo {
+  background: var(--c1); color: rgba(255,255,255,.82);
+  text-align: center; padding: 9px 16px;
+  font-size: 11.5px; letter-spacing: 1.8px; text-transform: uppercase;
+  font-weight: 500;
+}
+.promo a { color: var(--c7); text-decoration: underline; margin-left: 8px; }
+
+/* ── HEADER / NAV ────────────────────────────────────────────── */
+.header {
+  background: var(--white); border-bottom: 1px solid var(--c4);
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: var(--shadow-sm);
+}
+.nav {
+  max-width: 1320px; margin: 0 auto; padding: 0 32px;
+  height: 68px; display: grid;
+  grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px;
+}
+.nav-left { display: flex; align-items: center; gap: 32px; }
+.nav-link {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--c6); font-weight: 500; white-space: nowrap;
+  padding: 4px 0; border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.nav-link:hover, .nav-link.active { color: var(--c1); border-bottom-color: var(--c2); }
+.nav-logo {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  text-decoration: none;
+}
+.nav-logo-main {
+  font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600;
+  letter-spacing: 8px; text-transform: uppercase; color: var(--c1); line-height: 1;
+}
+.nav-logo-sub {
+  font-size: 8.5px; letter-spacing: 5px; text-transform: uppercase;
+  color: var(--c6); font-weight: 400;
+}
+.nav-right { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.nav-icon {
+  width: 40px; height: 40px; border: none; background: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius); color: var(--c6); font-size: 18px;
+  transition: background .2s, color .2s; position: relative;
+}
+.nav-icon:hover { background: var(--c8); color: var(--c1); }
+.nav-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: var(--c2); color: #fff; font-size: 9px; font-weight: 600;
+  border-radius: 10px; min-width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center; padding: 0 3px;
+}
+.nav-lang {
+  display: flex; gap: 2px; margin-right: 8px;
+}
+.lang-btn {
+  padding: 3px 8px; border: 1px solid var(--c4); background: none;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--c6);
+  border-radius: 4px; transition: all .2s;
+}
+.lang-btn.active, .lang-btn:hover { background: var(--c1); border-color: var(--c1); color: #fff; }
+
+/* ── BREADCRUMB ──────────────────────────────────────────────── */
+.breadcrumb-wrap { background: var(--c10); border-bottom: 1px solid var(--c4); }
+.breadcrumb {
+  max-width: 1320px; margin: 0 auto; padding: 10px 32px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--c6);
+}
+.breadcrumb a:hover { color: var(--c2); }
+.breadcrumb-sep { color: var(--c4); }
+
+/* ── HERO ────────────────────────────────────────────────────── */
+.hero {
+  display: grid; grid-template-columns: 52% 48%; min-height: 520px;
+}
+.hero-left {
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
+  display: flex; align-items: center; padding: 72px 80px;
+}
+.hero-left-inner { max-width: 460px; }
+.hero-eyebrow {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--c7); margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--c7); flex-shrink: 0; }
+.hero-h1 {
+  font-family: 'Cormorant Garamond', serif; font-size: 52px; font-weight: 300;
+  line-height: 1.15; color: var(--white); margin-bottom: 16px;
+}
+.hero-h1 em { font-style: italic; color: var(--c7); }
+.hero-sub {
+  font-size: 14px; font-weight: 300; color: rgba(255,255,255,.65);
+  line-height: 1.7; margin-bottom: 36px; letter-spacing: .3px;
+}
+.hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 24px; border-radius: var(--radius); font-size: 12px;
+  letter-spacing: 1.5px; text-transform: uppercase; font-weight: 500;
+  border: 1.5px solid transparent; transition: all .2s; white-space: nowrap;
+}
+.btn-primary { background: var(--white); color: var(--c1); border-color: var(--white); }
+.btn-primary:hover { background: var(--c8); border-color: var(--c8); }
+.btn-outline { background: transparent; color: var(--white); border-color: rgba(255,255,255,.4); }
+.btn-outline:hover { border-color: var(--white); background: rgba(255,255,255,.08); }
+.btn-default { background: var(--white); color: var(--c1); border-color: var(--c4); }
+.btn-default:hover { border-color: var(--c2); color: var(--c2); }
+.btn-filled { background: var(--c2); color: var(--white); border-color: var(--c2); }
+.btn-filled:hover { background: var(--c1); border-color: var(--c1); }
+.hero-right {
+  background: var(--c8); position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-img-placeholder {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+  background: linear-gradient(160deg, var(--c8) 0%, var(--c10) 100%);
+}
+.hero-img-placeholder svg { opacity: .25; }
+.hero-img-label {
+  font-family: 'Cormorant Garamond', serif; font-size: 15px; font-style: italic;
+  color: var(--c7); text-align: center;
+}
+.hero-card {
+  position: absolute; bottom: 28px; left: 28px;
+  background: var(--white); border-radius: var(--radius-lg);
+  padding: 16px 20px; box-shadow: var(--shadow-lg);
+  display: flex; gap: 14px; align-items: center; min-width: 200px;
+}
+.hero-card-dot { width: 10px; height: 10px; border-radius: 50%; background: #52c41a; flex-shrink: 0; }
+.hero-card-num { font-size: 22px; font-weight: 600; color: var(--c1); line-height: 1; }
+.hero-card-lbl { font-size: 11px; color: var(--c6); letter-spacing: .5px; }
+.hero-tag {
+  position: absolute; top: 28px; right: 28px;
+  background: var(--c1); color: var(--white); border-radius: 6px;
+  padding: 6px 14px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+}
+/* decorative accent line */
+.hero-left::after {
+  content: ''; position: absolute; bottom: 0; left: 0;
+  width: 52%; height: 4px;
+  background: linear-gradient(90deg, var(--c3), transparent);
+}
+
+/* ── STRIP ───────────────────────────────────────────────────── */
+.strip { background: var(--white); border-bottom: 1px solid var(--c4); }
+.strip-inner {
+  max-width: 1320px; margin: 0 auto; padding: 20px 32px;
+  display: flex; justify-content: space-around; flex-wrap: wrap; gap: 12px;
+}
+.strip-item { display: flex; align-items: center; gap: 12px; }
+.strip-icon {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--c8); display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0; color: var(--c2);
+}
+.strip-text strong { display: block; font-size: 13px; color: var(--c5); font-weight: 500; margin-bottom: 2px; }
+.strip-text span { font-size: 11.5px; color: var(--c6); }
+
+/* ── SECTION ─────────────────────────────────────────────────── */
+.sec { max-width: 1320px; margin: 0 auto; padding: 72px 32px; }
+.sec-alt { background: var(--c8); }
+.sec-hd {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 40px; gap: 16px;
+}
+.sec-hd-left {}
+.sec-eyebrow {
+  font-size: 10px; letter-spacing: 3.5px; text-transform: uppercase;
+  color: var(--c3); margin-bottom: 8px; font-weight: 500;
+}
+.sec-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 400;
+  color: var(--c1); line-height: 1.2;
+}
+.sec-link {
+  font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--c2); font-weight: 500; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px; transition: gap .2s;
+}
+.sec-link:hover { gap: 10px; }
+
+/* ── PRODUCT CARD ────────────────────────────────────────────── */
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.card {
+  background: var(--white); border: 1px solid var(--c4);
+  border-radius: var(--radius-lg); overflow: hidden;
+  transition: box-shadow .25s, transform .25s; cursor: pointer;
+}
+.card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.card-img {
+  aspect-ratio: 3/4; background: var(--c10);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.card-img-bg {
+  width: 100%; height: 100%; object-fit: cover;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, var(--c8) 0%, var(--c10) 100%);
+}
+.card-img svg { opacity: .2; }
+.card-badge {
+  position: absolute; top: 12px; left: 12px;
+  background: var(--c2); color: var(--white);
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 4px; font-weight: 500;
+}
+.card-badge.new { background: var(--c3); }
+.card-badge.sale { background: #e84749; }
+.card-fav {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; background: var(--white);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--c6); box-shadow: var(--shadow-sm);
+  border: none; transition: color .2s;
+}
+.card-fav:hover { color: #e84749; }
+.card-body { padding: 14px 16px 16px; }
+.card-cat { font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--c6); margin-bottom: 5px; }
+.card-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; color: var(--c1); margin-bottom: 8px; font-weight: 400; line-height: 1.3; }
+.card-price { font-size: 15px; font-weight: 600; color: var(--c2); }
+.card-price-old { font-size: 12px; color: var(--c6); text-decoration: line-through; margin-left: 8px; font-weight: 400; }
+.card-footer { padding: 0 16px 16px; }
+.card-btn {
+  width: 100%; padding: 9px; background: var(--c8); border: 1px solid var(--c4);
+  border-radius: var(--radius); font-size: 11px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--c2); font-weight: 500; transition: all .2s;
+}
+.card-btn:hover { background: var(--c2); border-color: var(--c2); color: var(--white); }
+
+/* ── STARS ───────────────────────────────────────────────────── */
+.stars { display: flex; gap: 2px; align-items: center; margin-bottom: 6px; }
+.star { color: var(--c7); font-size: 13px; }
+.star.on { color: #faad14; }
+.stars-count { font-size: 11px; color: var(--c6); margin-left: 4px; }
+
+/* ── CATEGORIES GRID ─────────────────────────────────────────── */
+.cat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+.cat-card {
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg);
+  overflow: hidden; cursor: pointer; transition: box-shadow .25s, transform .25s;
+}
+.cat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.cat-card-img {
+  height: 120px; background: var(--c8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+}
+.cat-card-body { padding: 12px 14px; }
+.cat-card-name {
+  font-size: 13px; font-weight: 500; color: var(--c1);
+  margin-bottom: 3px;
+}
+.cat-card-count { font-size: 11px; color: var(--c6); }
+
+/* ── COLLECTIONS ─────────────────────────────────────────────── */
+.col-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.col-card {
+  border-radius: var(--radius-lg); overflow: hidden;
+  position: relative; cursor: pointer; aspect-ratio: 3/4;
+  background: linear-gradient(160deg, var(--c2) 0%, var(--c1) 100%);
+  transition: transform .3s, box-shadow .3s;
+}
+.col-card:hover { transform: scale(1.01); box-shadow: var(--shadow-lg); }
+.col-card-bg {
+  width: 100%; height: 100%; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center; opacity: .15;
+  font-size: 80px;
+}
+.col-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(43,60,95,.9) 0%, transparent 60%);
+}
+.col-card-body {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 28px 24px;
+}
+.col-card-eyebrow {
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--c7); margin-bottom: 6px;
+}
+.col-card-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 300;
+  color: var(--white); margin-bottom: 10px; line-height: 1.2;
+}
+.col-card-link {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--c7); display: flex; align-items: center; gap: 6px; font-weight: 500;
+}
+
+/* ── CUSTOM ORDER ────────────────────────────────────────────── */
+.custom-sec {
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 100%);
+}
+.custom-inner {
+  max-width: 1320px; margin: 0 auto; padding: 72px 32px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+}
+.custom-eyebrow {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--c7); margin-bottom: 14px; font-weight: 500;
+}
+.custom-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300;
+  color: var(--white); line-height: 1.2; margin-bottom: 20px;
+}
+.custom-title em { font-style: italic; color: var(--c7); }
+.custom-text {
+  font-size: 14px; color: rgba(255,255,255,.65); line-height: 1.75;
+  margin-bottom: 36px; font-weight: 300;
+}
+.custom-steps { display: flex; flex-direction: column; gap: 20px; }
+.custom-step { display: flex; gap: 16px; align-items: flex-start; }
+.custom-step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 13px; font-weight: 600; color: var(--c7);
+}
+.custom-step-text { font-size: 13.5px; color: rgba(255,255,255,.72); line-height: 1.6; padding-top: 5px; }
+.custom-step-text strong { color: var(--white); display: block; font-size: 14px; margin-bottom: 2px; }
+
+/* ── REVIEWS ─────────────────────────────────────────────────── */
+.review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.review-card {
+  background: var(--white); border: 1px solid var(--c4);
+  border-radius: var(--radius-lg); padding: 20px;
+}
+.review-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.review-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--c8); border: 1px solid var(--c4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--c3); font-weight: 600; flex-shrink: 0;
+}
+.review-name { font-size: 14px; font-weight: 500; color: var(--c1); margin-bottom: 2px; }
+.review-date { font-size: 11px; color: var(--c6); }
+.review-product { font-size: 12px; color: var(--c3); margin-bottom: 10px; font-weight: 500; }
+.review-text { font-size: 13.5px; color: var(--c5); line-height: 1.65; }
+
+/* ── TELEGRAM BANNER ─────────────────────────────────────────── */
+.tg-banner {
+  background: var(--c8); border: 1px solid var(--c4);
+  border-radius: var(--radius-lg); padding: 28px 36px;
+  display: flex; align-items: center; gap: 24px; justify-content: space-between;
+  flex-wrap: wrap;
+}
+.tg-icon { font-size: 40px; flex-shrink: 0; }
+.tg-text { flex: 1; min-width: 200px; }
+.tg-title { font-size: 18px; font-weight: 600; color: var(--c1); margin-bottom: 4px; }
+.tg-sub { font-size: 13px; color: var(--c6); }
+.btn-tg { background: #27A7E5; border-color: #27A7E5; color: var(--white); }
+.btn-tg:hover { background: #1d8fc7; border-color: #1d8fc7; }
+
+/* ── CART PAGE ───────────────────────────────────────────────── */
+.cart-layout { display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: start; }
+.cart-item {
+  display: flex; gap: 16px; padding: 20px;
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+}
+.cart-item-img {
+  width: 88px; height: 110px; border-radius: var(--radius);
+  background: var(--c8); flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.cart-item-info { flex: 1; }
+.cart-item-cat { font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--c6); margin-bottom: 4px; }
+.cart-item-name { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: var(--c1); margin-bottom: 8px; }
+.cart-item-props { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.cart-prop {
+  background: var(--c8); border: 1px solid var(--c4); border-radius: 6px;
+  padding: 4px 10px; font-size: 11.5px; color: var(--c6);
+}
+.qty-control {
+  display: inline-flex; align-items: center; border: 1px solid var(--c4);
+  border-radius: var(--radius); overflow: hidden;
+}
+.qty-btn {
+  width: 32px; height: 32px; background: var(--c8); border: none;
+  color: var(--c2); font-size: 16px; display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.qty-btn:hover { background: var(--c4); }
+.qty-num { width: 36px; text-align: center; font-size: 14px; font-weight: 500; color: var(--c1); }
+.cart-item-price { font-size: 17px; font-weight: 600; color: var(--c2); }
+.cart-item-del { font-size: 18px; color: var(--c6); background: none; border: none; cursor: pointer; transition: color .2s; }
+.cart-item-del:hover { color: #e84749; }
+.order-summary {
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg); padding: 24px;
+}
+.summary-title { font-size: 16px; font-weight: 600; color: var(--c1); margin-bottom: 20px; }
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13.5px; }
+.summary-row.total { font-size: 17px; font-weight: 600; color: var(--c1); border-top: 1px solid var(--c4); padding-top: 16px; margin-top: 8px; }
+.summary-row span:first-child { color: var(--c6); }
+.summary-row.total span:first-child { color: var(--c1); }
+.promo-input {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+.input {
+  flex: 1; padding: 9px 14px; border: 1px solid var(--c4); border-radius: var(--radius);
+  font-size: 13.5px; color: var(--c5); font-family: inherit; outline: none;
+  transition: border-color .2s;
+}
+.input:focus { border-color: var(--c2); }
+.input::placeholder { color: var(--c6); }
+
+/* ── PROFILE PAGE ────────────────────────────────────────────── */
+.profile-layout { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
+.profile-sidebar {
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.profile-user { padding: 24px; border-bottom: 1px solid var(--c4); text-align: center; }
+.profile-avatar {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: var(--c8); border: 2px solid var(--c4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: var(--c2); margin: 0 auto 12px; font-weight: 600;
+}
+.profile-name { font-size: 16px; font-weight: 600; color: var(--c1); margin-bottom: 2px; }
+.profile-email { font-size: 12px; color: var(--c6); }
+.profile-menu { list-style: none; padding: 8px 0; }
+.profile-menu-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; font-size: 13.5px; color: var(--c6);
+  cursor: pointer; transition: background .2s, color .2s; font-weight: 400;
+}
+.profile-menu-item:hover { background: var(--c8); color: var(--c1); }
+.profile-menu-item.active { background: var(--c8); color: var(--c2); font-weight: 500; border-left: 3px solid var(--c2); }
+.profile-menu-icon { font-size: 16px; flex-shrink: 0; }
+.profile-main {
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg); padding: 28px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field label { font-size: 12px; font-weight: 500; color: var(--c6); letter-spacing: .5px; }
+.input-lg { padding: 11px 14px; font-size: 14px; }
+.section-divider { border: none; border-top: 1px solid var(--c4); margin: 24px 0; }
+
+/* ── FOOTER ──────────────────────────────────────────────────── */
+.footer-outer { background: var(--c1); color: rgba(255,255,255,.75); }
+.footer {
+  max-width: 1320px; margin: 0 auto; padding: 56px 32px 32px;
+}
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+.footer-brand-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300;
+  letter-spacing: 6px; text-transform: uppercase; color: var(--white);
+  margin-bottom: 8px;
+}
+.footer-brand-sub {
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--c7); margin-bottom: 20px;
+}
+.footer-desc { font-size: 13px; line-height: 1.7; color: rgba(255,255,255,.55); margin-bottom: 24px; }
+.footer-social { display: flex; gap: 10px; }
+.social-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+  cursor: pointer; transition: background .2s;
+}
+.social-btn:hover { background: rgba(255,255,255,.18); }
+.footer-heading { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--white); font-weight: 500; margin-bottom: 16px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.footer-links li a { font-size: 13px; color: rgba(255,255,255,.55); transition: color .2s; }
+.footer-links li a:hover { color: var(--c7); }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.1); padding-top: 20px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+}
+.footer-copy { font-size: 12px; color: rgba(255,255,255,.4); }
+.footer-legal { display: flex; gap: 20px; }
+.footer-legal a { font-size: 12px; color: rgba(255,255,255,.4); transition: color .2s; }
+.footer-legal a:hover { color: rgba(255,255,255,.7); }
+
+/* ── PAGE TITLE HEADER ───────────────────────────────────────── */
+.page-header { background: var(--c10); border-bottom: 1px solid var(--c4); padding: 32px; }
+.page-header-inner { max-width: 1320px; margin: 0 auto; }
+.page-title {
+  font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 400;
+  color: var(--c1); margin-bottom: 4px;
+}
+.page-subtitle { font-size: 13px; color: var(--c6); }
+
+/* ── FILTER SIDEBAR ──────────────────────────────────────────── */
+.catalog-layout { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: start; }
+.filter-panel {
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg); overflow: hidden;
+}
+.filter-header { padding: 16px 20px; border-bottom: 1px solid var(--c4); display: flex; justify-content: space-between; align-items: center; }
+.filter-title { font-size: 14px; font-weight: 600; color: var(--c1); }
+.filter-reset { font-size: 12px; color: var(--c3); background: none; border: none; cursor: pointer; }
+.filter-section { padding: 16px 20px; border-bottom: 1px solid var(--c4); }
+.filter-section-title { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--c6); font-weight: 500; margin-bottom: 12px; }
+.filter-option { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; }
+.filter-checkbox {
+  width: 16px; height: 16px; border: 1.5px solid var(--c4); border-radius: 4px;
+  background: var(--white); flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.filter-checkbox.checked { background: var(--c2); border-color: var(--c2); }
+.filter-option-label { font-size: 13px; color: var(--c5); }
+.filter-option-count { margin-left: auto; font-size: 11px; color: var(--c6); background: var(--c8); border-radius: 10px; padding: 1px 7px; }
+.price-range { display: flex; gap: 10px; align-items: center; }
+.price-input { width: 90px; padding: 7px 10px; border: 1px solid var(--c4); border-radius: var(--radius); font-size: 13px; color: var(--c5); font-family: inherit; outline: none; }
+.price-sep { color: var(--c6); font-size: 13px; }
+
+/* ── TABS ────────────────────────────────────────────────────── */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--c4); margin-bottom: 28px; }
+.tab {
+  padding: 12px 20px; font-size: 13px; font-weight: 500; color: var(--c6);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  cursor: pointer; transition: color .2s, border-color .2s; white-space: nowrap;
+}
+.tab:hover { color: var(--c2); }
+.tab.active { color: var(--c2); border-bottom-color: var(--c2); }
+
+/* ── TAG LIST ────────────────────────────────────────────────── */
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.tag {
+  padding: 5px 14px; border: 1px solid var(--c4); border-radius: 20px;
+  font-size: 12.5px; color: var(--c6); cursor: pointer; transition: all .2s; background: var(--white);
+}
+.tag:hover, .tag.active { background: var(--c2); border-color: var(--c2); color: var(--white); }
+
+/* ── ORDER STATUS ────────────────────────────────────────────── */
+.order-card {
+  background: var(--white); border: 1px solid var(--c4); border-radius: var(--radius-lg);
+  padding: 20px; margin-bottom: 12px;
+}
+.order-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.order-num { font-size: 15px; font-weight: 600; color: var(--c1); }
+.order-date { font-size: 12px; color: var(--c6); }
+.status-badge {
+  padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 500;
+}
+.status-new { background: #e6f4ff; color: #0958d9; }
+.status-paid { background: #f6ffed; color: #389e0d; }
+.status-shipped { background: #fff7e6; color: #d46b08; }
+.status-done { background: #f6ffed; color: #389e0d; }
+
+/* ── COOKIE BANNER ───────────────────────────────────────────── */
+.cookie {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+  background: var(--c1); color: rgba(255,255,255,.85);
+  padding: 16px 32px; display: flex; align-items: center; justify-content: center;
+  gap: 24px; flex-wrap: wrap; font-size: 13px;
+}
+.cookie a { color: var(--c7); text-decoration: underline; }
+.cookie-btn {
+  padding: 9px 24px; background: var(--c8); color: var(--c1);
+  border: none; border-radius: var(--radius); font-size: 12px;
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer; flex-shrink: 0;
+  transition: background .2s;
+}
+.cookie-btn:hover { background: var(--white); }
+
+/* ── PAGINATION ──────────────────────────────────────────────── */
+.pagination { display: flex; gap: 6px; justify-content: center; margin-top: 40px; align-items: center; }
+.page-btn {
+  width: 36px; height: 36px; border-radius: var(--radius);
+  border: 1px solid var(--c4); background: var(--white);
+  font-size: 13.5px; color: var(--c6); cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-btn:hover { border-color: var(--c2); color: var(--c2); }
+.page-btn.active { background: var(--c2); border-color: var(--c2); color: var(--white); }
+.page-btn.disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── DEMO NAV TABS (page switcher) ───────────────────────────── */
+.demo-nav {
+  background: var(--c5); position: sticky; top: 68px; z-index: 100;
+  display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+}
+.demo-nav::-webkit-scrollbar { display: none; }
+.demo-tab {
+  padding: 12px 20px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.55); white-space: nowrap; cursor: pointer; font-weight: 500;
+  border-bottom: 2px solid transparent; transition: all .2s;
+}
+.demo-tab:hover { color: rgba(255,255,255,.85); }
+.demo-tab.on { color: var(--white); border-bottom-color: var(--c7); }
+
+/* ── PAGE SECTIONS (toggled) ─────────────────────────────────── */
+.page-section { display: none; }
+.page-section.visible { display: block; }
+
+/* ── UTILITIES ───────────────────────────────────────────────── */
+.mt-0 { margin-top: 0; }
+.mb-8 { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.text-muted { color: var(--c6); font-size: 12px; }
+.divider { border: none; border-top: 1px solid var(--c4); margin: 24px 0; }
+.w-full { width: 100%; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.font-serif { font-family: 'Cormorant Garamond', serif; }
+</style>
+</head>
+<body>
+
+<!-- ── LOADING SCREEN ── -->
+<div id="load">
+  <div id="load-brand">AM · Chokers</div>
+  <div class="spin"></div>
+</div>
+
+<!-- ── PROMO BAR ── -->
+<div class="promo">
+  Бесплатная доставка от 3 000 ₽ &nbsp;·&nbsp; Новая коллекция «Лазурь» уже в каталоге
+  <a href="#">Смотреть →</a>
+</div>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <nav class="nav">
+    <!-- Left: menu links -->
+    <div class="nav-left">
+      <a href="#" class="nav-link active" onclick="showPage('home');return false;">Каталог</a>
+      <a href="#" class="nav-link" onclick="showPage('catalog');return false;">О бренде</a>
+      <a href="#" class="nav-link" onclick="showPage('home');return false;">Доставка</a>
+      <a href="#" class="nav-link">Уход за украшениями</a>
+      <a href="#" class="nav-link">Контакты</a>
+    </div>
+    <!-- Center: logo -->
+    <a href="#" class="nav-logo" onclick="showPage('home');return false;">
+      <div class="nav-logo-main">AM Chokers</div>
+      <div class="nav-logo-sub">Авторские украшения</div>
+    </a>
+    <!-- Right: icons -->
+    <div class="nav-right">
+      <div class="nav-lang">
+        <button class="lang-btn active">RU</button>
+        <button class="lang-btn">EN</button>
+      </div>
+      <button class="nav-icon" title="Поиск" onclick="toggleSearch()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="nav-icon" title="Избранное" onclick="showPage('profile');return false;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="nav-icon" title="Корзина" onclick="showPage('cart');return false;" style="position:relative">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="nav-badge">3</span>
+      </button>
+      <button class="nav-icon" title="Профиль" onclick="showPage('profile');return false;">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- ── DEMO PAGE SWITCHER ── -->
+<div class="demo-nav">
+  <div class="demo-tab on" onclick="showPage('home')">Главная</div>
+  <div class="demo-tab" onclick="showPage('catalog')">Каталог</div>
+  <div class="demo-tab" onclick="showPage('cart')">Корзина</div>
+  <div class="demo-tab" onclick="showPage('profile')">Профиль</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════════════════════════ -->
+<div class="page-section visible" id="page-home">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-left-inner">
+        <div class="hero-eyebrow">Новая коллекция · Весна 2025</div>
+        <h1 class="hero-h1">Украшения,<br>созданные <em>для тебя</em></h1>
+        <p class="hero-sub">Авторские чокеры, браслеты и серьги ручной работы. Каждое изделие — уникальная история.</p>
+        <div class="hero-btns">
+          <button class="btn btn-primary" onclick="showPage('catalog')">Смотреть каталог</button>
+          <button class="btn btn-outline">Индивидуальный заказ</button>
+        </div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-img-placeholder">
+        <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+          <path d="M50 20C50 20 30 35 30 50C30 61.05 39 70 50 70C61.05 70 70 61.05 70 50C70 35 50 20 50 20Z" stroke="#A1B3CD" stroke-width="2" fill="none"/>
+          <circle cx="50" cy="50" r="8" stroke="#A1B3CD" stroke-width="2" fill="none"/>
+          <path d="M50 10 L50 20 M50 80 L50 90 M10 50 L20 50 M80 50 L90 50" stroke="#A1B3CD" stroke-width="1.5"/>
+        </svg>
+        <div class="hero-img-label">Фото украшения</div>
+      </div>
+      <div class="hero-card">
+        <div>
+          <div class="hero-card-num">240+</div>
+          <div class="hero-card-lbl">Украшений в каталоге</div>
+        </div>
+        <div class="hero-card-dot"></div>
+      </div>
+      <div class="hero-tag">Новинки →</div>
+    </div>
+  </div>
+
+  <!-- TRUST STRIP -->
+  <div class="strip">
+    <div class="strip-inner">
+      <div class="strip-item">
+        <div class="strip-icon">🚚</div>
+        <div class="strip-text">
+          <strong>Бесплатная доставка</strong>
+          <span>от 3 000 ₽ по России</span>
+        </div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-icon">✦</div>
+        <div class="strip-text">
+          <strong>Ручная работа</strong>
+          <span>Каждое изделие уникально</span>
+        </div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-icon">🔒</div>
+        <div class="strip-text">
+          <strong>Безопасная оплата</strong>
+          <span>ЮКасса, карты РФ</span>
+        </div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-icon">↩️</div>
+        <div class="strip-text">
+          <strong>Возврат 14 дней</strong>
+          <span>Без лишних вопросов</span>
+        </div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-icon">💬</div>
+        <div class="strip-text">
+          <strong>Поддержка в Telegram</strong>
+          <span>Ответим в течение часа</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-hd-left">
+        <div class="sec-eyebrow">Ассортимент</div>
+        <h2 class="sec-title">Категории украшений</h2>
+      </div>
+      <a href="#" class="sec-link" onclick="showPage('catalog');return false;">Весь каталог →</a>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-card">
+        <div class="cat-card-img">📿</div>
+        <div class="cat-card-body">
+          <div class="cat-card-name">Чокеры</div>
+          <div class="cat-card-count">48 товаров</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-card-img">💎</div>
+        <div class="cat-card-body">
+          <div class="cat-card-name">Ожерелья</div>
+          <div class="cat-card-count">36 товаров</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-card-img">✨</div>
+        <div class="cat-card-body">
+          <div class="cat-card-name">Браслеты</div>
+          <div class="cat-card-count">52 товара</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-card-img">🌸</div>
+        <div class="cat-card-body">
+          <div class="cat-card-name">Серьги</div>
+          <div class="cat-card-count">61 товар</div>
+        </div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-card-img">👓</div>
+        <div class="cat-card-body">
+          <div class="cat-card-name">Цепочки для очков</div>
+          <div class="cat-card-count">18 товаров</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW ITEMS -->
+  <div class="sec-alt">
+    <div class="sec">
+      <div class="sec-hd">
+        <div class="sec-hd-left">
+          <div class="sec-eyebrow">Только что поступили</div>
+          <h2 class="sec-title">Новинки</h2>
+        </div>
+        <a href="#" class="sec-link" onclick="showPage('catalog');return false;">Все новинки →</a>
+      </div>
+      <div class="grid4">
+        <!-- card 1 -->
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg">
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="18" stroke="#CED3DD" stroke-width="1.5"/><circle cx="30" cy="30" r="8" stroke="#CED3DD" stroke-width="1"/></svg>
+            </div>
+            <span class="card-badge new">Новинка</span>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars">
+              <span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span>
+              <span class="stars-count">(12)</span>
+            </div>
+            <div class="card-cat">Чокеры</div>
+            <div class="card-name">Лазурный бархатный чокер</div>
+            <div class="card-price">1 290 ₽</div>
+          </div>
+          <div class="card-footer">
+            <button class="card-btn">В корзину</button>
+          </div>
+        </div>
+        <!-- card 2 -->
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg">
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><path d="M30 10 L50 50 L10 50 Z" stroke="#CED3DD" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <span class="card-badge sale">−20%</span>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars">
+              <span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span>
+              <span class="stars-count">(28)</span>
+            </div>
+            <div class="card-cat">Браслеты</div>
+            <div class="card-name">Браслет «Морская волна»</div>
+            <div>
+              <span class="card-price">890 ₽</span>
+              <span class="card-price-old">1 120 ₽</span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="card-btn">В корзину</button>
+          </div>
+        </div>
+        <!-- card 3 -->
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg">
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><rect x="18" y="18" width="24" height="24" rx="4" stroke="#CED3DD" stroke-width="1.5"/><circle cx="30" cy="30" r="6" stroke="#CED3DD" stroke-width="1"/></svg>
+            </div>
+            <span class="card-badge new">Новинка</span>
+            <button class="card-fav" style="color:#e84749">♥</button>
+          </div>
+          <div class="card-body">
+            <div class="stars">
+              <span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span>
+              <span class="stars-count">(7)</span>
+            </div>
+            <div class="card-cat">Серьги</div>
+            <div class="card-name">Серьги «Геометрия» серебро</div>
+            <div class="card-price">1 650 ₽</div>
+          </div>
+          <div class="card-footer">
+            <button class="card-btn">В корзину</button>
+          </div>
+        </div>
+        <!-- card 4 -->
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg">
+              <svg width="60" height="60" viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="30" rx="20" ry="12" stroke="#CED3DD" stroke-width="1.5"/><circle cx="30" cy="30" r="5" stroke="#CED3DD" stroke-width="1"/></svg>
+            </div>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars">
+              <span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span>
+              <span class="stars-count">(41)</span>
+            </div>
+            <div class="card-cat">Ожерелья</div>
+            <div class="card-name">Ожерелье с жемчугом «Рассвет»</div>
+            <div class="card-price">2 100 ₽</div>
+          </div>
+          <div class="card-footer">
+            <button class="card-btn">В корзину</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLLECTIONS -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-hd-left">
+        <div class="sec-eyebrow">Тематические серии</div>
+        <h2 class="sec-title">Коллекции</h2>
+      </div>
+    </div>
+    <div class="col-grid">
+      <div class="col-card">
+        <div class="col-card-bg">🌊</div>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-body">
+          <div class="col-card-eyebrow">Коллекция · 2025</div>
+          <div class="col-card-name">Лазурь</div>
+          <div class="col-card-link">Смотреть коллекцию →</div>
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-card-bg">🌸</div>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-body">
+          <div class="col-card-eyebrow">Коллекция · 2024</div>
+          <div class="col-card-name">Сакура</div>
+          <div class="col-card-link">Смотреть коллекцию →</div>
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-card-bg">🌙</div>
+        <div class="col-card-overlay"></div>
+        <div class="col-card-body">
+          <div class="col-card-eyebrow">Коллекция · 2024</div>
+          <div class="col-card-name">Полночь</div>
+          <div class="col-card-link">Смотреть коллекцию →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BESTSELLERS -->
+  <div class="sec-alt">
+    <div class="sec">
+      <div class="sec-hd">
+        <div class="sec-hd-left">
+          <div class="sec-eyebrow">Самые любимые</div>
+          <h2 class="sec-title">Хиты продаж</h2>
+        </div>
+        <a href="#" class="sec-link" onclick="showPage('catalog');return false;">Весь каталог →</a>
+      </div>
+      <div class="grid4">
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="20" stroke="#CED3DD" stroke-width="1.5"/><circle cx="30" cy="30" r="10" stroke="#CED3DD" stroke-width="1"/><circle cx="30" cy="30" r="3" fill="#CED3DD"/></svg></div>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="stars-count">(84)</span></div>
+            <div class="card-cat">Чокеры</div>
+            <div class="card-name">Классический бархатный чокер</div>
+            <div class="card-price">990 ₽</div>
+          </div>
+          <div class="card-footer"><button class="card-btn">В корзину</button></div>
+        </div>
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><path d="M15 45 Q30 15 45 45" stroke="#CED3DD" stroke-width="1.5" fill="none"/><circle cx="30" cy="30" r="5" stroke="#CED3DD" stroke-width="1"/></svg></div>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span><span class="stars-count">(53)</span></div>
+            <div class="card-cat">Ожерелья</div>
+            <div class="card-name">Ожерелье «Речной жемчуг»</div>
+            <div class="card-price">1 450 ₽</div>
+          </div>
+          <div class="card-footer"><button class="card-btn">В корзину</button></div>
+        </div>
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><rect x="20" y="15" width="20" height="30" rx="10" stroke="#CED3DD" stroke-width="1.5"/></svg></div>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="stars-count">(67)</span></div>
+            <div class="card-cat">Браслеты</div>
+            <div class="card-name">Браслет на щиколотку с бисером</div>
+            <div class="card-price">750 ₽</div>
+          </div>
+          <div class="card-footer"><button class="card-btn">В корзину</button></div>
+        </div>
+        <div class="card">
+          <div class="card-img">
+            <div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><polygon points="30,10 50,45 10,45" stroke="#CED3DD" stroke-width="1.5" fill="none"/></svg></div>
+            <button class="card-fav">♡</button>
+          </div>
+          <div class="card-body">
+            <div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span><span class="stars-count">(39)</span></div>
+            <div class="card-cat">Серьги</div>
+            <div class="card-name">Серьги-гвоздики «Капля»</div>
+            <div class="card-price">620 ₽</div>
+          </div>
+          <div class="card-footer"><button class="card-btn">В корзину</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM ORDER CTA -->
+  <div class="custom-sec">
+    <div class="custom-inner">
+      <div>
+        <div class="custom-eyebrow">Индивидуальный заказ</div>
+        <h2 class="custom-title">Создай своё <em>мечтовое</em> украшение</h2>
+        <p class="custom-text">Хочешь украшение, которого ни у кого больше нет? Я создам его специально для тебя — учту все твои пожелания по форме, цвету и материалам.</p>
+        <button class="btn btn-primary">Написать в Telegram</button>
+      </div>
+      <div class="custom-steps">
+        <div class="custom-step">
+          <div class="custom-step-num">1</div>
+          <div class="custom-step-text"><strong>Напиши мне в Telegram</strong>Опиши тип изделия, его особенности и прикрепи референс-фото, если есть.</div>
+        </div>
+        <div class="custom-step">
+          <div class="custom-step-num">2</div>
+          <div class="custom-step-text"><strong>Обсудим детали</strong>Отвечу в течение 24 часов и согласую все детали заказа.</div>
+        </div>
+        <div class="custom-step">
+          <div class="custom-step-num">3</div>
+          <div class="custom-step-text"><strong>Предоплата 1 000 ₽</strong>Для начала работы потребуется небольшой аванс.</div>
+        </div>
+        <div class="custom-step">
+          <div class="custom-step-num">4</div>
+          <div class="custom-step-text"><strong>Отправим фото на согласование</strong>После изготовления пришлю фото. При необходимости сделаю до 2-х вариантов.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="sec">
+    <div class="sec-hd">
+      <div class="sec-hd-left">
+        <div class="sec-eyebrow">Довольные клиенты</div>
+        <h2 class="sec-title">Отзывы</h2>
+      </div>
+    </div>
+    <div class="review-grid">
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar">А</div>
+          <div>
+            <div class="review-name">Анна К.</div>
+            <div class="review-date">15 марта 2025</div>
+          </div>
+        </div>
+        <div class="stars mb-8"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div>
+        <div class="review-product">📿 Лазурный бархатный чокер</div>
+        <div class="review-text">Получила заказ быстро, упаковка просто идеальная! Чокер выглядит ровно так же, как на фото. Очень нежный и приятный к коже. Буду заказывать ещё!</div>
+      </div>
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar" style="background:#dfe8f5;color:#3B5382">М</div>
+          <div>
+            <div class="review-name">Мария В.</div>
+            <div class="review-date">8 марта 2025</div>
+          </div>
+        </div>
+        <div class="stars mb-8"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div>
+        <div class="review-product">✨ Браслет «Морская волна»</div>
+        <div class="review-text">Заказывала браслет в подарок подруге. Она в полном восторге! Качество превзошло ожидания. Мастер очень внимательно отнеслась к деталям.</div>
+      </div>
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar" style="background:#e8f0f8;color:#5A6E96">О</div>
+          <div>
+            <div class="review-name">Ольга Н.</div>
+            <div class="review-date">22 февраля 2025</div>
+          </div>
+        </div>
+        <div class="stars mb-8"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span></div>
+        <div class="review-product">💎 Ожерелье «Рассвет»</div>
+        <div class="review-text">Сделала индивидуальный заказ — ожерелье для мамы на день рождения. Всё согласовали, срок соблюли. Мама была в слезах от счастья ❤️</div>
+      </div>
+    </div>
+
+    <!-- Telegram subscribe -->
+    <div style="margin-top: 40px">
+      <div class="tg-banner">
+        <div class="tg-icon">📬</div>
+        <div class="tg-text">
+          <div class="tg-title">Подпишись на Telegram-канал</div>
+          <div class="tg-sub">Первой узнавай о новинках, акциях и закрытых распродажах</div>
+        </div>
+        <button class="btn btn-tg">Подписаться →</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-home -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE: CATALOG
+═══════════════════════════════════════════════════════════════ -->
+<div class="page-section" id="page-catalog">
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="breadcrumb-wrap" style="background:none;border:none;padding:0 0 10px">
+        <div class="breadcrumb" style="padding:0">
+          <a href="#" onclick="showPage('home');return false;">Главная</a>
+          <span class="breadcrumb-sep">›</span>
+          <span>Каталог</span>
+        </div>
+      </div>
+      <h1 class="page-title">Каталог украшений</h1>
+      <p class="page-subtitle">240 товаров · ручная работа · авторский дизайн</p>
+    </div>
+  </div>
+
+  <div class="sec" style="padding-top: 32px">
+    <!-- Tags filter -->
+    <div class="tags">
+      <span class="tag active">Все категории</span>
+      <span class="tag">📿 Чокеры</span>
+      <span class="tag">💎 Ожерелья</span>
+      <span class="tag">✨ Браслеты</span>
+      <span class="tag">🌸 Серьги</span>
+      <span class="tag">👓 Цепочки для очков</span>
+    </div>
+
+    <div class="catalog-layout">
+      <!-- Filter sidebar -->
+      <div>
+        <div class="filter-panel">
+          <div class="filter-header">
+            <span class="filter-title">Фильтры</span>
+            <button class="filter-reset">Сбросить</button>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Категория</div>
+            <div class="filter-option">
+              <div class="filter-checkbox checked">✓</div>
+              <span class="filter-option-label">Чокеры</span>
+              <span class="filter-option-count">48</span>
+            </div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Ожерелья</span>
+              <span class="filter-option-count">36</span>
+            </div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Браслеты</span>
+              <span class="filter-option-count">52</span>
+            </div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Серьги</span>
+              <span class="filter-option-count">61</span>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Цена, ₽</div>
+            <div class="price-range">
+              <input type="text" class="price-input" value="0" placeholder="от">
+              <span class="price-sep">—</span>
+              <input type="text" class="price-input" value="5000" placeholder="до">
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Коллекция</div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Лазурь</span>
+              <span class="filter-option-count">14</span>
+            </div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Сакура</span>
+              <span class="filter-option-count">18</span>
+            </div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Полночь</span>
+              <span class="filter-option-count">22</span>
+            </div>
+          </div>
+          <div class="filter-section" style="border:none">
+            <div class="filter-section-title">Наличие</div>
+            <div class="filter-option">
+              <div class="filter-checkbox checked">✓</div>
+              <span class="filter-option-label">Есть в наличии</span>
+            </div>
+            <div class="filter-option">
+              <div class="filter-checkbox"></div>
+              <span class="filter-option-label">Под заказ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products grid -->
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <span class="text-muted" style="font-size:13px; color:var(--c6)">Найдено 48 товаров</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span style="font-size:12px; color:var(--c6)">Сортировка:</span>
+            <select class="input" style="width:auto; padding:7px 12px; font-size:12.5px;">
+              <option>По популярности</option>
+              <option>Сначала новые</option>
+              <option>Цена: по возрастанию</option>
+              <option>Цена: по убыванию</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="card"><div class="card-img"><div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="18" stroke="#CED3DD" stroke-width="1.5"/></svg></div><span class="card-badge new">Новинка</span><button class="card-fav">♡</button></div><div class="card-body"><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="stars-count">(12)</span></div><div class="card-cat">Чокеры</div><div class="card-name">Лазурный бархатный чокер</div><div class="card-price">1 290 ₽</div></div><div class="card-footer"><button class="card-btn">В корзину</button></div></div>
+
+          <div class="card"><div class="card-img"><div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><path d="M30 10 L50 50 L10 50 Z" stroke="#CED3DD" stroke-width="1.5" fill="none"/></svg></div><button class="card-fav">♡</button></div><div class="card-body"><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span><span class="stars-count">(8)</span></div><div class="card-cat">Чокеры</div><div class="card-name">Чокер «Нить» с позолотой</div><div class="card-price">980 ₽</div></div><div class="card-footer"><button class="card-btn">В корзину</button></div></div>
+
+          <div class="card"><div class="card-img"><div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><ellipse cx="30" cy="30" rx="20" ry="14" stroke="#CED3DD" stroke-width="1.5"/></svg></div><span class="card-badge sale">−15%</span><button class="card-fav">♡</button></div><div class="card-body"><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="stars-count">(31)</span></div><div class="card-cat">Чокеры</div><div class="card-name">Чокер с бусинами перламутр</div><div><span class="card-price">1 100 ₽</span><span class="card-price-old">1 290 ₽</span></div></div><div class="card-footer"><button class="card-btn">В корзину</button></div></div>
+
+          <div class="card"><div class="card-img"><div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><rect x="18" y="18" width="24" height="24" rx="4" stroke="#CED3DD" stroke-width="1.5"/></svg></div><button class="card-fav">♡</button></div><div class="card-body"><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span><span class="star">★</span><span class="stars-count">(5)</span></div><div class="card-cat">Чокеры</div><div class="card-name">Чокер кожаный «Минимализм»</div><div class="card-price">850 ₽</div></div><div class="card-footer"><button class="card-btn">В корзину</button></div></div>
+
+          <div class="card"><div class="card-img"><div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><circle cx="30" cy="30" r="20" stroke="#CED3DD" stroke-width="1.5"/><circle cx="30" cy="30" r="8" stroke="#CED3DD" stroke-width="1"/></svg></div><button class="card-fav">♡</button></div><div class="card-body"><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="stars-count">(44)</span></div><div class="card-cat">Чокеры</div><div class="card-name">Чокер с кристаллами Swarovski</div><div class="card-price">1 890 ₽</div></div><div class="card-footer"><button class="card-btn">В корзину</button></div></div>
+
+          <div class="card"><div class="card-img"><div class="card-img-bg"><svg width="60" height="60" viewBox="0 0 60 60" fill="none"><path d="M15 30 Q30 10 45 30 Q30 50 15 30Z" stroke="#CED3DD" stroke-width="1.5" fill="none"/></svg></div><span class="card-badge new">Новинка</span><button class="card-fav">♡</button></div><div class="card-body"><div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star">★</span><span class="stars-count">(3)</span></div><div class="card-cat">Чокеры</div><div class="card-name">Чокер «Ромб» с эмалью</div><div class="card-price">1 150 ₽</div></div><div class="card-footer"><button class="card-btn">В корзину</button></div></div>
+        </div>
+
+        <div class="pagination">
+          <button class="page-btn disabled">‹</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <span style="color:var(--c6); padding: 0 4px">…</span>
+          <button class="page-btn">8</button>
+          <button class="page-btn">›</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-catalog -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE: CART
+═══════════════════════════════════════════════════════════════ -->
+<div class="page-section" id="page-cart">
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="breadcrumb" style="padding:0 0 10px; background:none">
+        <a href="#" onclick="showPage('home');return false;">Главная</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Корзина</span>
+      </div>
+      <h1 class="page-title">Корзина</h1>
+      <p class="page-subtitle">3 товара</p>
+    </div>
+  </div>
+
+  <div class="sec" style="padding-top: 32px">
+    <div class="cart-layout">
+      <!-- Items -->
+      <div>
+        <div class="cart-item">
+          <div class="cart-item-img">📿</div>
+          <div class="cart-item-info">
+            <div class="cart-item-cat">Чокеры</div>
+            <div class="cart-item-name">Лазурный бархатный чокер</div>
+            <div class="cart-item-props">
+              <span class="cart-prop">Цвет: синий</span>
+              <span class="cart-prop">Размер: S</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="qty-control">
+                <button class="qty-btn">−</button>
+                <span class="qty-num">1</span>
+                <button class="qty-btn">+</button>
+              </div>
+              <span class="cart-item-price">1 290 ₽</span>
+            </div>
+          </div>
+          <button class="cart-item-del" title="Удалить">✕</button>
+        </div>
+
+        <div class="cart-item">
+          <div class="cart-item-img">✨</div>
+          <div class="cart-item-info">
+            <div class="cart-item-cat">Браслеты</div>
+            <div class="cart-item-name">Браслет «Морская волна»</div>
+            <div class="cart-item-props">
+              <span class="cart-prop">Материал: бисер</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="qty-control">
+                <button class="qty-btn">−</button>
+                <span class="qty-num">2</span>
+                <button class="qty-btn">+</button>
+              </div>
+              <span class="cart-item-price">1 780 ₽</span>
+            </div>
+          </div>
+          <button class="cart-item-del" title="Удалить">✕</button>
+        </div>
+
+        <div class="cart-item">
+          <div class="cart-item-img">💎</div>
+          <div class="cart-item-info">
+            <div class="cart-item-cat">Ожерелья</div>
+            <div class="cart-item-name">Ожерелье с жемчугом «Рассвет»</div>
+            <div class="cart-item-props">
+              <span class="cart-prop">Длина: 45 см</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="qty-control">
+                <button class="qty-btn">−</button>
+                <span class="qty-num">1</span>
+                <button class="qty-btn">+</button>
+              </div>
+              <span class="cart-item-price">2 100 ₽</span>
+            </div>
+          </div>
+          <button class="cart-item-del" title="Удалить">✕</button>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div>
+        <div class="order-summary">
+          <div class="summary-title">Итого</div>
+          <div class="summary-row"><span>Товары (4 шт.)</span><span>5 170 ₽</span></div>
+          <div class="summary-row"><span>Доставка</span><span style="color:#389e0d">Бесплатно</span></div>
+          <div class="summary-row"><span>Скидка по промокоду</span><span style="color:#e84749">−200 ₽</span></div>
+          <div class="summary-row total"><span>К оплате</span><span>4 970 ₽</span></div>
+          <div class="promo-input">
+            <input class="input" type="text" placeholder="Промокод" value="SUMMER20">
+            <button class="btn btn-default" style="padding:9px 16px; font-size:11px">Применить</button>
+          </div>
+          <button class="btn btn-filled w-full" style="justify-content:center; padding:14px;">Оформить заказ</button>
+          <div style="margin-top:12px; text-align:center">
+            <a href="#" onclick="showPage('catalog');return false;" style="font-size:12.5px; color:var(--c3)">← Продолжить покупки</a>
+          </div>
+        </div>
+
+        <div style="margin-top:16px; background:var(--white); border:1px solid var(--c4); border-radius:var(--radius-lg); padding:16px 20px;">
+          <div style="font-size:12px; color:var(--c6); display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; gap:8px; align-items:center;"><span style="color:var(--c3)">🔒</span> Безопасная оплата через ЮКасса</div>
+            <div style="display:flex; gap:8px; align-items:center;"><span style="color:var(--c3)">📦</span> Доставка СДЭК, Яндекс.Доставка, Почта России</div>
+            <div style="display:flex; gap:8px; align-items:center;"><span style="color:var(--c3)">↩️</span> Возврат в течение 14 дней</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-cart -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PAGE: PROFILE
+═══════════════════════════════════════════════════════════════ -->
+<div class="page-section" id="page-profile">
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="breadcrumb" style="padding:0 0 10px; background:none">
+        <a href="#" onclick="showPage('home');return false;">Главная</a>
+        <span class="breadcrumb-sep">›</span>
+        <span>Профиль</span>
+      </div>
+      <h1 class="page-title">Личный кабинет</h1>
+    </div>
+  </div>
+
+  <div class="sec" style="padding-top:32px">
+    <div class="profile-layout">
+      <!-- Sidebar -->
+      <div>
+        <div class="profile-sidebar">
+          <div class="profile-user">
+            <div class="profile-avatar">А</div>
+            <div class="profile-name">Анна Кузнецова</div>
+            <div class="profile-email">anna@example.com</div>
+          </div>
+          <ul class="profile-menu">
+            <li class="profile-menu-item active">
+              <span class="profile-menu-icon">👤</span>
+              Личные данные
+            </li>
+            <li class="profile-menu-item">
+              <span class="profile-menu-icon">📦</span>
+              История заказов
+            </li>
+            <li class="profile-menu-item">
+              <span class="profile-menu-icon">♡</span>
+              Избранное
+              <span style="margin-left:auto; background:var(--c8); border-radius:10px; padding:2px 8px; font-size:11px; color:var(--c3)">5</span>
+            </li>
+            <li class="profile-menu-item">
+              <span class="profile-menu-icon">⭐</span>
+              Мои отзывы
+            </li>
+            <li class="profile-menu-item">
+              <span class="profile-menu-icon">⚙️</span>
+              Настройки
+            </li>
+            <li class="profile-menu-item" style="color:#e84749; margin-top:8px; border-top:1px solid var(--c4);">
+              <span class="profile-menu-icon">→</span>
+              Выйти
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div>
+        <div class="profile-main">
+          <div style="font-size:16px; font-weight:600; color:var(--c1); margin-bottom:24px;">Личные данные</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Имя</label>
+              <input class="input input-lg" type="text" value="Анна">
+            </div>
+            <div class="form-field">
+              <label>Фамилия</label>
+              <input class="input input-lg" type="text" value="Кузнецова">
+            </div>
+            <div class="form-field">
+              <label>Email</label>
+              <input class="input input-lg" type="email" value="anna@example.com">
+            </div>
+            <div class="form-field">
+              <label>Телефон</label>
+              <input class="input input-lg" type="tel" value="+7 (999) 123-45-67">
+            </div>
+          </div>
+          <hr class="section-divider">
+          <div style="font-size:15px; font-weight:600; color:var(--c1); margin-bottom:16px;">Привязка Telegram</div>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:10px; background:var(--c8); border:1px solid var(--c4); border-radius:var(--radius); padding:10px 16px;">
+              <span style="font-size:20px">📬</span>
+              <div>
+                <div style="font-size:13px; font-weight:500; color:var(--c1)">@anna_k</div>
+                <div style="font-size:11px; color:#389e0d">✓ Привязан</div>
+              </div>
+            </div>
+            <button class="btn btn-default" style="padding:9px 16px; font-size:12px">Отвязать</button>
+          </div>
+          <hr class="section-divider">
+          <button class="btn btn-filled">Сохранить изменения</button>
+        </div>
+
+        <!-- Orders tab preview -->
+        <div style="margin-top: 24px">
+          <div style="font-size:15px; font-weight:600; color:var(--c1); margin-bottom:16px; padding: 0 4px;">Последние заказы</div>
+          <div class="order-card">
+            <div class="order-top">
+              <div>
+                <div class="order-num">Заказ №2847</div>
+                <div class="order-date">15 марта 2025</div>
+              </div>
+              <span class="status-badge status-shipped">Отправлен</span>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--c5);">
+                <span>📿</span> Лазурный бархатный чокер × 1
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <span style="font-size:14px; font-weight:600; color:var(--c2);">1 290 ₽</span>
+              <button class="btn btn-default" style="padding:7px 16px; font-size:12px;">Подробнее</button>
+            </div>
+          </div>
+          <div class="order-card">
+            <div class="order-top">
+              <div>
+                <div class="order-num">Заказ №2791</div>
+                <div class="order-date">8 марта 2025</div>
+              </div>
+              <span class="status-badge status-done">Выполнен</span>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+              <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--c5);">
+                <span>✨</span> Браслет «Морская волна» × 2
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <span style="font-size:14px; font-weight:600; color:var(--c2);">1 780 ₽</span>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-default" style="padding:7px 16px; font-size:12px;">Оставить отзыв</button>
+                <button class="btn btn-default" style="padding:7px 16px; font-size:12px;">Подробнее</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div><!-- /page-profile -->
+
+
+<!-- ── FOOTER ── -->
+<div class="footer-outer">
+  <div class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-name">AM Chokers</div>
+        <div class="footer-brand-sub">Авторские украшения</div>
+        <p class="footer-desc">Авторские украшения ручной работы — чокеры, браслеты, серьги и ожерелья. Создаём уникальные изделия с 2019 года.</p>
+        <div class="footer-social">
+          <div class="social-btn" title="Telegram">📬</div>
+          <div class="social-btn" title="Instagram">📸</div>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Каталог</div>
+        <ul class="footer-links">
+          <li><a href="#">Чокеры</a></li>
+          <li><a href="#">Ожерелья</a></li>
+          <li><a href="#">Браслеты</a></li>
+          <li><a href="#">Серьги</a></li>
+          <li><a href="#">Цепочки для очков</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-heading">О нас</div>
+        <ul class="footer-links">
+          <li><a href="#">О бренде</a></li>
+          <li><a href="#">Доставка и оплата</a></li>
+          <li><a href="#">Уход за украшениями</a></li>
+          <li><a href="#">Контакты</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-heading">Контакты</div>
+        <ul class="footer-links">
+          <li><a href="mailto:info@amchokers.ru">info@amchokers.ru</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="#">Instagram</a></li>
+        </ul>
+        <div style="margin-top:16px; font-size:12px; color:rgba(255,255,255,.4);">
+          ИП Морозова А.В.<br>ИНН: 123456789012
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 AM Chokers. Все права защищены.</div>
+      <div class="footer-legal">
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Договор оферты</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── COOKIE BANNER ── -->
+<div class="cookie" id="cookie">
+  Используя сайт, вы соглашаетесь с нашей
+  <a href="#">политикой обработки данных</a>
+  <button class="cookie-btn" onclick="document.getElementById('cookie').style.display='none'">Понятно</button>
+</div>
+
+<script>
+// ── Page switcher
+function showPage(id) {
+  document.querySelectorAll('.page-section').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('.demo-tab').forEach(el => el.classList.remove('on'));
+  document.getElementById('page-' + id).classList.add('visible');
+  const idx = ['home','catalog','cart','profile'].indexOf(id);
+  document.querySelectorAll('.demo-tab')[idx]?.classList.add('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Loading screen
+window.addEventListener('load', () => {
+  const el = document.getElementById('load');
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.style.display = 'none', 500);
+  }, 700);
+});
+
+// ── Demo search toggle
+function toggleSearch() {
+  const s = document.getElementById('search-bar');
+  if (s) { s.style.display = s.style.display === 'none' ? 'flex' : 'none'; }
+}
+
+// ── Tag filter interaction
+document.querySelectorAll('.tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    tag.closest('.tags').querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+    tag.classList.add('active');
+  });
+});
+
+// ── Filter checkbox interaction
+document.querySelectorAll('.filter-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    const cb = opt.querySelector('.filter-checkbox');
+    if (cb.classList.contains('checked')) {
+      cb.classList.remove('checked');
+      cb.textContent = '';
+    } else {
+      cb.classList.add('checked');
+      cb.textContent = '✓';
+    }
+  });
+});
+
+// ── Lang button
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.closest('.nav-lang').querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ── Demo nav tab click delegation
+document.querySelector('.demo-nav').addEventListener('click', e => {
+  const tab = e.target.closest('.demo-tab');
+  if (!tab) return;
+  const tabs = [...document.querySelectorAll('.demo-tab')];
+  const idx = tabs.indexOf(tab);
+  const pages = ['home','catalog','cart','profile'];
+  if (pages[idx]) showPage(pages[idx]);
+});
+</script>
+</body>
+</html>

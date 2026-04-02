@@ -84,6 +84,13 @@ export default {
         },
         adminSettings: {
           title: 'Настройки сайта',
+          siteVersion: {
+            title: 'Версия сайта',
+            description: 'Выберите дизайн сайта для всех пользователей',
+            v1Label: 'v1 — Классический (светлый)',
+            v2Label: 'v2 — Светлый (новый)',
+            v3Label: 'v3 — (в разработке)',
+          },
           cache: {
             synchronizationCache: 'Обновить кэш',
             items: 'Товары',
@@ -863,6 +870,73 @@ export default {
           date: 'Дата публикации',
         },
       },
+      v2Home: {
+        seeAll: 'Смотреть все',
+        badges: {
+          new: 'Новинка',
+          sale: 'Скидка',
+        },
+        hero: {
+          eyebrow: 'Новая коллекция · Весна 2026',
+          title: 'Украшения,',
+          titleEm: 'созданные для тебя',
+          subtitle: 'Авторские чокеры, браслеты и серьги ручной работы. Каждое изделие — уникальная история.',
+          catalogBtn: 'Смотреть каталог',
+          customOrderBtn: 'Индивидуальный заказ',
+          heroImageAlt: 'Украшение AM Chokers',
+          heroCardLabel: 'Украшений в каталоге',
+          heroTag: 'Новинки →',
+        },
+        features: {
+          delivery: { title: 'Бесплатная доставка', subtitle: 'от 10 000 ₽ по России' },
+          handmade: { title: 'Ручная работа', subtitle: 'Каждое изделие уникально' },
+          payment: { title: 'Безопасная оплата', subtitle: 'ЮКасса, карты РФ' },
+          returns: { title: 'Возврат 14 дней', subtitle: 'Без лишних вопросов' },
+          support: { title: 'Поддержка в Telegram', subtitle: 'Ответим в течение часа' },
+        },
+        categories: {
+          eyebrow: 'Ассортимент',
+          title: 'Категории украшений',
+          seeAll: 'Весь каталог',
+        },
+        newArrivals: {
+          eyebrow: 'Только что',
+          title: 'Новинки',
+        },
+        bestsellers: {
+          eyebrow: 'Популярное',
+          title: 'Хиты продаж',
+        },
+        collections: {
+          eyebrow: 'Наши коллекции',
+          title: 'Коллекции',
+        },
+        customOrder: {
+          eyebrow: 'Индивидуально',
+          title: 'Создайте украшение',
+          titleEm: 'своей мечты',
+          text: 'Мы изготовим украшение по вашему эскизу или идее. Расскажите нам о желаемом украшении — и мы воплотим его в жизнь.',
+          tgBtn: 'Написать в Telegram',
+          step1: { title: 'Опишите идею', desc: 'Напишите в Telegram, приложите фото или эскиз.' },
+          step2: { title: 'Обсудим детали', desc: 'Ответим в течение 24 часов, согласуем материалы.' },
+          step3: { title: 'Изготовление', desc: 'Требуется предоплата 1 000 ₽ для начала работы.' },
+          step4: { title: 'Отправка', desc: 'Пришлём фото на подтверждение, отправим заказ.' },
+        },
+        social: {
+          eyebrow: 'Следите за нами',
+          title: 'Instagram',
+          followLink: 'Подписаться',
+          tgTitle: 'Подписывайтесь на Telegram',
+          tgSub: 'Первыми узнавайте об акциях, новинках и закрытых распродажах',
+          tgBtn: 'Открыть канал',
+        },
+      },
+    },
+    common: {
+      v2Promo: {
+        text: 'Бесплатная доставка от 10 000 ₽  ·  Новая коллекция «Лазурь» уже в каталоге',
+        link: 'Смотреть →',
+      },
     },
     modules: {
       imageCrop: {
@@ -911,6 +985,21 @@ export default {
         instagramText2: 'деятельность которого в России запрещена ',
         inn: 'ИНН {{ number }}',
       },
+      v2Footer: {
+        brandName: 'AM Chokers',
+        brandTagline: 'Авторские украшения',
+        brandDesc: 'Мастерская авторских украшений ручной работы. С любовью к каждой детали.',
+        copyright: '© {{year}} AM Chokers. Все права защищены.',
+        buyersTitle: 'Покупателям',
+        delivery: 'Доставка',
+        payment: 'Оплата',
+        returns: 'Возврат',
+        jewelryCare: 'Уход за украшениями',
+        aboutTitle: 'О нас',
+        aboutBrand: 'О бренде',
+        instagram: 'Instagram',
+        telegram: 'Telegram',
+      },
       gradeList: {
         reviews: 'Отзывы',
         add: 'Добавить',
@@ -942,6 +1031,8 @@ export default {
         edit: 'Редактировать',
         addToCart: 'В корзину',
         favorites: 'Избранное',
+        badgeNew: 'Новинка',
+        badgeSale: 'Скидка',
         price: '{{ price }} ₽',
         composition: 'Состав:',
         color: 'Цвет:',
@@ -1094,6 +1185,7 @@ export default {
       addPromotionalSuccess: 'Промокод {{ name }} успешно применён!',
       requiredFields: 'Заполните все обязательные поля',
       synchronizationCacheComplete: 'Кэш товаров успешно обновлён',
+      siteVersionUpdated: 'Версия сайта успешно изменена',
     },
     cookieConsent: {
       contentText: 'Этот сайт использует cookie для улучшения вашего опыта. Если вы продолжите использовать этот сайт, вы соглашаетесь с этим. ',

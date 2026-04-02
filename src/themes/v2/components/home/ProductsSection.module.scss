@@ -1,0 +1,248 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.sectionHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    margin-bottom: 24px;
+  }
+}
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: v2.$v2-navy-medium;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 36px;
+  font-weight: 400;
+  color: v2.$v2-navy-primary;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
+}
+
+.seeAllLink {
+  font-size: 11.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: v2.$v2-navy-secondary;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: v2.$v2-navy-primary;
+  }
+}
+
+.grid4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.card {
+  background: v2.$v2-white;
+  border: 1px solid v2.$v2-border;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+
+  &:hover {
+    box-shadow: v2.$v2-sh-md;
+    transform: translateY(-2px);
+  }
+}
+
+.cardImg {
+  aspect-ratio: 3 / 4;
+  background: #F7F9FC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.imgPrimary {
+  transition: opacity 0.4s ease;
+}
+
+.imgSecondary {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card:hover .imgPrimary {
+  opacity: 0;
+}
+
+.card:hover .imgSecondary {
+  opacity: 1;
+}
+
+.cardImgBg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, v2.$v2-bg-alt 0%, #F7F9FC 100%);
+}
+
+.cardBadge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+
+  &.new {
+    background: v2.$v2-navy-secondary;
+    color: v2.$v2-white;
+  }
+
+  &.sale {
+    background: #e84749;
+    color: v2.$v2-white;
+  }
+}
+
+.cardFav {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background: v2.$v2-white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: v2.$v2-text-secondary;
+  box-shadow: v2.$v2-sh-sm;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #e84749;
+  }
+}
+
+.cardBody {
+  padding: 14px 16px;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    padding: 10px 12px;
+  }
+}
+
+.cardCat {
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: v2.$v2-text-secondary;
+  margin-bottom: 5px;
+}
+
+.cardName {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17px;
+  color: v2.$v2-navy-primary;
+  margin-bottom: 8px;
+  font-weight: 400;
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+.cardPrice {
+  font-size: 15px;
+  font-weight: 600;
+  color: v2.$v2-navy-secondary;
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+  }
+}
+
+.cardPriceOld {
+  font-size: 12px;
+  color: v2.$v2-text-secondary;
+  text-decoration: line-through;
+  margin-left: 8px;
+  font-weight: 400;
+}
+
+.cardFooter {
+  padding: 0 16px 16px;
+
+  @media (max-width: 768px) {
+    padding: 0 12px 12px;
+  }
+}
+
+.cardBtn {
+  width: 100%;
+  padding: 9px;
+  background: v2.$v2-bg-alt;
+  border: 1px solid v2.$v2-border;
+  border-radius: 8px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: v2.$v2-navy-secondary;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+
+  &:hover {
+    background: v2.$v2-navy-secondary;
+    border-color: v2.$v2-navy-secondary;
+    color: v2.$v2-white;
+  }
+}

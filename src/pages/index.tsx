@@ -10,6 +10,9 @@ import axios from 'axios';
 import { Skeleton } from 'antd';
 import type { InferGetServerSidePropsType } from 'next';
 
+import { VersionContext } from '@/components/Context';
+import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
+
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
@@ -235,6 +238,9 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
 
   const dispatch = useAppDispatch();
 
+  const { version } = useContext(VersionContext);
+  const { itemGroups } = useAppSelector((state) => state.app);
+
   const { isMobile } = useContext(MobileContext);
 
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
@@ -392,6 +398,21 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  if (version === 'v2') {
+    return (
+      <V2HomePage
+        news={news}
+        preparedBestsellers={preparedBestsellers}
+        preparedCollections={preparedCollections}
+        preparedCoverImages={preparedCoverImages}
+        coverImages={coverImages}
+        specialItems={specialItems}
+        banners={banners}
+        itemGroups={itemGroups}
+      />
+    );
+  }
 
   return (
     <div className="d-flex justify-content-center" onWheel={throttledHandleWheel}>

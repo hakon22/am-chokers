@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM Chokers — v5 Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.19.4/dist/reset.css">
+<style>
+/* ════════════════════════════════════════
+   TOKENS
+════════════════════════════════════════ */
+:root {
+  --navy:    #2B3C5F;
+  --navy-m:  #3B5382;
+  --navy-l:  #5A6E96;
+  --border:  #CED3DD;
+  --ink:     #363B44;
+  --muted:   #69788E;
+  --accent:  #A1B3CD;
+  --bg-sec:  #EAEEF6;
+  --bg:      #F9FAFC;
+  --bg-alt:  #F7F9FC;
+  --white:   #ffffff;
+
+  --f-serif: 'DM Serif Display', Georgia, serif;
+  --f-sans:  'DM Sans', 'Segoe UI', sans-serif;
+
+  --r:    6px;
+  --r-lg: 14px;
+  --sh:   0 2px 12px rgba(43,60,95,.10);
+  --sh-lg:0 8px 40px rgba(43,60,95,.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f-sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input,select{font-family:inherit}
+
+/* ════════════════════════════════════════
+   LOADER
+════════════════════════════════════════ */
+#loader{
+  position:fixed;inset:0;background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:24px;z-index:9999;
+  transition:opacity .6s ease;
+}
+.loader-logo{
+  font-family:var(--f-serif);font-size:28px;color:var(--white);
+  letter-spacing:6px;text-transform:uppercase;
+}
+.loader-dots{display:flex;gap:8px}
+.loader-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--accent);
+  animation:dot .9s ease-in-out infinite;
+}
+.loader-dot:nth-child(2){animation-delay:.15s}
+.loader-dot:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+
+/* ════════════════════════════════════════
+   DESKTOP NAV
+════════════════════════════════════════ */
+.top-bar{
+  background:var(--navy);color:rgba(255,255,255,.65);
+  text-align:center;padding:8px;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;
+}
+.top-bar b{color:var(--accent)}
+
+.header{
+  background:var(--white);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:200;
+}
+.nav-wrap{
+  max-width:1400px;margin:0 auto;padding:0 40px;
+  display:flex;align-items:stretch;height:72px;
+}
+/* Logo block — left */
+.nav-logo-block{
+  display:flex;align-items:center;padding-right:48px;
+  border-right:1px solid var(--border);margin-right:40px;
+  flex-shrink:0;
+}
+.nav-logo{
+  font-family:var(--f-serif);font-size:21px;color:var(--navy);
+  letter-spacing:3px;text-transform:uppercase;line-height:1;
+  white-space:nowrap;
+}
+.nav-logo span{color:var(--navy-l)}
+
+/* Menu — center, takes all remaining space */
+.nav-menu{display:flex;align-items:center;flex:1;gap:6px}
+.nav-item{
+  position:relative;display:flex;align-items:center;
+  padding:0 14px;height:100%;font-size:12px;font-weight:500;
+  letter-spacing:1px;text-transform:uppercase;color:var(--muted);
+  transition:color .2s;white-space:nowrap;
+}
+.nav-item:hover,.nav-item.on{color:var(--navy)}
+.nav-item.on::after{
+  content:'';position:absolute;bottom:0;left:14px;right:14px;
+  height:2px;background:var(--navy-m);border-radius:2px 2px 0 0;
+}
+/* sub-arrow */
+.nav-item-arrow{font-size:9px;margin-left:4px;transition:transform .2s}
+.nav-item:hover .nav-item-arrow{transform:rotate(180deg)}
+
+/* Search bar in nav */
+.nav-search{
+  display:flex;align-items:center;margin-left:auto;
+  gap:0;border:1px solid var(--border);border-radius:var(--r);
+  overflow:hidden;height:36px;
+}
+.nav-search input{
+  border:none;outline:none;padding:0 14px;font-size:13px;
+  color:var(--ink);background:var(--bg);width:200px;
+  transition:width .3s;
+}
+.nav-search input:focus{width:260px;background:var(--white)}
+.nav-search input::placeholder{color:var(--accent)}
+.nav-search-btn{
+  padding:0 14px;background:var(--navy);color:var(--white);
+  font-size:16px;height:100%;display:flex;align-items:center;
+  border:none;transition:background .2s;
+}
+.nav-search-btn:hover{background:var(--navy-m)}
+
+/* Icon actions */
+.nav-actions{display:flex;align-items:center;gap:2px;margin-left:16px;padding-left:16px;border-left:1px solid var(--border)}
+.nav-action{
+  width:40px;height:40px;border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:18px;position:relative;
+  transition:background .2s,color .2s;
+}
+.nav-action:hover{background:var(--bg-sec);color:var(--navy)}
+.nav-badge{
+  position:absolute;top:5px;right:5px;
+  background:var(--navy-m);color:#fff;
+  font-size:9px;font-weight:700;
+  min-width:16px;height:16px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;padding:0 3px;
+}
+
+/* ════════════════════════════════════════
+   MOBILE NAV (≤768px)
+════════════════════════════════════════ */
+.mobile-header{
+  display:none;
+  background:var(--white);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:200;
+  padding:0 16px;height:56px;
+  align-items:center;justify-content:space-between;
+}
+.mobile-logo{font-family:var(--f-serif);font-size:18px;color:var(--navy);letter-spacing:2px}
+.mobile-header-right{display:flex;gap:4px}
+.mobile-icon{
+  width:36px;height:36px;border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:17px;position:relative;
+}
+.mobile-icon .nav-badge{top:3px;right:3px}
+/* Bottom nav */
+.bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--white);border-top:1px solid var(--border);
+  z-index:200;padding:0 0 env(safe-area-inset-bottom);
+}
+.bottom-nav-inner{display:flex}
+.bottom-nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:10px 4px 8px;
+  font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--muted);font-weight:500;position:relative;
+  transition:color .2s;cursor:pointer;
+}
+.bottom-nav-item.on{color:var(--navy)}
+.bottom-nav-item .bn-icon{font-size:20px;margin-bottom:3px;line-height:1}
+.bottom-nav-item.on::before{
+  content:'';position:absolute;top:0;left:20%;right:20%;
+  height:2px;background:var(--navy-m);border-radius:0 0 2px 2px;
+}
+/* Mobile drawer */
+.mobile-drawer{
+  display:none;position:fixed;inset:0;z-index:500;
+}
+.mobile-drawer.open{display:block}
+.drawer-overlay{position:absolute;inset:0;background:rgba(43,60,95,.4);backdrop-filter:blur(2px)}
+.drawer-panel{
+  position:absolute;top:0;right:0;bottom:0;width:min(320px, 85vw);
+  background:var(--white);padding:24px 0;overflow-y:auto;
+  transform:translateX(100%);transition:transform .3s ease;
+}
+.mobile-drawer.open .drawer-panel{transform:translateX(0)}
+.drawer-head{
+  padding:0 24px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.drawer-brand{font-family:var(--f-serif);font-size:18px;color:var(--navy);letter-spacing:2px}
+.drawer-close{font-size:20px;color:var(--muted);padding:4px}
+.drawer-menu-item{
+  display:flex;align-items:center;padding:14px 24px;
+  font-size:14px;color:var(--ink);font-weight:400;
+  border-bottom:1px solid var(--bg-sec);transition:background .15s;
+  gap:12px;
+}
+.drawer-menu-item:hover,.drawer-menu-item.on{background:var(--bg-sec);color:var(--navy)}
+.drawer-menu-item.on{font-weight:500;border-left:3px solid var(--navy-m)}
+.drawer-icon{font-size:16px;flex-shrink:0}
+
+/* ════════════════════════════════════════
+   PAGE SWITCHER (demo)
+════════════════════════════════════════ */
+.demo-bar{
+  background:var(--ink);display:flex;overflow-x:auto;
+  scrollbar-width:none;position:sticky;top:72px;z-index:100;
+}
+.demo-bar.mobile-stuck{top:56px}
+.demo-bar::-webkit-scrollbar{display:none}
+.demo-btn{
+  padding:11px 18px;font-size:10.5px;letter-spacing:1.5px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+  white-space:nowrap;font-weight:500;border-bottom:2px solid transparent;
+  transition:all .2s;cursor:pointer;
+}
+.demo-btn.on{color:var(--white);border-bottom-color:var(--accent)}
+
+/* ════════════════════════════════════════
+   PAGE SECTIONS
+════════════════════════════════════════ */
+.pg{display:none}
+.pg.on{display:block}
+
+/* ════════════════════════════════════════
+   HOME · HERO
+════════════════════════════════════════ */
+.hero{
+  display:grid;grid-template-columns:1fr 1fr;
+  min-height:calc(100vh - 120px);max-height:700px;overflow:hidden;
+}
+.hero-visual{
+  background:var(--bg-sec);position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.hero-visual-inner{
+  width:100%;height:100%;display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:8px;
+  background:linear-gradient(145deg, var(--bg-sec) 0%, #dde4f0 100%);
+}
+.hero-visual-label{
+  font-family:var(--f-serif);font-style:italic;font-size:14px;
+  color:var(--accent);margin-top:8px;
+}
+/* Floating pills */
+.hero-pill{
+  position:absolute;background:var(--white);border-radius:40px;
+  padding:10px 18px;box-shadow:var(--sh-lg);
+  display:flex;align-items:center;gap:10px;font-size:13px;
+}
+.hero-pill-icon{font-size:20px}
+.hero-pill-text b{display:block;font-weight:600;color:var(--navy);font-size:14px;line-height:1}
+.hero-pill-text small{color:var(--muted);font-size:11px}
+.hero-pill-1{bottom:60px;left:32px}
+.hero-pill-2{top:48px;right:28px;flex-direction:column;align-items:flex-start;padding:14px 20px}
+
+.hero-content{
+  background:var(--navy);padding:0 72px;
+  display:flex;flex-direction:column;justify-content:center;gap:0;
+}
+.hero-tag{
+  font-size:10px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:20px;display:flex;align-items:center;gap:12px;
+}
+.hero-tag::after{content:'';flex:1;height:1px;background:rgba(161,179,205,.3)}
+.hero-h1{
+  font-family:var(--f-serif);font-size:56px;line-height:1.1;
+  color:var(--white);margin-bottom:20px;
+}
+.hero-h1 i{color:var(--accent)}
+.hero-desc{
+  font-size:14px;color:rgba(255,255,255,.6);line-height:1.75;
+  margin-bottom:40px;max-width:380px;font-weight:300;
+}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 26px;border-radius:var(--r);font-size:12px;
+  letter-spacing:1.5px;text-transform:uppercase;font-weight:500;
+  transition:all .2s;white-space:nowrap;border:1.5px solid transparent;
+}
+.btn-white{background:var(--white);color:var(--navy);border-color:var(--white)}
+.btn-white:hover{background:var(--bg-sec);border-color:var(--bg-sec)}
+.btn-ghost{background:transparent;color:var(--white);border-color:rgba(255,255,255,.35)}
+.btn-ghost:hover{border-color:var(--white);background:rgba(255,255,255,.08)}
+.btn-navy{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.btn-navy:hover{background:var(--navy-m);border-color:var(--navy-m)}
+.btn-outline{background:var(--white);color:var(--navy-m);border-color:var(--border)}
+.btn-outline:hover{border-color:var(--navy-m)}
+.btn-fill{background:var(--navy-m);color:var(--white);border-color:var(--navy-m)}
+.btn-fill:hover{background:var(--navy);border-color:var(--navy)}
+.btn-sm{padding:8px 18px;font-size:11px}
+
+/* ════════════════════════════════════════
+   MARQUEE
+════════════════════════════════════════ */
+.marquee-wrap{
+  background:var(--navy-m);overflow:hidden;padding:12px 0;
+  display:flex;gap:0;
+}
+.marquee-track{
+  display:flex;gap:0;white-space:nowrap;
+  animation:marquee 22s linear infinite;
+}
+.marquee-track:hover{animation-play-state:paused}
+.marquee-item{
+  padding:0 32px;font-size:11px;letter-spacing:2.5px;
+  text-transform:uppercase;color:rgba(255,255,255,.75);
+  display:inline-flex;align-items:center;gap:16px;
+}
+.marquee-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ════════════════════════════════════════
+   SECTIONS
+════════════════════════════════════════ */
+.section{max-width:1400px;margin:0 auto;padding:64px 40px}
+.section-sm{padding-top:40px;padding-bottom:40px}
+.section-bg{background:var(--bg-sec)}
+.section-bg .section{padding-top:64px;padding-bottom:64px}
+.section-navy{background:var(--navy)}
+
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;gap:16px}
+.sec-eyebrow{font-size:10px;letter-spacing:3.5px;text-transform:uppercase;color:var(--navy-l);margin-bottom:8px;font-weight:500}
+.sec-title{font-family:var(--f-serif);font-size:34px;color:var(--navy);line-height:1.2}
+.sec-title-white{color:var(--white)}
+.sec-more{
+  font-size:12px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--navy-m);font-weight:500;display:flex;align-items:center;
+  gap:6px;white-space:nowrap;transition:gap .2s;
+}
+.sec-more:hover{gap:10px}
+
+/* ════════════════════════════════════════
+   CATEGORIES — horizontal scroll cards
+════════════════════════════════════════ */
+.cat-scroll{
+  display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.cat-scroll::-webkit-scrollbar{height:3px}
+.cat-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.cat-chip{
+  flex-shrink:0;background:var(--white);border:1px solid var(--border);
+  border-radius:40px;padding:8px 20px 8px 12px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.cat-chip:hover,.cat-chip.on{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.cat-chip-icon{font-size:20px;line-height:1}
+.cat-chip-info strong{display:block;font-size:13px;font-weight:500;color:inherit}
+.cat-chip-info small{font-size:11px;color:var(--muted)}
+.cat-chip:hover .cat-chip-info small,.cat-chip.on .cat-chip-info small{color:var(--accent)}
+
+/* ════════════════════════════════════════
+   PRODUCT CARDS
+════════════════════════════════════════ */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+
+.pcard{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;
+  transition:box-shadow .25s,transform .25s;cursor:pointer;
+}
+.pcard:hover{box-shadow:var(--sh-lg);transform:translateY(-3px)}
+.pcard-img{
+  aspect-ratio:3/4;background:var(--bg-sec);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.pcard-img-bg{
+  width:100%;height:100%;
+  background:linear-gradient(150deg, var(--bg-sec) 0%, #dde4ef 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.pcard-badges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:5px}
+.badge{
+  padding:3px 10px;border-radius:4px;font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;font-weight:600;
+}
+.badge-new{background:var(--navy-m);color:#fff}
+.badge-sale{background:#e84749;color:#fff}
+.badge-hit{background:var(--bg-sec);color:var(--navy-l);border:1px solid var(--border)}
+.pcard-fav{
+  position:absolute;top:10px;right:10px;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--white);box-shadow:var(--sh);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;color:var(--muted);transition:color .2s;
+}
+.pcard-fav:hover,.pcard-fav.on{color:#e84749}
+.pcard-body{padding:14px 16px}
+.pcard-cat{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.pcard-name{font-family:var(--f-serif);font-size:17px;color:var(--navy);margin-bottom:10px;line-height:1.3}
+.pcard-foot{display:flex;align-items:center;justify-content:space-between;padding:0 16px 14px}
+.pcard-price{font-size:15px;font-weight:600;color:var(--navy-m)}
+.pcard-price-old{font-size:12px;color:var(--muted);text-decoration:line-through;margin-left:6px}
+.pcard-add{
+  width:32px;height:32px;border-radius:var(--r);
+  background:var(--bg-sec);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--navy-m);transition:all .2s;
+}
+.pcard-add:hover{background:var(--navy-m);border-color:var(--navy-m);color:#fff}
+.stars{display:flex;gap:1px;align-items:center;margin-bottom:4px}
+.s{color:var(--accent);font-size:12px}
+.s.on{color:#faad14}
+.sc{font-size:10.5px;color:var(--muted);margin-left:4px}
+
+/* ════════════════════════════════════════
+   FEATURED — big editorial block
+════════════════════════════════════════ */
+.featured{
+  display:grid;grid-template-columns:1fr 1fr;gap:0;
+  border-radius:var(--r-lg);overflow:hidden;
+  border:1px solid var(--border);
+}
+.featured-visual{
+  background:linear-gradient(150deg, var(--navy) 0%, var(--navy-m) 100%);
+  display:flex;align-items:center;justify-content:center;
+  min-height:380px;position:relative;overflow:hidden;
+}
+.featured-visual-deco{
+  font-size:120px;opacity:.07;position:absolute;
+  font-family:var(--f-serif);color:var(--white);line-height:1;
+}
+.featured-visual-center{
+  display:flex;flex-direction:column;align-items:center;
+  gap:8px;position:relative;z-index:1;padding:40px;
+}
+.featured-visual-label{
+  font-family:var(--f-serif);font-style:italic;
+  font-size:16px;color:var(--accent);text-align:center;
+}
+.featured-content{
+  background:var(--white);padding:48px 48px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.featured-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--navy-l);margin-bottom:12px}
+.featured-title{font-family:var(--f-serif);font-size:38px;color:var(--navy);margin-bottom:16px;line-height:1.2}
+.featured-desc{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:32px}
+.featured-stats{display:flex;gap:32px;margin-bottom:32px}
+.stat-num{font-size:28px;font-weight:600;color:var(--navy);line-height:1;margin-bottom:2px}
+.stat-lbl{font-size:11px;color:var(--muted);letter-spacing:.5px}
+
+/* ════════════════════════════════════════
+   COLLECTIONS MOSAIC
+════════════════════════════════════════ */
+.col-mosaic{
+  display:grid;
+  grid-template-columns:1.5fr 1fr 1fr;
+  grid-template-rows:240px 240px;
+  gap:14px;
+}
+.col-tile{
+  border-radius:var(--r-lg);overflow:hidden;
+  position:relative;cursor:pointer;
+  transition:transform .3s,box-shadow .3s;
+}
+.col-tile:hover{transform:scale(1.01);box-shadow:var(--sh-lg)}
+.col-tile:first-child{grid-row:span 2}
+.col-tile-bg{
+  width:100%;height:100%;
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-m) 100%);
+  display:flex;align-items:center;justify-content:center;font-size:72px;
+  opacity:.85;
+}
+.col-tile:hover .col-tile-bg{opacity:1}
+.col-tile-over{
+  position:absolute;inset:0;
+  background:linear-gradient(to top, rgba(27,38,64,.88) 0%, transparent 55%);
+}
+.col-tile-body{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:20px 22px;
+}
+.col-tile-tag{
+  font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:5px;
+}
+.col-tile-name{
+  font-family:var(--f-serif);font-size:22px;color:var(--white);
+  margin-bottom:2px;line-height:1.2;
+}
+.col-tile:first-child .col-tile-name{font-size:30px}
+.col-tile-count{font-size:11.5px;color:rgba(255,255,255,.55)}
+
+/* ════════════════════════════════════════
+   CUSTOM ORDER — full-width
+════════════════════════════════════════ */
+.custom-wrap{background:var(--navy)}
+.custom-inner{
+  max-width:1400px;margin:0 auto;padding:72px 40px;
+  display:grid;grid-template-columns:5fr 7fr;gap:80px;align-items:center;
+}
+.custom-eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.custom-h{font-family:var(--f-serif);font-size:44px;color:var(--white);line-height:1.15;margin-bottom:16px}
+.custom-h i{color:var(--accent)}
+.custom-p{font-size:14px;color:rgba(255,255,255,.58);line-height:1.75;margin-bottom:36px}
+.steps{display:flex;flex-direction:column;gap:0}
+.step{
+  display:flex;gap:0;padding-bottom:28px;position:relative;
+}
+.step:not(:last-child)::before{
+  content:'';position:absolute;left:15px;top:32px;bottom:0;
+  width:1px;background:rgba(255,255,255,.12);
+}
+.step-num{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:var(--accent);
+  margin-right:20px;margin-top:2px;
+}
+.step-title{font-size:14px;font-weight:500;color:var(--white);margin-bottom:4px}
+.step-desc{font-size:13px;color:rgba(255,255,255,.52);line-height:1.6}
+
+/* ════════════════════════════════════════
+   REVIEWS
+════════════════════════════════════════ */
+.review-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.rcard{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:22px;
+}
+.rcard-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.rcard-av{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--bg-sec);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:600;color:var(--navy-m);flex-shrink:0;
+}
+.rcard-name{font-size:14px;font-weight:500;color:var(--navy);margin-bottom:1px}
+.rcard-date{font-size:11.5px;color:var(--muted)}
+.rcard-product{
+  font-size:12px;color:var(--navy-l);font-weight:500;
+  background:var(--bg-sec);border-radius:4px;padding:4px 10px;
+  display:inline-block;margin-bottom:10px;
+}
+.rcard-text{font-size:13.5px;color:var(--muted);line-height:1.65}
+
+/* ════════════════════════════════════════
+   TG BANNER
+════════════════════════════════════════ */
+.tg-block{
+  background:var(--bg-sec);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:32px 40px;
+  display:flex;align-items:center;gap:28px;flex-wrap:wrap;
+  justify-content:space-between;
+}
+.tg-left{display:flex;align-items:center;gap:20px}
+.tg-emoji{font-size:40px;flex-shrink:0}
+.tg-title{font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.tg-sub{font-size:13px;color:var(--muted)}
+.btn-tg{background:#27A7E5;border-color:#27A7E5;color:#fff}
+.btn-tg:hover{background:#1d8fc7}
+
+/* ════════════════════════════════════════
+   CATALOG PAGE
+════════════════════════════════════════ */
+.page-header{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:28px 40px;
+}
+.page-header-inner{max-width:1400px;margin:0 auto}
+.page-bc{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.page-bc a:hover{color:var(--navy-m)}
+.page-bc-sep{color:var(--border)}
+.page-title{font-family:var(--f-serif);font-size:32px;color:var(--navy)}
+.page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+.catalog-wrap{max-width:1400px;margin:0 auto;padding:32px 40px;display:grid;grid-template-columns:240px 1fr;gap:28px;align-items:start}
+.filter-box{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;position:sticky;top:130px}
+.filter-head{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.filter-head-title{font-size:13.5px;font-weight:600;color:var(--navy)}
+.filter-reset{font-size:12px;color:var(--navy-l)}
+.filter-sec{padding:16px 20px;border-bottom:1px solid var(--border)}
+.filter-sec:last-child{border:none}
+.filter-sec-title{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:12px}
+.fopt{display:flex;align-items:center;gap:10px;margin-bottom:9px;cursor:pointer}
+.fchk{
+  width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);
+  background:var(--white);flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-size:10px;color:var(--white);transition:all .15s;
+}
+.fchk.on{background:var(--navy-m);border-color:var(--navy-m)}
+.fopt-label{font-size:13px;color:var(--ink)}
+.fopt-cnt{margin-left:auto;font-size:11px;color:var(--muted);background:var(--bg-sec);padding:1px 7px;border-radius:10px}
+.range-row{display:flex;gap:8px;align-items:center}
+.range-in{
+  flex:1;padding:7px 10px;border:1px solid var(--border);
+  border-radius:var(--r);font-size:12.5px;color:var(--ink);
+  outline:none;transition:border-color .2s;
+}
+.range-in:focus{border-color:var(--navy-m)}
+.range-sep{color:var(--muted);font-size:12px}
+
+.catalog-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:10px;
+}
+.toolbar-count{font-size:13px;color:var(--muted)}
+.toolbar-right{display:flex;align-items:center;gap:8px}
+.select{
+  padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);
+  font-size:12.5px;color:var(--ink);outline:none;background:var(--white);
+  transition:border-color .2s;
+}
+.select:focus{border-color:var(--navy-m)}
+.view-btns{display:flex;gap:2px}
+.view-btn{
+  width:32px;height:32px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:14px;transition:all .2s;
+}
+.view-btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* Pagination */
+.pag{display:flex;gap:4px;justify-content:center;margin-top:36px;align-items:center}
+.pgb{
+  width:36px;height:36px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--white);
+  font-size:13px;color:var(--muted);display:flex;align-items:center;justify-content:center;
+  transition:all .2s;cursor:pointer;
+}
+.pgb:hover{border-color:var(--navy-m);color:var(--navy-m)}
+.pgb.on{background:var(--navy-m);border-color:var(--navy-m);color:#fff}
+.pgb.dim{opacity:.35;cursor:default}
+
+/* ════════════════════════════════════════
+   CART PAGE
+════════════════════════════════════════ */
+.cart-layout{max-width:1400px;margin:0 auto;padding:32px 40px;display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start}
+.cart-item{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;display:flex;gap:18px;
+  margin-bottom:12px;
+}
+.ci-img{
+  width:90px;height:112px;border-radius:var(--r);
+  background:var(--bg-sec);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+}
+.ci-info{flex:1}
+.ci-cat{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.ci-name{font-family:var(--f-serif);font-size:18px;color:var(--navy);margin-bottom:8px}
+.ci-props{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ci-prop{
+  background:var(--bg-sec);border:1px solid var(--border);
+  border-radius:4px;padding:3px 10px;font-size:11.5px;color:var(--muted);
+}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.qty-btn{
+  width:32px;height:32px;background:var(--bg-sec);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;color:var(--navy-m);transition:background .2s;
+}
+.qty-btn:hover{background:var(--border)}
+.qty-num{width:36px;text-align:center;font-size:14px;font-weight:500;color:var(--navy)}
+.ci-price{font-size:16px;font-weight:600;color:var(--navy-m)}
+.ci-del{color:var(--muted);font-size:18px;padding:4px;transition:color .2s}
+.ci-del:hover{color:#e84749}
+
+.summary-box{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:24px;position:sticky;top:130px;
+}
+.sum-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:20px}
+.sum-row{
+  display:flex;justify-content:space-between;margin-bottom:11px;
+  font-size:13.5px;
+}
+.sum-row span:first-child{color:var(--muted)}
+.sum-row.total{
+  font-size:17px;font-weight:600;color:var(--navy);
+  border-top:1px solid var(--border);padding-top:14px;margin-top:6px;
+}
+.sum-row.total span:first-child{color:var(--navy)}
+.promo-row{display:flex;gap:8px;margin:20px 0}
+.inp{
+  flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r);
+  font-size:13.5px;color:var(--ink);outline:none;transition:border-color .2s;
+}
+.inp:focus{border-color:var(--navy-m)}
+.inp::placeholder{color:var(--accent)}
+.trust-box{
+  margin-top:14px;background:var(--bg-sec);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px;
+}
+.trust-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.trust-icon{font-size:14px;flex-shrink:0}
+
+/* ════════════════════════════════════════
+   PROFILE PAGE
+════════════════════════════════════════ */
+.profile-wrap{max-width:1400px;margin:0 auto;padding:32px 40px;display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:start}
+.profile-sidebar{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);overflow:hidden;position:sticky;top:130px;
+}
+.profile-user{
+  padding:28px 20px;border-bottom:1px solid var(--border);
+  text-align:center;background:linear-gradient(160deg,var(--bg-sec) 0%,var(--white) 100%);
+}
+.profile-av{
+  width:70px;height:70px;border-radius:50%;
+  background:var(--navy);display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:600;color:var(--white);
+  margin:0 auto 12px;border:3px solid var(--white);box-shadow:var(--sh);
+}
+.profile-name{font-size:16px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.profile-email{font-size:12px;color:var(--muted)}
+.pmenu{list-style:none;padding:6px 0}
+.pmenu-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 20px;font-size:13.5px;color:var(--muted);
+  cursor:pointer;transition:background .15s,color .15s;border-left:3px solid transparent;
+}
+.pmenu-item:hover{background:var(--bg-sec);color:var(--navy)}
+.pmenu-item.on{background:var(--bg-sec);color:var(--navy-m);font-weight:500;border-left-color:var(--navy-m)}
+.pmenu-icon{font-size:16px;flex-shrink:0}
+.pmenu-badge{
+  margin-left:auto;background:var(--bg-sec);border:1px solid var(--border);
+  border-radius:10px;padding:1px 7px;font-size:11px;color:var(--navy-l);
+}
+.profile-main{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:30px;
+}
+.main-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:24px}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11.5px;font-weight:500;color:var(--muted);letter-spacing:.5px}
+.inp-lg{padding:11px 14px;font-size:14px}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+.order-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:20px;margin-bottom:12px;
+}
+.oc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.oc-num{font-size:14px;font-weight:600;color:var(--navy)}
+.oc-date{font-size:12px;color:var(--muted);margin-top:2px}
+.status{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600}
+.s-new{background:#e6f4ff;color:#0958d9}
+.s-paid{background:#f6ffed;color:#389e0d}
+.s-ship{background:#fff7e6;color:#d46b08}
+.s-done{background:#f6ffed;color:#389e0d}
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+.footer-outer{background:var(--navy)}
+.footer{max-width:1400px;margin:0 auto;padding:56px 40px 28px}
+.footer-grid{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr;gap:48px;margin-bottom:44px}
+.footer-brand{font-family:var(--f-serif);font-size:22px;color:var(--white);letter-spacing:3px;margin-bottom:4px}
+.footer-brand-sub{font-size:9.5px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.footer-desc{font-size:13px;line-height:1.75;color:rgba(255,255,255,.45);margin-bottom:22px}
+.footer-social{display:flex;gap:8px}
+.soc-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;
+  transition:background .2s;
+}
+.soc-btn:hover{background:rgba(255,255,255,.18)}
+.footer-col-title{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--white);font-weight:500;margin-bottom:16px}
+.footer-links{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-links li a{font-size:13px;color:rgba(255,255,255,.45);transition:color .2s}
+.footer-links li a:hover{color:var(--accent)}
+.footer-bottom{
+  border-top:1px solid rgba(255,255,255,.08);padding-top:20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+}
+.footer-copy{font-size:12px;color:rgba(255,255,255,.3)}
+.footer-legal{display:flex;gap:20px}
+.footer-legal a{font-size:12px;color:rgba(255,255,255,.3);transition:color .2s}
+.footer-legal a:hover{color:rgba(255,255,255,.65)}
+.footer-bottom-right{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.3)}
+
+/* ════════════════════════════════════════
+   MOBILE RESPONSIVE
+════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* hide desktop nav, show mobile nav */
+  .header{display:none}
+  .mobile-header{display:flex}
+  .bottom-nav{display:block}
+  .demo-bar{top:56px}
+  /* adjust demo bar positioning */
+
+  /* hero → stacked */
+  .hero{grid-template-columns:1fr;min-height:auto;max-height:none}
+  .hero-content{padding:40px 24px;order:1}
+  .hero-visual{min-height:240px;order:0}
+  .hero-h1{font-size:36px}
+  .hero-desc{max-width:100%;margin-bottom:28px}
+  .hero-pill-1{display:none}
+  .hero-pill-2{top:12px;right:12px;padding:10px 14px}
+
+  /* marquee — keep as is */
+
+  /* sections */
+  .section{padding:40px 20px}
+  .sec-head{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:24px}
+  .sec-title{font-size:26px}
+
+  /* categories */
+  /* cat-scroll is already horizontal scrollable */
+
+  /* product grids → 2 col */
+  .grid-4,.grid-3{grid-template-columns:repeat(2,1fr);gap:12px}
+  .grid-2{grid-template-columns:1fr}
+
+  /* featured */
+  .featured{grid-template-columns:1fr}
+  .featured-visual{min-height:200px}
+  .featured-content{padding:28px 24px}
+  .featured-title{font-size:28px}
+  .featured-stats{gap:20px}
+
+  /* collections mosaic → 2 col */
+  .col-mosaic{
+    grid-template-columns:1fr 1fr;
+    grid-template-rows:160px 160px 160px;
+  }
+  .col-tile:first-child{grid-row:span 1}
+
+  /* custom order */
+  .custom-inner{grid-template-columns:1fr;gap:40px;padding:48px 24px}
+  .custom-h{font-size:32px}
+
+  /* reviews → 1 col */
+  .review-grid{grid-template-columns:1fr}
+
+  /* page header */
+  .page-header{padding:20px 20px}
+
+  /* catalog → hide filter, full width grid */
+  .catalog-wrap{grid-template-columns:1fr;padding:20px 20px}
+  .filter-box{display:none}
+
+  /* cart → stacked */
+  .cart-layout{grid-template-columns:1fr;padding:20px 20px}
+  .summary-box{position:static}
+
+  /* profile → stacked */
+  .profile-wrap{grid-template-columns:1fr;padding:20px 20px}
+  .profile-sidebar{position:static}
+  .form-2{grid-template-columns:1fr}
+
+  /* footer */
+  .footer{padding:40px 20px 80px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:28px}
+  .footer-grid>div:first-child{grid-column:span 2}
+  .footer-bottom{flex-direction:column;align-items:flex-start;gap:12px}
+  .footer-legal{flex-direction:column;gap:8px}
+
+  /* bottom nav spacing */
+  body{padding-bottom:64px}
+}
+
+@media (max-width: 480px) {
+  .grid-4,.grid-3{grid-template-columns:1fr}
+  .hero-h1{font-size:30px}
+  .col-mosaic{grid-template-columns:1fr;grid-template-rows:auto}
+  .col-tile:first-child{grid-row:span 1}
+  .col-tile{min-height:160px}
+  .featured-stats{flex-wrap:wrap;gap:16px}
+  .footer-grid{grid-template-columns:1fr}
+  .footer-grid>div:first-child{grid-column:span 1}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">AM Chokers</div>
+  <div class="loader-dots">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+</div>
+
+<!-- ─── TOP BAR ─── -->
+<div class="top-bar">
+  Бесплатная доставка от <b>3 000 ₽</b> &nbsp;·&nbsp; Новая коллекция «Лазурь» &nbsp;·&nbsp; Скидка 15% по промокоду <b>LAZAR15</b>
+</div>
+
+<!-- ─── DESKTOP HEADER ─── -->
+<div class="header">
+  <div class="nav-wrap">
+    <div class="nav-logo-block">
+      <a class="nav-logo" href="#" onclick="sp('home');return false">AM&nbsp;<span>Chokers</span></a>
+    </div>
+    <div class="nav-menu">
+      <a class="nav-item on" href="#" onclick="sp('home');return false">Главная</a>
+      <a class="nav-item" href="#" onclick="sp('catalog');return false">
+        Каталог <span class="nav-item-arrow">▾</span>
+      </a>
+      <a class="nav-item" href="#">О бренде</a>
+      <a class="nav-item" href="#">Доставка</a>
+      <a class="nav-item" href="#">Уход</a>
+      <a class="nav-item" href="#">Контакты</a>
+    </div>
+    <div class="nav-search">
+      <input type="text" placeholder="Найти украшение…">
+      <button class="nav-search-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+    </div>
+    <div class="nav-actions">
+      <a class="nav-action" href="#" onclick="sp('profile');return false" title="Избранное">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </a>
+      <a class="nav-action" href="#" onclick="sp('cart');return false" title="Корзина">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="nav-badge">3</span>
+      </a>
+      <a class="nav-action" href="#" onclick="sp('profile');return false" title="Профиль">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MOBILE HEADER ─── -->
+<div class="mobile-header">
+  <button class="mobile-icon" onclick="openDrawer()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="mobile-logo" href="#" onclick="sp('home');return false">AM Chokers</a>
+  <div class="mobile-header-right">
+    <a class="mobile-icon" href="#" onclick="sp('cart');return false">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span class="nav-badge">3</span>
+    </a>
+  </div>
+</div>
+
+<!-- ─── MOBILE DRAWER ─── -->
+<div class="mobile-drawer" id="drawer">
+  <div class="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <div class="drawer-brand">AM Chokers</div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <a class="drawer-menu-item on" href="#" onclick="sp('home');closeDrawer();return false"><span class="drawer-icon">🏠</span>Главная</a>
+    <a class="drawer-menu-item" href="#" onclick="sp('catalog');closeDrawer();return false"><span class="drawer-icon">📿</span>Каталог</a>
+    <a class="drawer-menu-item" href="#" onclick="closeDrawer()"><span class="drawer-icon">💎</span>О бренде</a>
+    <a class="drawer-menu-item" href="#" onclick="closeDrawer()"><span class="drawer-icon">🚚</span>Доставка и оплата</a>
+    <a class="drawer-menu-item" href="#" onclick="closeDrawer()"><span class="drawer-icon">✨</span>Уход за украшениями</a>
+    <a class="drawer-menu-item" href="#" onclick="closeDrawer()"><span class="drawer-icon">📬</span>Контакты</a>
+    <div style="height:1px;background:var(--border);margin:8px 0"></div>
+    <a class="drawer-menu-item" href="#" onclick="sp('profile');closeDrawer();return false"><span class="drawer-icon">👤</span>Профиль</a>
+    <a class="drawer-menu-item" href="#" onclick="sp('profile');closeDrawer();return false">
+      <span class="drawer-icon">♡</span>Избранное
+      <span style="margin-left:auto;background:var(--bg-sec);border-radius:10px;padding:2px 8px;font-size:11px;color:var(--navy-l)">5</span>
+    </a>
+    <a class="drawer-menu-item" href="#" onclick="sp('cart');closeDrawer();return false">
+      <span class="drawer-icon">🛍</span>Корзина
+      <span style="margin-left:auto;background:var(--navy-m);border-radius:10px;padding:2px 8px;font-size:11px;color:#fff">3</span>
+    </a>
+  </div>
+</div>
+
+<!-- ─── DEMO SWITCHER ─── -->
+<div class="demo-bar" id="demoBar">
+  <div class="demo-btn on" onclick="sp('home')">Главная</div>
+  <div class="demo-btn" onclick="sp('catalog')">Каталог</div>
+  <div class="demo-btn" onclick="sp('cart')">Корзина</div>
+  <div class="demo-btn" onclick="sp('profile')">Профиль</div>
+</div>
+
+<!-- ════════════════════════════════════
+     PAGE · HOME
+════════════════════════════════════ -->
+<div class="pg on" id="pg-home">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-visual">
+      <div class="hero-visual-inner">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+          <circle cx="60" cy="60" r="40" stroke="#A1B3CD" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="60" cy="60" r="22" stroke="#A1B3CD" stroke-width="1"/>
+          <circle cx="60" cy="60" r="7" fill="#CED3DD"/>
+          <path d="M60 20 L60 38 M60 82 L60 100 M20 60 L38 60 M82 60 L100 60" stroke="#A1B3CD" stroke-width="1.5"/>
+        </svg>
+        <div class="hero-visual-label">Фото украшения</div>
+      </div>
+      <div class="hero-pill hero-pill-1">
+        <div class="hero-pill-icon">⭐</div>
+        <div class="hero-pill-text">
+          <b>4.9 / 5</b>
+          <small>средний рейтинг</small>
+        </div>
+      </div>
+      <div class="hero-pill hero-pill-2">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">Новинка</div>
+        <div style="font-family:var(--f-serif);font-size:16px;color:var(--navy)">Коллекция «Лазурь»</div>
+        <div style="font-size:12px;color:var(--navy-m);font-weight:600">от 1 290 ₽</div>
+      </div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-tag">Весна — Лето 2025</div>
+      <h1 class="hero-h1">Украшения,<br>рождённые<br>вручную</h1>
+      <p class="hero-desc">Авторские чокеры, ожерелья и браслеты — каждое изделие уникально и создано с любовью к деталям.</p>
+      <div class="hero-cta">
+        <button class="btn btn-white" onclick="sp('catalog')">Смотреть каталог</button>
+        <button class="btn btn-ghost">Индивидуальный заказ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track" id="mq">
+      <span class="marquee-item"><span class="marquee-dot"></span>Бесплатная доставка от 3 000 ₽</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Новая коллекция «Лазурь»</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Ручная работа с 2019 года</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Более 500 украшений в каталоге</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Индивидуальный заказ</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Возврат 14 дней</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Оплата ЮКасса</span>
+      <!-- duplicate for seamless loop -->
+      <span class="marquee-item"><span class="marquee-dot"></span>Бесплатная доставка от 3 000 ₽</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Новая коллекция «Лазурь»</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Ручная работа с 2019 года</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Более 500 украшений в каталоге</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Индивидуальный заказ</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Возврат 14 дней</span>
+      <span class="marquee-item"><span class="marquee-dot"></span>Оплата ЮКасса</span>
+    </div>
+  </div>
+
+  <!-- CATEGORIES scroll -->
+  <div class="section section-sm">
+    <div class="sec-head">
+      <div>
+        <div class="sec-eyebrow">Ассортимент</div>
+        <h2 class="sec-title">Категории</h2>
+      </div>
+      <a href="#" class="sec-more" onclick="sp('catalog');return false">Весь каталог →</a>
+    </div>
+    <div class="cat-scroll">
+      <div class="cat-chip on">
+        <div class="cat-chip-icon">📿</div>
+        <div class="cat-chip-info"><strong>Чокеры</strong><small>48 изделий</small></div>
+      </div>
+      <div class="cat-chip">
+        <div class="cat-chip-icon">💎</div>
+        <div class="cat-chip-info"><strong>Ожерелья</strong><small>36 изделий</small></div>
+      </div>
+      <div class="cat-chip">
+        <div class="cat-chip-icon">✨</div>
+        <div class="cat-chip-info"><strong>Браслеты</strong><small>52 изделия</small></div>
+      </div>
+      <div class="cat-chip">
+        <div class="cat-chip-icon">🌸</div>
+        <div class="cat-chip-info"><strong>Серьги</strong><small>61 изделие</small></div>
+      </div>
+      <div class="cat-chip">
+        <div class="cat-chip-icon">👓</div>
+        <div class="cat-chip-info"><strong>Цепочки для очков</strong><small>18 изделий</small></div>
+      </div>
+      <div class="cat-chip">
+        <div class="cat-chip-icon">🎁</div>
+        <div class="cat-chip-info"><strong>Подарочные наборы</strong><small>12 изделий</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURED block -->
+  <div class="section" style="padding-top:0">
+    <div class="featured">
+      <div class="featured-visual">
+        <div class="featured-visual-deco">AM</div>
+        <div class="featured-visual-center">
+          <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+            <circle cx="45" cy="45" r="30" stroke="rgba(161,179,205,.4)" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <circle cx="45" cy="45" r="16" stroke="rgba(161,179,205,.5)" stroke-width="1"/>
+            <circle cx="45" cy="45" r="5" fill="rgba(161,179,205,.6)"/>
+          </svg>
+          <div class="featured-visual-label">Коллекция «Лазурь»</div>
+        </div>
+      </div>
+      <div class="featured-content">
+        <div class="featured-eyebrow">Коллекция сезона</div>
+        <h3 class="featured-title">«Лазурь» — морская нежность в каждой детали</h3>
+        <p class="featured-desc">Вдохновлённая оттенками моря, коллекция «Лазурь» — это бисер, перламутр и бархат в цветах от бирюзы до полночного синего. Ограниченный тираж.</p>
+        <div class="featured-stats">
+          <div>
+            <div class="stat-num">14</div>
+            <div class="stat-lbl">Украшений в коллекции</div>
+          </div>
+          <div>
+            <div class="stat-num">от 980 ₽</div>
+            <div class="stat-lbl">Начальная цена</div>
+          </div>
+          <div>
+            <div class="stat-num">2025</div>
+            <div class="stat-lbl">Год выпуска</div>
+          </div>
+        </div>
+        <button class="btn btn-navy" onclick="sp('catalog')">Смотреть коллекцию</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW ARRIVALS -->
+  <div class="section-bg">
+    <div class="section">
+      <div class="sec-head">
+        <div>
+          <div class="sec-eyebrow">Только поступили</div>
+          <h2 class="sec-title">Новинки</h2>
+        </div>
+        <a href="#" class="sec-more" onclick="sp('catalog');return false">Все новинки →</a>
+      </div>
+      <div class="grid-4">
+        <div class="pcard">
+          <div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="17" stroke="#CED3DD" stroke-width="1.5"/><circle cx="27.5" cy="27.5" r="8" stroke="#CED3DD" stroke-width="1"/></svg></div><div class="pcard-badges"><span class="badge badge-new">Новинка</span></div><button class="pcard-fav">♡</button></div>
+          <div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="sc">(12)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Лазурный бархатный чокер</div></div>
+          <div class="pcard-foot"><div><span class="pcard-price">1 290 ₽</span></div><button class="pcard-add">+</button></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><path d="M10 45 Q27.5 8 45 45" stroke="#CED3DD" stroke-width="1.5" fill="none"/><circle cx="27.5" cy="27.5" r="6" stroke="#CED3DD" stroke-width="1"/></svg></div><div class="pcard-badges"><span class="badge badge-sale">−20%</span></div><button class="pcard-fav">♡</button></div>
+          <div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s">★</span><span class="sc">(28)</span></div><div class="pcard-cat">Браслеты</div><div class="pcard-name">Браслет «Морская волна»</div></div>
+          <div class="pcard-foot"><div><span class="pcard-price">890 ₽</span><span class="pcard-price-old">1 120 ₽</span></div><button class="pcard-add">+</button></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><rect x="17" y="17" width="21" height="21" rx="4" stroke="#CED3DD" stroke-width="1.5"/><circle cx="27.5" cy="27.5" r="5" stroke="#CED3DD" stroke-width="1"/></svg></div><div class="pcard-badges"><span class="badge badge-new">Новинка</span></div><button class="pcard-fav on">♥</button></div>
+          <div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s">★</span><span class="sc">(7)</span></div><div class="pcard-cat">Серьги</div><div class="pcard-name">Серьги «Геометрия» серебро</div></div>
+          <div class="pcard-foot"><div><span class="pcard-price">1 650 ₽</span></div><button class="pcard-add">+</button></div>
+        </div>
+        <div class="pcard">
+          <div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><ellipse cx="27.5" cy="27.5" rx="18" ry="11" stroke="#CED3DD" stroke-width="1.5"/><circle cx="27.5" cy="27.5" r="4" stroke="#CED3DD" stroke-width="1"/></svg></div><div class="pcard-badges"><span class="badge badge-hit">Хит</span></div><button class="pcard-fav">♡</button></div>
+          <div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="sc">(41)</span></div><div class="pcard-cat">Ожерелья</div><div class="pcard-name">Ожерелье с жемчугом «Рассвет»</div></div>
+          <div class="pcard-foot"><div><span class="pcard-price">2 100 ₽</span></div><button class="pcard-add">+</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLLECTIONS MOSAIC -->
+  <div class="section">
+    <div class="sec-head">
+      <div>
+        <div class="sec-eyebrow">Тематические серии</div>
+        <h2 class="sec-title">Коллекции</h2>
+      </div>
+    </div>
+    <div class="col-mosaic">
+      <div class="col-tile">
+        <div class="col-tile-bg">🌊</div>
+        <div class="col-tile-over"></div>
+        <div class="col-tile-body">
+          <div class="col-tile-tag">Новая коллекция · 2025</div>
+          <div class="col-tile-name">Лазурь</div>
+          <div class="col-tile-count">14 украшений</div>
+        </div>
+      </div>
+      <div class="col-tile">
+        <div class="col-tile-bg" style="background:linear-gradient(135deg,#4a3570,#6b4f9e)">🌸</div>
+        <div class="col-tile-over"></div>
+        <div class="col-tile-body">
+          <div class="col-tile-tag">Коллекция · 2024</div>
+          <div class="col-tile-name">Сакура</div>
+          <div class="col-tile-count">18 украшений</div>
+        </div>
+      </div>
+      <div class="col-tile">
+        <div class="col-tile-bg" style="background:linear-gradient(135deg,#1a2640,#283b5a)">🌙</div>
+        <div class="col-tile-over"></div>
+        <div class="col-tile-body">
+          <div class="col-tile-tag">Коллекция · 2024</div>
+          <div class="col-tile-name">Полночь</div>
+          <div class="col-tile-count">22 украшения</div>
+        </div>
+      </div>
+      <div class="col-tile">
+        <div class="col-tile-bg" style="background:linear-gradient(135deg,#3a5028,#5a7840)">🌿</div>
+        <div class="col-tile-over"></div>
+        <div class="col-tile-body">
+          <div class="col-tile-tag">Коллекция · 2023</div>
+          <div class="col-tile-name">Лес</div>
+          <div class="col-tile-count">16 украшений</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM ORDER -->
+  <div class="custom-wrap">
+    <div class="custom-inner">
+      <div>
+        <div class="custom-eyebrow">Авторский заказ</div>
+        <h2 class="custom-h">Создай своё <i>уникальное</i> украшение</h2>
+        <p class="custom-p">Хочешь что-то особенное? Расскажи о своей идее — я воплощу её в жизнь. Любые материалы, любые формы, только для тебя.</p>
+        <button class="btn btn-white">Написать в Telegram ↗</button>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div><div class="step-title">Напиши в Telegram</div><div class="step-desc">Опиши тип украшения, цвет, материал и прикрепи референс, если есть.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div><div class="step-title">Обсуждаем детали</div><div class="step-desc">Отвечу в течение 24 часов и согласую все нюансы заказа.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div><div class="step-title">Предоплата 1 000 ₽</div><div class="step-desc">Небольшой аванс для начала работы.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div><div class="step-title">Фото на согласование</div><div class="step-desc">Покажу результат. До 2-х правок включены бесплатно.</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="section-bg">
+    <div class="section">
+      <div class="sec-head">
+        <div>
+          <div class="sec-eyebrow">Мнения клиентов</div>
+          <h2 class="sec-title">Отзывы</h2>
+        </div>
+      </div>
+      <div class="review-grid">
+        <div class="rcard">
+          <div class="rcard-head"><div class="rcard-av">А</div><div><div class="rcard-name">Анна К.</div><div class="rcard-date">15 марта 2025</div></div></div>
+          <div class="stars" style="margin-bottom:8px"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span></div>
+          <div class="rcard-product">📿 Лазурный бархатный чокер</div>
+          <div class="rcard-text">Получила заказ быстро, упаковка просто идеальная! Чокер выглядит ровно как на фото. Очень нежный и приятный к коже.</div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head"><div class="rcard-av" style="background:#dfe8f5;color:var(--navy-m)">М</div><div><div class="rcard-name">Мария В.</div><div class="rcard-date">8 марта 2025</div></div></div>
+          <div class="stars" style="margin-bottom:8px"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span></div>
+          <div class="rcard-product">✨ Браслет «Морская волна»</div>
+          <div class="rcard-text">Заказывала в подарок подруге — она в полном восторге! Качество превзошло ожидания. Очень внимательный подход к деталям.</div>
+        </div>
+        <div class="rcard">
+          <div class="rcard-head"><div class="rcard-av" style="background:#e8f0f8;color:var(--navy-l)">О</div><div><div class="rcard-name">Ольга Н.</div><div class="rcard-date">22 февраля 2025</div></div></div>
+          <div class="stars" style="margin-bottom:8px"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s">★</span></div>
+          <div class="rcard-product">💎 Ожерелье «Рассвет»</div>
+          <div class="rcard-text">Делала индивидуальный заказ для мамы — всё согласовали, сделали в срок. Мама была в слезах от счастья ❤️</div>
+        </div>
+      </div>
+
+      <div style="margin-top:32px">
+        <div class="tg-block">
+          <div class="tg-left">
+            <div class="tg-emoji">📬</div>
+            <div>
+              <div class="tg-title">Telegram-канал AM Chokers</div>
+              <div class="tg-sub">Новинки, акции и закрытые распродажи — первой среди подписчиков</div>
+            </div>
+          </div>
+          <button class="btn btn-tg">Подписаться →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /pg-home -->
+
+
+<!-- ════════════════════════════════════
+     PAGE · CATALOG
+════════════════════════════════════ -->
+<div class="pg" id="pg-catalog">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-bc">
+        <a href="#" onclick="sp('home');return false">Главная</a>
+        <span class="page-bc-sep">›</span>
+        <span>Каталог</span>
+      </div>
+      <div class="page-title">Каталог украшений</div>
+      <div class="page-sub">240 товаров · ручная работа</div>
+    </div>
+  </div>
+  <div class="catalog-wrap">
+    <!-- Filters -->
+    <div>
+      <div class="filter-box">
+        <div class="filter-head">
+          <span class="filter-head-title">Фильтры</span>
+          <button class="filter-reset">Сбросить все</button>
+        </div>
+        <div class="filter-sec">
+          <div class="filter-sec-title">Категория</div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk on">✓</div><span class="fopt-label">Чокеры</span><span class="fopt-cnt">48</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Ожерелья</span><span class="fopt-cnt">36</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Браслеты</span><span class="fopt-cnt">52</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Серьги</span><span class="fopt-cnt">61</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Цепочки для очков</span><span class="fopt-cnt">18</span></div>
+        </div>
+        <div class="filter-sec">
+          <div class="filter-sec-title">Цена, ₽</div>
+          <div class="range-row">
+            <input class="range-in" type="text" value="0" placeholder="от">
+            <span class="range-sep">—</span>
+            <input class="range-in" type="text" value="5000" placeholder="до">
+          </div>
+        </div>
+        <div class="filter-sec">
+          <div class="filter-sec-title">Коллекция</div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Лазурь</span><span class="fopt-cnt">14</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Сакура</span><span class="fopt-cnt">18</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Полночь</span><span class="fopt-cnt">22</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Лес</span><span class="fopt-cnt">16</span></div>
+        </div>
+        <div class="filter-sec">
+          <div class="filter-sec-title">Наличие</div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk on">✓</div><span class="fopt-label">Есть в наличии</span></div>
+          <div class="fopt" onclick="toggleCheck(this)"><div class="fchk"></div><span class="fopt-label">Под заказ</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- Product grid -->
+    <div>
+      <div class="catalog-toolbar">
+        <span class="toolbar-count">Найдено 48 товаров</span>
+        <div class="toolbar-right">
+          <select class="select">
+            <option>По популярности</option>
+            <option>Сначала новые</option>
+            <option>Цена ↑</option>
+            <option>Цена ↓</option>
+          </select>
+          <div class="view-btns">
+            <button class="view-btn on" title="Сетка">⊞</button>
+            <button class="view-btn" title="Список">☰</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="pcard"><div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="17" stroke="#CED3DD" stroke-width="1.5"/></svg></div><div class="pcard-badges"><span class="badge badge-new">Новинка</span></div><button class="pcard-fav">♡</button></div><div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="sc">(12)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Лазурный бархатный чокер</div></div><div class="pcard-foot"><span class="pcard-price">1 290 ₽</span><button class="pcard-add">+</button></div></div>
+        <div class="pcard"><div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><path d="M10 45 Q27.5 8 45 45" stroke="#CED3DD" stroke-width="1.5" fill="none"/></svg></div><button class="pcard-fav">♡</button></div><div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s">★</span><span class="sc">(8)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Чокер «Нить» с позолотой</div></div><div class="pcard-foot"><span class="pcard-price">980 ₽</span><button class="pcard-add">+</button></div></div>
+        <div class="pcard"><div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><ellipse cx="27.5" cy="27.5" rx="18" ry="11" stroke="#CED3DD" stroke-width="1.5"/></svg></div><div class="pcard-badges"><span class="badge badge-sale">−15%</span></div><button class="pcard-fav">♡</button></div><div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="sc">(31)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Чокер с бусинами перламутр</div></div><div class="pcard-foot"><div><span class="pcard-price">1 100 ₽</span><span class="pcard-price-old">1 290 ₽</span></div><button class="pcard-add">+</button></div></div>
+        <div class="pcard"><div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><rect x="17" y="17" width="21" height="21" rx="4" stroke="#CED3DD" stroke-width="1.5"/></svg></div><button class="pcard-fav">♡</button></div><div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s">★</span><span class="s">★</span><span class="sc">(5)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Чокер кожаный «Минимализм»</div></div><div class="pcard-foot"><span class="pcard-price">850 ₽</span><button class="pcard-add">+</button></div></div>
+        <div class="pcard"><div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="20" stroke="#CED3DD" stroke-width="1.5"/><circle cx="27.5" cy="27.5" r="8" stroke="#CED3DD" stroke-width="1"/></svg></div><button class="pcard-fav">♡</button></div><div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="sc">(44)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Чокер с кристаллами Swarovski</div></div><div class="pcard-foot"><span class="pcard-price">1 890 ₽</span><button class="pcard-add">+</button></div></div>
+        <div class="pcard"><div class="pcard-img"><div class="pcard-img-bg"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><path d="M14 40 Q27.5 12 41 40 Q27.5 28 14 40Z" stroke="#CED3DD" stroke-width="1.5" fill="none"/></svg></div><div class="pcard-badges"><span class="badge badge-new">Новинка</span></div><button class="pcard-fav">♡</button></div><div class="pcard-body"><div class="stars"><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s on">★</span><span class="s">★</span><span class="sc">(3)</span></div><div class="pcard-cat">Чокеры</div><div class="pcard-name">Чокер «Ромб» с эмалью</div></div><div class="pcard-foot"><span class="pcard-price">1 150 ₽</span><button class="pcard-add">+</button></div></div>
+      </div>
+      <div class="pag">
+        <button class="pgb dim">‹</button>
+        <button class="pgb on">1</button>
+        <button class="pgb">2</button>
+        <button class="pgb">3</button>
+        <span style="color:var(--muted);padding:0 4px">…</span>
+        <button class="pgb">8</button>
+        <button class="pgb">›</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /pg-catalog -->
+
+
+<!-- ════════════════════════════════════
+     PAGE · CART
+════════════════════════════════════ -->
+<div class="pg" id="pg-cart">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-bc">
+        <a href="#" onclick="sp('home');return false">Главная</a>
+        <span class="page-bc-sep">›</span>
+        <span>Корзина</span>
+      </div>
+      <div class="page-title">Корзина</div>
+      <div class="page-sub">3 товара</div>
+    </div>
+  </div>
+  <div class="cart-layout">
+    <div>
+      <div class="cart-item">
+        <div class="ci-img">📿</div>
+        <div class="ci-info">
+          <div class="ci-cat">Чокеры</div>
+          <div class="ci-name">Лазурный бархатный чокер</div>
+          <div class="ci-props"><span class="ci-prop">Цвет: синий</span><span class="ci-prop">Размер: S</span></div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="qty"><button class="qty-btn">−</button><span class="qty-num">1</span><button class="qty-btn">+</button></div>
+            <span class="ci-price">1 290 ₽</span>
+          </div>
+        </div>
+        <button class="ci-del">✕</button>
+      </div>
+      <div class="cart-item">
+        <div class="ci-img">✨</div>
+        <div class="ci-info">
+          <div class="ci-cat">Браслеты</div>
+          <div class="ci-name">Браслет «Морская волна»</div>
+          <div class="ci-props"><span class="ci-prop">Материал: бисер</span></div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="qty"><button class="qty-btn">−</button><span class="qty-num">2</span><button class="qty-btn">+</button></div>
+            <span class="ci-price">1 780 ₽</span>
+          </div>
+        </div>
+        <button class="ci-del">✕</button>
+      </div>
+      <div class="cart-item">
+        <div class="ci-img">💎</div>
+        <div class="ci-info">
+          <div class="ci-cat">Ожерелья</div>
+          <div class="ci-name">Ожерелье с жемчугом «Рассвет»</div>
+          <div class="ci-props"><span class="ci-prop">Длина: 45 см</span></div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="qty"><button class="qty-btn">−</button><span class="qty-num">1</span><button class="qty-btn">+</button></div>
+            <span class="ci-price">2 100 ₽</span>
+          </div>
+        </div>
+        <button class="ci-del">✕</button>
+      </div>
+    </div>
+    <div>
+      <div class="summary-box">
+        <div class="sum-title">Итого</div>
+        <div class="sum-row"><span>Товары (4 шт.)</span><span>5 170 ₽</span></div>
+        <div class="sum-row"><span>Доставка</span><span style="color:#389e0d">Бесплатно</span></div>
+        <div class="sum-row"><span>Промокод LAZAR15</span><span style="color:#e84749">−200 ₽</span></div>
+        <div class="sum-row total"><span>К оплате</span><span>4 970 ₽</span></div>
+        <div class="promo-row">
+          <input class="inp" type="text" placeholder="Промокод" value="LAZAR15">
+          <button class="btn btn-outline btn-sm">Применить</button>
+        </div>
+        <button class="btn btn-fill" style="width:100%;justify-content:center;padding:14px">Оформить заказ →</button>
+        <div style="text-align:center;margin-top:10px">
+          <a href="#" onclick="sp('catalog');return false" style="font-size:12.5px;color:var(--navy-l)">← Продолжить покупки</a>
+        </div>
+      </div>
+      <div class="trust-box">
+        <div class="trust-row"><span class="trust-icon">🔒</span>Безопасная оплата через ЮКасса</div>
+        <div class="trust-row"><span class="trust-icon">📦</span>СДЭК, Яндекс.Доставка, Почта России</div>
+        <div class="trust-row"><span class="trust-icon">↩️</span>Возврат в течение 14 дней</div>
+      </div>
+    </div>
+  </div>
+</div><!-- /pg-cart -->
+
+
+<!-- ════════════════════════════════════
+     PAGE · PROFILE
+════════════════════════════════════ -->
+<div class="pg" id="pg-profile">
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="page-bc">
+        <a href="#" onclick="sp('home');return false">Главная</a>
+        <span class="page-bc-sep">›</span>
+        <span>Профиль</span>
+      </div>
+      <div class="page-title">Личный кабинет</div>
+    </div>
+  </div>
+  <div class="profile-wrap">
+    <div>
+      <div class="profile-sidebar">
+        <div class="profile-user">
+          <div class="profile-av">А</div>
+          <div class="profile-name">Анна Кузнецова</div>
+          <div class="profile-email">anna@example.com</div>
+        </div>
+        <ul class="pmenu">
+          <li class="pmenu-item on"><span class="pmenu-icon">👤</span>Личные данные</li>
+          <li class="pmenu-item"><span class="pmenu-icon">📦</span>История заказов</li>
+          <li class="pmenu-item"><span class="pmenu-icon">♡</span>Избранное<span class="pmenu-badge">5</span></li>
+          <li class="pmenu-item"><span class="pmenu-icon">⭐</span>Мои отзывы</li>
+          <li class="pmenu-item"><span class="pmenu-icon">⚙️</span>Настройки</li>
+          <li class="pmenu-item" style="color:#e84749;border-top:1px solid var(--border);margin-top:6px"><span class="pmenu-icon">→</span>Выйти</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="profile-main">
+        <div class="main-title">Личные данные</div>
+        <div class="form-2">
+          <div class="field"><label>Имя</label><input class="inp inp-lg" type="text" value="Анна"></div>
+          <div class="field"><label>Фамилия</label><input class="inp inp-lg" type="text" value="Кузнецова"></div>
+          <div class="field"><label>Email</label><input class="inp inp-lg" type="email" value="anna@example.com"></div>
+          <div class="field"><label>Телефон</label><input class="inp inp-lg" type="tel" value="+7 (999) 123-45-67"></div>
+        </div>
+        <hr class="divider">
+        <div class="main-title">Telegram</div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px;background:var(--bg-sec);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px">
+            <span style="font-size:20px">📬</span>
+            <div><div style="font-size:13px;font-weight:500;color:var(--navy)">@anna_k</div><div style="font-size:11px;color:#389e0d">✓ Привязан</div></div>
+          </div>
+          <button class="btn btn-outline btn-sm">Отвязать</button>
+        </div>
+        <hr class="divider">
+        <button class="btn btn-fill">Сохранить изменения</button>
+      </div>
+
+      <div style="margin-top:24px">
+        <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:14px;padding:0 4px">Последние заказы</div>
+        <div class="order-card">
+          <div class="oc-top">
+            <div><div class="oc-num">Заказ №2847</div><div class="oc-date">15 марта 2025</div></div>
+            <span class="status s-ship">Отправлен</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">📿 Лазурный бархатный чокер × 1</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <span style="font-size:15px;font-weight:600;color:var(--navy-m)">1 290 ₽</span>
+            <button class="btn btn-outline btn-sm">Подробнее</button>
+          </div>
+        </div>
+        <div class="order-card">
+          <div class="oc-top">
+            <div><div class="oc-num">Заказ №2791</div><div class="oc-date">8 марта 2025</div></div>
+            <span class="status s-done">Выполнен</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">✨ Браслет «Морская волна» × 2</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <span style="font-size:15px;font-weight:600;color:var(--navy-m)">1 780 ₽</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-outline btn-sm">Отзыв</button>
+              <button class="btn btn-outline btn-sm">Подробнее</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /pg-profile -->
+
+
+<!-- ─── FOOTER ─── -->
+<div class="footer-outer">
+  <div class="footer">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">AM Chokers</div>
+        <div class="footer-brand-sub">Авторские украшения</div>
+        <p class="footer-desc">Авторские украшения ручной работы — чокеры, браслеты, серьги и ожерелья. Создаём уникальные изделия с 2019 года.</p>
+        <div class="footer-social">
+          <div class="soc-btn">📬</div>
+          <div class="soc-btn">📸</div>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Каталог</div>
+        <ul class="footer-links">
+          <li><a href="#">Чокеры</a></li>
+          <li><a href="#">Ожерелья</a></li>
+          <li><a href="#">Браслеты</a></li>
+          <li><a href="#">Серьги</a></li>
+          <li><a href="#">Цепочки для очков</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">О нас</div>
+        <ul class="footer-links">
+          <li><a href="#">О бренде</a></li>
+          <li><a href="#">Доставка и оплата</a></li>
+          <li><a href="#">Уход за украшениями</a></li>
+          <li><a href="#">Контакты</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Контакты</div>
+        <ul class="footer-links">
+          <li><a href="#">info@amchokers.ru</a></li>
+          <li><a href="#">Telegram-канал</a></li>
+          <li><a href="#">Instagram</a></li>
+        </ul>
+        <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.3)">ИП Морозова А.В.<br>ИНН: 123456789012</div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 AM Chokers. Все права защищены.</div>
+      <div class="footer-legal">
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Договор оферты</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MOBILE BOTTOM NAV ─── -->
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="bottom-nav-item on" onclick="sp('home')">
+      <div class="bn-icon">🏠</div>Главная
+    </div>
+    <div class="bottom-nav-item" onclick="sp('catalog')">
+      <div class="bn-icon">📿</div>Каталог
+    </div>
+    <div class="bottom-nav-item" onclick="sp('profile')" style="position:relative">
+      <div class="bn-icon">♡</div>Избранное
+      <span style="position:absolute;top:8px;right:calc(50% - 18px);background:var(--navy-m);color:#fff;font-size:9px;border-radius:10px;padding:1px 5px;font-weight:700">5</span>
+    </div>
+    <div class="bottom-nav-item" onclick="sp('cart')" style="position:relative">
+      <div class="bn-icon">🛍</div>Корзина
+      <span style="position:absolute;top:8px;right:calc(50% - 18px);background:var(--navy-m);color:#fff;font-size:9px;border-radius:10px;padding:1px 5px;font-weight:700">3</span>
+    </div>
+    <div class="bottom-nav-item" onclick="sp('profile')">
+      <div class="bn-icon">👤</div>Профиль
+    </div>
+  </div>
+</div>
+
+<script>
+// ── loader
+window.addEventListener('load', () => {
+  const el = document.getElementById('loader');
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.style.display = 'none', 600); }, 800);
+});
+
+// ── page switcher
+const PAGES = ['home','catalog','cart','profile'];
+function sp(id) {
+  PAGES.forEach(p => {
+    document.getElementById('pg-'+p)?.classList.remove('on');
+  });
+  document.getElementById('pg-'+id)?.classList.add('on');
+
+  document.querySelectorAll('.demo-btn').forEach((b,i) => b.classList.toggle('on', PAGES[i] === id));
+  document.querySelectorAll('.bottom-nav-item').forEach((b,i) => b.classList.toggle('on', PAGES[i] === id));
+
+  // update desktop nav active
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── drawer
+function openDrawer() {
+  const d = document.getElementById('drawer');
+  d.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  const d = document.getElementById('drawer');
+  d.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── filter checkbox toggle
+function toggleCheck(el) {
+  const chk = el.querySelector('.fchk');
+  if (chk.classList.contains('on')) { chk.classList.remove('on'); chk.textContent = ''; }
+  else { chk.classList.add('on'); chk.textContent = '✓'; }
+}
+
+// ── cat chip toggle
+document.querySelectorAll('.cat-chip').forEach(c => {
+  c.addEventListener('click', () => {
+    c.closest('.cat-scroll').querySelectorAll('.cat-chip').forEach(x => x.classList.remove('on'));
+    c.classList.add('on');
+  });
+});
+
+// ── view btn toggle
+document.querySelectorAll('.view-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    b.closest('.view-btns').querySelectorAll('.view-btn').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+
+// ── adjust demo bar sticky top based on which header is showing
+function adjustDemoBar() {
+  const bar = document.getElementById('demoBar');
+  if (window.innerWidth <= 768) { bar.style.top = '56px'; }
+  else { bar.style.top = '72px'; }
+}
+adjustDemoBar();
+window.addEventListener('resize', adjustDemoBar);
+</script>
+</body>
+</html>

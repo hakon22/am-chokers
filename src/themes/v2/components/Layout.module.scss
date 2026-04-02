@@ -1,0 +1,82 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.v2Root {
+  background-color: v2.$v2-bg-main;
+  color: v2.$v2-text-dark;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+
+  // Fix purple ant-menu active indicator (from general.scss)
+  :global(.ant-menu-light.ant-menu-horizontal > .ant-menu-item-selected),
+  :global(.ant-menu-light.ant-menu-horizontal > .ant-menu-submenu-selected) {
+    color: v2.$v2-navy-primary !important;
+
+    &::after {
+      border-bottom-color: v2.$v2-navy-primary !important;
+    }
+  }
+
+  // Float button
+  :global(.ant-float-btn) {
+    background-color: v2.$v2-white !important;
+    border: 1px solid v2.$v2-border !important;
+
+    :global(.ant-float-btn-body) {
+      background-color: v2.$v2-white !important;
+    }
+
+    :global(.ant-float-btn-icon) {
+      color: v2.$v2-navy-primary !important;
+    }
+  }
+
+  // Tables
+  :global(.ant-table) {
+    background-color: v2.$v2-white !important;
+    color: v2.$v2-text-dark !important;
+  }
+
+  :global(.ant-table-thead > tr > th) {
+    background-color: v2.$v2-bg-alt !important;
+    color: v2.$v2-text-secondary !important;
+    border-bottom-color: v2.$v2-border !important;
+  }
+
+  :global(.ant-table-tbody > tr > td) {
+    border-bottom-color: v2.$v2-border !important;
+  }
+
+  :global(.ant-table-tbody > tr:hover > td) {
+    background-color: v2.$v2-bg-alt !important;
+  }
+
+  // Pagination
+  :global(.ant-pagination .ant-pagination-item-active) {
+    border-color: v2.$v2-navy-primary !important;
+    background-color: transparent !important;
+
+    a {
+      color: v2.$v2-navy-primary !important;
+    }
+  }
+
+  // Card hover
+  :global(.card-item) {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: v2.$v2-sh-md;
+      transform: translateY(-2px);
+    }
+  }
+
+  // Index page bg
+  :global(.index-bg) {
+    background: v2.$v2-bg-main;
+  }
+
+  // Text-muted
+  :global(.text-muted) {
+    color: v2.$v2-text-muted !important;
+  }
+}

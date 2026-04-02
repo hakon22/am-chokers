@@ -84,6 +84,13 @@ export default {
         },
         adminSettings: {
           title: 'Site settings',
+          siteVersion: {
+            title: 'Site version',
+            description: 'Select the site design for all users',
+            v1Label: 'v1 — Classic (light)',
+            v2Label: 'v2 — Light (new)',
+            v3Label: 'v3 — (in development)',
+          },
           cache: {
             synchronizationCache: 'Update cache',
             items: 'Items',
@@ -863,6 +870,73 @@ export default {
           date: 'Publication date',
         },
       },
+      v2Home: {
+        seeAll: 'View all',
+        badges: {
+          new: 'New',
+          sale: 'Sale',
+        },
+        hero: {
+          eyebrow: 'New Collection · Spring 2026',
+          title: 'Jewelry,',
+          titleEm: 'made for you',
+          subtitle: 'Handcrafted chokers, bracelets and earrings. Each piece is a unique story.',
+          catalogBtn: 'View catalog',
+          customOrderBtn: 'Custom order',
+          heroImageAlt: 'AM Chokers jewelry',
+          heroCardLabel: 'Items in catalog',
+          heroTag: 'New arrivals →',
+        },
+        features: {
+          delivery: { title: 'Free delivery', subtitle: 'from ₽10 000 across Russia' },
+          handmade: { title: 'Handcrafted', subtitle: 'Every piece is unique' },
+          payment: { title: 'Secure payment', subtitle: 'YooKassa, Russian cards' },
+          returns: { title: '14-day returns', subtitle: 'No questions asked' },
+          support: { title: 'Telegram support', subtitle: 'Reply within one hour' },
+        },
+        categories: {
+          eyebrow: 'Assortment',
+          title: 'Jewelry categories',
+          seeAll: 'Full catalog',
+        },
+        newArrivals: {
+          eyebrow: 'Just arrived',
+          title: 'New arrivals',
+        },
+        bestsellers: {
+          eyebrow: 'Popular',
+          title: 'Bestsellers',
+        },
+        collections: {
+          eyebrow: 'Our collections',
+          title: 'Collections',
+        },
+        customOrder: {
+          eyebrow: 'Bespoke',
+          title: 'Create your',
+          titleEm: 'dream jewelry',
+          text: 'We will craft a piece to your sketch or idea. Tell us about the jewelry you want — and we will bring it to life.',
+          tgBtn: 'Message on Telegram',
+          step1: { title: 'Describe your idea', desc: 'Write on Telegram, attach a photo or sketch.' },
+          step2: { title: 'Discuss details', desc: 'We reply within 24 hours, agree on materials.' },
+          step3: { title: 'Crafting', desc: 'A ₽1 000 deposit is required to start.' },
+          step4: { title: 'Shipping', desc: 'We send a confirmation photo, then ship your order.' },
+        },
+        social: {
+          eyebrow: 'Follow us',
+          title: 'Instagram',
+          followLink: 'Follow',
+          tgTitle: 'Join our Telegram channel',
+          tgSub: 'Be the first to know about promotions, new arrivals and private sales',
+          tgBtn: 'Open channel',
+        },
+      },
+    },
+    common: {
+      v2Promo: {
+        text: 'Free delivery from ₽10 000  ·  New collection «Azure» is now in the catalog',
+        link: 'View →',
+      },
     },
     modules: {
       imageCrop: {
@@ -911,6 +985,21 @@ export default {
         instagramText2: 'which is prohibited in Russian Federation ',
         inn: 'TIN {{ number }}',
       },
+      v2Footer: {
+        brandName: 'AM Chokers',
+        brandTagline: 'Handcrafted jewelry',
+        brandDesc: 'A workshop of handcrafted jewelry. Made with love in every detail.',
+        copyright: '© {{year}} AM Chokers. All rights reserved.',
+        buyersTitle: 'For buyers',
+        delivery: 'Delivery',
+        payment: 'Payment',
+        returns: 'Returns',
+        jewelryCare: 'Jewelry care',
+        aboutTitle: 'About us',
+        aboutBrand: 'About brand',
+        instagram: 'Instagram',
+        telegram: 'Telegram',
+      },
       gradeList: {
         reviews: 'Reviews',
         add: 'Add',
@@ -942,6 +1031,8 @@ export default {
         edit: 'Edit',
         addToCart: 'Add to cart',
         favorites: 'Favorites',
+        badgeNew: 'New',
+        badgeSale: 'Sale',
         price: '{{ price }} ₽',
         composition: 'Materials:',
         color: 'Color:',
@@ -1094,6 +1185,7 @@ export default {
       addPromotionalSuccess: 'Discount code {{ name }} applied successfully!',
       requiredFields: 'Please fill in all required fields',
       synchronizationCacheComplete: 'Cache update successfully',
+      siteVersionUpdated: 'Site version updated successfully',
     },
     cookieConsent: {
       contentText: 'We use cookies to give you the best possible experience when using our website. By clicking ‘Accept All’ we can bring you relevant advertising and personalised content – and generally give you a more enhanced visit.',

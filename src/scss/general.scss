@@ -699,3 +699,296 @@ a {
     padding-left: 20px !important;
   }
 }
+
+// ===== v2 Light Theme: body-level overrides =====
+body.v2-theme {
+  background: #F9FAFC !important;
+  color: #363B44 !important;
+  font-family: 'Inter', sans-serif;
+
+  h1, h2, h3, h4, h5, h6,
+  .h1, .h2, .h3, .h4, .h5, .h6 {
+    color: #363B44;
+  }
+
+  .text-muted {
+    color: #A1B3CD !important;
+  }
+
+  // Shared .button class (v1 styles) — remap to navy for v2
+  .button {
+    background-color: #2B3C5F !important;
+    border-color: #2B3C5F !important;
+    color: #ffffff !important;
+
+    &:hover {
+      background-color: #3B5382 !important;
+      border-color: #3B5382 !important;
+    }
+  }
+
+  // Fix link hover from general.scss (overrides navy links in v2)
+  a:hover {
+    color: #3B5382 !important;
+  }
+
+  // Font override — Inter instead of Oswald
+  .label, .font-oswald, .ant-btn, .ant-btn-default {
+    font-family: 'Inter', sans-serif !important;
+  }
+
+  // Footer wrapper — убрать абсолютное позиционирование из footer.scss
+  .footer {
+    position: static !important;
+    padding: 0 !important;
+  }
+
+  // Catalog & card-item styles
+  .card-item {
+    background: #ffffff;
+    border-color: #CED3DD;
+
+    .price {
+      color: #3B5382;
+    }
+
+    .item-name {
+      color: #363B44;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+  }
+
+  // Catalog filter panel
+  .filter-btn, .filter.ant-btn-variant-outlined {
+    border-color: #CED3DD !important;
+    color: #2B3C5F !important;
+    background: #ffffff !important;
+
+    &:hover {
+      border-color: #2B3C5F !important;
+      background: #EAEEF6 !important;
+    }
+  }
+
+  // Catalog see-all link
+  .see-all {
+    color: #3B5382 !important;
+
+    &:hover {
+      color: #2B3C5F !important;
+    }
+  }
+
+  // Cart / order summary
+  .cart-control {
+    background-color: #EAEEF6;
+  }
+
+  // Active Ant menu item — fix violet → navy
+  .ant-menu-light.ant-menu-horizontal > .ant-menu-item-selected,
+  .ant-menu-light.ant-menu-horizontal > .ant-menu-submenu-selected {
+    color: #2B3C5F !important;
+
+    &::after {
+      border-bottom-color: #2B3C5F !important;
+    }
+  }
+
+  .ant-menu-light.ant-menu-horizontal > .ant-menu-item:hover::after,
+  .ant-menu-light.ant-menu-horizontal > .ant-menu-submenu:hover::after {
+    border-bottom-color: #3B5382 !important;
+  }
+
+  .ant-menu-light .ant-menu-item-selected {
+    color: #2B3C5F;
+    background-color: #EAEEF6;
+  }
+
+  // Ant Design primary buttons
+  .ant-btn-color-primary {
+    background-color: #2B3C5F !important;
+    border-color: #2B3C5F !important;
+
+    &:hover {
+      background-color: #3B5382 !important;
+      border-color: #3B5382 !important;
+    }
+  }
+
+  // Input/Select focus border
+  .ant-select-outlined:hover .ant-select-selector,
+  .ant-select-focused .ant-select-selector,
+  .ant-input-outlined:hover,
+  .ant-input-outlined:focus-within {
+    border-color: #2B3C5F !important;
+  }
+
+  // ── Catalog & cart: убрать лишний отступ от sticky-шапки ──
+  // В v1 навбар фиксированный (вне потока), страницы компенсируют отступом.
+  // В v2 шапка sticky — в потоке, отступ не нужен.
+  main.container > .d-flex:first-child {
+    margin-top: 0 !important;
+  }
+
+  // ── image-hover — карточка товара в каталоге/корзине/избранном ──
+  .image-hover {
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(43, 60, 95, 0.08);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(43, 60, 95, 0.14);
+      transform: translateY(-2px);
+    }
+
+    img, video {
+      border-radius: 8px;
+    }
+
+    .image-label {
+      background: #EAEEF6;
+      color: #2B3C5F;
+      border-color: #CED3DD;
+    }
+  }
+
+  .image-hover-sub {
+    .title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      color: #363B44;
+    }
+
+    .description {
+      font-size: 0.95rem;
+      color: #3B5382;
+      font-weight: 600;
+    }
+
+    .text-muted {
+      color: #A1B3CD !important;
+    }
+  }
+
+  // ── Заголовки страниц: заменить декоративный шрифт на Cormorant ──
+  h1.font-good-vibes-pro,
+  .font-good-vibes-pro {
+    font-family: 'Cormorant Garamond', Georgia, serif !important;
+    color: #2B3C5F !important;
+    letter-spacing: 2px;
+  }
+
+  // ── Корзина ──
+  .ant-list-item {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 16px !important;
+    margin-bottom: 8px;
+    border: 1px solid #EAEEF6 !important;
+    border-bottom: 1px solid #EAEEF6 !important;
+  }
+
+  // Иконки корзины (удалить, favourite)
+  .icon-button {
+    background: none !important;
+    border: none !important;
+    color: #69788E !important;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #2B3C5F !important;
+    }
+  }
+
+  // Итоговая цена и строки доставки в корзине
+  .fw-300 {
+    color: #363B44;
+  }
+
+  // Кнопка оформления заказа
+  .ant-btn-lg {
+    height: 48px;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+
+  // ── Профиль: боковое меню ──
+  .ant-menu-vertical {
+    border-inline-end: none !important;
+
+    .ant-menu-item {
+      font-family: 'Inter', sans-serif;
+      color: #69788E;
+      border-radius: 6px;
+      margin-bottom: 2px;
+
+      &:hover {
+        color: #2B3C5F !important;
+        background: #EAEEF6 !important;
+      }
+    }
+
+    .ant-menu-item-selected {
+      background: #EAEEF6 !important;
+      color: #2B3C5F !important;
+    }
+  }
+
+  // Профиль: Collapse-аккордеон на мобильных
+  .ant-collapse {
+    background: transparent;
+    border: none;
+
+    > .ant-collapse-item {
+      border: 1px solid #EAEEF6;
+      border-radius: 8px !important;
+      margin-bottom: 8px;
+      overflow: hidden;
+
+      > .ant-collapse-header {
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        color: #363B44;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Профиль: форма личных данных
+  .ant-form-item-label > label {
+    font-family: 'Inter', sans-serif !important;
+    color: #69788E;
+    font-size: 13px;
+  }
+
+  // Профиль: карточка заказа
+  .ant-card {
+    border-color: #EAEEF6;
+    border-radius: 10px;
+
+    .ant-card-head {
+      border-bottom-color: #EAEEF6;
+      font-family: 'Inter', sans-serif;
+    }
+  }
+
+  // Статусные теги заказов
+  .ant-tag {
+    font-family: 'Inter', sans-serif;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  // Рейтинг (звёздочки)
+  .ant-rate-star:not(:last-child) {
+    margin-inline-end: 4px;
+  }
+
+  .ant-rate .ant-rate-star-full .anticon,
+  .ant-rate .ant-rate-star-half .anticon {
+    color: #2B3C5F;
+  }
+}

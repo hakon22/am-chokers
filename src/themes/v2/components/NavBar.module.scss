@@ -1,0 +1,264 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+// ── Desktop nav ──
+.nav {
+  background: v2.$v2-white;
+  border-bottom: 1px solid v2.$v2-border;
+  box-shadow: v2.$v2-sh-sm;
+  transition: height 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  font-family: 'Inter', sans-serif;
+  overflow: visible;
+}
+
+// ── Inner bar — фиксированная высота, контент всегда у верха ──
+.navBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 100px;
+  gap: 1rem;
+  position: relative;
+  overflow: visible;
+}
+
+// ── Lang switcher — absolute top-center (как в v1) ──
+.langGroup {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+
+  :global(.ant-radio-button-wrapper) {
+    padding: 0 8px;
+    height: 22px;
+    line-height: 20px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    color: v2.$v2-text-secondary;
+    border-color: v2.$v2-border;
+    background: transparent;
+
+    &:first-child { border-radius: 4px 0 0 4px; }
+    &:last-child  { border-radius: 0 4px 4px 0; }
+
+    &:global(.ant-radio-button-wrapper-checked) {
+      background: v2.$v2-navy-primary;
+      border-color: v2.$v2-navy-primary;
+      color: #fff;
+    }
+  }
+}
+
+// ── Left: logo ──
+.navLeft {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logoImg {
+  height: 48px;
+  width: auto;
+  display: block;
+}
+
+// ── Center: menu ──
+.navCenter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+
+  // Ant Menu horizontal overrides
+  :global(.ant-menu-horizontal) {
+    border-bottom: none !important;
+    background: transparent !important;
+    width: 100%;
+    justify-content: center;
+
+    :global(.ant-menu-item) {
+      padding-inline: 12px !important;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+
+      a {
+        color: v2.$v2-text-secondary;
+        transition: color 0.2s ease;
+      }
+
+      &:hover a,
+      &:global(.ant-menu-item-selected) a {
+        color: v2.$v2-navy-primary;
+      }
+
+      &:global(.ant-menu-item-selected) {
+        background-color: transparent !important;
+
+        &::after {
+          border-bottom-color: v2.$v2-navy-primary !important;
+        }
+      }
+    }
+
+    :global(.ant-menu-submenu-title) {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: v2.$v2-text-secondary;
+      padding-inline: 12px !important;
+
+      &:hover {
+        color: v2.$v2-navy-primary !important;
+      }
+    }
+
+    :global(.ant-menu-submenu-selected .ant-menu-submenu-title) {
+      color: v2.$v2-navy-primary !important;
+    }
+  }
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeInDown 0.2s ease;
+  width: 100%;
+  max-width: 480px;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ── Right: icons ──
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  width: 44px !important;
+  height: 44px !important;
+  border: none !important;
+  background: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 8px !important;
+  color: v2.$v2-text-secondary !important;
+  font-size: 22px !important;
+  transition: all 0.2s ease !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+
+  &:hover {
+    background: v2.$v2-bg-alt !important;
+    color: v2.$v2-navy-primary !important;
+  }
+
+  // Badge inside icon button
+  :global(.ant-badge) {
+    font-size: inherit;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  svg {
+    font-size: 22px;
+  }
+}
+
+// ── Mobile header ──
+.mobileHeader {
+  display: none;
+  background: v2.$v2-white;
+  border-bottom: 1px solid v2.$v2-border;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 16px;
+  height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: v2.$v2-sh-sm;
+}
+
+.mobileLogo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.mobileLogoImg {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+.mobileRight {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+// ── Drawer ──
+.drawerLogo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.drawerLang {
+  padding: 12px 0 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.activeLang {
+  background: v2.$v2-navy-primary !important;
+  border-color: v2.$v2-navy-primary !important;
+  color: #fff !important;
+}
+
+// ── Responsive ──
+@media (max-width: 1199px) {
+  .nav {
+    display: none;
+  }
+
+  .mobileHeader {
+    display: flex;
+  }
+}
+
+@media (min-width: 1200px) {
+  .mobileHeader {
+    display: none !important;
+  }
+}

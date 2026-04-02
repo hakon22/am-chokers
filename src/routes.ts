@@ -230,6 +230,13 @@ export const routes = {
     },
   },
 
+  // settings
+  settings: {
+    getSiteVersion: [apiPath, 'settings', 'site-version'].join('/'),
+    updateSiteVersion: [apiPath, 'settings', 'site-version'].join('/'),
+    getSiteVersionSsr: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'settings', 'site-version'].join('/'),
+  },
+
   // grade
   grade: {
     createOne: (id?: number) => [apiPath, 'order-position', id ?? ':id', 'grade', 'add'].join('/'),

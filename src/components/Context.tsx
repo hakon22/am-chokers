@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 
 import type { ItemInterface } from '@/types/item/Item';
+import type { SiteVersion } from '@/types/SiteVersion';
 
 export const AuthContext = createContext<{
   loggedIn: boolean,
@@ -51,4 +52,8 @@ export const SearchContext = createContext<{ isSearch?: { value: boolean; needFe
 export const MobileContext = createContext<{ isMobile: boolean; setIsMobile: React.Dispatch<React.SetStateAction<boolean>>; }>({
   isMobile: false,
   setIsMobile: () => undefined,
+});
+
+export const VersionContext = createContext<{ version: SiteVersion }>({
+  version: 'v1',
 });

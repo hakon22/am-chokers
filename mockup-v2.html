@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM Chokers — v2 Mockup</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg:          #0b0f1e;
+  --bg-surface:  #111827;
+  --bg-card:     #131d35;
+  --bg-nav:      #090d18;
+  --gold:        #c9a84c;
+  --gold-light:  #e8c96b;
+  --gold-muted:  rgba(201,168,76,0.25);
+  --text:        #f0ece2;
+  --text-muted:  #8a9bb5;
+  --text-dim:    #556072;
+  --border:      rgba(201,168,76,0.18);
+  --border-dim:  rgba(255,255,255,0.06);
+  --radius-sm:   6px;
+  --radius:      12px;
+  --radius-lg:   20px;
+  --shadow:      0 8px 32px rgba(0,0,0,0.6);
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.5);
+  --transition:  0.25s ease;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; transition: color var(--transition); }
+a:hover { color: var(--gold); }
+button { cursor: pointer; border: none; background: none; font: inherit; }
+ul { list-style: none; }
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+.page { display: none; }
+.page.active { display: block; }
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ============================================================
+   NAV TOGGLE (demo pages)
+   ============================================================ */
+.demo-nav {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.demo-nav__label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.demo-nav button {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.demo-nav button:hover,
+.demo-nav button.active {
+  background: var(--gold);
+  color: #0b0f1e;
+  border-color: var(--gold);
+}
+
+/* ============================================================
+   HEADER / NAV
+   ============================================================ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.header__inner {
+  display: flex;
+  align-items: center;
+  height: 68px;
+  gap: 32px;
+}
+.header__logo {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 4px;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.header__logo span { color: var(--text); }
+.header__nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.header__nav a {
+  padding: 6px 14px;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.header__nav a:hover,
+.header__nav a.active {
+  color: var(--gold);
+  background: var(--gold-muted);
+}
+.header__search {
+  flex: 0 0 220px;
+  position: relative;
+}
+.header__search input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 40px;
+  padding: 8px 16px 8px 38px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.header__search input:focus { border-color: var(--gold); }
+.header__search input::placeholder { color: var(--text-dim); }
+.header__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 16px;
+}
+.header__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.header__icon-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  color: var(--text-muted);
+  font-size: 20px;
+  transition: all var(--transition);
+}
+.header__icon-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  background: var(--gold);
+  color: #0b0f1e;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-nav);
+}
+
+/* ============================================================
+   MOBILE NAV
+   ============================================================ */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg-nav);
+  border-top: 1px solid var(--border);
+  padding: 8px 0 12px;
+}
+.mobile-nav__items {
+  display: flex;
+  justify-content: space-around;
+}
+.mobile-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  color: var(--text-dim);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  transition: color var(--transition);
+}
+.mobile-nav__item.active,
+.mobile-nav__item:hover {
+  color: var(--gold);
+}
+.mobile-nav__item svg,
+.mobile-nav__item .ico { font-size: 22px; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.btn-gold {
+  background: var(--gold);
+  color: #0b0f1e;
+  border: 2px solid var(--gold);
+}
+.btn-gold:hover {
+  background: var(--gold-light);
+  border-color: var(--gold-light);
+  color: #0b0f1e;
+}
+.btn-outline {
+  background: transparent;
+  color: var(--gold);
+  border: 1.5px solid var(--gold);
+}
+.btn-outline:hover {
+  background: var(--gold-muted);
+}
+.btn-ghost {
+  background: var(--bg-surface);
+  color: var(--text);
+  border: 1px solid var(--border-dim);
+}
+.btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.btn-sm {
+  padding: 8px 18px;
+  font-size: 13px;
+}
+.btn-lg {
+  padding: 16px 40px;
+  font-size: 15px;
+}
+
+/* ============================================================
+   SECTION TITLES
+   ============================================================ */
+.section-title {
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.section-heading {
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.section-divider {
+  width: 48px;
+  height: 1px;
+  background: var(--gold);
+  margin-bottom: 40px;
+}
+
+/* ============================================================
+   BREADCRUMB
+   ============================================================ */
+.breadcrumb {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 16px 0;
+}
+.breadcrumb a { color: var(--text-muted); }
+.breadcrumb a:hover { color: var(--gold); }
+.breadcrumb span { color: var(--text-dim); }
+
+/* ============================================================
+   PAGE: HOME
+   ============================================================ */
+
+/* Hero */
+.hero {
+  position: relative;
+  height: 640px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 70% 50%, rgba(30,45,90,0.6) 0%, transparent 60%),
+    linear-gradient(135deg, #070a14 0%, #0d1428 40%, #111d3a 100%);
+}
+/* Decorative jewelry-like shapes */
+.hero__bg::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+  border: 1px solid rgba(201,168,76,0.12);
+}
+.hero__bg::after {
+  content: '';
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  right: 12%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.05) 0%, transparent 70%);
+  border: 1px solid rgba(201,168,76,0.2);
+}
+.hero__content {
+  position: relative;
+  max-width: 560px;
+}
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold-muted);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 6px 16px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.hero__badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.hero__title {
+  font-size: 56px;
+  font-weight: 200;
+  letter-spacing: 3px;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.hero__title em {
+  font-style: normal;
+  color: var(--gold);
+  font-weight: 400;
+}
+.hero__subtitle {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 40px;
+  max-width: 440px;
+}
+.hero__actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.hero__scroll {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.hero__scroll-line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--gold));
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* Jewelry product images placeholder */
+.hero__image-group {
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.hero__img-card {
+  width: 160px;
+  height: 200px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+.hero__img-card:nth-child(2) { transform: translateY(24px); }
+.hero__img-card:nth-child(3) { transform: translateY(-12px); }
+.product-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #131d35, #0d1428);
+  color: var(--gold-muted);
+  font-size: 40px;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* Stats bar */
+.stats-bar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 20px 0;
+}
+.stats-bar__inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+.stats-bar__item {
+  text-align: center;
+  padding: 8px 0;
+  border-right: 1px solid var(--border-dim);
+}
+.stats-bar__item:last-child { border-right: none; }
+.stats-bar__num {
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.stats-bar__label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* Categories */
+.categories { padding: 80px 0 60px; }
+.categories__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.cat-card {
+  position: relative;
+  height: 280px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--border-dim);
+  transition: border-color var(--transition), transform var(--transition);
+}
+.cat-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+}
+.cat-card__bg {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.4s ease;
+}
+.cat-card:hover .cat-card__bg { transform: scale(1.04); }
+.cat-card__bg--1 { background: linear-gradient(160deg, #1a2a4a, #0d1428); }
+.cat-card__bg--2 { background: linear-gradient(160deg, #1e1a2e, #0b0e1a); }
+.cat-card__bg--3 { background: linear-gradient(160deg, #1a2636, #0d1820); }
+.cat-card__bg--4 { background: linear-gradient(160deg, #2a1a1a, #1a0d0d); }
+.cat-card__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  font-size: 56px;
+  opacity: 0.15;
+  filter: blur(1px);
+  color: var(--gold);
+  line-height: 1;
+}
+.cat-card__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+.cat-card__title {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.cat-card__count {
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.cat-card__gem {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+}
+.gem {
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(201,168,76,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+/* Featured Products */
+.featured { padding: 60px 0 80px; }
+.featured__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.product-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border-dim);
+  transition: all var(--transition);
+  position: relative;
+}
+.product-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+.product-card__img {
+  position: relative;
+  height: 260px;
+  background: linear-gradient(145deg, #131d35, #0d1428);
+  overflow: hidden;
+}
+.product-card__img-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(201,168,76,0.15);
+  font-size: 72px;
+  transition: transform 0.4s ease;
+}
+.product-card:hover .product-card__img-inner { transform: scale(1.06); }
+.product-card__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--gold);
+  color: #0b0f1e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.product-card__wish {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(11,15,30,0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: all var(--transition);
+  opacity: 0;
+}
+.product-card:hover .product-card__wish {
+  opacity: 1;
+}
+.product-card__wish:hover { color: #e74c3c; border-color: #e74c3c; }
+.product-card__body {
+  padding: 16px;
+}
+.product-card__cat {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.product-card__name {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.product-card__material {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+.product-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.product-card__price {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--gold);
+}
+.product-card__price-old {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: line-through;
+  margin-left: 6px;
+}
+.product-card__cart-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--gold-muted);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all var(--transition);
+}
+.product-card__cart-btn:hover {
+  background: var(--gold);
+  color: #0b0f1e;
+}
+
+/* Promo banner */
+.promo-banner {
+  margin: 20px 0 80px;
+  padding: 48px 56px;
+  background: linear-gradient(135deg, #111d3a 0%, #0d1428 50%, #1a1a2e 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+.promo-banner::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  right: -100px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(circle, rgba(201,168,76,0.1), transparent 70%);
+  border-radius: 50%;
+}
+.promo-banner__content { position: relative; max-width: 500px; }
+.promo-banner__tag {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.promo-banner__title {
+  font-size: 36px;
+  font-weight: 200;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+.promo-banner__text {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+.promo-banner__actions { display: flex; gap: 16px; }
+.promo-banner__visual {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  flex-shrink: 0;
+}
+.promo-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.promo-ring:nth-child(1) { width: 260px; height: 260px; }
+.promo-ring:nth-child(2) { width: 180px; height: 180px; border-color: rgba(201,168,76,0.3); }
+.promo-ring:nth-child(3) {
+  width: 100px; height: 100px;
+  background: var(--gold-muted);
+  border-color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+/* ============================================================
+   PAGE: CATALOG
+   ============================================================ */
+.catalog-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  padding: 32px 0 80px;
+}
+
+/* Sidebar filters */
+.filters-sidebar {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-dim);
+  padding: 24px;
+  height: fit-content;
+  position: sticky;
+  top: 88px;
+}
+.filters-sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.filters-sidebar__title {
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.filters-sidebar__reset {
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.filters-sidebar__reset:hover { color: var(--gold); }
+
+.filter-group { margin-bottom: 28px; }
+.filter-group__label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.filter-tag {
+  padding: 6px 14px;
+  border-radius: 40px;
+  border: 1px solid var(--border-dim);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  background: transparent;
+}
+.filter-tag:hover,
+.filter-tag.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-muted);
+}
+
+/* Price range slider */
+.price-range { margin-top: 8px; }
+.price-range__track {
+  height: 3px;
+  background: var(--border-dim);
+  border-radius: 2px;
+  position: relative;
+  margin: 16px 0 8px;
+}
+.price-range__fill {
+  position: absolute;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  left: 15%;
+  right: 30%;
+}
+.price-range__thumb {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--bg);
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--gold-muted);
+}
+.price-range__thumb--left { left: 15%; transform: translate(-50%, -50%); }
+.price-range__thumb--right { right: 30%; transform: translate(50%, -50%); }
+.price-range__values {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+.price-range__values span { color: var(--text); }
+
+/* Filter checkboxes */
+.filter-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  cursor: pointer;
+  transition: color var(--transition);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.filter-check:hover { color: var(--text); }
+.filter-check__box {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--border-dim);
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.filter-check.checked .filter-check__box {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.filter-check.checked .filter-check__box::after {
+  content: '✓';
+  font-size: 10px;
+  color: #0b0f1e;
+  font-weight: 700;
+}
+.filter-check.checked { color: var(--text); }
+.filter-check__count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* Catalog main area */
+.catalog-main {}
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.catalog-toolbar__info {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.catalog-toolbar__info strong { color: var(--text); }
+.catalog-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sort-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text);
+  padding: 8px 32px 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a9bb5' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color var(--transition);
+}
+.sort-select:focus { border-color: var(--gold); }
+.view-toggle {
+  display: flex;
+  gap: 4px;
+}
+.view-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 14px;
+  transition: all var(--transition);
+}
+.view-toggle-btn.active,
+.view-toggle-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 48px;
+}
+.page-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text-muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.page-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #0b0f1e;
+  font-weight: 700;
+}
+.page-btn:hover:not(.active) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ============================================================
+   PAGE: PRODUCT
+   ============================================================ */
+.product-page {
+  padding: 32px 0 80px;
+}
+.product-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  margin-bottom: 80px;
+}
+
+/* Gallery */
+.product-gallery {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+}
+.product-gallery__thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gallery-thumb {
+  width: 72px;
+  height: 90px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: rgba(201,168,76,0.2);
+  transition: border-color var(--transition);
+}
+.gallery-thumb.active {
+  border-color: var(--gold);
+  color: rgba(201,168,76,0.4);
+}
+.gallery-thumb:hover { border-color: var(--gold); }
+.product-gallery__main {
+  aspect-ratio: 3/4;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100px;
+  color: rgba(201,168,76,0.12);
+  position: relative;
+  overflow: hidden;
+}
+.product-gallery__badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+.product-gallery__actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gallery-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(11,15,30,0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 18px;
+  transition: all var(--transition);
+}
+.gallery-action-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+/* Product info */
+.product-info {}
+.product-info__brand {
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.product-info__title {
+  font-size: 30px;
+  font-weight: 300;
+  letter-spacing: 1.5px;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.product-info__subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  letter-spacing: 0.5px;
+}
+.product-info__rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.stars {
+  display: flex;
+  gap: 3px;
+  color: var(--gold);
+  font-size: 15px;
+}
+.rating-num {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.product-info__price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.product-info__price {
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.product-info__price-old {
+  font-size: 18px;
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+.product-info__discount {
+  background: rgba(231,76,60,0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231,76,60,0.3);
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Size selector */
+.size-group { margin-bottom: 24px; }
+.size-group__label {
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+.size-group__label a { color: var(--gold); font-size: 12px; }
+.size-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.size-option {
+  min-width: 52px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.size-option.active,
+.size-option:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: var(--gold-muted);
+}
+.size-option.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Color picker */
+.color-group { margin-bottom: 28px; }
+.color-options {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transition);
+  position: relative;
+}
+.color-swatch.active::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gold);
+}
+.color-swatch:hover { transform: scale(1.15); }
+.swatch-gold { background: #c9a84c; }
+.swatch-silver { background: #c0c8d8; }
+.swatch-rose { background: #d4a0a0; }
+.swatch-dark { background: #2a2a3a; border: 1px solid var(--border-dim); }
+
+/* Add to cart */
+.add-to-cart {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.qty-control {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.qty-btn {
+  width: 42px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 20px;
+  transition: all var(--transition);
+}
+.qty-btn:hover { color: var(--gold); background: var(--gold-muted); }
+.qty-value {
+  width: 48px;
+  text-align: center;
+  font-size: 16px;
+  color: var(--text);
+  border-left: 1px solid var(--border-dim);
+  border-right: 1px solid var(--border-dim);
+}
+
+/* Product meta */
+.product-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+  border: 1px solid var(--border-dim);
+}
+.product-meta__item { display: flex; flex-direction: column; gap: 4px; }
+.product-meta__key { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+.product-meta__val { font-size: 14px; color: var(--text); }
+
+/* Product tabs */
+.product-tabs {
+  border-top: 1px solid var(--border-dim);
+  padding-top: 24px;
+}
+.product-tabs__nav {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+}
+.product-tabs__btn {
+  padding: 10px 24px;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.product-tabs__btn.active,
+.product-tabs__btn:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.product-tabs__content {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+/* ============================================================
+   PAGE: ACCOUNT
+   ============================================================ */
+.account-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 32px;
+  padding: 32px 0 80px;
+}
+.account-sidebar {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-dim);
+  padding: 24px;
+  height: fit-content;
+  position: sticky;
+  top: 88px;
+}
+.account-sidebar__user {
+  text-align: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-dim);
+  margin-bottom: 20px;
+}
+.account-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--gold-muted);
+  border: 2px solid var(--border);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--gold);
+}
+.account-sidebar__name {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.account-sidebar__email {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.account-menu {}
+.account-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+  margin-bottom: 4px;
+}
+.account-menu__item:hover,
+.account-menu__item.active {
+  background: var(--gold-muted);
+  color: var(--gold);
+}
+.account-menu__icon { font-size: 18px; flex-shrink: 0; }
+.account-menu__badge {
+  margin-left: auto;
+  background: var(--gold);
+  color: #0b0f1e;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* Account main content */
+.account-main {}
+.account-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.account-card__header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.account-card__title {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.account-card__body { padding: 24px; }
+
+/* Orders table */
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.orders-table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 16px 14px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.orders-table td {
+  padding: 16px;
+  font-size: 14px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-dim);
+  vertical-align: middle;
+}
+.orders-table tr:last-child td { border-bottom: none; }
+.orders-table tr:hover td { background: rgba(255,255,255,0.02); }
+.order-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.status-delivered { background: rgba(39,174,96,0.15); color: #27ae60; }
+.status-processing { background: rgba(201,168,76,0.15); color: var(--gold); }
+.status-shipped { background: rgba(52,152,219,0.15); color: #3498db; }
+
+/* Profile form */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-label {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.form-input {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 12px 16px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.form-input:focus { border-color: var(--gold); }
+.form-input::placeholder { color: var(--text-dim); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  background: var(--bg-nav);
+  border-top: 1px solid var(--border);
+  padding: 64px 0 32px;
+}
+.footer__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+.footer__brand {}
+.footer__logo {
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 4px;
+  margin-bottom: 16px;
+}
+.footer__logo span { color: var(--text); }
+.footer__desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  max-width: 280px;
+}
+.footer__social { display: flex; gap: 10px; }
+.social-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: all var(--transition);
+}
+.social-btn:hover { border-color: var(--gold); color: var(--gold); }
+.footer__col-title {
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+.footer__col ul { display: flex; flex-direction: column; gap: 10px; }
+.footer__col ul li a {
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+.footer__col ul li a:hover { color: var(--gold); }
+.footer__bottom {
+  padding-top: 24px;
+  border-top: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.footer__payment { display: flex; gap: 10px; align-items: center; }
+.payment-badge {
+  padding: 4px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .product-grid { grid-template-columns: repeat(3, 1fr); }
+  .categories__grid { grid-template-columns: repeat(2, 1fr); }
+  .footer__grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .product-layout { grid-template-columns: 1fr; gap: 40px; }
+  .catalog-layout { grid-template-columns: 1fr; }
+  .filters-sidebar { position: static; }
+  .catalog-grid { grid-template-columns: repeat(3, 1fr); }
+  .account-layout { grid-template-columns: 1fr; }
+  .account-sidebar { position: static; }
+}
+
+@media (max-width: 768px) {
+  .hero { height: auto; padding: 80px 0 120px; }
+  .hero__image-group { display: none; }
+  .hero__title { font-size: 36px; }
+  .header__nav { display: none; }
+  .header__search { display: none; }
+  .mobile-nav { display: block; }
+  body { padding-bottom: 80px; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+  .catalog-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-bar__inner { grid-template-columns: repeat(2, 1fr); }
+  .promo-banner { flex-direction: column; padding: 32px 24px; }
+  .promo-banner__visual { display: none; }
+  .form-row { grid-template-columns: 1fr; }
+  .footer__grid { grid-template-columns: 1fr; }
+  .footer__bottom { flex-direction: column; gap: 16px; text-align: center; }
+  .product-gallery { grid-template-columns: 1fr; }
+  .product-gallery__thumbs { flex-direction: row; }
+  .gallery-thumb { width: 60px; height: 75px; }
+  .section-heading { font-size: 24px; }
+  .container { padding: 0 16px; }
+  .hero__actions { flex-direction: column; align-items: flex-start; }
+  .add-to-cart { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .product-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .catalog-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .categories__grid { grid-template-columns: 1fr 1fr; }
+  .hero__title { font-size: 28px; }
+  .stats-bar__num { font-size: 20px; }
+  .product-info__price { font-size: 28px; }
+}
+
+/* Icons using unicode/emoji since no icon lib */
+.ico-search::before { content: '🔍'; }
+.ico-cart::before { content: '🛍'; }
+.ico-heart::before { content: '♡'; }
+.ico-user::before { content: '👤'; }
+.ico-menu::before { content: '☰'; }
+.ico-home::before { content: '⌂'; font-size: 20px; }
+.ico-catalog::before { content: '◫'; font-size: 20px; }
+.ico-orders::before { content: '📋'; }
+.ico-profile::before { content: '◉'; }
+.ico-arrow::before { content: '→'; }
+.ico-zoom::before { content: '⊕'; }
+.ico-share::before { content: '↗'; }
+.ico-star::before { content: '★'; }
+.ico-plus::before { content: '+'; font-size: 22px; }
+.ico-minus::before { content: '−'; font-size: 22px; }
+.ico-grid::before { content: '⊞'; }
+.ico-list::before { content: '☰'; }
+.ico-vk::before { content: 'ВК'; font-size: 11px; font-weight: 700; font-family: sans-serif; }
+.ico-tg::before { content: '✈'; font-size: 16px; }
+.ico-inst::before { content: '⬡'; font-size: 18px; }
+.ico-settings::before { content: '⚙'; }
+.ico-logout::before { content: '⎋'; font-size: 18px; }
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     DEMO NAV (fixed bottom-right)
+     ============================================================ -->
+<div class="demo-nav">
+  <div class="demo-nav__label">Страницы</div>
+  <button class="active" onclick="showPage('home')">Главная</button>
+  <button onclick="showPage('catalog')">Каталог</button>
+  <button onclick="showPage('product')">Карточка товара</button>
+  <button onclick="showPage('account')">Личный кабинет</button>
+</div>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header class="header">
+  <div class="container">
+    <div class="header__inner">
+      <div class="header__logo">AM<span> Chokers</span></div>
+
+      <nav class="header__nav">
+        <a href="#" class="active">Главная</a>
+        <a href="#">Каталог</a>
+        <a href="#">Коллекции</a>
+        <a href="#">О бренде</a>
+        <a href="#">Доставка</a>
+      </nav>
+
+      <div class="header__search">
+        <span class="header__search-icon ico-search"></span>
+        <input type="text" placeholder="Поиск украшений...">
+      </div>
+
+      <div class="header__actions">
+        <button class="header__icon-btn">
+          <span class="ico-heart"></span>
+        </button>
+        <button class="header__icon-btn">
+          <span class="ico-cart"></span>
+          <span class="badge">3</span>
+        </button>
+        <button class="header__icon-btn">
+          <span class="ico-user"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
+     PAGE: HOME
+     ============================================================ -->
+<div id="home" class="page active">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero__bg"></div>
+    <div class="container">
+      <div class="hero__content">
+        <div class="hero__badge">Новая коллекция 2025</div>
+        <h1 class="hero__title">
+          Украшения,<br>
+          которые <em>говорят</em><br>
+          за тебя
+        </h1>
+        <p class="hero__subtitle">
+          Авторские чокеры, колье и браслеты ручной работы.
+          Каждое украшение — маленькая история.
+        </p>
+        <div class="hero__actions">
+          <button class="btn btn-gold btn-lg">Смотреть коллекцию</button>
+          <button class="btn btn-outline btn-lg">О бренде</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decorative product cards -->
+    <div class="hero__image-group">
+      <div class="hero__img-card">
+        <div class="product-placeholder">💎</div>
+      </div>
+      <div class="hero__img-card">
+        <div class="product-placeholder">📿</div>
+      </div>
+      <div class="hero__img-card">
+        <div class="product-placeholder">✨</div>
+      </div>
+      <div class="hero__img-card">
+        <div class="product-placeholder">🌙</div>
+      </div>
+    </div>
+
+    <div class="hero__scroll">
+      <div class="hero__scroll-line"></div>
+      scroll
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="container">
+      <div class="stats-bar__inner">
+        <div class="stats-bar__item">
+          <div class="stats-bar__num">500+</div>
+          <div class="stats-bar__label">Украшений в каталоге</div>
+        </div>
+        <div class="stats-bar__item">
+          <div class="stats-bar__num">12 000+</div>
+          <div class="stats-bar__label">Довольных покупательниц</div>
+        </div>
+        <div class="stats-bar__item">
+          <div class="stats-bar__num">7 лет</div>
+          <div class="stats-bar__label">Создаём красоту</div>
+        </div>
+        <div class="stats-bar__item">
+          <div class="stats-bar__num">4.9 ★</div>
+          <div class="stats-bar__label">Средняя оценка</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <section class="categories">
+    <div class="container">
+      <div class="section-title">Коллекции</div>
+      <h2 class="section-heading">Найди своё украшение</h2>
+      <div class="section-divider"></div>
+
+      <div class="categories__grid">
+        <div class="cat-card">
+          <div class="cat-card__bg cat-card__bg--1"></div>
+          <div class="cat-card__gem"><div class="gem">📿</div></div>
+          <div class="cat-card__content">
+            <div class="cat-card__title">Чокеры</div>
+            <div class="cat-card__count">142 украшения</div>
+          </div>
+        </div>
+        <div class="cat-card">
+          <div class="cat-card__bg cat-card__bg--2"></div>
+          <div class="cat-card__gem"><div class="gem">💎</div></div>
+          <div class="cat-card__content">
+            <div class="cat-card__title">Колье</div>
+            <div class="cat-card__count">98 украшений</div>
+          </div>
+        </div>
+        <div class="cat-card">
+          <div class="cat-card__bg cat-card__bg--3"></div>
+          <div class="cat-card__gem"><div class="gem">🌙</div></div>
+          <div class="cat-card__content">
+            <div class="cat-card__title">Браслеты</div>
+            <div class="cat-card__count">76 украшений</div>
+          </div>
+        </div>
+        <div class="cat-card">
+          <div class="cat-card__bg cat-card__bg--4"></div>
+          <div class="cat-card__gem"><div class="gem">✨</div></div>
+          <div class="cat-card__content">
+            <div class="cat-card__title">Серьги</div>
+            <div class="cat-card__count">184 украшения</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured products -->
+  <section class="featured">
+    <div class="container">
+      <div class="featured__header">
+        <div>
+          <div class="section-title">Избранное</div>
+          <h2 class="section-heading">Хиты продаж</h2>
+          <div class="section-divider" style="margin-bottom: 0"></div>
+        </div>
+        <a href="#" class="btn btn-outline btn-sm">Смотреть все <span class="ico-arrow"></span></a>
+      </div>
+
+      <div class="product-grid">
+
+        <div class="product-card">
+          <div class="product-card__img">
+            <div class="product-card__img-inner">💎</div>
+            <span class="product-card__badge">Хит</span>
+            <button class="product-card__wish">♡</button>
+          </div>
+          <div class="product-card__body">
+            <div class="product-card__cat">Чокер</div>
+            <div class="product-card__name">Midnight Crystal</div>
+            <div class="product-card__material">Серебро 925 + кристалл Swarovski</div>
+            <div class="product-card__footer">
+              <div>
+                <span class="product-card__price">2 490 ₽</span>
+                <span class="product-card__price-old">3 200 ₽</span>
+              </div>
+              <button class="product-card__cart-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-card__img">
+            <div class="product-card__img-inner">📿</div>
+            <button class="product-card__wish">♡</button>
+          </div>
+          <div class="product-card__body">
+            <div class="product-card__cat">Колье</div>
+            <div class="product-card__name">Golden Moon</div>
+            <div class="product-card__material">Позолота 24K + лазурит</div>
+            <div class="product-card__footer">
+              <div>
+                <span class="product-card__price">3 890 ₽</span>
+              </div>
+              <button class="product-card__cart-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-card__img">
+            <div class="product-card__img-inner">🌙</div>
+            <span class="product-card__badge" style="background:#e74c3c">−30%</span>
+            <button class="product-card__wish">♡</button>
+          </div>
+          <div class="product-card__body">
+            <div class="product-card__cat">Браслет</div>
+            <div class="product-card__name">Luna Eclipse</div>
+            <div class="product-card__material">Серебро 925 + лунный камень</div>
+            <div class="product-card__footer">
+              <div>
+                <span class="product-card__price">1 750 ₽</span>
+                <span class="product-card__price-old">2 490 ₽</span>
+              </div>
+              <button class="product-card__cart-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-card">
+          <div class="product-card__img">
+            <div class="product-card__img-inner">✨</div>
+            <button class="product-card__wish">♡</button>
+          </div>
+          <div class="product-card__body">
+            <div class="product-card__cat">Серьги</div>
+            <div class="product-card__name">Star Dust</div>
+            <div class="product-card__material">Позолота + натуральный жемчуг</div>
+            <div class="product-card__footer">
+              <div>
+                <span class="product-card__price">2 190 ₽</span>
+              </div>
+              <button class="product-card__cart-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Promo banner -->
+  <section>
+    <div class="container">
+      <div class="promo-banner">
+        <div class="promo-banner__content">
+          <div class="promo-banner__tag">✦ Специальное предложение</div>
+          <h2 class="promo-banner__title">Персональный<br>подбор украшений</h2>
+          <p class="promo-banner__text">
+            Расскажи нам о себе — и мы подберём идеальное украшение,
+            которое станет частью твоего стиля. Бесплатно.
+          </p>
+          <div class="promo-banner__actions">
+            <button class="btn btn-gold">Начать подбор</button>
+            <button class="btn btn-ghost">Узнать подробнее</button>
+          </div>
+        </div>
+
+        <div class="promo-banner__visual">
+          <div class="promo-ring"></div>
+          <div class="promo-ring"></div>
+          <div class="promo-ring">💎</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <div class="footer__logo">AM<span> Chokers</span></div>
+          <p class="footer__desc">
+            Авторские украшения ручной работы. Каждое изделие создаётся
+            с любовью и вниманием к деталям.
+          </p>
+          <div class="footer__social">
+            <a href="#" class="social-btn"><span class="ico-vk"></span></a>
+            <a href="#" class="social-btn"><span class="ico-tg"></span></a>
+            <a href="#" class="social-btn"><span class="ico-inst"></span></a>
+          </div>
+        </div>
+        <div class="footer__col">
+          <div class="footer__col-title">Каталог</div>
+          <ul>
+            <li><a href="#">Чокеры</a></li>
+            <li><a href="#">Колье</a></li>
+            <li><a href="#">Браслеты</a></li>
+            <li><a href="#">Серьги</a></li>
+            <li><a href="#">Новинки</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <div class="footer__col-title">Покупателям</div>
+          <ul>
+            <li><a href="#">Доставка и оплата</a></li>
+            <li><a href="#">Возврат</a></li>
+            <li><a href="#">Уход за украшениями</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <div class="footer__col-title">Контакты</div>
+          <ul>
+            <li><a href="#">info@am-chokers.ru</a></li>
+            <li><a href="#">Telegram</a></li>
+            <li><a href="#">О нас</a></li>
+            <li><a href="#">Оферта</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div>© 2025 AM Chokers. Все права защищены.</div>
+        <div class="footer__payment">
+          <span class="payment-badge">Visa</span>
+          <span class="payment-badge">MasterCard</span>
+          <span class="payment-badge">МИР</span>
+          <span class="payment-badge">СБП</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /home -->
+
+
+<!-- ============================================================
+     PAGE: CATALOG
+     ============================================================ -->
+<div id="catalog" class="page">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="#">Главная</a>
+      <span>›</span>
+      <a href="#">Каталог</a>
+    </div>
+
+    <div class="section-title">Все украшения</div>
+    <h1 class="section-heading">Каталог</h1>
+    <div class="section-divider"></div>
+
+    <div class="catalog-layout">
+
+      <!-- Sidebar -->
+      <aside class="filters-sidebar">
+        <div class="filters-sidebar__header">
+          <span class="filters-sidebar__title">Фильтры</span>
+          <span class="filters-sidebar__reset">Сбросить</span>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Категория</div>
+          <div class="filter-tags">
+            <button class="filter-tag active">Все</button>
+            <button class="filter-tag">Чокеры</button>
+            <button class="filter-tag">Колье</button>
+            <button class="filter-tag">Браслеты</button>
+            <button class="filter-tag">Серьги</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Цена</div>
+          <div class="price-range">
+            <div class="price-range__track">
+              <div class="price-range__fill"></div>
+              <div class="price-range__thumb price-range__thumb--left"></div>
+              <div class="price-range__thumb price-range__thumb--right"></div>
+            </div>
+            <div class="price-range__values">
+              <span>от <span>500 ₽</span></span>
+              <span>до <span>8 000 ₽</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Материал</div>
+          <div class="filter-check checked">
+            <div class="filter-check__box"></div>
+            Серебро 925
+            <span class="filter-check__count">84</span>
+          </div>
+          <div class="filter-check checked">
+            <div class="filter-check__box"></div>
+            Позолота 24K
+            <span class="filter-check__count">62</span>
+          </div>
+          <div class="filter-check">
+            <div class="filter-check__box"></div>
+            Нержавеющая сталь
+            <span class="filter-check__count">41</span>
+          </div>
+          <div class="filter-check">
+            <div class="filter-check__box"></div>
+            Латунь
+            <span class="filter-check__count">29</span>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Камень</div>
+          <div class="filter-check">
+            <div class="filter-check__box"></div>
+            Кристалл Swarovski
+            <span class="filter-check__count">56</span>
+          </div>
+          <div class="filter-check checked">
+            <div class="filter-check__box"></div>
+            Лунный камень
+            <span class="filter-check__count">33</span>
+          </div>
+          <div class="filter-check">
+            <div class="filter-check__box"></div>
+            Жемчуг
+            <span class="filter-check__count">28</span>
+          </div>
+          <div class="filter-check">
+            <div class="filter-check__box"></div>
+            Без камня
+            <span class="filter-check__count">71</span>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__label">Наличие</div>
+          <div class="filter-tags">
+            <button class="filter-tag active">В наличии</button>
+            <button class="filter-tag">Под заказ</button>
+          </div>
+        </div>
+
+        <button class="btn btn-gold" style="width:100%;margin-top:8px">Применить</button>
+      </aside>
+
+      <!-- Main -->
+      <div class="catalog-main">
+        <div class="catalog-toolbar">
+          <div class="catalog-toolbar__info">
+            Найдено: <strong>147</strong> украшений
+          </div>
+          <div class="catalog-toolbar__right">
+            <select class="sort-select">
+              <option>По популярности</option>
+              <option>Сначала дешевле</option>
+              <option>Сначала дороже</option>
+              <option>Новинки</option>
+            </select>
+            <div class="view-toggle">
+              <button class="view-toggle-btn active ico-grid"></button>
+              <button class="view-toggle-btn ico-list"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="catalog-grid">
+
+          <div class="product-card">
+            <div class="product-card__img">
+              <div class="product-card__img-inner">💎</div>
+              <span class="product-card__badge">Хит</span>
+              <button class="product-card__wish">♡</button>
+            </div>
+            <div class="product-card__body">
+              <div class="product-card__cat">Чокер</div>
+              <div class="product-card__name">Midnight Crystal</div>
+              <div class="product-card__material">Серебро 925 + Swarovski</div>
+              <div class="product-card__footer">
+                <div><span class="product-card__price">2 490 ₽</span><span class="product-card__price-old">3 200 ₽</span></div>
+                <button class="product-card__cart-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-card__img">
+              <div class="product-card__img-inner">📿</div>
+              <button class="product-card__wish">♡</button>
+            </div>
+            <div class="product-card__body">
+              <div class="product-card__cat">Колье</div>
+              <div class="product-card__name">Golden Moon</div>
+              <div class="product-card__material">Позолота 24K</div>
+              <div class="product-card__footer">
+                <div><span class="product-card__price">3 890 ₽</span></div>
+                <button class="product-card__cart-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-card__img">
+              <div class="product-card__img-inner">🌙</div>
+              <span class="product-card__badge" style="background:#e74c3c">−30%</span>
+              <button class="product-card__wish">♡</button>
+            </div>
+            <div class="product-card__body">
+              <div class="product-card__cat">Браслет</div>
+              <div class="product-card__name">Luna Eclipse</div>
+              <div class="product-card__material">Серебро 925 + лунный камень</div>
+              <div class="product-card__footer">
+                <div><span class="product-card__price">1 750 ₽</span><span class="product-card__price-old">2 490 ₽</span></div>
+                <button class="product-card__cart-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-card__img">
+              <div class="product-card__img-inner">✨</div>
+              <button class="product-card__wish">♡</button>
+            </div>
+            <div class="product-card__body">
+              <div class="product-card__cat">Серьги</div>
+              <div class="product-card__name">Star Dust</div>
+              <div class="product-card__material">Позолота + жемчуг</div>
+              <div class="product-card__footer">
+                <div><span class="product-card__price">2 190 ₽</span></div>
+                <button class="product-card__cart-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-card__img">
+              <div class="product-card__img-inner">💫</div>
+              <span class="product-card__badge">Новинка</span>
+              <button class="product-card__wish">♡</button>
+            </div>
+            <div class="product-card__body">
+              <div class="product-card__cat">Чокер</div>
+              <div class="product-card__name">Aurora Borealis</div>
+              <div class="product-card__material">Серебро 925 + лазурит</div>
+              <div class="product-card__footer">
+                <div><span class="product-card__price">4 200 ₽</span></div>
+                <button class="product-card__cart-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-card">
+            <div class="product-card__img">
+              <div class="product-card__img-inner">🌟</div>
+              <button class="product-card__wish">♡</button>
+            </div>
+            <div class="product-card__body">
+              <div class="product-card__cat">Серьги</div>
+              <div class="product-card__name">Celeste Drop</div>
+              <div class="product-card__material">Нержавеющая сталь + хрусталь</div>
+              <div class="product-card__footer">
+                <div><span class="product-card__price">1 490 ₽</span></div>
+                <button class="product-card__cart-btn">+</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="pagination">
+          <button class="page-btn">‹</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">…</button>
+          <button class="page-btn">12</button>
+          <button class="page-btn">›</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__bottom" style="padding-top:0;border-top:none">
+        <div>© 2025 AM Chokers</div>
+        <div class="footer__payment">
+          <span class="payment-badge">Visa</span>
+          <span class="payment-badge">МИР</span>
+          <span class="payment-badge">СБП</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div><!-- /catalog -->
+
+
+<!-- ============================================================
+     PAGE: PRODUCT
+     ============================================================ -->
+<div id="product" class="page">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="#">Главная</a>
+      <span>›</span>
+      <a href="#">Каталог</a>
+      <span>›</span>
+      <a href="#">Чокеры</a>
+      <span>›</span>
+      <span>Midnight Crystal</span>
+    </div>
+
+    <div class="product-layout">
+
+      <!-- Gallery -->
+      <div class="product-gallery">
+        <div class="product-gallery__thumbs">
+          <div class="gallery-thumb active">💎</div>
+          <div class="gallery-thumb">📿</div>
+          <div class="gallery-thumb">✨</div>
+          <div class="gallery-thumb">🌙</div>
+        </div>
+        <div class="product-gallery__main">
+          💎
+          <div class="product-gallery__badge">
+            <span class="product-card__badge">Хит продаж</span>
+          </div>
+          <div class="product-gallery__actions">
+            <button class="gallery-action-btn"><span class="ico-zoom"></span></button>
+            <button class="gallery-action-btn">♡</button>
+            <button class="gallery-action-btn"><span class="ico-share"></span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="product-info">
+        <div class="product-info__brand">AM Chokers</div>
+        <h1 class="product-info__title">Midnight Crystal</h1>
+        <div class="product-info__subtitle">Чокер с кристаллом Swarovski, серебро 925</div>
+
+        <div class="product-info__rating">
+          <div class="stars">★★★★★</div>
+          <span class="rating-num">4.9 (128 отзывов)</span>
+        </div>
+
+        <div class="product-info__price-block">
+          <div class="product-info__price">2 490 ₽</div>
+          <div class="product-info__price-old">3 200 ₽</div>
+          <div class="product-info__discount">−22%</div>
+        </div>
+
+        <div class="size-group">
+          <div class="size-group__label">
+            Длина цепочки
+            <a href="#">Таблица размеров</a>
+          </div>
+          <div class="size-options">
+            <div class="size-option">35 см</div>
+            <div class="size-option active">38 см</div>
+            <div class="size-option">40 см</div>
+            <div class="size-option">42 см</div>
+            <div class="size-option disabled">45 см</div>
+          </div>
+        </div>
+
+        <div class="color-group">
+          <div class="size-group__label">Цвет металла</div>
+          <div class="color-options">
+            <div class="color-swatch swatch-silver active" title="Серебро"></div>
+            <div class="color-swatch swatch-gold" title="Позолота"></div>
+            <div class="color-swatch swatch-rose" title="Розовое золото"></div>
+            <div class="color-swatch swatch-dark" title="Чёрный родий"></div>
+          </div>
+        </div>
+
+        <div class="add-to-cart">
+          <div class="qty-control">
+            <button class="qty-btn"><span class="ico-minus"></span></button>
+            <div class="qty-value">1</div>
+            <button class="qty-btn"><span class="ico-plus"></span></button>
+          </div>
+          <button class="btn btn-gold" style="flex:1">В корзину</button>
+          <button class="btn btn-outline" style="padding:12px 16px">♡</button>
+        </div>
+
+        <div class="product-meta">
+          <div class="product-meta__item">
+            <div class="product-meta__key">Материал</div>
+            <div class="product-meta__val">Серебро 925</div>
+          </div>
+          <div class="product-meta__item">
+            <div class="product-meta__key">Камень</div>
+            <div class="product-meta__val">Кристалл Swarovski</div>
+          </div>
+          <div class="product-meta__item">
+            <div class="product-meta__key">Застёжка</div>
+            <div class="product-meta__val">Карабин с продлением</div>
+          </div>
+          <div class="product-meta__item">
+            <div class="product-meta__key">В наличии</div>
+            <div class="product-meta__val" style="color:#27ae60">✓ Есть (7 шт.)</div>
+          </div>
+        </div>
+
+        <div class="product-tabs">
+          <div class="product-tabs__nav">
+            <button class="product-tabs__btn active">Описание</button>
+            <button class="product-tabs__btn">Характеристики</button>
+            <button class="product-tabs__btn">Отзывы (128)</button>
+            <button class="product-tabs__btn">Доставка</button>
+          </div>
+          <div class="product-tabs__content">
+            Изящный чокер «Midnight Crystal» создан вручную из серебра 925 пробы.
+            Центральный элемент — бесцветный кристалл Swarovski в ажурной оправе —
+            отражает свет, создавая эффект рассыпанных звёзд на коже.
+            <br><br>
+            Регулируемая длина позволяет носить украшение как традиционный чокер
+            или более свободное колье. Идеально сочетается с открытыми нарядами
+            и вечерними платьями.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /product -->
+
+
+<!-- ============================================================
+     PAGE: ACCOUNT
+     ============================================================ -->
+<div id="account" class="page">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="#">Главная</a>
+      <span>›</span>
+      <span>Личный кабинет</span>
+    </div>
+
+    <div class="account-layout">
+
+      <!-- Sidebar -->
+      <aside class="account-sidebar">
+        <div class="account-sidebar__user">
+          <div class="account-avatar">👤</div>
+          <div class="account-sidebar__name">Анна Петрова</div>
+          <div class="account-sidebar__email">anna@example.com</div>
+        </div>
+
+        <nav class="account-menu">
+          <div class="account-menu__item active">
+            <span class="account-menu__icon">📋</span>
+            Мои заказы
+            <span class="account-menu__badge">2</span>
+          </div>
+          <div class="account-menu__item">
+            <span class="account-menu__icon">♡</span>
+            Избранное
+          </div>
+          <div class="account-menu__item">
+            <span class="account-menu__icon">◉</span>
+            Профиль
+          </div>
+          <div class="account-menu__item">
+            <span class="account-menu__icon">🛍</span>
+            Адреса доставки
+          </div>
+          <div class="account-menu__item">
+            <span class="account-menu__icon">🔔</span>
+            Уведомления
+          </div>
+          <div class="account-menu__item" style="margin-top:16px;border-top:1px solid var(--border-dim);padding-top:20px;color:var(--text-dim)">
+            <span class="account-menu__icon ico-logout"></span>
+            Выйти
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <div class="account-main">
+
+        <div class="account-card">
+          <div class="account-card__header">
+            <div class="account-card__title">История заказов</div>
+            <button class="btn btn-ghost btn-sm">Все заказы</button>
+          </div>
+          <div class="account-card__body" style="padding:0">
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Заказ</th>
+                  <th>Дата</th>
+                  <th>Состав</th>
+                  <th>Сумма</th>
+                  <th>Статус</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:var(--gold)">#AM-2847</td>
+                  <td>15 марта 2025</td>
+                  <td>Midnight Crystal × 1</td>
+                  <td style="color:var(--text)">2 490 ₽</td>
+                  <td><span class="order-status status-delivered">✓ Получен</span></td>
+                  <td><a href="#" style="color:var(--gold);font-size:13px">Повторить</a></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--gold)">#AM-2901</td>
+                  <td>18 марта 2025</td>
+                  <td>Luna Eclipse × 2, Star Dust × 1</td>
+                  <td style="color:var(--text)">5 530 ₽</td>
+                  <td><span class="order-status status-shipped">✈ В пути</span></td>
+                  <td><a href="#" style="color:var(--gold);font-size:13px">Отследить</a></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--gold)">#AM-2934</td>
+                  <td>20 марта 2025</td>
+                  <td>Golden Moon × 1</td>
+                  <td style="color:var(--text)">3 890 ₽</td>
+                  <td><span class="order-status status-processing">⟳ Обрабатывается</span></td>
+                  <td><a href="#" style="color:var(--gold);font-size:13px">Детали</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="account-card">
+          <div class="account-card__header">
+            <div class="account-card__title">Данные профиля</div>
+            <button class="btn btn-ghost btn-sm">Редактировать</button>
+          </div>
+          <div class="account-card__body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Имя</label>
+                <input type="text" class="form-input" value="Анна" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Фамилия</label>
+                <input type="text" class="form-input" value="Петрова" readonly>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" value="anna@example.com" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Телефон</label>
+                <input type="tel" class="form-input" value="+7 (999) 123-45-67" readonly>
+              </div>
+            </div>
+            <div class="form-row" style="grid-template-columns:1fr;margin-bottom:0">
+              <div class="form-group">
+                <label class="form-label">День рождения</label>
+                <input type="text" class="form-input" placeholder="Не указано" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" style="margin-top:40px">
+    <div class="container">
+      <div class="footer__bottom" style="padding-top:0;border-top:none">
+        <div>© 2025 AM Chokers</div>
+      </div>
+    </div>
+  </footer>
+</div><!-- /account -->
+
+
+<!-- Mobile nav -->
+<nav class="mobile-nav">
+  <div class="mobile-nav__items">
+    <div class="mobile-nav__item active" onclick="showPage('home')">
+      <span style="font-size:22px">⌂</span>
+      <span>Главная</span>
+    </div>
+    <div class="mobile-nav__item" onclick="showPage('catalog')">
+      <span style="font-size:22px">◫</span>
+      <span>Каталог</span>
+    </div>
+    <div class="mobile-nav__item" onclick="showPage('product')">
+      <span style="font-size:22px">💎</span>
+      <span>Товар</span>
+    </div>
+    <div class="mobile-nav__item">
+      <span style="font-size:22px">♡</span>
+      <span>Избранное</span>
+    </div>
+    <div class="mobile-nav__item" onclick="showPage('account')">
+      <span style="font-size:22px">👤</span>
+      <span>Кабинет</span>
+    </div>
+  </div>
+</nav>
+
+<script>
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    document.querySelectorAll('.demo-nav button').forEach(b => b.classList.remove('active'));
+    const map = { home: 0, catalog: 1, product: 2, account: 3 };
+    const btns = document.querySelectorAll('.demo-nav button');
+    if (btns[map[name]]) btns[map[name]].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>

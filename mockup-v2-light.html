@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM Chokers — Light Style Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd@5.19.4/dist/reset.css">
+<style>
+/* ── TOKENS ── */
+:root {
+  --cream:     #faf7f2;
+  --cream-d:   #f2ede4;
+  --white:     #ffffff;
+  --gold:      #c9a84c;
+  --gold-d:    #a8883a;
+  --gold-l:    #e8c96b;
+  --gold-bg:   rgba(201,168,76,0.09);
+  --gold-bdr:  rgba(201,168,76,0.28);
+  --ink:       #1c1917;
+  --ink-m:     #57534e;
+  --ink-l:     #a8a29e;
+  --bdr:       #e7e0d5;
+  --bdr-l:     #f0ebe3;
+  --shadow:    rgba(28,25,23,0.08);
+  --shadow-g:  rgba(201,168,76,0.15);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: Oswald, 'Segoe UI', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  letter-spacing: .3px;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ── SPINNER (из spinner.scss, светлая палитра) ── */
+.inner-circles-loader:not(:required) {
+  position: relative; display: inline-block;
+  width: 64px; height: 64px;
+  background: var(--gold-bg); border-radius: 50%; overflow: hidden; text-indent: -9999px;
+  -webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
+}
+.inner-circles-loader:not(:required):before,
+.inner-circles-loader:not(:required):after {
+  content: ''; position: absolute; top: 0;
+  display: inline-block; width: 64px; height: 64px; border-radius: 50%;
+}
+.inner-circles-loader:not(:required):before {
+  animation: icl 3s infinite; transform-origin: 0 50%; left: 0;
+  background: var(--gold);
+}
+.inner-circles-loader:not(:required):after {
+  animation: icl 3s .2s reverse infinite; transform-origin: 100% 50%; right: 0;
+  background: rgba(201,168,76,0.35);
+}
+@keyframes icl {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ── LOADING SCREEN ── */
+#lm-load {
+  position: fixed; inset: 0; background: var(--cream);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; z-index: 9999; transition: opacity .4s;
+}
+#lm-load-brand {
+  font-family: Oswald, sans-serif; font-weight: 300; font-size: 22px;
+  letter-spacing: 8px; text-transform: uppercase; color: var(--ink-m);
+}
+
+/* ── PAGE SWITCHER ── */
+.lm-page { display: none; }
+.lm-page.active { display: block; }
+
+/* ── NAV ── */
+.lm-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--bdr);
+  box-shadow: 0 2px 16px var(--shadow);
+}
+.lm-nav-inner {
+  max-width: 1320px; margin: 0 auto;
+  display: flex; align-items: center;
+  padding: 0 32px; height: 68px;
+  gap: 0;
+}
+.lm-nav-logo {
+  font-family: Oswald, sans-serif; font-weight: 500; font-size: 20px;
+  letter-spacing: 5px; text-transform: uppercase; color: var(--ink);
+  flex: 0 0 auto; margin-right: 48px;
+}
+.lm-nav-logo span { color: var(--gold); }
+.lm-nav-links {
+  display: flex; gap: 0; flex: 1;
+}
+.lm-nav-link {
+  padding: 0 16px; height: 68px; display: flex; align-items: center;
+  font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 400;
+  color: var(--ink-m); cursor: pointer; transition: color .2s;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.lm-nav-link:hover, .lm-nav-link.active { color: var(--ink); border-bottom-color: var(--gold); }
+.lm-nav-actions {
+  display: flex; align-items: center; gap: 8px; flex: 0 0 auto;
+}
+.lm-nav-icon-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--ink-m); font-size: 17px; transition: background .2s, color .2s;
+}
+.lm-nav-icon-btn:hover { background: var(--cream-d); color: var(--ink); }
+.lm-nav-badge {
+  position: relative; display: inline-flex;
+}
+.lm-nav-badge-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gold); border: 2px solid var(--white);
+}
+
+/* ── PROMO BANNER ── */
+.lm-promo-bar {
+  background: var(--gold); color: var(--white);
+  text-align: center; padding: 9px 16px;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 400;
+}
+
+/* ── HERO (split layout) ── */
+.lm-hero {
+  max-width: 1320px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; min-height: 560px; align-items: center;
+  padding: 64px 32px;
+}
+.lm-hero-text { padding-right: 64px; }
+.lm-hero-eyebrow {
+  font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold); font-weight: 400; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.lm-hero-eyebrow::before {
+  content: ''; display: inline-block;
+  width: 32px; height: 1px; background: var(--gold);
+}
+.lm-hero-h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 62px; font-weight: 500; line-height: 1.1;
+  color: var(--ink); margin: 0 0 20px;
+}
+.lm-hero-h1 em { color: var(--gold); font-style: italic; }
+.lm-hero-sub {
+  font-family: Oswald, sans-serif; font-weight: 200;
+  font-size: 15px; letter-spacing: 1px; color: var(--ink-m); margin-bottom: 36px;
+  line-height: 1.6; max-width: 380px;
+}
+.lm-hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.lm-hero-visual {
+  position: relative; display: flex; align-items: center; justify-content: center;
+}
+.lm-hero-img-wrap {
+  width: 420px; height: 480px; border-radius: 24px;
+  background: linear-gradient(145deg, #ede8df 0%, #d8d0c4 100%);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  box-shadow: 0 32px 80px var(--shadow), 0 0 0 1px var(--bdr);
+}
+.lm-hero-img-placeholder {
+  font-family: 'Cormorant Garamond', serif; font-size: 18px; font-style: italic;
+  color: var(--ink-l); text-align: center; line-height: 1.8;
+}
+.lm-hero-badge-float {
+  position: absolute; bottom: 28px; left: -28px;
+  background: var(--white); border-radius: 14px;
+  padding: 12px 18px; box-shadow: 0 8px 32px var(--shadow);
+  display: flex; align-items: center; gap: 12px;
+}
+.lm-hero-badge-icon { font-size: 24px; }
+.lm-hero-badge-text { font-size: 11px; letter-spacing: 1px; color: var(--ink-m); }
+.lm-hero-badge-text strong { display: block; font-size: 13px; color: var(--ink); letter-spacing: .5px; }
+.lm-hero-dot-accent {
+  position: absolute; top: 40px; right: -16px;
+  width: 120px; height: 120px; border-radius: 50%;
+  border: 1.5px solid var(--gold-bdr);
+}
+
+/* ── TRUST STRIP ── */
+.lm-trust {
+  border-top: 1px solid var(--bdr); border-bottom: 1px solid var(--bdr);
+  background: var(--white); padding: 28px 32px;
+}
+.lm-trust-inner {
+  max-width: 1320px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.lm-trust-item {
+  display: flex; align-items: center; gap: 14px;
+}
+.lm-trust-icon { font-size: 26px; flex: 0 0 auto; }
+.lm-trust-label { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-m); }
+.lm-trust-label strong { display: block; font-size: 13px; color: var(--ink); margin-bottom: 2px; letter-spacing: .5px; }
+
+/* ── SECTION ── */
+.lm-section { padding: 72px 32px; max-width: 1320px; margin: 0 auto; }
+.lm-section-hd {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 40px;
+}
+.lm-section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 40px; font-weight: 500; color: var(--ink);
+  margin: 0 0 6px;
+}
+.lm-section-sub {
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); margin: 0;
+}
+
+/* ── PRODUCT CARD ── */
+.lm-prod-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+}
+.lm-prod-card {
+  background: var(--white); border-radius: 16px;
+  border: 1px solid var(--bdr-l); overflow: hidden;
+  transition: box-shadow .25s, transform .25s;
+  cursor: pointer;
+}
+.lm-prod-card:hover {
+  box-shadow: 0 16px 48px var(--shadow), 0 0 0 1.5px var(--gold-bdr);
+  transform: translateY(-4px);
+}
+.lm-prod-img {
+  height: 240px; background: var(--cream-d);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.lm-prod-img-ph {
+  font-family: 'Cormorant Garamond', serif; font-size: 14px;
+  font-style: italic; color: var(--ink-l); text-align: center;
+}
+.lm-prod-tag {
+  position: absolute; top: 12px; left: 12px;
+  background: var(--gold); color: var(--white);
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 4px;
+}
+.lm-prod-tag.new { background: var(--ink); }
+.lm-prod-tag.sale { background: #c0392b; }
+.lm-prod-wish {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%; background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; box-shadow: 0 2px 8px var(--shadow);
+  cursor: pointer; opacity: 0; transition: opacity .2s;
+}
+.lm-prod-card:hover .lm-prod-wish { opacity: 1; }
+.lm-prod-body { padding: 16px 18px 20px; }
+.lm-prod-name {
+  font-size: 13px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--ink); margin: 0 0 4px;
+}
+.lm-prod-mat {
+  font-size: 12px; color: var(--ink-l); letter-spacing: .5px; margin-bottom: 10px;
+}
+.lm-prod-footer { display: flex; align-items: center; justify-content: space-between; }
+.lm-prod-price { font-size: 16px; font-weight: 500; color: var(--ink); letter-spacing: .5px; }
+.lm-prod-price-old { font-size: 12px; color: var(--ink-l); text-decoration: line-through; margin-right: 6px; }
+.lm-prod-rating { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-l); }
+.lm-prod-stars { color: var(--gold); font-size: 11px; }
+
+/* ── COLLECTIONS BAND ── */
+.lm-collections {
+  background: var(--cream-d); padding: 72px 32px;
+}
+.lm-coll-inner { max-width: 1320px; margin: 0 auto; }
+.lm-coll-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px;
+}
+.lm-coll-card {
+  border-radius: 16px; overflow: hidden; position: relative;
+  height: 320px; cursor: pointer;
+  background: linear-gradient(135deg, #e8e0d4, #d5ccc0);
+  display: flex; align-items: flex-end;
+  transition: box-shadow .25s;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+.lm-coll-card:hover { box-shadow: 0 12px 40px rgba(28,25,23,0.18); }
+.lm-coll-card:nth-child(2) { background: linear-gradient(135deg, #c8b99a, #b5a487); }
+.lm-coll-card:nth-child(3) { background: linear-gradient(135deg, #ddd5c8, #c9bfb2); }
+.lm-coll-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(28,25,23,.7) 0%, transparent 55%);
+}
+.lm-coll-label {
+  position: relative; z-index: 1; padding: 24px;
+}
+.lm-coll-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500;
+  color: var(--white); margin: 0 0 4px;
+}
+.lm-coll-count { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.7); }
+
+/* ── BESTSELLER RIBBON ── */
+.lm-ribbon-wrap {
+  border-top: 1px solid var(--bdr); border-bottom: 1px solid var(--bdr);
+  background: var(--gold); padding: 14px 0; overflow: hidden;
+}
+.lm-ribbon-track {
+  display: flex; gap: 48px; white-space: nowrap;
+  animation: ribbon-scroll 22s linear infinite;
+}
+.lm-ribbon-item {
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--white); flex: 0 0 auto; display: flex; align-items: center; gap: 16px;
+}
+.lm-ribbon-item::before { content: '✦'; font-size: 8px; opacity: .7; }
+@keyframes ribbon-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ── CATALOG LAYOUT ── */
+.lm-catalog-wrap {
+  max-width: 1320px; margin: 0 auto; padding: 40px 32px;
+  display: grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: start;
+}
+.lm-sidebar {
+  background: var(--white); border-radius: 16px; border: 1px solid var(--bdr);
+  padding: 24px; position: sticky; top: 84px;
+}
+.lm-sidebar-title {
+  font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--ink-m); margin-bottom: 16px;
+}
+.lm-filter-block { margin-bottom: 28px; }
+.lm-filter-label {
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--ink); margin-bottom: 10px; font-weight: 400;
+}
+.lm-filter-chip {
+  display: inline-block; margin: 0 6px 6px 0;
+  border: 1px solid var(--bdr); border-radius: 20px;
+  padding: 5px 14px; font-size: 12px; letter-spacing: .5px;
+  color: var(--ink-m); cursor: pointer; transition: all .2s;
+}
+.lm-filter-chip:hover, .lm-filter-chip.sel {
+  background: var(--gold-bg); border-color: var(--gold); color: var(--gold-d);
+}
+.lm-color-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.lm-color-dot {
+  width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: border-color .2s;
+}
+.lm-color-dot:hover, .lm-color-dot.sel { border-color: var(--gold); }
+.lm-catalog-main {}
+.lm-catalog-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--bdr);
+}
+.lm-catalog-count { font-size: 13px; color: var(--ink-m); letter-spacing: .5px; }
+.lm-catalog-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+
+/* ── PRODUCT PAGE ── */
+.lm-product-wrap {
+  max-width: 1320px; margin: 0 auto; padding: 40px 32px;
+}
+.lm-product-grid {
+  display: grid; grid-template-columns: 1fr 480px; gap: 64px; align-items: start;
+}
+.lm-product-gallery { display: flex; gap: 12px; }
+.lm-product-thumbs { display: flex; flex-direction: column; gap: 10px; }
+.lm-product-thumb {
+  width: 76px; height: 76px; border-radius: 10px;
+  background: var(--cream-d); border: 2px solid var(--bdr);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: var(--ink-l); text-align: center;
+  transition: border-color .2s;
+}
+.lm-product-thumb.active { border-color: var(--gold); }
+.lm-product-main-img {
+  flex: 1; border-radius: 16px; overflow: hidden;
+  background: var(--cream-d); aspect-ratio: 3/4;
+  display: flex; align-items: center; justify-content: center;
+}
+.lm-product-info {}
+.lm-product-breadcrumb { font-size: 12px; color: var(--ink-l); margin-bottom: 16px; letter-spacing: .5px; }
+.lm-product-breadcrumb span { color: var(--gold-d); }
+.lm-product-name {
+  font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 500;
+  line-height: 1.15; color: var(--ink); margin: 0 0 8px;
+}
+.lm-product-sku { font-size: 11px; letter-spacing: 2px; color: var(--ink-l); margin-bottom: 18px; }
+.lm-product-rating-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.lm-product-price-row { margin-bottom: 28px; }
+.lm-product-price-new { font-size: 32px; font-weight: 500; color: var(--ink); }
+.lm-product-price-old { font-size: 16px; color: var(--ink-l); text-decoration: line-through; margin-left: 12px; }
+.lm-product-option-label {
+  font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--ink-m); margin-bottom: 10px;
+}
+.lm-product-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+.lm-product-opt-btn {
+  border: 1.5px solid var(--bdr); border-radius: 8px; padding: 8px 20px;
+  font-size: 13px; color: var(--ink-m); cursor: pointer; background: none;
+  transition: all .2s; letter-spacing: .5px;
+}
+.lm-product-opt-btn.active { border-color: var(--gold); color: var(--ink); background: var(--gold-bg); }
+.lm-product-add-row { display: flex; gap: 12px; margin-bottom: 28px; }
+.lm-product-qty {
+  display: flex; align-items: center; border: 1.5px solid var(--bdr); border-radius: 10px; overflow: hidden;
+}
+.lm-product-qty-btn {
+  width: 40px; height: 48px; border: none; background: none; cursor: pointer;
+  font-size: 18px; color: var(--ink-m); transition: background .2s;
+}
+.lm-product-qty-btn:hover { background: var(--cream-d); }
+.lm-product-qty-val { width: 44px; text-align: center; font-size: 15px; }
+.lm-product-guarantee {
+  background: var(--gold-bg); border: 1px solid var(--gold-bdr); border-radius: 12px;
+  padding: 14px 18px; display: flex; align-items: center; gap: 12px;
+  font-size: 12px; color: var(--ink-m); letter-spacing: .5px;
+}
+.lm-product-guarantee-icon { font-size: 22px; }
+.lm-product-tabs { margin-top: 56px; }
+
+/* ── ACCOUNT PAGE ── */
+.lm-account-wrap {
+  max-width: 1320px; margin: 0 auto; padding: 40px 32px;
+  display: grid; grid-template-columns: 240px 1fr; gap: 32px;
+}
+.lm-acc-sidebar {
+  background: var(--white); border-radius: 16px; border: 1px solid var(--bdr); padding: 28px;
+}
+.lm-acc-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-l), var(--gold-d));
+  margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; color: var(--white);
+}
+.lm-acc-name { text-align: center; font-size: 15px; font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
+.lm-acc-email { text-align: center; font-size: 12px; color: var(--ink-l); margin-bottom: 24px; letter-spacing: .5px; }
+.lm-acc-divider { height: 1px; background: var(--bdr); margin-bottom: 16px; }
+.lm-acc-menu-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: 10px; cursor: pointer; font-size: 13px; letter-spacing: .5px;
+  color: var(--ink-m); transition: all .2s; margin-bottom: 2px;
+}
+.lm-acc-menu-item:hover { background: var(--cream-d); color: var(--ink); }
+.lm-acc-menu-item.active { background: var(--gold-bg); color: var(--gold-d); }
+.lm-acc-content { display: flex; flex-direction: column; gap: 24px; }
+.lm-acc-card {
+  background: var(--white); border-radius: 16px; border: 1px solid var(--bdr); padding: 28px;
+}
+.lm-acc-card-title {
+  font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink);
+  margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--bdr);
+}
+.lm-order-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid var(--bdr-l);
+}
+.lm-order-row:last-child { border-bottom: none; }
+.lm-order-id { font-size: 12px; letter-spacing: 1.5px; color: var(--ink-m); }
+.lm-order-date { font-size: 12px; color: var(--ink-l); }
+.lm-order-amount { font-size: 14px; font-weight: 500; }
+
+/* ── FOOTER ── */
+.lm-footer {
+  background: var(--ink); color: rgba(255,255,255,.7);
+  padding: 56px 32px 32px;
+}
+.lm-footer-inner { max-width: 1320px; margin: 0 auto; }
+.lm-footer-grid {
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px;
+  margin-bottom: 48px;
+}
+.lm-footer-brand {
+  font-family: Oswald, sans-serif; font-weight: 500; font-size: 18px;
+  letter-spacing: 5px; text-transform: uppercase; color: var(--white); margin-bottom: 12px;
+}
+.lm-footer-brand span { color: var(--gold); }
+.lm-footer-desc { font-size: 13px; line-height: 1.8; color: rgba(255,255,255,.5); margin-bottom: 20px; }
+.lm-footer-socials { display: flex; gap: 10px; }
+.lm-footer-soc {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer; transition: border-color .2s;
+}
+.lm-footer-soc:hover { border-color: var(--gold); }
+.lm-footer-col-title {
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 16px;
+}
+.lm-footer-link {
+  display: block; font-size: 13px; color: rgba(255,255,255,.55);
+  margin-bottom: 10px; cursor: pointer; transition: color .2s;
+}
+.lm-footer-link:hover { color: var(--white); }
+.lm-footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.08); padding-top: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: rgba(255,255,255,.35); letter-spacing: .5px;
+}
+
+/* ── MOBILE NAV ── */
+.lm-mobile-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--white); border-top: 1px solid var(--bdr);
+  padding: 8px 0 12px; z-index: 200;
+  justify-content: space-around;
+}
+.lm-mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-l); cursor: pointer; padding: 4px 16px;
+}
+.lm-mobile-nav-item.active { color: var(--gold-d); }
+.lm-mobile-nav-icon { font-size: 20px; }
+
+/* ── MOBILE FILTER BAR ── */
+.lm-mobile-filter-bar { display: none; }
+.lm-sidebar-desktop  { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .lm-prod-grid { grid-template-columns: repeat(3, 1fr); }
+  .lm-hero { grid-template-columns: 1fr; padding: 40px 20px; }
+  .lm-hero-text { padding-right: 0; margin-bottom: 40px; }
+  .lm-hero-h1 { font-size: 44px; }
+  .lm-hero-visual { justify-content: flex-start; }
+}
+@media (max-width: 768px) {
+  body { padding-bottom: 72px; }
+  .lm-nav-links { display: none; }
+  .lm-mobile-nav { display: flex; }
+  .lm-mobile-filter-bar { display: block !important; }
+  .lm-sidebar-desktop { display: none !important; }
+  .lm-catalog-wrap { grid-template-columns: 1fr; }
+  .lm-prod-grid, .lm-catalog-grid { grid-template-columns: repeat(2, 1fr); }
+  .lm-coll-grid { grid-template-columns: 1fr; }
+  .lm-trust-inner { grid-template-columns: repeat(2, 1fr); }
+  .lm-footer-grid { grid-template-columns: 1fr 1fr; }
+  .lm-product-grid { grid-template-columns: 1fr; }
+  .lm-account-wrap { grid-template-columns: 1fr; }
+  .lm-hero-img-wrap { width: 100%; }
+  .lm-section { padding: 40px 16px; }
+  .lm-catalog-topbar { flex-wrap: wrap; gap: 10px; }
+  .lm-product-gallery { flex-direction: column; }
+  .lm-product-thumbs { flex-direction: row; }
+  .lm-product-thumb { width: 60px; height: 60px; }
+}
+@media (max-width: 480px) {
+  .lm-prod-grid, .lm-catalog-grid { grid-template-columns: 1fr; }
+  .lm-footer-grid { grid-template-columns: 1fr; }
+  .lm-hero-h1 { font-size: 36px; }
+  .lm-product-add-row { flex-wrap: wrap; }
+  .lm-acc-sidebar { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="lm-load">
+  <span class="inner-circles-loader">Loading...</span>
+  <div id="lm-load-brand">AM · CHOKERS</div>
+</div>
+
+<div id="root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/antd@5.19.4/dist/antd.min.js" crossorigin="anonymous"></script>
+
+<script>
+var h = React.createElement;
+
+var ConfigProvider = antd.ConfigProvider;
+var Layout         = antd.Layout;
+var Button         = antd.Button;
+var Card           = antd.Card;
+var Row            = antd.Row;
+var Col            = antd.Col;
+var Typography     = antd.Typography;
+var Rate           = antd.Rate;
+var Badge          = antd.Badge;
+var Tag            = antd.Tag;
+var Breadcrumb     = antd.Breadcrumb;
+var Table          = antd.Table;
+var Form           = antd.Form;
+var Input          = antd.Input;
+var Select         = antd.Select;
+var Slider         = antd.Slider;
+var Tabs           = antd.Tabs;
+var Divider        = antd.Divider;
+var Collapse       = antd.Collapse;
+var Pagination     = antd.Pagination;
+var Steps          = antd.Steps;
+var Checkbox       = antd.Checkbox;
+var Radio          = antd.Radio;
+var Space          = antd.Space;
+var Drawer         = antd.Drawer;
+var Tooltip        = antd.Tooltip;
+var theme          = antd.theme;
+
+var Title = Typography.Title;
+var Text  = Typography.Text;
+var Para  = Typography.Paragraph;
+
+// ── THEME ────────────────────────────────────────────────────────────────────
+// → src/themes/v2-light/theme.ts
+var LM_THEME = {
+  algorithm: theme.defaultAlgorithm,
+  token: {
+    colorPrimary:        '#c9a84c',
+    colorPrimaryHover:   '#a8883a',
+    colorBgContainer:    '#ffffff',
+    colorBgLayout:       '#faf7f2',
+    colorText:           '#1c1917',
+    colorTextSecondary:  '#57534e',
+    colorBorder:         '#e7e0d5',
+    colorBorderSecondary:'#f0ebe3',
+    borderRadius:        10,
+    fontFamily:          "Oswald, 'Segoe UI', sans-serif",
+    fontSize:            14,
+    boxShadow:           '0 4px 20px rgba(28,25,23,0.08)',
+  },
+  components: {
+    Button: {
+      colorPrimary:       '#c9a84c',
+      colorPrimaryHover:  '#a8883a',
+      primaryColor:       '#ffffff',
+      borderRadius:       8,
+      fontWeight:         400,
+      letterSpacing:      '2px',
+    },
+    Card: {
+      borderRadius:       16,
+      boxShadow:          'none',
+    },
+    Menu: {
+      itemColor:          '#57534e',
+      itemHoverColor:     '#1c1917',
+      itemSelectedColor:  '#c9a84c',
+      itemSelectedBg:     'rgba(201,168,76,0.09)',
+      itemBg:             'transparent',
+    },
+    Input: {
+      colorBgContainer:   '#ffffff',
+      borderRadius:       8,
+    },
+    Select: {
+      colorBgContainer:   '#ffffff',
+      borderRadius:       8,
+    },
+    Slider: {
+      colorPrimary:       '#c9a84c',
+      handleColor:        '#c9a84c',
+      trackBg:            '#c9a84c',
+    },
+    Tabs: {
+      inkBarColor:        '#c9a84c',
+      itemSelectedColor:  '#1c1917',
+      itemHoverColor:     '#1c1917',
+    },
+    Rate: {
+      starColor: '#c9a84c',
+    },
+    Tag: {
+      borderRadius: 4,
+    },
+    Pagination: {
+      colorPrimary: '#c9a84c',
+    },
+    Steps: {
+      colorPrimary: '#c9a84c',
+    },
+  }
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+var PRODUCTS = [
+  { id:1, cat:'Чокеры',   name:'Чокер «Луна»',      mat:'Серебро 925', price:3200, oldPrice:4100, rating:4.8, reviews:124, tag:'sale', isNew:false },
+  { id:2, cat:'Колье',    name:'Колье «Роса»',       mat:'Позолота',    price:2800, oldPrice:null, rating:4.9, reviews:87,  tag:'new',  isNew:true  },
+  { id:3, cat:'Чокеры',   name:'Чокер «Звезда»',     mat:'Серебро 925', price:4500, oldPrice:null, rating:4.7, reviews:56,  tag:null,   isNew:false },
+  { id:4, cat:'Браслеты', name:'Браслет «Нежность»',  mat:'Позолота',    price:2100, oldPrice:2600, rating:4.6, reviews:203, tag:'sale', isNew:false },
+  { id:5, cat:'Колье',    name:'Колье «Орхидея»',     mat:'Серебро 925', price:5900, oldPrice:null, rating:5.0, reviews:34,  tag:'new',  isNew:true  },
+  { id:6, cat:'Чокеры',   name:'Чокер «Минимал»',     mat:'Сталь',       price:1600, oldPrice:null, rating:4.5, reviews:178, tag:null,   isNew:false },
+  { id:7, cat:'Кольца',   name:'Кольцо «Вечность»',   mat:'Серебро 925', price:2400, oldPrice:null, rating:4.8, reviews:92,  tag:null,   isNew:false },
+  { id:8, cat:'Чокеры',   name:'Чокер «Vintage»',     mat:'Позолота',    price:3800, oldPrice:4800, rating:4.9, reviews:61,  tag:'sale', isNew:false },
+];
+
+var RIBBON_ITEMS = [
+  'Бесплатная доставка от 4000 ₽',
+  'Ручная работа',
+  'Серебро 925 пробы',
+  'Возврат 30 дней',
+  'Сертифицировано',
+  'Новые коллекции каждый месяц',
+  'Бесплатная доставка от 4000 ₽',
+  'Ручная работа',
+  'Серебро 925 пробы',
+  'Возврат 30 дней',
+  'Сертифицировано',
+  'Новые коллекции каждый месяц',
+];
+
+function fmtPrice(p) { return p.toLocaleString('ru-RU') + ' ₽'; }
+
+// ── PRODUCT CARD ─────────────────────────────────────────────────────────────
+function ProdCard(p) {
+  var tagEl = p.tag
+    ? h('div', { className: 'lm-prod-tag ' + (p.tag === 'new' ? 'new' : p.tag === 'sale' ? 'sale' : '') },
+        p.tag === 'new' ? 'НОВИНКА' : p.tag === 'sale' ? 'СКИДКА' : p.tag.toUpperCase())
+    : null;
+
+  return h('div', { className: 'lm-prod-card' },
+    h('div', { className: 'lm-prod-img' },
+      h('div', { className: 'lm-prod-img-ph' }, '🪬\nФото украшения'),
+      tagEl,
+      h('div', { className: 'lm-prod-wish' }, '♡')
+    ),
+    h('div', { className: 'lm-prod-body' },
+      h('div', { className: 'lm-prod-name' }, p.name),
+      h('div', { className: 'lm-prod-mat' }, p.mat),
+      h('div', { className: 'lm-prod-footer' },
+        h('div', null,
+          p.oldPrice ? h('span', { className: 'lm-prod-price-old' }, fmtPrice(p.oldPrice)) : null,
+          h('span', { className: 'lm-prod-price' }, fmtPrice(p.price))
+        ),
+        h('div', { className: 'lm-prod-rating' },
+          h('span', { className: 'lm-prod-stars' }, '★ '),
+          p.rating,
+          h('span', null, ' (' + p.reviews + ')')
+        )
+      )
+    )
+  );
+}
+
+// ── NAV ──────────────────────────────────────────────────────────────────────
+function AppNav(props) {
+  var pages = ['home','catalog','product','account'];
+  var labels = { home:'Главная', catalog:'Каталог', product:'Товар', account:'Кабинет' };
+
+  return h('div', null,
+    h('div', { className: 'lm-promo-bar' }, '✦  БЕСПЛАТНАЯ ДОСТАВКА ПО ВСЕЙ РОССИИ ОТ 4000 ₽  ✦'),
+    h('nav', { className: 'lm-nav' },
+      h('div', { className: 'lm-nav-inner' },
+        h('div', { className: 'lm-nav-logo' }, 'AM', h('span', null, '·'), 'Chokers'),
+        h('div', { className: 'lm-nav-links' },
+          ['home','catalog'].map(function(pg) {
+            return h('div', {
+              key: pg,
+              className: 'lm-nav-link' + (props.page === pg ? ' active' : ''),
+              onClick: function() { props.setPage(pg); }
+            }, labels[pg]);
+          }),
+          h('div', { className: 'lm-nav-link' }, 'Украшения'),
+          h('div', { className: 'lm-nav-link' }, 'Наборы'),
+          h('div', { className: 'lm-nav-link' }, 'Новинки'),
+          h('div', { className: 'lm-nav-link' }, 'Акции')
+        ),
+        h('div', { className: 'lm-nav-actions' },
+          h(Button, { type:'text', size:'small', style:{ letterSpacing:'1px', fontSize:'12px' } }, '🔍'),
+          h('div', { className: 'lm-nav-badge' },
+            h('button', {
+              className: 'lm-nav-icon-btn',
+              onClick: function() { props.setPage('account'); }
+            }, '👤'),
+          ),
+          h('div', { className: 'lm-nav-badge' },
+            h('button', { className: 'lm-nav-icon-btn' }, '♡'),
+          ),
+          h('div', { className: 'lm-nav-badge' },
+            h('button', { className: 'lm-nav-icon-btn' }, '🛒'),
+            h('div', { className: 'lm-nav-badge-dot' })
+          ),
+          h(Button, {
+            type: 'primary', size: 'small',
+            style: { letterSpacing:'2px', fontSize:'11px', marginLeft:'4px' }
+          }, 'ВОЙТИ')
+        )
+      )
+    )
+  );
+}
+
+// ── RIBBON ───────────────────────────────────────────────────────────────────
+function RibbonBanner() {
+  return h('div', { className: 'lm-ribbon-wrap' },
+    h('div', { className: 'lm-ribbon-track' },
+      RIBBON_ITEMS.map(function(item, i) {
+        return h('span', { key: i, className: 'lm-ribbon-item' }, item);
+      })
+    )
+  );
+}
+
+// ── HOME PAGE ────────────────────────────────────────────────────────────────
+// → src/pages/index.tsx
+function HomePage(props) {
+  return h('div', null,
+
+    // ── Hero
+    h('div', { className: 'lm-hero' },
+      h('div', { className: 'lm-hero-text' },
+        h('div', { className: 'lm-hero-eyebrow' }, 'Новая коллекция 2025'),
+        h('h1', { className: 'lm-hero-h1' },
+          'Украшения,\nкоторые ', h('em', null, 'говорят\nза тебя')
+        ),
+        h('p', { className: 'lm-hero-sub' },
+          'Ручная работа. Серебро 925 пробы. Позолота 18 карат. Каждое украшение — маленький рассказ о тебе.'
+        ),
+        h('div', { className: 'lm-hero-actions' },
+          h(Button, {
+            type: 'primary', size: 'large',
+            style: { letterSpacing:'2.5px', fontFamily:'Oswald,sans-serif', fontSize:'12px', height:'48px', padding:'0 32px' },
+            onClick: function() { props.setPage('catalog'); }
+          }, 'СМОТРЕТЬ КАТАЛОГ'),
+          h(Button, {
+            size: 'large',
+            style: { letterSpacing:'2px', fontFamily:'Oswald,sans-serif', fontSize:'12px', height:'48px', padding:'0 28px', borderColor:'#e7e0d5' }
+          }, 'О НАС')
+        )
+      ),
+      h('div', { className: 'lm-hero-visual' },
+        h('div', { className: 'lm-hero-img-wrap' },
+          h('div', { className: 'lm-hero-img-placeholder' },
+            '📸\n\nФото модели\nс украшением'
+          )
+        ),
+        h('div', { className: 'lm-hero-dot-accent' }),
+        h('div', { className: 'lm-hero-badge-float' },
+          h('div', { className: 'lm-hero-badge-icon' }, '⭐'),
+          h('div', { className: 'lm-hero-badge-text' },
+            h('strong', null, '4.9 / 5.0'),
+            '2 400+ отзывов'
+          )
+        )
+      )
+    ),
+
+    // ── Trust strip
+    h('div', { className: 'lm-trust' },
+      h('div', { className: 'lm-trust-inner' },
+        [
+          { icon:'🚚', title:'Бесплатная\nдоставка',   sub:'от 4000 ₽' },
+          { icon:'🔄', title:'Возврат\n30 дней',       sub:'без вопросов' },
+          { icon:'💎', title:'Серебро\n925 пробы',     sub:'сертифицировано' },
+          { icon:'✉️', title:'Подарочная\nупаковка',   sub:'бесплатно' },
+        ].map(function(item, i) {
+          return h('div', { key: i, className: 'lm-trust-item' },
+            h('div', { className: 'lm-trust-icon' }, item.icon),
+            h('div', { className: 'lm-trust-label' },
+              h('strong', null, item.title),
+              item.sub
+            )
+          );
+        })
+      )
+    ),
+
+    // ── Bestsellers
+    h('div', { style:{ background:'#ffffff', padding:'0' } },
+      h('div', { className: 'lm-section' },
+        h('div', { className: 'lm-section-hd' },
+          h('div', null,
+            h('p', { className: 'lm-section-sub' }, 'Самые популярные'),
+            h('h2', { className: 'lm-section-title' }, 'Хиты продаж')
+          ),
+          h(Button, {
+            style: { letterSpacing:'2px', fontSize:'11px', borderColor:'#e7e0d5' },
+            onClick: function() { props.setPage('catalog'); }
+          }, 'ВСЕ УКРАШЕНИЯ →')
+        ),
+        h('div', { className: 'lm-prod-grid' },
+          PRODUCTS.slice(0, 4).map(function(p) {
+            return h('div', { key: p.id, onClick: function() { props.setPage('product'); } },
+              h(ProdCard, p)
+            );
+          })
+        )
+      )
+    ),
+
+    // ── Ribbon
+    h(RibbonBanner),
+
+    // ── Collections
+    h('div', { className: 'lm-collections' },
+      h('div', { className: 'lm-coll-inner' },
+        h('div', { className: 'lm-section-hd', style:{ marginBottom:0 } },
+          h('div', null,
+            h('p', { className: 'lm-section-sub' }, 'Для вас'),
+            h('h2', { className: 'lm-section-title' }, 'Коллекции')
+          )
+        ),
+        h('div', { className: 'lm-coll-grid' },
+          [
+            { name:'Серебряный\nмесяц', count:'24 украшения' },
+            { name:'Позолота\nлета',    count:'18 украшений' },
+            { name:'Минимализм',        count:'31 украшение' },
+          ].map(function(c, i) {
+            return h('div', { key: i, className: 'lm-coll-card', onClick: function() { props.setPage('catalog'); } },
+              h('div', { className: 'lm-coll-overlay' }),
+              h('div', { className: 'lm-coll-label' },
+                h('div', { className: 'lm-coll-name' }, c.name),
+                h('div', { className: 'lm-coll-count' }, c.count)
+              )
+            );
+          })
+        )
+      )
+    ),
+
+    // ── New arrivals
+    h('div', { style:{ background:'#ffffff' } },
+      h('div', { className: 'lm-section' },
+        h('div', { className: 'lm-section-hd' },
+          h('div', null,
+            h('p', { className: 'lm-section-sub' }, 'Только появились'),
+            h('h2', { className: 'lm-section-title' }, 'Новинки')
+          ),
+          h(Button, {
+            style: { letterSpacing:'2px', fontSize:'11px', borderColor:'#e7e0d5' },
+            onClick: function() { props.setPage('catalog'); }
+          }, 'ВСЕ НОВИНКИ →')
+        ),
+        h('div', { className: 'lm-prod-grid' },
+          PRODUCTS.slice(4, 8).map(function(p) {
+            return h('div', { key: p.id, onClick: function() { props.setPage('product'); } },
+              h(ProdCard, p)
+            );
+          })
+        )
+      )
+    ),
+
+    // ── Newsletter
+    h('div', { style:{ background:'var(--gold)', padding:'72px 32px' } },
+      h('div', { style:{ maxWidth:'580px', margin:'0 auto', textAlign:'center' } },
+        h('p', { style:{ fontSize:'11px', letterSpacing:'4px', textTransform:'uppercase', color:'rgba(255,255,255,.8)', marginBottom:'12px' } }, 'Будьте в курсе'),
+        h('h2', { style:{ fontFamily:"'Cormorant Garamond',serif", fontSize:'40px', fontWeight:500, color:'#fff', margin:'0 0 16px' } },
+          'Подпишитесь\nна новинки'
+        ),
+        h('p', { style:{ fontSize:'14px', color:'rgba(255,255,255,.8)', marginBottom:'32px', letterSpacing:'.5px', lineHeight:'1.6' } },
+          'Первыми узнавайте о новых коллекциях и получайте персональные скидки'
+        ),
+        h(Input.Search, {
+          placeholder: 'Ваш email',
+          enterButton: 'ПОДПИСАТЬСЯ',
+          size: 'large',
+          style: { maxWidth:'440px' }
+        })
+      )
+    )
+  );
+}
+
+// ── CATALOG PAGE ──────────────────────────────────────────────────────────────
+// → src/pages/catalog/index.tsx
+function CatalogPage(props) {
+  var catState   = React.useState('Все');
+  var cat        = catState[0]; var setCat = catState[1];
+  var priceState = React.useState([500, 8000]);
+  var price      = priceState[0]; var setPrice = priceState[1];
+  var sortState  = React.useState('popular');
+  var sort       = sortState[0]; var setSort = sortState[1];
+  var drawerS    = React.useState(false);
+  var drawerOpen = drawerS[0]; var setDrawer = drawerS[1];
+
+  var CATS = ['Все', 'Чокеры', 'Колье', 'Браслеты', 'Кольца'];
+
+  var filtered = PRODUCTS
+    .filter(function(p) { return cat === 'Все' || p.cat === cat; })
+    .filter(function(p) { return p.price >= price[0] && p.price <= price[1]; })
+    .sort(function(a, b) {
+      if (sort === 'price_asc')  return a.price - b.price;
+      if (sort === 'price_desc') return b.price - a.price;
+      if (sort === 'new')        return b.isNew - a.isNew;
+      return b.reviews - a.reviews; // popular
+    });
+
+  var sidebarContent = h('div', null,
+    h('div', { className: 'lm-sidebar-title' }, 'Фильтры'),
+    h(Divider, { style:{ margin:'0 0 20px', borderColor:'var(--bdr)' } }),
+
+    // Категории
+    h('div', { className: 'lm-filter-block' },
+      h('div', { className: 'lm-filter-label' }, 'Категория'),
+      CATS.map(function(c) {
+        return h('span', {
+          key: c,
+          className: 'lm-filter-chip' + (c === cat ? ' sel' : ''),
+          onClick: function() { setCat(c); }
+        }, c);
+      })
+    ),
+
+    // Цена
+    h('div', { className: 'lm-filter-block' },
+      h('div', { className: 'lm-filter-label' }, 'Цена, ₽'),
+      h(Slider, {
+        range: true, min: 500, max: 8000, value: price, onChange: setPrice,
+        tooltip: { formatter: function(v) { return v != null ? v.toLocaleString('ru-RU') + ' ₽' : ''; } }
+      }),
+      h('div', { style:{ display:'flex', justifyContent:'space-between', fontSize:'12px', color:'var(--ink-l)', marginTop:4 } },
+        h('span', null, price[0].toLocaleString('ru-RU') + ' ₽'),
+        h('span', null, price[1].toLocaleString('ru-RU') + ' ₽')
+      )
+    ),
+
+    // Металл
+    h('div', { className: 'lm-filter-block' },
+      h('div', { className: 'lm-filter-label' }, 'Металл'),
+      h('div', { className: 'lm-color-row' },
+        [
+          { c:'#c0b090', label:'Золото' },
+          { c:'#e0e0e0', label:'Серебро' },
+          { c:'#c9a84c', label:'Позолота' },
+          { c:'#b0b8c4', label:'Сталь' },
+        ].map(function(col) {
+          return h(Tooltip, { key:col.c, title:col.label },
+            h('div', { className:'lm-color-dot', style:{ background:col.c } })
+          );
+        })
+      )
+    ),
+
+    // Материал
+    h('div', { className: 'lm-filter-block' },
+      h('div', { className: 'lm-filter-label' }, 'Материал'),
+      h(Checkbox.Group, {
+        style: { display:'flex', flexDirection:'column', gap:8 },
+        options: ['Серебро 925','Позолота','Сталь'].map(function(m) {
+          return { label: h('span', { style:{ fontFamily:'Oswald,sans-serif', fontSize:'13px' } }, m), value: m };
+        })
+      })
+    ),
+
+    h(Button, {
+      type: 'primary', block: true,
+      style: { letterSpacing:'2px', fontFamily:'Oswald,sans-serif', fontSize:'12px', marginTop:4 },
+      onClick: function() { setDrawer(false); }
+    }, 'ПРИМЕНИТЬ'),
+    h(Button, {
+      block: true,
+      style: { marginTop:'8px', letterSpacing:'2px', fontFamily:'Oswald,sans-serif', fontSize:'12px', borderColor:'var(--bdr)' },
+      onClick: function() { setCat('Все'); setPrice([500, 8000]); }
+    }, 'СБРОСИТЬ')
+  );
+
+  return h('div', null,
+    // Breadcrumb
+    h('div', { style:{ background:'var(--white)', borderBottom:'1px solid var(--bdr)', padding:'12px 32px' } },
+      h('div', { style:{ maxWidth:'1320px', margin:'0 auto' } },
+        h(Breadcrumb, {
+          items: [
+            { title: h('span', { style:{cursor:'pointer'}, onClick: function() { props.setPage('home'); } }, 'Главная') },
+            { title: 'Каталог' }
+          ]
+        })
+      )
+    ),
+
+    // Mobile filter button
+    h('div', { style:{ display:'block', padding:'12px 16px', borderBottom:'1px solid var(--bdr-l)' }, className:'lm-mobile-filter-bar' },
+      h(Space, null,
+        h(Button, {
+          onClick: function() { setDrawer(true); },
+          style: { fontFamily:'Oswald,sans-serif', fontSize:'12px', letterSpacing:'1px' }
+        }, '⚙ Фильтры'),
+        cat !== 'Все' && h(Tag, { closable:true, color:'gold', onClose: function() { setCat('Все'); } }, cat)
+      )
+    ),
+
+    // Mobile drawer
+    h(Drawer, {
+      title: 'Фильтры', placement:'left', open:drawerOpen,
+      onClose: function() { setDrawer(false); }
+    }, sidebarContent),
+
+    h('div', { className: 'lm-catalog-wrap' },
+      // Desktop sidebar
+      h('div', { className: 'lm-sidebar lm-sidebar-desktop' }, sidebarContent),
+
+      // Main content
+      h('div', { className: 'lm-catalog-main' },
+        h('div', { className: 'lm-catalog-topbar' },
+          h('div', { className: 'lm-catalog-count' },
+            filtered.length + ' украшений' + (cat !== 'Все' ? ' · ' + cat : '')
+          ),
+          h(Space, { size: 'small' },
+            h(Select, {
+              value: sort, onChange: setSort, size:'small',
+              style: { width:190, fontFamily:'Oswald,sans-serif' },
+              options: [
+                { value:'popular',    label:'По популярности' },
+                { value:'price_asc',  label:'Сначала дешевле' },
+                { value:'price_desc', label:'Сначала дороже'  },
+                { value:'new',        label:'Новинки'         },
+              ]
+            })
+          )
+        ),
+
+        filtered.length === 0
+          ? h('div', { style:{ padding:'64px 0', textAlign:'center' } },
+              h('div', { style:{ fontSize:'40px', marginBottom:'12px' } }, '🔍'),
+              h('div', { style:{ fontSize:'14px', color:'var(--ink-l)', letterSpacing:'1px' } }, 'Ничего не найдено')
+            )
+          : h('div', { className: 'lm-catalog-grid' },
+              filtered.map(function(p) {
+                return h('div', { key:p.id, onClick: function() { props.setPage('product'); } },
+                  h(ProdCard, p)
+                );
+              })
+            ),
+
+        h('div', { style:{ display:'flex', justifyContent:'center', marginTop:'40px' } },
+          h(Pagination, { current:1, total: filtered.length, pageSize:8, showSizeChanger:false })
+        )
+      )
+    )
+  );
+}
+
+// ── PRODUCT PAGE ──────────────────────────────────────────────────────────────
+// → src/pages/catalog/[slug].tsx
+function ProductPage(props) {
+  var prod = PRODUCTS[1];
+
+  var gallery = h('div', { className: 'lm-product-gallery' },
+    h('div', { className: 'lm-product-thumbs' },
+      [1,2,3,4].map(function(i) {
+        return h('div', { key:i, className:'lm-product-thumb' + (i===1?' active':'') },
+          '📷'
+        );
+      })
+    ),
+    h('div', { className: 'lm-product-main-img' },
+      h('div', { style:{ textAlign:'center', color:'var(--ink-l)', fontFamily:"'Cormorant Garamond',serif", fontSize:'18px', fontStyle:'italic' } },
+        '📸\n\nОсновное фото\nукрашения'
+      )
+    )
+  );
+
+  var info = h('div', { className: 'lm-product-info' },
+    h('div', { className: 'lm-product-breadcrumb' },
+      'Каталог  /  Чокеры  /  ', h('span', null, prod.name)
+    ),
+    h('h1', { className: 'lm-product-name' }, prod.name),
+    h('div', { className: 'lm-product-sku' }, 'Артикул: AM-CHK-0042'),
+    h('div', { className: 'lm-product-rating-row' },
+      h(Rate, { disabled:true, defaultValue:prod.rating, allowHalf:true, style:{ fontSize:'14px' } }),
+      h(Text, { style:{ fontSize:'13px', color:'var(--ink-m)', marginLeft:'8px', letterSpacing:'.5px' } },
+        prod.rating + '  ·  ' + prod.reviews + ' отзывов'
+      )
+    ),
+    h('div', { className: 'lm-product-price-row' },
+      prod.oldPrice
+        ? h('span', { className: 'lm-product-price-old' }, fmtPrice(prod.oldPrice))
+        : null,
+      h('span', { className: 'lm-product-price-new' }, fmtPrice(prod.price))
+    ),
+
+    // Options — длина
+    h('div', { className: 'lm-product-option-label' }, 'Длина цепочки'),
+    h('div', { className: 'lm-product-options' },
+      ['34 см', '36 см', '38 см', '42 см'].map(function(l) {
+        return h('button', { key:l, className:'lm-product-opt-btn' + (l==='36 см'?' active':'') }, l);
+      })
+    ),
+
+    // Qty + Add
+    h('div', { className: 'lm-product-add-row' },
+      h('div', { className: 'lm-product-qty' },
+        h('button', { className: 'lm-product-qty-btn' }, '−'),
+        h('span', { className: 'lm-product-qty-val' }, '1'),
+        h('button', { className: 'lm-product-qty-btn' }, '+')
+      ),
+      h(Button, {
+        type: 'primary', size: 'large', style: { flex:1, letterSpacing:'2.5px', fontFamily:'Oswald,sans-serif', fontSize:'12px', height:'48px' }
+      }, 'ДОБАВИТЬ В КОРЗИНУ'),
+      h(Button, {
+        size: 'large', style: { width:'48px', padding:'0', height:'48px', borderColor:'var(--bdr)' }
+      }, '♡')
+    ),
+
+    // Guarantee
+    h('div', { className: 'lm-product-guarantee' },
+      h('div', { className: 'lm-product-guarantee-icon' }, '🛡️'),
+      h('div', null,
+        h('div', { style:{ fontWeight:400, color:'var(--ink)', fontSize:'13px', marginBottom:'2px' } }, 'Гарантия качества 1 год'),
+        h('div', null, 'Возврат в течение 30 дней. Серебро 925 пробы с сертификатом.')
+      )
+    ),
+
+    // Details
+    h('div', { style:{ marginTop:'24px' } },
+      h(Collapse, {
+        ghost: true,
+        style: { borderTop:'1px solid var(--bdr)' },
+        items: [
+          { key:'1', label:'Описание', children: h('p', { style:{ color:'var(--ink-m)', fontSize:'13px', lineHeight:'1.8', letterSpacing:'.5px' } }, 'Элегантный чокер ручной работы из серебра 925 пробы. Идеально подчёркивает линию шеи. Тонкая цепочка с миниатюрным кулоном в виде полумесяца. Лаконичный дизайн вписывается в любой образ — от повседневного до вечернего.') },
+          { key:'2', label:'Состав и уход', children: h('p', { style:{ color:'var(--ink-m)', fontSize:'13px', lineHeight:'1.8', letterSpacing:'.5px' } }, 'Серебро 925 пробы. Хранить в сухом месте, избегать контакта с парфюмерией и химическими средствами. Чистить мягкой тканью.') },
+          { key:'3', label:'Доставка', children: h('p', { style:{ color:'var(--ink-m)', fontSize:'13px', lineHeight:'1.8', letterSpacing:'.5px' } }, 'Доставка СДЭК, Почта России, Яндекс Доставка. Бесплатная доставка при заказе от 4000 ₽. Срок — 2–7 рабочих дней.') },
+        ]
+      })
+    )
+  );
+
+  var tabItems = [
+    {
+      key: 'reviews',
+      label: 'Отзывы (' + prod.reviews + ')',
+      children: h('div', { style:{ paddingTop:'24px' } },
+        [
+          { name:'Анна К.', rating:5, text:'Очень нежный чокер! Надела на свидание — сделала комплимент сразу.', date:'12 марта 2025' },
+          { name:'Мария Л.', rating:5, text:'Качество супер, упаковка красивая. Буду заказывать ещё.', date:'5 февраля 2025' },
+          { name:'Светлана В.', rating:4, text:'Красивый, но длина чуть маловата для меня. В целом довольна.', date:'18 января 2025' },
+        ].map(function(r, i) {
+          return h('div', { key:i, style:{ padding:'20px 0', borderBottom:'1px solid var(--bdr)' } },
+            h('div', { style:{ display:'flex', justifyContent:'space-between', marginBottom:'8px' } },
+              h('div', null,
+                h('div', { style:{ fontWeight:400, fontSize:'14px', marginBottom:'4px' } }, r.name),
+                h(Rate, { disabled:true, defaultValue:r.rating, style:{ fontSize:'12px' } })
+              ),
+              h('div', { style:{ fontSize:'12px', color:'var(--ink-l)' } }, r.date)
+            ),
+            h('p', { style:{ margin:0, fontSize:'13px', color:'var(--ink-m)', lineHeight:'1.7' } }, r.text)
+          );
+        })
+      )
+    },
+    {
+      key: 'similar',
+      label: 'Похожие товары',
+      children: h('div', { style:{ paddingTop:'24px' } },
+        h('div', { className:'lm-prod-grid' },
+          PRODUCTS.slice(0,4).map(function(p) { return h('div', { key:p.id }, h(ProdCard, p)); })
+        )
+      )
+    }
+  ];
+
+  return h('div', null,
+    h('div', { style:{ background:'var(--white)', borderBottom:'1px solid var(--bdr)', padding:'12px 32px' } },
+      h('div', { style:{ maxWidth:'1320px', margin:'0 auto' } },
+        h(Breadcrumb, {
+          items:[
+            { title:'Главная', onClick: function(){ props.setPage('home'); } },
+            { title:'Каталог', onClick: function(){ props.setPage('catalog'); } },
+            { title:prod.name }
+          ]
+        })
+      )
+    ),
+    h('div', { className:'lm-product-wrap' },
+      h('div', { className:'lm-product-grid' }, gallery, info),
+      h('div', { className:'lm-product-tabs' },
+        h(Tabs, { defaultActiveKey:'reviews', items:tabItems })
+      )
+    )
+  );
+}
+
+// ── ACCOUNT PAGE ──────────────────────────────────────────────────────────────
+// → src/pages/account/index.tsx
+function AccountPage(props) {
+  var ORDERS = [
+    { id:'#AM-8821', date:'18.03.2025', items:'Чокер «Луна», Браслет «Нежность»', amount:5300, status:'Доставляется' },
+    { id:'#AM-7614', date:'02.02.2025', items:'Колье «Роса»', amount:2800, status:'Получен' },
+    { id:'#AM-6903', date:'15.12.2024', items:'Чокер «Минимал»', amount:1600, status:'Получен' },
+  ];
+
+  var statusColors = { 'Доставляется':'processing', 'Получен':'success', 'Отменён':'error' };
+
+  return h('div', null,
+    h('div', { style:{ background:'var(--cream-d)', borderBottom:'1px solid var(--bdr)', padding:'28px 32px' } },
+      h('div', { style:{ maxWidth:'1320px', margin:'0 auto' } },
+        h('h1', { style:{ fontFamily:"'Cormorant Garamond',serif", fontSize:'36px', fontWeight:500, margin:0, color:'var(--ink)' } }, 'Личный кабинет')
+      )
+    ),
+    h('div', { className:'lm-account-wrap' },
+
+      // Sidebar
+      h('div', { className:'lm-acc-sidebar' },
+        h('div', { className:'lm-acc-avatar' }, '👤'),
+        h('div', { className:'lm-acc-name' }, 'Анна Соколова'),
+        h('div', { className:'lm-acc-email' }, 'anna@example.com'),
+        h('div', { className:'lm-acc-divider' }),
+        [
+          { icon:'📦', label:'Мои заказы', active:true },
+          { icon:'♡', label:'Избранное' },
+          { icon:'👤', label:'Мои данные' },
+          { icon:'📍', label:'Адреса доставки' },
+          { icon:'🔔', label:'Уведомления' },
+          { icon:'🔒', label:'Безопасность' },
+        ].map(function(item) {
+          return h('div', { key:item.label, className:'lm-acc-menu-item' + (item.active?' active':'') },
+            h('span', null, item.icon),
+            item.label
+          );
+        }),
+        h('div', { className:'lm-acc-divider', style:{ marginTop:'12px' } }),
+        h('div', { className:'lm-acc-menu-item', style:{ color:'#c0392b' } }, h('span', null, '↩️'), 'Выйти')
+      ),
+
+      // Content
+      h('div', { className:'lm-acc-content' },
+
+        // Stats
+        h('div', { style:{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' } },
+          [
+            { icon:'📦', val:'3', label:'Заказа' },
+            { icon:'♡', val:'12', label:'В избранном' },
+            { icon:'💰', val:'9 700 ₽', label:'Потрачено' },
+          ].map(function(s) {
+            return h('div', { key:s.label,
+              style:{ background:'var(--white)', border:'1px solid var(--bdr)', borderRadius:'16px', padding:'20px', textAlign:'center' }
+            },
+              h('div', { style:{ fontSize:'28px', marginBottom:'8px' } }, s.icon),
+              h('div', { style:{ fontSize:'22px', fontWeight:500, color:'var(--ink)', marginBottom:'4px' } }, s.val),
+              h('div', { style:{ fontSize:'11px', letterSpacing:'2px', textTransform:'uppercase', color:'var(--ink-l)' } }, s.label)
+            );
+          })
+        ),
+
+        // Orders
+        h('div', { className:'lm-acc-card' },
+          h('div', { className:'lm-acc-card-title' }, 'Мои заказы'),
+          ORDERS.map(function(o) {
+            return h('div', { key:o.id, className:'lm-order-row' },
+              h('div', null,
+                h('div', { className:'lm-order-id' }, o.id),
+                h('div', { className:'lm-order-date' }, o.date),
+                h('div', { style:{ fontSize:'12px', color:'var(--ink-m)', marginTop:'3px', letterSpacing:'.3px' } }, o.items)
+              ),
+              h('div', { style:{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px' } },
+                h('div', { className:'lm-order-amount' }, fmtPrice(o.amount)),
+                h(Tag, { color: statusColors[o.status], style:{ fontFamily:'Oswald,sans-serif', fontSize:'11px', letterSpacing:'1px' } }, o.status)
+              )
+            );
+          })
+        ),
+
+        // Profile form
+        h('div', { className:'lm-acc-card' },
+          h('div', { className:'lm-acc-card-title' }, 'Мои данные'),
+          h(Form, { layout:'vertical' },
+            h(Row, { gutter:16 },
+              h(Col, { span:12 },
+                h(Form.Item, { label:'Имя' }, h(Input, { defaultValue:'Анна', size:'large' }))
+              ),
+              h(Col, { span:12 },
+                h(Form.Item, { label:'Фамилия' }, h(Input, { defaultValue:'Соколова', size:'large' }))
+              )
+            ),
+            h(Form.Item, { label:'Email' }, h(Input, { defaultValue:'anna@example.com', size:'large' })),
+            h(Form.Item, { label:'Телефон' }, h(Input, { defaultValue:'+7 (900) 123-45-67', size:'large' })),
+            h(Button, {
+              type:'primary', size:'large',
+              style:{ letterSpacing:'2px', fontFamily:'Oswald,sans-serif', fontSize:'12px' }
+            }, 'СОХРАНИТЬ')
+          )
+        )
+      )
+    )
+  );
+}
+
+// ── FOOTER ───────────────────────────────────────────────────────────────────
+function AppFooter() {
+  return h('footer', { className:'lm-footer' },
+    h('div', { className:'lm-footer-inner' },
+      h('div', { className:'lm-footer-grid' },
+        h('div', null,
+          h('div', { className:'lm-footer-brand' }, 'AM', h('span', null, '·'), 'Chokers'),
+          h('p', { className:'lm-footer-desc' }, 'Украшения ручной работы из серебра и позолоты. Каждая вещь создаётся с любовью и вниманием к деталям.'),
+          h('div', { className:'lm-footer-socials' },
+            ['📸','💬','▶️'].map(function(ic, i) {
+              return h('div', { key:i, className:'lm-footer-soc' }, ic);
+            })
+          )
+        ),
+        h('div', null,
+          h('div', { className:'lm-footer-col-title' }, 'Каталог'),
+          ['Чокеры','Колье','Браслеты','Серьги','Кольца','Наборы'].map(function(l) {
+            return h('a', { key:l, className:'lm-footer-link' }, l);
+          })
+        ),
+        h('div', null,
+          h('div', { className:'lm-footer-col-title' }, 'Покупателям'),
+          ['Доставка и оплата','Возврат','Гарантия качества','Уход за украшениями','FAQ'].map(function(l) {
+            return h('a', { key:l, className:'lm-footer-link' }, l);
+          })
+        ),
+        h('div', null,
+          h('div', { className:'lm-footer-col-title' }, 'О нас'),
+          ['О магазине','Мастерская','Сертификаты','Контакты','Блог'].map(function(l) {
+            return h('a', { key:l, className:'lm-footer-link' }, l);
+          })
+        )
+      ),
+      h('div', { className:'lm-footer-bottom' },
+        h('span', null, '© 2025 AM Chokers. Все права защищены.'),
+        h('span', null, 'Серебро 925 пробы · Ручная работа · Россия')
+      )
+    )
+  );
+}
+
+// ── MOBILE NAV ───────────────────────────────────────────────────────────────
+function MobileNav(props) {
+  var items = [
+    { key:'home',    icon:'🏠', label:'Главная' },
+    { key:'catalog', icon:'🪬', label:'Каталог' },
+    { key:'',        icon:'🛒', label:'Корзина' },
+    { key:'',        icon:'♡',  label:'Избранное' },
+    { key:'account', icon:'👤', label:'Кабинет' },
+  ];
+  return h('div', { className:'lm-mobile-nav' },
+    items.map(function(item, i) {
+      return h('div', {
+        key:i,
+        className:'lm-mobile-nav-item' + (props.page === item.key ? ' active' : ''),
+        onClick: item.key ? function() { props.setPage(item.key); } : undefined
+      },
+        h('span', { className:'lm-mobile-nav-icon' }, item.icon),
+        item.label
+      );
+    })
+  );
+}
+
+// ── APP ROOT ──────────────────────────────────────────────────────────────────
+function App() {
+  var pageState   = React.useState('home');
+  var page        = pageState[0];
+  var setPage     = pageState[1];
+
+  // Hide loading screen
+  React.useEffect(function() {
+    var el = document.getElementById('lm-load');
+    if (el) { el.style.opacity = '0'; setTimeout(function() { el.style.display = 'none'; }, 400); }
+  }, []);
+
+  function navigate(pg) { setPage(pg); window.scrollTo({ top:0, behavior:'smooth' }); }
+
+  var pageEl;
+  if      (page === 'home')    pageEl = h(HomePage,    { setPage:navigate });
+  else if (page === 'catalog') pageEl = h(CatalogPage, { setPage:navigate });
+  else if (page === 'product') pageEl = h(ProductPage, { setPage:navigate });
+  else if (page === 'account') pageEl = h(AccountPage, { setPage:navigate });
+
+  return h(ConfigProvider, { theme: LM_THEME },
+    h('div', { style:{ minHeight:'100vh', display:'flex', flexDirection:'column' } },
+      h(AppNav, { page:page, setPage:navigate }),
+      h('main', { style:{ flex:1 } }, pageEl),
+      h(RibbonBanner),
+      h(AppFooter),
+      h(MobileNav, { page:page, setPage:navigate })
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App, null));
+</script>
+</body>
+</html>

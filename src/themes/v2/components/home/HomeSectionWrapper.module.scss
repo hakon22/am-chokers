@@ -1,0 +1,26 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.section {
+  width: 100%;
+  background: v2.$v2-bg-main;
+
+  &.alt {
+    background: v2.$v2-bg-alt;
+  }
+
+  &.noPad {
+    .inner {
+      padding: 0;
+    }
+  }
+}
+
+.inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 72px 32px;
+
+  @media (max-width: 768px) {
+    padding: 40px 16px;
+  }
+}

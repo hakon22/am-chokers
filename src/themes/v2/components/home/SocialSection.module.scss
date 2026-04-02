@@ -1,0 +1,146 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.sectionHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    margin-bottom: 24px;
+  }
+}
+
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: v2.$v2-navy-medium;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 36px;
+  font-weight: 400;
+  color: v2.$v2-navy-primary;
+  line-height: 1.2;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
+}
+
+.seeAllLink {
+  font-size: 11.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: v2.$v2-navy-secondary;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: v2.$v2-navy-primary;
+  }
+}
+
+.socialStrip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin-bottom: 32px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.socialItem {
+  aspect-ratio: 1;
+  background: v2.$v2-bg-alt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+.socialItemPh {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 28px;
+  color: v2.$v2-text-muted;
+  opacity: 0.4;
+}
+
+.tgBanner {
+  background: v2.$v2-bg-alt !important;
+  border-color: v2.$v2-border !important;
+  border-radius: 12px !important;
+
+  :global(.ant-card-body) {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 28px 36px !important;
+
+    @media (max-width: 768px) {
+      padding: 20px !important;
+      gap: 16px;
+    }
+  }
+}
+
+.tgIcon {
+  font-size: 40px;
+  flex-shrink: 0;
+  color: #27A7E5;
+
+  @media (max-width: 768px) {
+    font-size: 30px;
+  }
+}
+
+.tgText {
+  flex: 1;
+  min-width: 200px;
+}
+
+.tgTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: v2.$v2-navy-primary;
+  margin-bottom: 4px;
+}
+
+.tgSub {
+  font-size: 13px;
+  color: v2.$v2-text-secondary;
+}
+
+.tgBtn {
+  background: #27A7E5 !important;
+  border-color: #27A7E5 !important;
+  color: v2.$v2-white !important;
+
+  &:hover {
+    background: #1d8fc7 !important;
+    border-color: #1d8fc7 !important;
+  }
+}
