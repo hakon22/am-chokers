@@ -39,7 +39,7 @@ const Metrica = () => {
   const toParams = urlParams.get('to') || undefined;
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [data, setData] = useState<MetricaReportInterface>();
 

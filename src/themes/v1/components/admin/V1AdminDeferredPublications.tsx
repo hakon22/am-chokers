@@ -13,9 +13,10 @@ import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
-import { MobileContext, SubmitContext } from '@/components/Context';
+import { SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemInterface } from '@/types/item/Item';
 import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
@@ -33,7 +34,6 @@ export const V1AdminDeferredPublications = () => {
   const router = useRouter();
 
   const { setIsSubmit } = useContext(SubmitContext);
-  const { isMobile } = useContext(MobileContext);
 
   const coefficient = 1.3;
 
@@ -41,7 +41,7 @@ export const V1AdminDeferredPublications = () => {
   const height = width * coefficient;
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [deferredPublicationData, setDeferredPublicationData] = useState<DataType[]>([]);
   const [deferredPostData, setDeferredPostData] = useState<DataType[]>([]);

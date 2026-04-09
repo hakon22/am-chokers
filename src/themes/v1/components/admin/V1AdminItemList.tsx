@@ -19,6 +19,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { MobileContext, SubmitContext } from '@/components/Context';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { FetchItemInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
@@ -40,7 +41,7 @@ export const V1AdminItemList = () => {
   const height = width * coefficient;
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { isMobile } = useContext(MobileContext);
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);

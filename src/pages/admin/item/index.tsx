@@ -70,7 +70,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { isAdmin, token, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { itemGroups, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -147,7 +147,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   const [form] = Form.useForm<ItemFormInterface>();
 
-  const itemName: string = Form.useWatch(['translations', lang, 'name'], form);
+  const itemName: string | undefined = Form.useWatch(['translations', lang, 'name'], form);
 
   const imagesRef = useRef(images);
   imagesRef.current = images;

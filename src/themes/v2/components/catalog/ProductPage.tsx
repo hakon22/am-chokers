@@ -198,11 +198,11 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
   const { id, collection, images, colors, price, discountPrice, compositions, rating } = item;
 
-  const position = item.translations?.find((tr) => tr.lang === lang) as ItemTranslateEntity | undefined;
+  const position = item.translations?.find((translation) => translation.lang === lang) as ItemTranslateEntity | undefined;
   const name = position?.name ?? item.translateName;
   const description = position?.description;
   const length = position?.length;
-  const groupName = item.group?.translations?.find((tr) => tr.lang === lang)?.name ?? '';
+  const groupName = item.group?.translations?.find((translation) => translation.lang === lang)?.name ?? '';
 
   const grade = rating?.rating ?? 0;
   const gradeCount = item.grades?.length ?? 0;
@@ -626,7 +626,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
               href={`${routes.page.base.catalog}?collectionIds=${collection.id}`}
               className={styles.mobileTitleCollection}
             >
-              {collection.translations?.find((tr) => tr.lang === lang)?.name ?? ''}
+              {collection.translations?.find((translation) => translation.lang === lang)?.name ?? ''}
             </Link>
           )}
         </div>
@@ -713,7 +713,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
               href={`${routes.page.base.catalog}?collectionIds=${collection.id}`}
               className={styles.infoCollection}
             >
-              {collection.translations?.find((tr) => tr.lang === lang)?.name ?? ''}
+              {collection.translations?.find((translation) => translation.lang === lang)?.name ?? ''}
             </Link>
           )}
 
@@ -849,7 +849,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
                       <ul>
                         {compositions.map((comp) => (
                           <li key={comp.id}>
-                            {comp.translations?.find((tr) => tr.lang === lang)?.name}
+                            {comp.translations?.find((translation) => translation.lang === lang)?.name}
                           </li>
                         ))}
                       </ul>
@@ -872,7 +872,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
                       {colors.map((color) => (
                         <div key={color.id} className={styles.colorItem}>
                           <span className={styles.colorDot} style={{ backgroundColor: color.hex }} />
-                          <span>{color.translations?.find((tr) => tr.lang === lang)?.name}</span>
+                          <span>{color.translations?.find((translation) => translation.lang === lang)?.name}</span>
                         </div>
                       ))}
                     </div>

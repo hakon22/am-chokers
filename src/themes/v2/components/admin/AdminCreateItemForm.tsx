@@ -65,7 +65,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { isAdmin, token, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { itemGroups, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);

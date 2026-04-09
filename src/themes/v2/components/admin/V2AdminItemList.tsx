@@ -20,6 +20,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { SubmitContext } from '@/components/Context';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { FetchItemInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
@@ -41,7 +42,7 @@ export const V2AdminItemList = () => {
   const searchParams = urlParams.get('search');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
 
@@ -202,7 +203,7 @@ export const V2AdminItemList = () => {
                 </div>
 
                 <span className={styles.itemName}>
-                  {item?.translations.find((tr) => tr.lang === lang)?.name}
+                  {item?.translations.find((translation) => translation.lang === lang)?.name}
                 </span>
                 <span className={styles.itemPrice}>
                   {tPrice('price', { price: item.price })}

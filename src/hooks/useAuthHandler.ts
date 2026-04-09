@@ -22,7 +22,7 @@ export const useAuthHandler = () => {
 
   const { logIn, loggedIn } = useContext(AuthContext);
 
-  const { token, refreshToken, url, lang } = useAppSelector((state) => state.user);
+  const { token, refreshToken, url, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
   const fetchToken = useCallback(() => {

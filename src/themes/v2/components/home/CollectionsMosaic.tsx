@@ -34,7 +34,7 @@ export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosai
 
       <div className={styles.colGrid}>
         {collections.map((collection) => {
-          const name = collection.translations?.find((tr) => tr.lang === lang)?.name ?? '';
+          const name = collection.translations?.find((translation) => translation.lang === lang)?.name ?? '';
           const img = coverImages?.[`${CoverTypeEnum.COLLECTION_IMAGE}${collection.id}` as keyof GeneralPageCoverImageInterface];
 
           return (

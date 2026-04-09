@@ -30,7 +30,7 @@ export const V1AdminOrders = () => {
   const userIdParams = urlParams.get('userId');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);

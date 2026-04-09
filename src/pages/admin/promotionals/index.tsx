@@ -334,7 +334,7 @@ const CreatePromotional = () => {
   const withExpiredParams = urlParams.get('withExpired');
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);

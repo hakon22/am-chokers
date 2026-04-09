@@ -64,7 +64,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
 
-  const { id: userId, isAdmin, lang } = useAppSelector((state) => state.user);
+  const { id: userId, isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const stateOrders = useAppSelector(selectors.selectAll);
 

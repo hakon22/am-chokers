@@ -16,6 +16,7 @@ import { BackButton } from '@/components/BackButton';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { UserCardInterface } from '@/types/user/User';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
 
@@ -28,7 +29,7 @@ export const V1AdminUserCard = ({ id }: Props) => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const coefficient = 1.3;

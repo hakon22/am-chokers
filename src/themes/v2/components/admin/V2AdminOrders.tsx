@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useContext, useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Skeleton } from 'antd';
 import axios from 'axios';
@@ -17,6 +17,7 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchOrdersInterface, OrderInterface } from '@/types/order/Order';
+
 import styles from './V2AdminOrders.module.scss';
 
 export const V2AdminOrders = () => {
@@ -30,7 +31,7 @@ export const V2AdminOrders = () => {
   const userIdParams = urlParams.get('userId');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);

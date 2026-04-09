@@ -83,8 +83,8 @@ const CartItemRow = ({
   const inFavorites = favorites?.find((fav) => fav.id === item.item.id);
 
   const isDisabled = !!(item.item.deleted || item.item.outStock);
-  const name = item.item.translations.find((tr) => tr.lang === lang)?.name ?? '';
-  const groupName = item.item.group?.translations?.find((tr: any) => tr.lang === lang)?.name ?? '';
+  const name = item.item.translations.find((translation) => translation.lang === lang)?.name ?? '';
+  const groupName = item.item.group?.translations?.find((translation) => translation.lang === lang)?.name ?? '';
   const unitPrice = item.item.price - item.item.discountPrice;
   const totalPrice = unitPrice * item.count;
 
@@ -245,9 +245,9 @@ export const V2CartPage = () => {
   const setIsProcessConfirmedEffect = useEffectEvent(setIsProcessConfirmed);
 
   const deliveryList = useMemo(
-    () => deliveryServices.map((s) => ({
-      label: s.translations.find((tr) => tr.lang === lang)?.name,
-      value: s.type,
+    () => deliveryServices.map((service) => ({
+      label: service.translations.find((translation) => translation.lang === lang)?.name,
+      value: service.type,
     })),
     [lang, deliveryServices],
   );
@@ -396,7 +396,7 @@ export const V2CartPage = () => {
             actionField: { id: order.id.toString(), coupon: order.promotional?.name, goal_id: 511960192, revenue: getOrderPrice(order) - order.deliveryPrice },
             products: cartList.map(({ item, count: c }, index) => ({
               id: item.id.toString(),
-              name: item.translations.find((tr) => tr.lang === lang)?.name as string,
+              name: item.translations.find((translation) => translation.lang === lang)?.name as string,
               price: item.price - item.discountPrice,
               discount: item.discountPrice,
               quantity: c,

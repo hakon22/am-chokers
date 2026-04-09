@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { Skeleton } from 'antd';
 import axios from 'axios';
 import moment from 'moment';
-import Link from 'next/link';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/hooks/reduxHooks';
@@ -17,6 +16,7 @@ import { getHref } from '@/utilities/getHref';
 import { SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemInterface } from '@/types/item/Item';
 import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
@@ -72,7 +72,7 @@ const PublicationSection = ({ title, data, lang, isLoading, onRowClick, t }: Sec
                 <ImageHover images={record.item.images} height={imgHeight} width={imgWidth} />
               </div>
               <span className={styles.itemName}>
-                {record.item.translations.find((tr) => tr.lang === lang)?.name}
+                {record.item.translations.find((translation) => translation.lang === lang)?.name}
               </span>
             </div>
             <span className={styles.dateCell}>
@@ -95,7 +95,7 @@ export const V2AdminDeferredPublications = () => {
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin, lang } = useAppSelector((state) => state.user);
+  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const [deferredPublicationData, setDeferredPublicationData] = useState<DataType[]>([]);
   const [deferredPostData, setDeferredPostData] = useState<DataType[]>([]);
