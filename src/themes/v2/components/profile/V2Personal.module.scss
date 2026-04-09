@@ -1,0 +1,161 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$navy2:  v2.$v2-navy-secondary;
+$navy3:  v2.$v2-navy-medium;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$bgMain: v2.$v2-bg-main;
+$white:  v2.$v2-white;
+$textD:  v2.$v2-text-dark;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+$error:  v2.$v2-error;
+$success: v2.$v2-success;
+
+// ── Card wrapper ──────────────────────────────────────────────────
+.card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 36px 40px 40px;
+  box-shadow: v2.$v2-sh-sm;
+  max-width: 520px;
+}
+
+// ── Section title ─────────────────────────────────────────────────
+.title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: $navy;
+  margin: 0 0 32px;
+  line-height: 1.2;
+}
+
+// ── Field group ───────────────────────────────────────────────────
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $textS;
+}
+
+// ── Divider ───────────────────────────────────────────────────────
+.divider {
+  border: none;
+  border-top: 1px solid $border;
+  margin: 28px 0;
+}
+
+// ── Telegram block ────────────────────────────────────────────────
+.telegramBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 14px;
+  background: $bgAlt;
+  border: 1px solid $border;
+  text-align: center;
+}
+
+.telegramBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid;
+
+  &.link {
+    background: transparent;
+    border-color: #0088cc;
+    color: #0088cc;
+
+    &:hover {
+      background: rgba(0, 136, 204, 0.06);
+    }
+  }
+
+  &.unlink {
+    background: transparent;
+    border-color: $error;
+    color: $error;
+
+    &:hover {
+      background: rgba(224, 92, 92, 0.06);
+    }
+  }
+}
+
+.telegramHint {
+  font-size: 12px;
+  color: $textM;
+  line-height: 1.5;
+
+  &.danger { color: $error; }
+}
+
+// ── Submit button ─────────────────────────────────────────────────
+.btnSubmit {
+  width: 100%;
+  height: 52px;
+  background: $navy2;
+  color: $white;
+  border: 2px solid $navy2;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+
+  &:hover:not(:disabled) {
+    background: $navy;
+    border-color: $navy;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .card {
+    padding: 24px 20px 28px;
+    border-radius: 16px;
+    max-width: 100%;
+  }
+
+  .title { font-size: 24px; margin-bottom: 24px; }
+}

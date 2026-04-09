@@ -1,4 +1,4 @@
-export const serverHost = process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://localhost:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+export const serverHost = process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.1.61:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 interface ServerClientInterface {
@@ -129,7 +129,10 @@ export const routes = {
       deleteOne: (id?: number) => [apiPath, 'image', id ?? ':id'].join('/'),
       removeCoverImage: (id?: number) => [apiPath, 'image', id ?? ':id', 'remove-cover'].join('/'),
       setCoverImage: [apiPath, 'image', 'set-cover'].join('/'),
-      getCoverImages: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'getAll'].join('/'),
+      getCoverImages: ({ isServer, siteVersion }: ServerClientInterface & { siteVersion?: number; }) => {
+        const base = [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'image', 'getAll'].join('/');
+        return siteVersion !== undefined ? `${base}?siteVersion=${siteVersion}` : base;
+      },
     },
   },
 

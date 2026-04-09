@@ -1,0 +1,273 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.section {
+  width: 100%;
+  background: v2.$v2-bg-alt;
+  padding: 56px 0 64px;
+
+  @media (max-width: 768px) {
+    padding: 36px 0 48px;
+  }
+}
+
+.sectionHero {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  position: relative;
+  background: v2.$v2-bg-alt;
+}
+
+.carouselContainer {
+  padding: 0 32px;
+
+  @media (max-width: 768px) {
+    padding: 0 16px;
+  }
+}
+
+.carouselContainerHero {
+  padding: 0;
+  height: 100%;
+  min-height: 520px;
+
+  :global(.react-multi-carousel-track) {
+    height: 100%;
+  }
+
+  :global(.react-multi-carousel-item) {
+    display: flex;
+    align-items: stretch;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+.carouselItem {
+  padding: 0 10px;
+
+  @media (max-width: 768px) {
+    padding: 0 6px;
+  }
+}
+
+.carouselItemHero {
+  padding: 0;
+  height: 100%;
+  min-height: 520px;
+  min-width: 0;
+}
+
+.slideWrapper {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.slideWrapperHero {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+.slide {
+  position: relative;
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: v2.$v2-bg-main;
+  box-shadow: v2.$v2-sh-sm;
+  transition: box-shadow 0.25s ease;
+  text-decoration: none;
+
+  &:hover {
+    box-shadow: v2.$v2-sh-md;
+  }
+}
+
+.slideClickable {
+  @extend .slide;
+  cursor: pointer;
+}
+
+.slideHero {
+  position: relative;
+  display: block;
+  border-radius: 0;
+  overflow: hidden;
+  height: 100%;
+  min-height: 520px;
+  background: v2.$v2-bg-main;
+  text-decoration: none;
+  box-shadow: none;
+
+  &:hover {
+    box-shadow: none;
+  }
+}
+
+.slideHeroClickable {
+  @extend .slideHero;
+  cursor: pointer;
+}
+
+.skeleton {
+  width: 100% !important;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+
+  :global(.ant-skeleton-image) {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0;
+  }
+}
+
+.skeletonHero {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 520px !important;
+  aspect-ratio: unset;
+  border-radius: 0;
+
+  :global(.ant-skeleton-image) {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 520px !important;
+    border-radius: 0;
+  }
+}
+
+.media {
+  object-fit: cover;
+}
+
+// Полоса на телефоне: часто портретное видео — cover сильно кропает; contain показывает кадр целиком.
+.mediaStripMobile {
+  object-fit: contain;
+}
+
+.videoShell {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: v2.$v2-bg-alt;
+}
+
+.videoShellStripMobile {
+  .mediaVideo,
+  .videoPoster {
+    object-fit: contain;
+  }
+}
+
+.videoPoster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
+// Выше .mediaVideo (z-index:1), пока видео с opacity:0 под постером.
+.videoPosterLayer {
+  z-index: 2;
+}
+
+.videoPosterHidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.videoPosterSkeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  pointer-events: none;
+
+  :global(.ant-skeleton),
+  :global(.ant-skeleton-image) {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+  }
+
+  :global(.ant-skeleton-image) {
+    border-radius: 0;
+  }
+}
+
+// Не используем visibility:hidden: в Safari/Chromium это часто глушит загрузку/декод и canplay не приходит.
+// Постер выше (z-index:2), видео z-index:1 и opacity:0 — сверху виден только постер.
+.mediaVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.mediaVideoReady {
+  opacity: 1;
+}
+
+// Поверх постера (z-index:2), когда видео уже можно показывать — без скрытия <img> постера.
+.mediaVideoAbovePoster {
+  z-index: 3;
+}
+
+// Dots
+.dotList {
+  bottom: -28px;
+  gap: 6px;
+}
+
+.dotListHero {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  margin: 0 auto;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: v2.$v2-border;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: v2.$v2-navy-medium;
+  }
+}
+
+.dotActive {
+  background: v2.$v2-navy-primary;
+  transform: scale(1.25);
+}

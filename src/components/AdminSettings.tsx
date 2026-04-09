@@ -2,16 +2,16 @@ import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import axios from 'axios';
 import {
-  Button, Card, Descriptions, Select, Skeleton,
+  Button, Card, Select, Skeleton,
 } from 'antd';
 import cn from 'classnames';
-import type { DescriptionsProps } from 'antd';
 
 import { SubmitContext, VersionContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { routes } from '@/routes';
+import { V1AdminSettings } from '@/themes/v1/components/admin/V1AdminSettings';
 import type { SiteVersion } from '@/types/SiteVersion';
 import type { CacheInfoInterface, CacheItemInterface } from '@server/types/db/cache-info.interface';
 
@@ -21,6 +21,8 @@ export const AdminSettings = () => {
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { version: currentVersion } = useContext(VersionContext);
+
+  if (currentVersion !== 'v2') return <V1AdminSettings />;
 
   const { axiosAuth } = useAppSelector((state) => state.app);
 
@@ -61,12 +63,20 @@ export const AdminSettings = () => {
     }
   };
 
-  const parsedInfo = (value: CacheItemInterface): DescriptionsProps['items'] => {
-    return [
-      { key: 1, className: 'col-2', label: 'PostgreSQL', children: <span>{value.postgreSql}</span> },
-      { key: 2, className: 'col-2', label: 'Redis', children: <span className={cn('fw-bold', { 'text-success': value.postgreSql === value.redis, 'text-danger': value.postgreSql !== value.redis })}>{value.redis}</span> },
-    ];
-  };
+  const cacheRow = (value: CacheItemInterface) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', gap: 24 }}>
+      <div>
+        <div style={{ fontSize: 11, color: '#8c8c8c', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 }}>PostgreSQL</div>
+        <div style={{ fontSize: 22, fontWeight: 600 }}>{value.postgreSql}</div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ fontSize: 11, color: '#8c8c8c', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 }}>Redis</div>
+        <div className={cn({ 'text-success': value.postgreSql === value.redis, 'text-danger': value.postgreSql !== value.redis })} style={{ fontSize: 22, fontWeight: 600 }}>
+          {value.postgreSql === value.redis ? '✓ ' : '✗ '}{value.redis}
+        </div>
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     if (axiosAuth) {
@@ -91,9 +101,9 @@ export const AdminSettings = () => {
       </Card>
       {cacheInfo ? (
         <div className="d-flex flex-column">
-          <Descriptions bordered style={{ marginBottom: '20px' }} className="col-12 col-xl-6" title={t('cache.items')} items={parsedInfo(cacheInfo.items)} />
-          <Descriptions bordered style={{ marginBottom: '20px' }} className="col-12 col-xl-6" title={t('cache.itemGroups')} items={parsedInfo(cacheInfo.itemGroups)} />
-          <Descriptions bordered style={{ marginBottom: '20px' }} className="col-12 col-xl-6" title={t('cache.itemGrades')} items={parsedInfo(cacheInfo.itemGrades)} />
+          <Card title={t('cache.items')} className="col-12 col-xl-6 mb-3">{cacheRow(cacheInfo.items)}</Card>
+          <Card title={t('cache.itemGroups')} className="col-12 col-xl-6 mb-3">{cacheRow(cacheInfo.itemGroups)}</Card>
+          <Card title={t('cache.itemGrades')} className="col-12 col-xl-6 mb-3">{cacheRow(cacheInfo.itemGrades)}</Card>
           <div className="mt-5 d-flex justify-content-center mx-auto">
             <Button type="primary" className="button px-4" onClick={synchronizationCache}>
               {t('cache.synchronizationCache')}

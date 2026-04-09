@@ -70,6 +70,11 @@ export class CartService extends BaseService {
         .leftJoin('item.group', 'group')
         .addSelect([
           'group.code',
+        ])
+        .leftJoin('group.translations', 'groupTranslations')
+        .addSelect([
+          'groupTranslations.name',
+          'groupTranslations.lang',
         ]);
     }
 

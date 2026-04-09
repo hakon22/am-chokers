@@ -10,15 +10,34 @@
     top: 56px; // mobileHeader(56)
     z-index: 5;
     background: v2.$v2-bg-main;
+
+    :global(.ant-breadcrumb-link) {
+      letter-spacing: -0.3px;
+    }
+
+    :global(.ant-breadcrumb-separator) {
+      margin-inline: 4px;
+    }
   }
 
   :global(.ant-breadcrumb) {
     padding-top: 12px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+
+    :global(ol) {
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
 
     :global(.ant-breadcrumb-link) {
-      font-size: 13px;
+      font-size: 15px;
       color: v2.$v2-text-secondary;
       font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       a {
         color: v2.$v2-text-secondary;
@@ -30,7 +49,27 @@
       }
     }
 
+    :global(li) {
+      flex: 0 0 auto;
+      min-width: 0;
+    }
+
+    :global(li:last-child) {
+      flex: 1 1 0%;
+      min-width: 0;
+
+      :global(.ant-breadcrumb-link) {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        min-width: 0;
+        max-width: 100%;
+      }
+    }
+
     :global(.ant-breadcrumb-separator) {
+      flex-shrink: 0;
       color: v2.$v2-border;
     }
   }

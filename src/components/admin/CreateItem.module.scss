@@ -1,0 +1,512 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:    v2.$v2-navy-primary;
+$navy2:   v2.$v2-navy-secondary;
+$border:  v2.$v2-border;
+$bgAlt:   v2.$v2-bg-alt;
+$bgMain:  v2.$v2-bg-main;
+$white:   v2.$v2-white;
+$textD:   v2.$v2-text-dark;
+$textS:   v2.$v2-text-secondary;
+$textM:   v2.$v2-text-muted;
+$error:   v2.$v2-error;
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+.page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 60px;
+}
+
+// ── Page header ───────────────────────────────────────────────────────────────
+.pageHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: $navy;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: $textS;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: $navy2;
+    color: $navy2;
+  }
+}
+
+// ── Two-column layout ─────────────────────────────────────────────────────────
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 40px;
+  align-items: start;
+}
+
+// ── Media panel ───────────────────────────────────────────────────────────────
+.mediaPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+}
+
+.sortToggle {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sortGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.gallery {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.dragger {
+  border-radius: 14px !important;
+  border-color: $border !important;
+  background: $bgMain !important;
+  transition: border-color 0.15s !important;
+
+  &:hover {
+    border-color: $navy2 !important;
+  }
+
+  :global(.ant-upload-drag-icon) svg {
+    color: $navy2;
+    font-size: 40px;
+  }
+
+  :global(.ant-upload-text) {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: $textD !important;
+  }
+
+  :global(.ant-upload-hint) {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: $textM !important;
+  }
+}
+
+.uploadMobile {
+  width: 100%;
+}
+
+.uploadMobileButton {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid $border;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: $textD;
+}
+
+// ── Form panel ────────────────────────────────────────────────────────────────
+.formPanel {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 24px;
+  box-shadow: v2.$v2-sh-sm;
+  overflow: hidden;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+
+  // Reset Ant Design Form.Item bottom margin inside our sections
+  :global(.ant-form-item) {
+    margin-bottom: 0;
+  }
+}
+
+// ── Section ───────────────────────────────────────────────────────────────────
+.section {
+  padding: 20px 28px;
+}
+
+.sectionDivider {
+  height: 1px;
+  background: $border;
+  margin: 0;
+}
+
+// ── Names section ─────────────────────────────────────────────────────────────
+.namesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+}
+
+.formItem {
+  width: 100%;
+}
+
+.nameInput {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px !important;
+  font-weight: 400;
+  color: $textD;
+  padding-left: 0 !important;
+
+  &::placeholder {
+    color: $textM;
+  }
+}
+
+.nameInputEn {
+  color: $textS;
+
+  &::placeholder {
+    color: lighten($textM, 8%);
+  }
+}
+
+// ── Filters section ───────────────────────────────────────────────────────────
+.filtersRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.select {
+  min-width: 160px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.formItemInline {
+  margin: 0;
+}
+
+.badge {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: $textD;
+
+  :global(.ant-checkbox-inner) {
+    border-color: $border;
+    border-radius: 4px;
+  }
+
+  :global(.ant-checkbox-checked .ant-checkbox-inner) {
+    background-color: $navy2;
+    border-color: $navy2;
+  }
+}
+
+// ── Pricing section ───────────────────────────────────────────────────────────
+.pricingRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.priceInput {
+  min-width: 140px;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.datePicker {
+  min-width: 160px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+// ── Actions section ───────────────────────────────────────────────────────────
+.actionsSection {
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.submitButton {
+  height: 48px;
+  padding: 0 32px;
+  background: $navy2;
+  color: $white;
+  border: 2px solid $navy2;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: $navy;
+    border-color: $navy;
+  }
+}
+
+// ── Description section ───────────────────────────────────────────────────────
+.descriptionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  padding-left: 0 !important;
+  resize: vertical;
+
+  &::placeholder {
+    color: $textM;
+  }
+}
+
+.textareaEn {
+  color: $textS;
+}
+
+.generateRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.generateButton {
+  background: linear-gradient(135deg, #fdd8a6, #f7daed);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: $textD;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+}
+
+// ── Attributes section ────────────────────────────────────────────────────────
+.attributesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+}
+
+.attributeField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attributeLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: $textS;
+}
+
+.selectMulti {
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.colorOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colorDot {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid $border;
+}
+
+.attributeInput {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding-left: 0 !important;
+}
+
+// ── Mobile submit ─────────────────────────────────────────────────────────────
+.mobileSubmit {
+  padding: 20px 28px;
+  display: flex;
+  justify-content: center;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.modalFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.modalDateRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 8px;
+}
+
+.modalTgSection {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 420px;
+}
+
+.generateButtonRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .mediaPanel {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 24px;
+  }
+
+  .pageHeader {
+    margin-bottom: 20px;
+  }
+
+  .formPanel {
+    border-radius: 16px;
+  }
+
+  .section {
+    padding: 16px 20px;
+  }
+
+  .actionsSection {
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .submitButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .namesGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .filtersRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .badges {
+    margin-left: 0;
+  }
+
+  .pricingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .priceInput,
+  .datePicker {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .attributesGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .mobileSubmit {
+    padding: 16px 20px;
+  }
+
+  .modalFooter {
+    flex-direction: column;
+  }
+}

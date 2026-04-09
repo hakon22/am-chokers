@@ -1,19 +1,11 @@
-import { useTranslation } from 'react-i18next';
-import axios from 'axios';
-import { useContext, useEffect, useEffectEvent, useState } from 'react';
+import { useContext } from 'react';
 import type { InferGetServerSidePropsType } from 'next';
 
-import { routes } from '@/routes';
-import { BackButton } from '@/components/BackButton';
-import { Order as OrderComponent } from '@/components/profile/Order';
-import { useAppSelector } from '@/hooks/reduxHooks';
-import { MobileContext, SubmitContext } from '@/components/Context';
-import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { Helmet } from '@/components/Helmet';
-import type { OrderInterface } from '@/types/order/Order';
-import type { OrderResponseInterface } from '@/slices/orderSlice';
+import { VersionContext } from '@/components/Context';
+import { V1AdminOrder } from '@/themes/v1/components/admin/V1AdminOrder';
+import { V2AdminOrder } from '@/themes/v2/components/admin/V2AdminOrder';
 
-export const getServerSideProps = async ({ params }: { params: { id: string; } }) => {
+export const getServerSideProps = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
   return {
     props: { id },
@@ -21,48 +13,9 @@ export const getServerSideProps = async ({ params }: { params: { id: string; } }
 };
 
 const Order = ({ id }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const { t: tOrder } = useTranslation('translation', { keyPrefix: 'pages.profile.orders.order' });
-  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
-
-  const { axiosAuth } = useAppSelector((state) => state.app);
-
-  const { setIsSubmit } = useContext(SubmitContext);
-  const { isMobile } = useContext(MobileContext);
-
-  const [order, setOrder] = useState<OrderInterface | undefined>();
-
-  const fetchOrder = async () => {
-    try {
-      setIsSubmit(true);
-      const { data } = await axios.get<OrderResponseInterface>(routes.order.findOne(+id));
-      if (data.code === 1) {
-        setOrder(data.order);
-      }
-      setIsSubmit(false);
-    } catch (e) {
-      axiosErrorHandler(e, tToast, setIsSubmit);
-    }
-  };
-
-  const fetchOrderEffect = useEffectEvent(fetchOrder);
-
-  useEffect(() => {
-    if (axiosAuth) {
-      fetchOrderEffect();
-      
-    }
-  }, [axiosAuth]);
-
-  return (
-    <div className="d-flex flex-column mb-5 justify-content-center">
-      <Helmet title={tOrder('title', { id })} description={tOrder('description', { id })} />
-      <h1 className="font-good-vibes-pro text-center mb-3 mb-xl-5" style={{ marginTop: isMobile ? '30%' : '12%' }}>{tOrder('title', { id })}</h1>
-      <div className="d-flex align-items-center gap-3 mb-5">
-        <BackButton style={{}} />
-      </div>
-      {order && <OrderComponent order={order} orderId={order.id} />}
-    </div>
-  );
+  const { version } = useContext(VersionContext);
+  if (version === 'v2') return <V2AdminOrder id={id} />;
+  return <V1AdminOrder id={id} />;
 };
 
 export default Order;

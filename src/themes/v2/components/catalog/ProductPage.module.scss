@@ -1,0 +1,993 @@
+// ── Tokens ─────────────────────────────────────────────────────
+$navy-primary:   #2B3C5F;
+$navy-secondary: #3B5382;
+$navy-medium:    #5A6E96;
+$border:         #CED3DD;
+$text-dark:      #363B44;
+$text-secondary: #69788E;
+$text-muted:     #A1B3CD;
+$bg-alt:         #EAEEF6;
+$bg-main:        #F9FAFC;
+$success:        #4caf7d;
+$error:          #e05c5c;
+
+// ── Product layout ──────────────────────────────────────────────
+.product {
+  display: grid;
+  grid-template-columns: minmax(0, 590px) 560px;
+  gap: 32px;
+  align-items: start;
+  padding-bottom: 80px;
+}
+
+.galleryCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+
+  // Обёртка: на десктопе не влияет на сетку; на мобиле — отступы от краёв экрана + внутренний блок с padding
+  .noticeShell {
+    display: contents;
+
+    @media (max-width: 1100px) {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: 16px;
+      padding-right: 16px;
+
+      @media (max-width: 768px) {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+  }
+
+  // Геометрия подписи: десктоп — инлайн (noticeLayoutStyle); мобилка — ниже с !important
+  .notice {
+    margin-top: 8px;
+    margin-left: 124px;
+    box-sizing: border-box;
+    width: min(560px, calc(100% - 124px));
+    max-width: calc(100% - 124px);
+  }
+
+  @media (max-width: 1100px) {
+    .noticeShell .notice {
+      margin: 8px 0 0 !important;
+      margin-left: 0 !important;
+      width: 100% !important;
+      max-width: none !important;
+      padding: 12px 16px !important;
+      box-sizing: border-box !important;
+      overflow-wrap: break-word !important;
+    }
+  }
+}
+
+// ── Gallery (react-image-gallery) ───────────────────────────────
+// Встроенная сетка v2; в fullscreen высота/ширина слайда — `--galleryFsHeight` / `--galleryFsWidth` (не смешивать с --galleryHeight встроенной галереи).
+
+.gallery {
+  --galleryWidth: min(100%, 560px);
+  // Fit in viewport: header, breadcrumb, sticky offset (~88px), padding
+  --galleryHeight: min(520px, calc(100vh - 200px));
+  position: sticky;
+  top: 88px;
+  width: 100%;
+  max-height: calc(100vh - 96px);
+
+  @supports (height: 100dvh) {
+    --galleryHeight: min(520px, calc(100dvh - 200px));
+    max-height: calc(100dvh - 96px);
+  }
+
+  :global(.image-gallery) {
+    width: 100%;
+  }
+
+  // ── Встроенная галерея на странице (как CardItem v1: не трогаем .fullscreen) ──
+  :global(.image-gallery .image-gallery-content:not(.fullscreen)) {
+    // Перебиваем width: calc(100% - 112px) из библиотеки — иначе контейнер остаётся широким и даёт боковые поля при contain
+    :global(.image-gallery-slide-wrapper.image-gallery-thumbnails-left),
+    :global(.image-gallery-slide-wrapper.image-gallery-thumbnails-right) {
+      width: var(--galleryWidth) !important;
+      max-width: 100%;
+    }
+
+    :global(.image-gallery-slide-wrapper) {
+      border-radius: 16px;
+      overflow: hidden;
+      background: $bg-alt;
+      height: var(--galleryHeight) !important;
+      min-height: var(--galleryHeight) !important;
+      max-height: var(--galleryHeight) !important;
+      box-sizing: border-box;
+    }
+
+    :global(.image-gallery-swipe),
+    :global(.image-gallery-slides),
+    :global(.image-gallery-slide) {
+      border-radius: 16px;
+    }
+
+    :global(.image-gallery-swipe),
+    :global(.image-gallery-slides) {
+      height: var(--galleryHeight) !important;
+      min-height: var(--galleryHeight) !important;
+      max-height: var(--galleryHeight) !important;
+      box-sizing: border-box;
+      background: $bg-alt;
+    }
+
+    :global(.image-gallery-slide) {
+      height: var(--galleryHeight) !important;
+      min-height: var(--galleryHeight) !important;
+      max-height: var(--galleryHeight) !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      background: $bg-alt;
+    }
+
+    :global(.image-gallery-slide .image-gallery-image) {
+      flex: 0 1 auto;
+      width: 100% !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      max-width: 100% !important;
+      object-fit: contain !important;
+      object-position: center !important;
+      border-radius: 16px;
+    }
+  }
+
+  // JS задаёт --galleryWidth/--galleryHeight с фикс. пропорцией 1 : 1.3 как в v1 (CardItem) → cover в рамке
+  &[data-gallery-adaptive] :global(.image-gallery .image-gallery-content:not(.fullscreen)) {
+    max-height: none;
+
+    :global(.image-gallery-slide) {
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    :global(.image-gallery-slide .image-gallery-image) {
+      object-fit: cover !important;
+      max-width: none !important;
+    }
+  }
+
+  // Полноэкран (только v2): центр ряда при скрытых миниатюрах; картинка по высоте вьюпорта, ширина по пропорции
+  :global(.image-gallery.fullscreen-modal .image-gallery-content.fullscreen) {
+    top: 0;
+    transform: none;
+  }
+
+  :global(.image-gallery:fullscreen),
+  :global(.image-gallery:-webkit-full-screen) {
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen) {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: var(--galleryFsHeight, 100dvh);
+    height: 100%;
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-left),
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-right) {
+    flex-shrink: 0;
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide-wrapper.image-gallery-thumbnails-left),
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide-wrapper.image-gallery-thumbnails-right) {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto !important;
+    min-height: var(--galleryFsHeight, 100dvh);
+    height: 100%;
+    max-width: none;
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-swipe),
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slides) {
+    height: 100%;
+    min-height: var(--galleryFsHeight, 100dvh);
+    box-sizing: border-box;
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slides-container) {
+    height: 100%;
+    min-height: var(--galleryFsHeight, 100dvh);
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: var(--galleryFsHeight, 100dvh);
+    box-sizing: border-box;
+  }
+
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide .image-gallery-image) {
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: var(--galleryFsHeight, 100dvh) !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  :global(.image-gallery-thumbnail) {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  :global(.image-gallery-thumbnail.active),
+  :global(.image-gallery-thumbnail:focus) {
+    border-color: $navy-secondary;
+  }
+
+  :global(.image-gallery-thumbnail-inner) {
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  :global(.image-gallery-thumbnail-image) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  :global(.image-gallery-thumbnails-container) {
+    cursor: pointer;
+  }
+
+  :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-left-nav .image-gallery-svg),
+  :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-right-nav .image-gallery-svg) {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
+  }
+}
+
+/* Чёрный экран на время перехода в/из нативного fullscreen (см. ProductPage.tsx). */
+.fsCurtain {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: #000;
+  pointer-events: none;
+}
+
+.gallery.galleryFsCurtain {
+  position: relative;
+  z-index: 2147483647;
+  background: #000;
+  isolation: isolate;
+
+  :global(.image-gallery .image-gallery-content) {
+    opacity: 0 !important;
+  }
+}
+
+.galleryInner {
+  cursor: zoom-in;
+}
+
+.galleryPlaceholder {
+  // Как основная галерея: ширина : высота = 1 : 1.3 (CardItem / GALLERY_ASPECT_RATIO)
+  aspect-ratio: 1 / 1.3;
+  max-width: 560px;
+  max-height: min(520px, calc(100vh - 200px));
+  width: 100%;
+  border-radius: 16px;
+  background: $bg-alt;
+
+  @supports (height: 100dvh) {
+    max-height: min(520px, calc(100dvh - 200px));
+  }
+}
+
+// ── Collection badge (desktop) ───────────────────────────────────
+.infoCollection {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $navy-secondary;
+  font-weight: 600;
+  background: $bg-alt;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 3px 10px;
+  margin-bottom: 14px;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+
+  &:hover {
+    background: darken($bg-alt, 3%);
+    border-color: $navy-medium;
+    color: $navy-primary;
+  }
+}
+
+.infoEyebrow {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: $navy-medium;
+  font-weight: 500;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: $navy-medium;
+  }
+}
+
+.infoName {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 42px;
+  font-weight: 300;
+  line-height: 1.15;
+  color: $navy-primary;
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+// ── Rating ──────────────────────────────────────────────────────
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  font-size: 12px;
+  color: $text-secondary;
+}
+
+.ratingDot { opacity: 0.4; }
+
+.ratingLink {
+  color: $navy-medium;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-family: inherit;
+  transition: color 0.2s;
+
+  &:hover { color: $navy-primary; }
+}
+
+// ── Price ────────────────────────────────────────────────────────
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.priceMain {
+  font-size: 32px;
+  font-weight: 600;
+  color: $navy-primary;
+  letter-spacing: -0.5px;
+}
+
+.priceOld {
+  font-size: 18px;
+  color: $text-muted;
+  text-decoration: line-through;
+  font-weight: 400;
+}
+
+.priceBadge {
+  background: #fde8e8;
+  color: #c53030;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+// ── Stock ────────────────────────────────────────────────────────
+.stockRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 24px;
+  font-size: 12px;
+}
+
+.stockDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &.in   { background: $success; }
+  &.out  { background: #f0a500; }
+  &.del  { background: $error; }
+}
+
+.stockText {
+  &.in   { color: $success; font-weight: 500; }
+  &.out  { color: #c47d00; }
+  &.del  { color: $error; }
+}
+
+// ── Divider ─────────────────────────────────────────────────────
+.sep {
+  border: none;
+  border-top: 1px solid $border;
+  margin: 24px 0;
+}
+
+// ── Qty + Cart ───────────────────────────────────────────────────
+.qtyLabel {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $text-secondary;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.cartRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.qtyControl {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.cartControl {
+  flex: 1;
+  justify-content: space-between;
+}
+
+.qtyBtn {
+  width: 44px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: $navy-secondary;
+  cursor: pointer;
+  transition: background 0.15s;
+  line-height: 1;
+
+  &:hover { background: $bg-alt; }
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.qtyVal {
+  width: 44px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: $navy-primary;
+  user-select: none;
+}
+
+.inCartCenter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  user-select: none;
+}
+
+.inCartText {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $text-secondary;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.inCartCount {
+  font-size: 16px;
+  font-weight: 600;
+  color: $navy-primary;
+  line-height: 1;
+}
+
+.btnCart {
+  flex: 1;
+  height: 48px;
+  background: $navy-secondary;
+  color: #fff;
+  border: 2px solid $navy-secondary;
+  border-radius: 10px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $navy-primary;
+    border-color: $navy-primary;
+  }
+
+  &.inCart {
+    background: #fff;
+    color: $navy-secondary;
+    border-color: $navy-secondary;
+
+    &:hover { background: $bg-alt; }
+  }
+}
+
+.btnFav {
+  width: 48px;
+  height: 48px;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  color: $text-secondary;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover { border-color: $navy-medium; color: $error; }
+  &.active { color: $error; border-color: $error; background: #fff5f5; }
+}
+
+// ── Sticky cart bar ─────────────────────────────────────────────
+.stickyBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 199; // below BottomNav (200), above content
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0));
+  background: transparent;
+  animation: slideUp 0.25s ease;
+
+  .btnCart { flex: 1; }
+
+  @media (max-width: 1100px) {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0));
+    padding-bottom: 12px;
+  }
+
+  @media (min-width: 1101px) {
+    bottom: 20px;
+    left: auto;
+    right: auto;
+    padding: 0;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stickyBarInCart {
+  .qtyControl { flex: 1; }
+}
+
+
+// ── Action row ───────────────────────────────────────────────────
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.actionLink {
+  font-size: 11px;
+  color: $text-muted;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  transition: color 0.2s;
+
+  &:hover { color: $navy-secondary; }
+}
+
+// ── Accordion ────────────────────────────────────────────────────
+.accordion {
+  border: 1px solid $border;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.accItem {
+  border-bottom: 1px solid $border;
+
+  &:last-child { border-bottom: none; }
+}
+
+.accHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $navy-primary;
+  text-align: left;
+  transition: background 0.15s;
+
+  &:hover { background: $bg-alt; }
+}
+
+.accChevron {
+  font-size: 11px;
+  color: $text-muted;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+
+  &.open { transform: rotate(180deg); }
+}
+
+.accBody {
+  padding: 4px 20px 20px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: $text-secondary;
+
+  p {
+    margin: 0 0 8px;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 0;
+  }
+
+  li {
+    display: flex;
+    gap: 10px;
+
+    &::before {
+      content: '—';
+      color: $text-muted;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.compositionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.compositionLabel {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: $text-muted;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.colorDot {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.colorRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colorItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: $text-secondary;
+}
+
+// ── Related section ──────────────────────────────────────────────
+.section {
+  padding: 64px 0;
+  border-top: 1px solid $border;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+
+.sectionEyebrow {
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: $navy-medium;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: $navy-medium;
+  }
+}
+
+.sectionTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: $navy-primary;
+  margin: 0;
+}
+
+
+// ── Warranty / Delivery text ─────────────────────────────────────
+.warrantyText {
+  font-size: 13px;
+  line-height: 1.75;
+  color: $text-secondary;
+
+  p { margin: 0 0 8px; }
+  b { color: $text-dark; }
+  a { color: $navy-secondary; }
+}
+
+.deliveryText {
+  font-size: 13px;
+  line-height: 1.75;
+  color: $text-secondary;
+
+  p { margin: 0 0 8px; }
+  b { color: $text-dark; }
+  a { color: $navy-secondary; }
+}
+
+// ── Notice ───────────────────────────────────────────────────────
+.notice {
+  font-size: 12px;
+  color: $navy-medium;
+  line-height: 1.6;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: $bg-alt;
+  border-radius: 8px;
+}
+
+// ── Reviews section ──────────────────────────────────────────────
+.gradesSection {
+  :global(#grades) {
+    align-items: flex-start !important;
+  }
+
+  :global(#grades > h3) {
+    display: none !important;
+  }
+
+  :global(#grades .ant-list) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  @media (max-width: 1100px) {
+    :global(#grades) {
+      align-items: center !important;
+    }
+
+    :global(h3) {
+      text-align: center;
+    }
+  }
+}
+
+// ── Mobile title block ───────────────────────────────────────────
+.mobileTitle {
+  display: none;
+}
+
+.mobileTitleCollection {
+  display: none;
+}
+
+.mobileRatingInline {
+  display: none;
+}
+
+// ── Responsive ───────────────────────────────────────────────────
+@media (max-width: 1100px) {
+  .product {
+    grid-template-columns: 1fr;
+    // (4) Small gap between mobileTitle and gallery; extra spacing before info via .info margin-top
+    row-gap: 12px;
+  }
+
+  .gallery {
+    position: static;
+    width: 100vw;
+    max-width: none;
+    margin-left: calc(50% - 50vw);
+  }
+
+  // (1,2,3) Show mobile title, center name, show collection link
+  .mobileTitle {
+    display: block;
+    margin-bottom: 8px;
+
+    .infoName {
+      margin-bottom: 6px;
+    }
+  }
+
+  .mobileTitleCollection {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: $navy-secondary;
+    font-weight: 600;
+    background: $bg-alt;
+    border: 1px solid $border;
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  .info .infoEyebrow,
+  .info .infoName,
+  .info .infoCollection {
+    display: none;
+  }
+
+  // (5) Show rating inline next to price on mobile, hide standalone ratingRow
+  .mobileRatingInline {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: auto;
+    font-size: 16px;
+
+    :global(.ant-rate) {
+      font-size: 16px !important;
+    }
+
+    strong {
+      font-size: 16px !important;
+    }
+
+    span {
+      font-size: 15px;
+    }
+  }
+
+  .info .ratingRow {
+    display: none;
+  }
+
+  // Mobile order within .info panel (matches v1): price → stock → cart → accordion
+  .info {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+
+    .priceRow  { order: 1; margin-bottom: 10px; }
+    .stockRow  { order: 2; margin-bottom: 12px; }
+    .sep       { order: 3; }
+    .qtyLabel  { order: 4; display: none; }
+    .cartRow   { order: 5; }
+    .actionRow { order: 6; }
+    .accordion { order: 7; }
+  }
+
+}
+
+@media (min-width: 1101px) {
+  .cartRow {
+    position: sticky;
+    bottom: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .gallery {
+    --galleryWidth: min(100%, calc(100vw - 32px));
+    --galleryHeight: min(420px, calc(100vh - 220px));
+    max-height: calc(100vh - 88px);
+
+    @supports (height: 100dvh) {
+      --galleryHeight: min(420px, calc(100dvh - 220px));
+      max-height: calc(100dvh - 88px);
+    }
+  }
+
+  .infoName { font-size: 32px; }
+
+  .cartRow {
+    flex-wrap: nowrap;
+  }
+
+  .qtyControl:not(.cartControl) {
+    display: none;
+  }
+
+  .btnCart {
+    min-width: unset;
+    order: unset;
+  }
+}
+
+@media (max-width: 500px) {
+  .infoName { font-size: 28px; }
+}

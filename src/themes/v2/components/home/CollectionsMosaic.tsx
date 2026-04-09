@@ -1,58 +1,27 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import { getHref } from '@/utilities/getHref';
-import type { ItemInterface, GeneralPageCollectionInterface } from '@/types/item/Item';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
+import { ContextMenu } from '@/components/ContextMenu';
 import styles from '@/themes/v2/components/home/CollectionsMosaic.module.scss';
-
-interface CollectionTileProps {
-  item: ItemInterface;
-  small?: boolean;
-}
-
-const CollectionTile = ({ item, small }: CollectionTileProps) => {
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
-  const name = item.translations?.find((tr) => tr.lang === lang)?.name ?? item.translateName ?? '';
-  const groupName = item.group?.translations?.find((tr) => tr.lang === lang)?.name ?? '';
-  const image = item.images?.[0];
-
-  return (
-    <Link href={getHref(item)} className={small ? styles.tileSm : styles.tile}>
-      {image && (
-        <Image src={image.url} alt={name} fill style={{ objectFit: 'cover' }} />
-      )}
-      <div className={styles.tileOverlay} />
-      <div className={styles.tileBody}>
-        <div className={styles.tileTag}>{groupName}</div>
-        <div className={styles.tileName}>{name}</div>
-      </div>
-    </Link>
-  );
-};
+import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
+import type { GeneralPageCoverImageInterface } from '@/types/item/Item';
+import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 
 interface CollectionsMosaicProps {
-  collections: GeneralPageCollectionInterface;
+  collections: ItemCollectionEntity[];
+  coverImages?: GeneralPageCoverImageInterface;
 }
 
-export const CollectionsMosaic = ({ collections }: CollectionsMosaicProps) => {
+export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosaicProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home.collections' });
+  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
-  const mainItems = [
-    collections.collection1,
-    collections.collection2,
-    collections.collection3,
-  ].filter(Boolean) as ItemInterface[];
-
-  const smallItems = [
-    collections.collection4,
-    collections.collection5,
-  ].filter(Boolean) as ItemInterface[];
-
-  if (mainItems.length === 0) return null;
+  if (!collections.length) {
+    return null;
+  }
 
   return (
     <HomeSectionWrapper alt>
@@ -63,19 +32,26 @@ export const CollectionsMosaic = ({ collections }: CollectionsMosaicProps) => {
         </div>
       </div>
 
-      <div className={styles.grid}>
-        {mainItems.map((item) => (
-          <CollectionTile key={item.id} item={item} />
-        ))}
-      </div>
+      <div className={styles.colGrid}>
+        {collections.map((collection) => {
+          const name = collection.translations?.find((tr) => tr.lang === lang)?.name ?? '';
+          const img = coverImages?.[`${CoverTypeEnum.COLLECTION_IMAGE}${collection.id}` as keyof GeneralPageCoverImageInterface];
 
-      {smallItems.length > 0 && (
-        <div className={styles.rowSmall}>
-          {smallItems.map((item) => (
-            <CollectionTile key={item.id} item={item} small />
-          ))}
-        </div>
-      )}
+          return (
+            <ContextMenu key={collection.id} cover={collection.id} isCoverCollection image={img} siteVersion={2} style={{ height: '100%' }}>
+              <div className={styles.tile}>
+                {img && (
+                  <Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
+                )}
+                <div className={styles.tileOverlay} />
+                <div className={styles.tileBody}>
+                  <div className={styles.tileName}>{name}</div>
+                </div>
+              </div>
+            </ContextMenu>
+          );
+        })}
+      </div>
     </HomeSectionWrapper>
   );
 };

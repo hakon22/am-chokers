@@ -31,7 +31,9 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
   };
 
   const increment = async () => {
-    if (!inCart) return;
+    if (!inCart) {
+      return;
+    }
     setIsSubmit(true);
     const { payload: { code, cartItem } } = await dispatch(incrementCartItem(inCart.id)) as { payload: CartResponseInterface; };
     if (setCartList && code === 1) {
@@ -47,7 +49,9 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
   };
 
   const decrement = async () => {
-    if (!inCart) return;
+    if (!inCart) {
+      return;
+    }
     setIsSubmit(true);
     const { payload: { code, cartItem } } = await dispatch(inCart.count > 1 ? decrementCartItem(inCart.id) : removeCartItem(inCart.id)) as { payload: CartResponseInterface; };
     if (setCartList && code === 1) {

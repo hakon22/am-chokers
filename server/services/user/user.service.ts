@@ -49,6 +49,7 @@ export class UserService extends BaseService {
         'user.name',
         'user.phone',
         'user.telegramId',
+        'user.telegramUsername',
         'user.role',
         'user.deleted',
         'user.created',

@@ -10,16 +10,19 @@ import {
 import { Badge } from 'antd';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
+import { useContext } from 'react';
 
 import { routes } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { AuthModalContext } from '@/components/Context';
 import styles from '@/themes/v2/components/BottomNav.module.scss';
 
 export const BottomNav = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const router = useRouter();
-  const { favorites } = useAppSelector((state) => state.user);
+  const { favorites, token } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
+  const { openAuthModal } = useContext(AuthModalContext);
 
   const cartCount = cart.reduce((acc, { count }) => acc + count, 0);
   const favCount = favorites?.length ?? 0;
@@ -37,18 +40,32 @@ export const BottomNav = () => {
           <span className={styles.icon}><AppstoreOutlined /></span>
           {t('menu.catalog')}
         </Link>
-        <Link href={routes.page.profile.personalData} className={cn(styles.item, { [styles.active]: isActive('/profile') })}>
-          <span className={styles.icon}><UserOutlined /></span>
-          {t('profile')}
-        </Link>
-        <Link href={routes.page.profile.favorites} className={cn(styles.item, { [styles.active]: isActive(routes.page.profile.favorites) })}>
-          <span className={styles.icon}>
-            <Badge count={favCount} size="small" offset={[4, -2]}>
-              <HeartOutlined />
-            </Badge>
-          </span>
-          {t('favorites')}
-        </Link>
+        {token ? (
+          <Link href={routes.page.profile.personalData} className={cn(styles.item, { [styles.active]: isActive('/profile') })}>
+            <span className={styles.icon}><UserOutlined /></span>
+            {t('profile')}
+          </Link>
+        ) : (
+          <button type="button" className={styles.item} onClick={() => openAuthModal?.('login')}>
+            <span className={styles.icon}><UserOutlined /></span>
+            {t('profile')}
+          </button>
+        )}
+        {token ? (
+          <Link href={routes.page.profile.favorites} className={cn(styles.item, { [styles.active]: isActive(routes.page.profile.favorites) })}>
+            <span className={styles.icon}>
+              <Badge count={favCount} size="small" offset={[4, -2]}>
+                <HeartOutlined />
+              </Badge>
+            </span>
+            {t('favorites')}
+          </Link>
+        ) : (
+          <button type="button" className={styles.item} onClick={() => openAuthModal?.('login')}>
+            <span className={styles.icon}><HeartOutlined /></span>
+            {t('favorites')}
+          </button>
+        )}
         <Link href={routes.page.base.cartPage} className={cn(styles.item, { [styles.active]: isActive(routes.page.base.cartPage) })}>
           <span className={styles.icon}>
             <Badge count={cartCount} size="small" offset={[4, -2]}>

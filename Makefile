@@ -31,6 +31,9 @@ deferred:
 increase-item-prices:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/increase-item-prices.ts 10 100
 
+clear-user-refresh-tokens:
+	cross-env DB='LOCAL' CRON='TRUE' tsx cron/clear-user-refresh-tokens.ts
+
 build-docker-dev:
 	docker compose -f docker-compose.dev.yml build
 

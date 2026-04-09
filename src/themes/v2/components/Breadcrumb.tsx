@@ -9,7 +9,7 @@ import cn from 'classnames';
 
 import { routes, catalogPath } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
-import { ItemContext, MobileContext } from '@/components/Context';
+import { ItemContext, MobileContext, VersionContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/Breadcrumb.module.scss';
 
@@ -26,6 +26,7 @@ export const Breadcrumb = () => {
 
   const { item } = useContext(ItemContext);
   const { isMobile } = useContext(MobileContext);
+  const { version } = useContext(VersionContext);
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -64,7 +65,7 @@ export const Breadcrumb = () => {
           items={breadcrumbs}
           className="container mb-xl-3"
           separator={<RightOutlined style={{ fontSize: isMobile ? 10 : 12 }} />}
-          style={{ paddingTop: isMobile ? '56px' : '16px' }}
+          style={{ paddingTop: isMobile && version !== 'v2' ? '56px' : '16px' }}
         />
       </div>
     )

@@ -1,0 +1,118 @@
+// Shared v2 profile mixins — import with @use
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:    v2.$v2-navy-primary;
+$navy2:   v2.$v2-navy-secondary;
+$navy3:   v2.$v2-navy-medium;
+$border:  v2.$v2-border;
+$bgAlt:   v2.$v2-bg-alt;
+$bgMain:  v2.$v2-bg-main;
+$white:   v2.$v2-white;
+$textD:   v2.$v2-text-dark;
+$textS:   v2.$v2-text-secondary;
+$textM:   v2.$v2-text-muted;
+$error:   v2.$v2-error;
+$success: v2.$v2-success;
+
+// ── Card ──────────────────────────────────────────────────────────
+@mixin card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 20px;
+  box-shadow: v2.$v2-sh-sm;
+}
+
+// ── Page title ────────────────────────────────────────────────────
+@mixin page-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: $navy;
+  line-height: 1.2;
+  margin: 0 0 28px;
+}
+
+// ── Section label ─────────────────────────────────────────────────
+@mixin label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $textS;
+}
+
+// ── Eyebrow ───────────────────────────────────────────────────────
+@mixin eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $textM;
+}
+
+// ── Submit button ─────────────────────────────────────────────────
+@mixin btn-primary {
+  height: 52px;
+  background: $navy2;
+  color: $white;
+  border: 2px solid $navy2;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: $navy;
+    border-color: $navy;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+@mixin btn-outline {
+  height: 44px;
+  padding: 0 20px;
+  background: transparent;
+  color: $navy2;
+  border: 1.5px solid $navy2;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: $bgAlt;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ── Info row ──────────────────────────────────────────────────────
+@mixin info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 10px 0;
+  border-bottom: 1px solid $border;
+  gap: 12px;
+
+  &:last-child { border-bottom: none; }
+}

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { isNil } from 'lodash';
 
 import { routes } from '@/routes';
 import type { CartItemInterface, CartItemFormInterface } from '@/types/cart/Cart';
@@ -20,6 +21,9 @@ export interface SelectedCartResponseInterface {
 }
 
 const cartStorageKey = process.env.NEXT_PUBLIC_CART_STORAGE_KEY ?? '';
+
+/** Гостевая позиция: нет привязанного user.id (`null` / `undefined`). */
+const isGuestCartItem = (cartItem: CartItemInterface) => isNil(cartItem.user?.id);
 
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
@@ -157,7 +161,7 @@ const cartSlice = createSlice({
       .addCase(addCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.cart = [...state.cart, payload.cartItem];
-          if (!payload.cartItem.user) {
+          if (isGuestCartItem(payload.cartItem)) {
             window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
           }
         }
@@ -177,7 +181,7 @@ const cartSlice = createSlice({
           const cartIndex = state.cart.findIndex((cartItem) => cartItem.id === payload.cartItem.id);
           if (cartIndex !== -1) {
             state.cart[cartIndex] = payload.cartItem;
-            if (!payload.cartItem.user) {
+            if (isGuestCartItem(payload.cartItem)) {
               window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
             }
           }
@@ -198,7 +202,7 @@ const cartSlice = createSlice({
           const cartIndex = state.cart.findIndex((cartItem) => cartItem.id === payload.cartItem.id);
           if (cartIndex !== -1) {
             state.cart[cartIndex] = payload.cartItem;
-            if (!payload.cartItem.user) {
+            if (isGuestCartItem(payload.cartItem)) {
               window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
             }
           }
@@ -217,7 +221,7 @@ const cartSlice = createSlice({
       .addCase(removeCartItem.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
           state.cart = state.cart.filter((cartItem) => cartItem.id !== payload.cartItem.id);
-          if (!payload.cartItem.user) {
+          if (isGuestCartItem(payload.cartItem)) {
             window.localStorage.setItem(cartStorageKey, JSON.stringify(state.cart));
           }
         }

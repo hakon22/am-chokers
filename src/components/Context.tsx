@@ -3,6 +3,8 @@ import { createContext } from 'react';
 import type { ItemInterface } from '@/types/item/Item';
 import type { SiteVersion } from '@/types/SiteVersion';
 
+export type AuthModalView = 'login' | 'signup' | 'recovery';
+
 export const AuthContext = createContext<{
   loggedIn: boolean,
   logIn:() => void,
@@ -57,3 +59,7 @@ export const MobileContext = createContext<{ isMobile: boolean; setIsMobile: Rea
 export const VersionContext = createContext<{ version: SiteVersion }>({
   version: 'v1',
 });
+
+export const AuthModalContext = createContext<{
+  openAuthModal: ((view?: AuthModalView) => void) | null;
+}>({ openAuthModal: null });

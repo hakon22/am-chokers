@@ -8,6 +8,8 @@ import type { CollapseProps, MenuProps } from 'antd/lib';
 
 import { routes } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { VersionContext } from '@/components/Context';
+import { V2ProfilePage } from '@/themes/v2/components/profile/V2ProfilePage';
 import { Helmet } from '@/components/Helmet';
 import { AuthContext, MobileContext } from '@/components/Context';
 import { Personal } from '@/components/profile/Personal';
@@ -213,4 +215,9 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   );
 };
 
-export default Page;
+const ProfilePage = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const { version } = useContext(VersionContext);
+  return version === 'v2' ? <V2ProfilePage path={path} /> : <Page path={path} />;
+};
+
+export default ProfilePage;

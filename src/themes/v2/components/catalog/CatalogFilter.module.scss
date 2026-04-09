@@ -1,0 +1,277 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+// ── Desktop sidebar panel ──────────────────────────────
+.panel {
+  background: v2.$v2-white;
+  border: 1px solid v2.$v2-border;
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 240px;
+  max-width: 240px;
+  max-height: calc(100vh - 176px);
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: v2.$v2-border transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: v2.$v2-border;
+    border-radius: 2px;
+  }
+}
+
+// ── Header ─────────────────────────────────────────────
+.header {
+  padding: 14px 18px;
+  border-bottom: 1px solid v2.$v2-border;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: v2.$v2-navy-primary;
+}
+
+.resetButton {
+  font-size: 12px;
+  color: v2.$v2-navy-medium;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: v2.$v2-navy-primary;
+  }
+}
+
+// ── Sort (above collapse) ───────────────────────────────
+.sortSection {
+  padding: 14px 18px;
+  border-bottom: 1px solid v2.$v2-border;
+}
+
+.sortSelect {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid v2.$v2-border;
+  border-radius: 8px;
+  font-size: 13px;
+  color: v2.$v2-text-dark;
+  background: v2.$v2-white;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: v2.$v2-navy-secondary;
+  }
+}
+
+// ── Ant Design Collapse overrides ───────────────────────
+// Each collapse panel = one filter section from mockup-v8
+
+.collapse {
+  // Remove ghost padding so we control it in panelHeader / sectionContent
+  :global(.ant-collapse-item) {
+    border-bottom: none !important;
+  }
+
+  :global(.ant-collapse-header) {
+    padding: 14px 18px !important;
+    align-items: center !important;
+  }
+
+  :global(.ant-collapse-content-box) {
+    padding: 0 !important;
+  }
+
+  :global(.ant-collapse-expand-icon) {
+    color: v2.$v2-text-secondary;
+  }
+}
+
+// Same overrides for drawer (no panel border needed)
+.collapseDrawer {
+  :global(.ant-collapse-header) {
+    padding: 12px 18px !important;
+    align-items: center !important;
+  }
+
+  :global(.ant-collapse-content) {
+    padding: 0 !important;
+  }
+
+  :global(.ant-collapse-content-box) {
+    padding: 0 !important;
+  }
+
+  :global(.ant-collapse-item) {
+    border-bottom: 1px solid v2.$v2-border !important;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+  }
+
+  :global(.ant-collapse-expand-icon) {
+    color: v2.$v2-text-secondary;
+  }
+}
+
+// ── Collapse panel header label ─────────────────────────
+.collapseLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-right: 4px;
+}
+
+.collapseLabelText {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: v2.$v2-text-secondary;
+  font-weight: 500;
+}
+
+// ── Section content (inside each collapse panel) ────────
+.sectionContent {
+  padding: 0 18px 14px;
+}
+
+// ── Checkbox option ─────────────────────────────────────
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+  cursor: pointer;
+  user-select: none;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid v2.$v2-border;
+  border-radius: 3px;
+  background: v2.$v2-white;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: v2.$v2-white;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.checkboxChecked {
+  background: v2.$v2-navy-secondary;
+  border-color: v2.$v2-navy-secondary;
+}
+
+.optionLabel {
+  font-size: 13px;
+  color: v2.$v2-text-dark;
+  flex: 1;
+}
+
+.optionCount {
+  font-size: 11px;
+  color: v2.$v2-text-secondary;
+  background: v2.$v2-bg-alt;
+  border-radius: 10px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+// ── Color dot ───────────────────────────────────────────
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+// ── Price range ─────────────────────────────────────────
+.priceRange {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.priceInput {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid v2.$v2-border;
+  border-radius: 8px;
+  font-size: 13px;
+  color: v2.$v2-text-dark;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  &:focus {
+    border-color: v2.$v2-navy-secondary;
+  }
+
+  &::placeholder {
+    color: v2.$v2-text-secondary;
+  }
+}
+
+.priceSeparator {
+  color: v2.$v2-text-secondary;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+// ── Composition search ──────────────────────────────────
+.compositionSearch {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid v2.$v2-border;
+  border-radius: 8px;
+  font-size: 13px;
+  color: v2.$v2-text-dark;
+  outline: none;
+  font-family: inherit;
+  margin-bottom: 10px;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: v2.$v2-navy-secondary;
+  }
+
+  &::placeholder {
+    color: v2.$v2-text-secondary;
+  }
+}

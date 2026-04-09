@@ -2,6 +2,7 @@ import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { OmitBase } from '@/types/OmitBase';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { ImageEntity } from '@server/db/entities/image.entity';
+import type { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 
 export type ItemInterface = OmitBase<ItemEntity>;
 export type ItemGroupInterface = ItemInterface['group'];
@@ -21,19 +22,9 @@ export interface GeneralPageCollectionInterface {
   collection5?: ItemInterface;
 }
 
-export interface GeneralPageCoverImageInterface {
-  coverImage1?: ImageEntity;
-  coverImage2?: ImageEntity;
-  coverImage3?: ImageEntity;
-  coverImage4?: ImageEntity;
-  coverImage5?: ImageEntity;
-  coverImage6?: ImageEntity;
-  coverCollectionImage9?: ImageEntity;
-  coverCollectionImage10?: ImageEntity;
-  coverCollectionImage11?: ImageEntity;
-  coverCollectionImage12?: ImageEntity;
-  coverCollectionImage13?: ImageEntity;
-}
+export type GeneralPageCoverImageInterface = {
+  [K in `${CoverTypeEnum}${number}`]?: ImageEntity;
+};
 
 export interface GeneralPageInterface extends GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface {
   news: ItemInterface[];

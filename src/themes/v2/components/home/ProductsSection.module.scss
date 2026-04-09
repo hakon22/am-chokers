@@ -71,25 +71,37 @@
   }
 }
 
+.cardWrapper {
+  border-radius: 12px;
+  height: 100%;
+  width: 100%;
+}
+
 .card {
   background: v2.$v2-white;
   border: 1px solid v2.$v2-border;
   border-radius: 12px;
   overflow: hidden;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   text-decoration: none;
-
   &:hover {
     box-shadow: v2.$v2-sh-md;
-    transform: translateY(-2px);
   }
 }
 
+.carouselContainer {
+  padding-bottom: 4px;
+}
+
+.carouselItem {
+  padding: 0 8px;
+}
+
 .cardImg {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 4;
   background: #F7F9FC;
   display: flex;
   align-items: center;
@@ -113,6 +125,14 @@
 
 .card:hover .imgSecondary {
   opacity: 1;
+}
+
+.cardImgOutStock {
+  .imgPrimary {
+    opacity: 0.75;
+    filter: saturate(0.65);
+    transition: opacity 0.4s ease, filter 0.4s ease;
+  }
 }
 
 .cardImgBg {
@@ -184,6 +204,13 @@
   text-transform: uppercase;
   color: v2.$v2-text-secondary;
   margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    letter-spacing: 0.8px;
+  }
 }
 
 .cardName {
@@ -193,6 +220,9 @@
   margin-bottom: 8px;
   font-weight: 400;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   @media (max-width: 768px) {
     font-size: 14px;
@@ -228,21 +258,116 @@
 .cardBtn {
   width: 100%;
   padding: 9px;
-  background: v2.$v2-bg-alt;
-  border: 1px solid v2.$v2-border;
+  background: v2.$v2-navy-secondary;
+  border: 1px solid v2.$v2-navy-secondary;
   border-radius: 8px;
   font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: v2.$v2-navy-secondary;
+  color: v2.$v2-white;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
 
   &:hover {
-    background: v2.$v2-navy-secondary;
-    border-color: v2.$v2-navy-secondary;
-    color: v2.$v2-white;
+    background: v2.$v2-bg-alt;
+    border-color: v2.$v2-border;
+    color: v2.$v2-navy-secondary;
+  }
+}
+
+.cartControlWrap {
+  display: flex;
+  justify-content: center;
+}
+
+.cartControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: v2.$v2-bg-alt;
+  border: 1px solid v2.$v2-border;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.cartControlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  padding: 9px 0;
+  background: transparent;
+  border: none;
+  color: v2.$v2-navy-secondary;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.cartControlCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  flex: 1;
+}
+
+.cartControlLabel {
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: v2.$v2-text-secondary;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.cartControlCount {
+  font-size: 13px;
+  font-weight: 600;
+  color: v2.$v2-navy-secondary;
+  line-height: 1.2;
+}
+
+.outStock {
+  top: unset;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 0;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: v2.$v2-navy-primary;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  padding: 7px 10px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.cardRating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: v2.$v2-text-secondary;
+  min-width: 0;
+
+  span:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 }

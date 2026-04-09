@@ -6,7 +6,6 @@ export const v1Theme: ThemeConfig = {
     colorBgBase: '#f7f9fc',
     colorLink: '#2b3c5f',
     colorLinkHover: '#4d689e',
-    borderRadius: 4,
   },
   components: {
     Button: {

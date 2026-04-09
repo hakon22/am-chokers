@@ -7,4 +7,6 @@ export interface ImageQueryInterface {
   withDeleted?: boolean;
   /** С товаром */
   withItem?: boolean;
+  /** Версия сайта */
+  siteVersion?: number;
 }

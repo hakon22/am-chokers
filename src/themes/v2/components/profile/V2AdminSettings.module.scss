@@ -1,0 +1,97 @@
+@use 'profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$navy2:  v2.$v2-navy-secondary;
+$navy3:  v2.$v2-navy-medium;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$white:  v2.$v2-white;
+$textD:  v2.$v2-text-dark;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+$success: v2.$v2-success;
+$error:   v2.$v2-error;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 560px;
+}
+
+.title { @include page-title; margin-bottom: 0; }
+
+// ── Card ──────────────────────────────────────────────────────────
+.card {
+  @include card;
+  padding: 28px 32px 32px;
+}
+
+.cardTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: $navy;
+  margin: 0 0 6px;
+}
+
+.cardDesc {
+  font-size: 13px;
+  color: $textS;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+// ── Cache table ───────────────────────────────────────────────────
+.cacheTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+}
+
+.cacheRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid $border;
+
+  &:last-child { border-bottom: none; }
+}
+
+.cacheName {
+  color: $textS;
+  font-weight: 500;
+}
+
+.cacheVal {
+  font-weight: 600;
+  color: $textD;
+  min-width: 36px;
+  text-align: right;
+}
+
+.cacheValOk  { color: $success; }
+.cacheValBad { color: $error; }
+
+.cacheLabel {
+  @include eyebrow;
+  min-width: 80px;
+  text-align: right;
+}
+
+// ── Submit ────────────────────────────────────────────────────────
+.btnSubmit {
+  @include btn-primary;
+  width: 100%;
+  margin-top: 4px;
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .card { padding: 20px 16px 24px; }
+  .cardTitle { font-size: 18px; }
+}

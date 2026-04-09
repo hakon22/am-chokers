@@ -42,7 +42,7 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
                 className={styles.socialBtn}
                 href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.page.base.homePage}
                 target="_blank"
-                title={t('instagram')}
+                title={tv2('instagram')}
               >
                 <InstagramOutlined />
               </Button>
@@ -56,7 +56,7 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
               {sortedGroups.map((group) => (
                 <li key={group.id}>
                   <Link href={`${catalogPath}/${group.code}`}>
-                    {group.translations.find((tr) => tr.lang === lang)?.name}
+                    {group.translations.find((translation) => translation.lang === lang)?.name}
                   </Link>
                 </li>
               ))}
@@ -74,19 +74,6 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
               <li><Link href={routes.page.base.contactsPage}>{t('contacts')}</Link></li>
             </ul>
           </Col>
-
-          {/* О нас */}
-          <Col lg={4} sm={8} xs={24}>
-            <div className={styles.colTitle}>{tv2('aboutTitle')}</div>
-            <ul className={styles.linkList}>
-              <li><Link href={routes.page.base.aboutBrandPage}>{tv2('aboutBrand')}</Link></li>
-              <li><Link href={routes.page.base.contactsPage}>{t('contacts')}</Link></li>
-              <li><Link href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? '#'}>{tv2('instagram')}</Link></li>
-              <li><Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? '#'}>{tv2('telegram')}</Link></li>
-              <li><Link href={routes.page.base.privacyPolicy}>{t('privacyPolicy')}</Link></li>
-              <li><Link href={routes.page.base.offerAgreement}>{t('offerAgreement')}</Link></li>
-            </ul>
-          </Col>
         </Row>
 
         <div className={styles.bottomBar}>
@@ -95,6 +82,13 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
             <Link href={routes.page.base.privacyPolicy}>{t('privacyPolicy')}</Link>
             <Link href={routes.page.base.offerAgreement}>{t('offerAgreement')}</Link>
           </div>
+        </div>
+        <div className={styles.legalInfo}>
+          <span>{lang === UserLangEnum.RU ? process.env.NEXT_PUBLIC_FIO : process.env.NEXT_PUBLIC_FIO_EN}</span>
+          <span>{t('inn', { number: process.env.NEXT_PUBLIC_INN })}</span>
+        </div>
+        <div className={styles.instagramNote}>
+          {tv2('instagramText1')} {tv2('instagramText2')}
         </div>
       </div>
     </div>

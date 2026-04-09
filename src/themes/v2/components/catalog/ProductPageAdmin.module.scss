@@ -1,0 +1,106 @@
+// Align with ProductPage.module.scss tokens
+$navy-primary:   #2B3C5F;
+$navy-secondary: #3B5382;
+$border:         #CED3DD;
+$text-secondary: #69788E;
+$text-muted:     #A1B3CD;
+$bg-alt:         #EAEEF6;
+$error:          #e05c5c;
+$success:        #4caf7d;
+$purple-tg:      #7c6fa3;
+
+.desktop {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0 4px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+}
+
+.actionBtn {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: $navy-secondary;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-family: inherit;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $navy-primary;
+  }
+}
+
+.actionDanger {
+  color: $text-muted;
+
+  &:hover {
+    color: $error;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: $text-secondary;
+  border: 1px solid $border;
+  background: $bg-alt;
+  max-width: 100%;
+}
+
+.chipSite {
+  border-color: rgba(90, 110, 150, 0.35);
+}
+
+.chipTgPending {
+  border-color: rgba($purple-tg, 0.45);
+}
+
+.chipTgDone {
+  border-color: rgba($success, 0.45);
+}
+
+.chipIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $text-muted;
+  line-height: 0;
+  transition: color 0.15s;
+
+  &:hover {
+    color: $navy-primary;
+  }
+}
+
+// Mobile: Ant FloatButton.Group — над BottomNav (200); позиция — инлайн в TSX
+.floatRoot {
+  z-index: 220 !important;
+}

@@ -1,0 +1,104 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$white:  v2.$v2-white;
+$textM:  v2.$v2-text-muted;
+$textS:  v2.$v2-text-secondary;
+$navy2:  v2.$v2-navy-secondary;
+
+// ── Wrapper ───────────────────────────────────────────────────────
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $textM;
+  white-space: nowrap;
+  margin-right: 2px;
+}
+
+// ── Chips row ─────────────────────────────────────────────────────
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1.5px solid transparent;
+  user-select: none;
+  white-space: nowrap;
+
+  // Inactive — pale background derived from the status colour (set via CSS var)
+  background: color-mix(in srgb, var(--status-color) 12%, $white);
+  border-color: color-mix(in srgb, var(--status-color) 25%, transparent);
+  color: color-mix(in srgb, var(--status-color) 80%, #222);
+
+  &:hover {
+    background: color-mix(in srgb, var(--status-color) 22%, $white);
+    border-color: color-mix(in srgb, var(--status-color) 55%, transparent);
+  }
+
+  &.active {
+    background: var(--status-color);
+    border-color: var(--status-color);
+    color: $white;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--status-color) 40%, transparent);
+  }
+}
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+// ── Clear button ──────────────────────────────────────────────────
+.clearBtn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 20px;
+  border: 1.5px solid $border;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: $textS;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #e05c5c;
+    color: #e05c5c;
+    background: #fff5f5;
+  }
+}

@@ -2,7 +2,7 @@
 @import 'animate.css/animate.min.css';
 @import 'aos/dist/aos.css';
 @import 'react-multi-carousel/lib/styles.css';
-@import '../../node_modules/react-image-gallery/styles/scss/image-gallery';
+@import 'react-image-gallery/styles/image-gallery.css';
 
 @import './variables';
 
@@ -16,3 +16,8 @@
 @import './spinner';
 @import './verification-phone';
 @import './promotional';
+
+// V2 theme overrides
+.v2-app .icon {
+  z-index: auto;
+}

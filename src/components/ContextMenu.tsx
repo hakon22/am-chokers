@@ -15,6 +15,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import type { ItemInterface } from '@/types/item/Item';
 
 export type Context = { action: string, id: number } | undefined;
@@ -25,11 +26,13 @@ interface CardContextMenuProps extends React.HTMLAttributes<HTMLElement> {
   order?: number;
   cover?: number;
   isCoverCollection?: boolean;
+  coverType?: CoverTypeEnum;
   item?: ItemInterface;
   image?: ImageEntity;
+  siteVersion?: number;
 }
 
-export const ContextMenu = ({ children, order, cover, isCoverCollection, item, image, ...props }: CardContextMenuProps) => {
+export const ContextMenu = ({ children, order, cover, isCoverCollection, coverType: coverTypeProp, item, image, siteVersion, ...props }: CardContextMenuProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.contextMenu' });
   const { t: tUpload } = useTranslation('translation', { keyPrefix: 'modules.uploadImage' });
   const { t: tCrop } = useTranslation('translation', { keyPrefix: 'modules.imageCrop' });
@@ -40,7 +43,9 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
   const { specialItems } = useAppSelector((state) => state.app);
 
   const { bestsellers, collections } = specialItems.reduce((acc, value) => {
-    if (value.order) return acc;
+    if (value.order) {
+      return acc;
+    }
 
     if (value.bestseller) {
       acc.bestsellers.push(value);
@@ -81,7 +86,8 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
   const uploadCover = async (target: ImageEntity, value: number) => {
     try {
       setIsSubmit(true);
-      await dispatch(setCoverImage({ id: target.id, coverOrder: value }));
+      const coverType = coverTypeProp ?? (isCoverCollection ? CoverTypeEnum.COLLECTION_IMAGE : CoverTypeEnum.IMAGE);
+      await dispatch(setCoverImage({ id: target.id, coverOrder: value, siteVersion, coverType }));
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
@@ -230,7 +236,7 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, item, i
                   <Button className='d-none' ref={uploadRef} />
                 </Upload>
               </ImgCrop>)
-            : <div>{children}</div>
+            : <div style={{ height: '100%' }}>{children}</div>
         }
       </Dropdown>
     </div>

@@ -1,25 +1,21 @@
 import { useTranslation } from 'react-i18next';
-import { Button, FloatButton, Input, Modal, Popconfirm, Rate, Tag, DatePicker, Form } from 'antd';
-import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, LikeOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
-import { useEffect, useRef, useState, useContext, useEffectEvent } from 'react';
-import ImageGallery from 'react-image-gallery';
+import { Button, Rate, Tag } from 'antd';
+import { LikeOutlined } from '@ant-design/icons';
+import { useEffect, useMemo, useRef, useState, useContext, useEffectEvent } from 'react';
+import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
 import Link from 'next/link';
 import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
-import momentGenerateConfig from 'rc-picker/lib/generate/moment';
-import moment, { type Moment } from 'moment';
-import Image from 'next/image';
-import { Telegram } from 'react-bootstrap-icons';
+import moment from 'moment';
 import Carousel from 'react-multi-carousel';
 import axios from 'axios';
 
-import telegramIcon from '@/images/icons/telegram.svg';
 import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
-import { TimePicker } from '@/components/TimePicker';
-import { deleteItem, type ItemResponseInterface, type PublishTelegramInterface, publishItem, restoreItem, setPaginationParams, partialUpdateItem, type DeferredPublicationIResponsenterface } from '@/slices/appSlice';
+import { ItemAdminToolbarV1 } from '@/components/item-admin/ItemAdminToolbarV1';
+import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import CreateItem from '@/pages/admin/item';
@@ -27,473 +23,15 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { Helmet } from '@/components/Helmet';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import { toast } from '@/utilities/toast';
-import { ItemContext, MobileContext, SubmitContext } from '@/components/Context';
+import { ItemContext, MobileContext } from '@/components/Context';
 import { getHeight } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
-import { locale } from '@/locales/pickers.locale.ru';
-import { publishTelegramValidation } from '@/validations/validations';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
-
-const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
-
-interface AdminControlGroupInterface {
-  item: ItemInterface;
-  setItem: (value: ItemInterface) => void;
-}
-
-interface PublicationDateFormInterface {
-  publicationDate: Date | null;
-  publicationTime: string | null;
-}
-
-interface PublishModalInterface {
-  publishData: PublishTelegramInterface;
-  publicationDate: Date | null;
-  setPublicationDate: React.Dispatch<React.SetStateAction<Date | null>>;
-  isTgPublish: boolean;
-  setIsTgPublish: React.Dispatch<React.SetStateAction<boolean>>;
-  onPublish: (values: PublishTelegramInterface) => void;
-  onPublicationDateUpdate: (values: PublicationDateFormInterface) => void;
-  generateDescription: () => void; lang: UserLangEnum;
-}
-
-const PublishModal = ({ publishData, isTgPublish, publicationDate, setPublicationDate, onPublicationDateUpdate, setIsTgPublish, onPublish, generateDescription, lang }: PublishModalInterface) => {
-  const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
-  const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
-
-  const [form] = Form.useForm<PublishTelegramInterface>();
-  const [publicationDateForm] = Form.useForm<PublicationDateFormInterface>();
-
-  const date = Form.useWatch('date', form);
-  const publicationDateValue = Form.useWatch('publicationDate', publicationDateForm);
-
-  const [time, setTime] = useState<string | null>(null);
-  const [publicationTime, setPublicationTime] = useState<string | null>(null);
-
-  const setPublicationTimeEffect = useEffectEvent(setPublicationTime);
-  const setTimeEffect = useEffectEvent(setTime);
-
-  const onTgFinish = () => {
-    form.validateFields().then((values) => {
-      if ([date, time].filter(Boolean).length === 1) {
-        const name = date ? 'time' : 'date';
-        form.setFields([{ name, errors: [tValidation('required')] }]);
-      } else {
-        values.time = time;
-        onPublish(values);
-      }
-    });
-  };
-
-  const onPublicationDateFinish = () => {
-    const values = publicationDateForm.getFieldsValue();
-    if ([publicationDateValue, publicationTime].filter(Boolean).length === 1) {
-      const name: keyof PublicationDateFormInterface = publicationDateValue ? 'publicationTime' : 'publicationDate';
-      publicationDateForm.setFields([{ name, errors: [tValidation('required')] }]);
-    } else {
-      values.publicationTime = publicationTime;
-      onPublicationDateUpdate(values);
-    }
-  };
-
-  const handleTgCancel = () => {
-    form.resetFields();
-    setTime(null);
-    setIsTgPublish(false);
-  };
-
-  const handlePublicationDateCancel = () => {
-    publicationDateForm.resetFields();
-    setPublicationTime(null);
-    setPublicationDate(null);
-  };
-
-  useEffect(() => {
-    if (isTgPublish) {
-      setTimeEffect(publishData.time ? moment(publishData.time).format(DateFormatEnum.HH_MM) : null);
-      form.resetFields();
-      form.setFieldsValue(publishData);
-    } else {
-      form.resetFields();
-      setTimeEffect(null);
-    }
-  }, [isTgPublish, publishData]);
-
-  useEffect(() => {
-    if (publicationDate) {
-      setPublicationTimeEffect(publicationDate ? moment(publicationDate).format(DateFormatEnum.HH_MM) : null);
-      publicationDateForm.resetFields();
-      publicationDateForm.setFieldsValue({ 
-        publicationDate, 
-        publicationTime: moment(publicationDate).format(DateFormatEnum.HH_MM),
-      });
-    } else {
-      publicationDateForm.resetFields();
-      setPublicationTimeEffect(null);
-    }
-  }, [publicationDate]);
-
-  useEffect(() => {
-    form.setFieldValue('description', publishData.description);
-  }, [publishData.description]);
-
-  return isTgPublish
-    ? (
-      <Modal
-        title={t('publishTitle')}
-        centered
-        zIndex={10000}
-        classNames={{ header: 'text-center', footer: 'ant-input-group-addon' }}
-        open={isTgPublish}
-        onOk={onTgFinish}
-        okText={t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
-        cancelText={t('cancel')}
-        onCancel={handleTgCancel}
-        footer={(_, { OkBtn, CancelBtn }) => (
-          <div className="d-flex flex-column flex-xl-row justify-content-end gap-2 mt-4">
-            {isTgPublish ? <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button> : null}
-            <CancelBtn />
-            <OkBtn />
-          </div>
-        )}
-      >
-        <Form form={form} key={1} className="mt-4">
-          <div className="d-flex justify-content-around">
-            <Form.Item<PublishTelegramInterface> name="date" getValueProps={(value) => ({ value: value ? moment(value) : value })} rules={[publishTelegramValidation]}>
-              <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
-            </Form.Item>
-            <Form.Item<PublishTelegramInterface> name="time">
-              <TimePicker
-                onChange={(value) => setTime(value)}
-                value={time}
-                minDate={date}
-                placeholder={t('placeholderTime')}
-                step={10}
-              />
-            </Form.Item>
-          </div>
-          <Form.Item<PublishTelegramInterface> name="description" rules={[publishTelegramValidation]}>
-            <Input.TextArea rows={6} placeholder={t('enterDescription')} />
-          </Form.Item>
-        </Form>
-      </Modal>
-    ) : (
-      <Modal
-        title={t('publishSiteTitle')}
-        centered
-        zIndex={10000}
-        classNames={{ header: 'text-center', footer: 'ant-input-group-addon' }}
-        open={!!publicationDate}
-        onOk={onPublicationDateFinish}
-        okText={t('publishUpdate')}
-        cancelText={t('cancel')}
-        onCancel={handlePublicationDateCancel}
-        okButtonProps={{
-          disabled: [publicationDateValue, publicationTime].filter(Boolean).length !== 2,
-        }}
-      >
-        <Form form={publicationDateForm} key={2} className="mt-4">
-          <div className="d-flex justify-content-around">
-            <Form.Item<PublicationDateFormInterface> name="publicationDate" getValueProps={(value) => ({ value: value ? moment(value) : value })} >
-              <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
-            </Form.Item>
-            <Form.Item<PublicationDateFormInterface> name="publicationTime">
-              <TimePicker
-                onChange={(value) => setPublicationTime(value)}
-                value={publicationTime}
-                minDate={publicationDateValue}
-                placeholder={t('placeholderTime')}
-                step={10}
-              />
-            </Form.Item>
-          </div>
-        </Form>
-      </Modal>
-    );
-};
-
-const AdminControlGroup = ({ item, setItem }: AdminControlGroupInterface) => {
-  const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
-  const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
-
-  const router = useRouter();
-
-  const dispatch = useAppDispatch();
-
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
-
-  const [publicationDate, setPublicationDate] = useState<Date | null>(null);
-  const [isTgPublish, setIsTgPublish] = useState(false);
-  const [publishData, setPublishData] = useState<PublishTelegramInterface>({
-    date: item?.deferredPublication?.date ?? null,
-    time: item?.deferredPublication?.date ? moment(item.deferredPublication.date).format(DateFormatEnum.HH_MM) : null,
-    description: item.translations.find((translation) => translation.lang === lang)?.description as string,
-  });
-
-  const setPublishDataEffect = useEffectEvent(setPublishData);
-
-  const { setIsSubmit } = useContext(SubmitContext);
-  const { isMobile } = useContext(MobileContext);
-
-  const restoreItemHandler = async () => {
-    setIsSubmit(true);
-    const { payload } = await dispatch(restoreItem(item.id)) as { payload: ItemResponseInterface; };
-    if (payload.code === 1) {
-      setItem(payload.item);
-    }
-    setIsSubmit(false);
-  };
-
-  const deleteItemHandler = async () => {
-    setIsSubmit(true);
-    const { payload } = await dispatch(deleteItem(item.id)) as { payload: ItemResponseInterface };
-    if (payload.code === 1) {
-      setItem(payload.item);
-      toast(tToast('itemDeletedSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
-    }
-    setIsSubmit(false);
-  };
-
-  const onEdit = () => router.push({
-    pathname: router.pathname,
-    query: { ...router.query, edit: true },
-  }, undefined, { shallow: true });
-
-  const onPublish = async (values: PublishTelegramInterface) => {
-    setIsSubmit(true);
-    const [tgH, tgM] = values.time ? values.time.split(':') : [null, null];
-    delete values.time;
-
-    if (values.date && tgH && tgM) {
-      values.date = moment(values.date).set({ hour: +tgH, minute: +tgM }).toDate();
-    }
-
-    if (item.deferredPublication) {
-      try {
-        const { data } = await axios.put<DeferredPublicationIResponsenterface>(routes.deferredPublication.telegram.updateOne(item.deferredPublication.id), {
-          id: item.deferredPublication.id,
-          item: { id: item.id },
-          ...values,
-        });
-        if (data.code === 1) {
-          setItem({ ...item, deferredPublication: data.deferredPublication });
-          setIsTgPublish(false);
-          toast(tToast('itemPublishPlannedUpdateSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
-        }
-      } catch (e) {
-        axiosErrorHandler(e, tToast, setIsSubmit);
-      }
-    } else {
-      const { payload } = await dispatch(publishItem({ id: item.id, ...values })) as { payload: ItemResponseInterface & { error: string; } };
-      if (!payload?.error) {
-        setItem(payload.item);
-        setIsTgPublish(false);
-        toast(tToast(payload.item.deferredPublication && !payload.item.deferredPublication.isPublished ? 'itemPublishPlannedSuccess' : 'itemPublishSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
-      }
-    }
-    setIsSubmit(false);
-  };
-
-  const onPublicationDateUpdate = async (values: PublicationDateFormInterface) => {
-    setIsSubmit(true);
-    const [tgH, tgM] = values.publicationTime ? values.publicationTime.split(':') : [null, null];
-
-    if (values.publicationDate && values.publicationTime && tgH && tgM) {
-      values.publicationDate = moment(values.publicationDate).set({ hour: +tgH, minute: +tgM }).toDate();
-
-      const { payload } = await dispatch(partialUpdateItem({ id: item.id, data: { publicationDate: values.publicationDate } })) as { payload: ItemResponseInterface; };
-      setItem(payload.item);
-      setPublicationDate(null);
-      toast(tToast('itemPublishPlannedUpdateSuccess', { name: item.translations.find((translation) => translation.lang === lang)?.name }), 'success');
-    }
-    setIsSubmit(false);
-  };
-
-  const onMessageRemove = async () => {
-    setIsSubmit(true);
-    const { payload } = await dispatch(partialUpdateItem({ id: item.id, data: { message: null } })) as { payload: ItemResponseInterface; };
-    setItem(payload.item);
-    setIsSubmit(false);
-  };
-
-  const onPublicationDateRemove = async () => {
-    setIsSubmit(true);
-    const { payload } = await dispatch(partialUpdateItem({ id: item.id, data: { publicationDate: null } })) as { payload: ItemResponseInterface; };
-    setItem(payload.item);
-    setIsSubmit(false);
-  };
-
-  const onPublicationRemove = async () => {
-    try {
-      if (!item.deferredPublication) {
-        return;
-      }
-      setIsSubmit(true);
-      const { data } = await axios.delete<DeferredPublicationIResponsenterface>(routes.deferredPublication.telegram.deleteOne(item.deferredPublication.id));
-      if (data.code === 1) {
-        setItem({ ...item, deferredPublication: null });
-      }
-      setIsSubmit(false);
-    } catch (e) {
-      axiosErrorHandler(e, tToast, setIsSubmit);
-    }
-  };
-
-  const onDeferredPublicationEdit = () => {
-    if (item.deferredPublication) {
-      setPublishData({
-        date: moment(item.deferredPublication.date).toDate(),
-        time: moment(item.deferredPublication.date).format(DateFormatEnum.HH_MM),
-        description: item.deferredPublication.description,
-      });
-      setIsTgPublish(true);
-    }
-  };
-
-  const onPublicationDateEdit = () => {
-    if (item.publicationDate) {
-      setPublicationDate(item.publicationDate);
-    }
-  };
-
-  const generateDescription = async () => {
-    try {
-      setIsSubmit(true);
-      const { data } = await axios.get<{ code: number; description: string; }>(routes.integration.gpt.generateDescription(item.id));
-      if (data.code === 1) {
-        setPublishData((state) => ({ ...state, description: data.description }));
-      }
-      setIsSubmit(false);
-    } catch (e) {
-      axiosErrorHandler(e, tToast, setIsSubmit);
-    }
-  };
-
-  useEffect(() => {
-    setPublishDataEffect((state) => ({ ...state, description: item.translations.find((translation) => translation.lang === lang)?.description as string }));
-  }, [lang]);
-
-  return isAdmin
-    ? isMobile
-      ? (
-        <>
-          <PublishModal publishData={publishData} publicationDate={publicationDate} setPublicationDate={setPublicationDate} isTgPublish={isTgPublish} setIsTgPublish={setIsTgPublish} onPublish={onPublish} onPublicationDateUpdate={onPublicationDateUpdate} generateDescription={generateDescription} lang={lang as UserLangEnum} />
-          <FloatButton.Group
-            trigger="click"
-            style={{ insetInlineEnd: 24, top: '70%', height: 'min-content' }}
-            icon={<EllipsisOutlined />}
-          >
-            <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
-            {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
-            {item.publicationDate
-              ? <FloatButton onClick={onPublicationDateEdit} className="float-custom-icon" icon={<RubyOutlined width={40} height={40} />} />
-              : null}
-            {!item.message?.send && !item.deferredPublication?.date
-              ? <FloatButton onClick={() => setIsTgPublish(true)} className="float-custom-icon" icon={<Image src={telegramIcon} width={40} height={40} alt="Telegram" />} />
-              : item.deferredPublication && !item.deferredPublication.isPublished
-                ? <FloatButton onClick={onDeferredPublicationEdit} className="float-custom-icon" icon={<Telegram width={40} height={40} color="purple" />} />
-                : <FloatButton className="float-custom-icon" icon={<Telegram width={40} height={40} color="green" />} />}
-          </FloatButton.Group>
-        </>
-      )
-      : (
-        <>
-          <PublishModal publishData={publishData} publicationDate={publicationDate} setPublicationDate={setPublicationDate} isTgPublish={isTgPublish} setIsTgPublish={setIsTgPublish} onPublish={onPublish} onPublicationDateUpdate={onPublicationDateUpdate} generateDescription={generateDescription} lang={lang as UserLangEnum} />
-          <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
-          {item.deleted
-            ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
-            : (
-              <Popconfirm rootClassName="ant-input-group-addon" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
-                <Button type="text" className="action-button remove">{t('remove')}</Button>
-              </Popconfirm>
-            )}
-          <div className="position-relative">
-            {item.publicationDate
-              ? <Tag
-                color="cyan"
-                variant="outlined"
-                className="fs-6 d-flex align-items-center gap-2 position-absolute"
-                style={{ top: -40, padding: '5px 10px', color: '#69788e', width: 'min-content' }}
-              >
-                <RubyOutlined />
-                {t('planned', { date: moment(item.publicationDate).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
-                <button
-                  className="icon-button text-muted d-flex align-items-center"
-                  type="button"
-                  onClick={onPublicationDateEdit}
-                  title={t('editDeferredPublication')}
-                >
-                  <EditOutlined />
-                </button>
-                <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationDateRemove}>
-                  <button
-                    className="icon-button text-muted d-flex align-items-center"
-                    type="button"
-                    title={t('cancelDeferredPublicationTitle')}
-                  >
-                    <CloseOutlined className="fs-6-5" />
-                  </button>
-                </Popconfirm>
-              </Tag>
-              : null}
-            {!item.message?.send && !item.deferredPublication?.date
-              ? <Button type="text" className="action-button send-to-telegram" onClick={() => setIsTgPublish(true)}>{t('publishToTelegram')}</Button>
-              : item.deferredPublication && !item.deferredPublication.isPublished
-                ? <Tag
-                  color="purple"
-                  variant="outlined"
-                  className="fs-6 d-flex align-items-center gap-2"
-                  style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
-                >
-                  <Telegram />
-                  {t('planned', { date: moment(item.deferredPublication.date).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
-                  <button
-                    className="icon-button text-muted d-flex align-items-center"
-                    type="button"
-                    onClick={onDeferredPublicationEdit}
-                    title={t('editDeferredPublication')}
-                  >
-                    <EditOutlined />
-                  </button>
-                  <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationRemove}>
-                    <button
-                      className="icon-button text-muted d-flex align-items-center"
-                      type="button"
-                      title={t('cancelDeferredPublicationTitle')}
-                    >
-                      <CloseOutlined className="fs-6-5" />
-                    </button>
-                  </Popconfirm>
-                </Tag>
-                : (
-                  <Tag
-                    color="success"
-                    variant="outlined"
-                    className="fs-6 d-flex gap-2"
-                    style={{ padding: '5px 10px', color: '#69788e', width: 'min-content' }}
-                  >
-                    {t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}
-                    <Popconfirm rootClassName="ant-input-group-addon" title={t('removeMessageTitle')} description={t('removeMessageDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onMessageRemove}>
-                      <button
-                        className="icon-button text-muted d-flex align-items-center"
-                        type="button"
-                        title={t('removeMessageTitle')}
-                      >
-                        <CloseOutlined className="fs-6-5" />
-                      </button>
-                    </Popconfirm>
-                  </Tag>
-                )}
-          </div>
-        </>
-      ) : null;
-};
 
 export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
@@ -503,7 +41,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
-  const galleryRef = useRef<ImageGallery>(null);
+  const galleryRef = useRef<ImageGalleryRef>(null);
 
   const router = useRouter();
 
@@ -540,6 +78,44 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  const imageGalleryItems = useMemo(
+    () =>
+      [...images].sort((a, b) => a.order - b.order).map((image) => ({
+        original: image.src,
+        renderThumbInner: image.src.endsWith('.mp4') ? () => (
+          <video
+            className="w-100"
+            autoPlay
+            loop
+            muted
+            playsInline
+            src={image.src}
+          />
+        ) : undefined,
+        thumbnail: image.src,
+        originalHeight: isMobile && originalHeight !== getHeight()
+          ? undefined
+          : String(originalHeight),
+        originalWidth: isMobile && originalHeight === getHeight()
+          ? String(originalHeight / 1.3)
+          : undefined,
+        renderItem: image.src.endsWith('.mp4')
+          ? () => (
+            <video
+              className="image-gallery-image"
+              style={!isFullscreen ? { maxHeight: originalHeight, width: '100%' } : { maxHeight: '100vh' }}
+              autoPlay
+              loop
+              muted
+              playsInline
+              src={image.src}
+            />
+          )
+          : undefined,
+      })),
+    [images, isMobile, originalHeight, isFullscreen],
+  );
 
   const setItemEffect = useEffectEvent(setItem);
   const setEditEffect = useEffectEvent(setEdit);
@@ -681,39 +257,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             ref={galleryRef}
             additionalClass={cn('w-100 mb-2 mb-xl-0 mt-xl-2-5', { 'd-flex align-items-center justify-content-center': isMobile })}
             showIndex
-            items={images.sort((a, b) => a.order - b.order).map((image) => ({
-              original: image.src,
-              renderThumbInner: image.src.endsWith('.mp4') ? () => (
-                <video
-                  className="w-100"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  src={image.src}
-                />
-              ) : undefined,
-              thumbnail: image.src,
-              originalHeight: isMobile && originalHeight !== getHeight()
-                ? undefined
-                : originalHeight,
-              originalWidth: isMobile && originalHeight === getHeight()
-                ? originalHeight / 1.3
-                : undefined,
-              renderItem: image.src.endsWith('.mp4')
-                ? () => (
-                  <video
-                    className="image-gallery-image"
-                    style={!isFullscreen ? { maxHeight: originalHeight, width: '100%' } : { maxHeight: '100vh' }}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    src={image.src}
-                  />
-                )
-                : undefined,
-            }))}
+            items={imageGalleryItems}
             infinite
             showBullets={isMobile}
             showNav={!isMobile}
@@ -831,7 +375,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 <p className={cn('fs-5 m-0', { 'text-muted text-decoration-line-through fw-light': discountPrice })}>{t('price', { price })}</p>
               </div>
               {isMobile ? <Favorites id={id} /> : null}
-              <AdminControlGroup item={item} setItem={updateItem} />
+              <ItemAdminToolbarV1 item={item} setItem={updateItem} />
             </div>
             {isMobile
               ? showThumbnails

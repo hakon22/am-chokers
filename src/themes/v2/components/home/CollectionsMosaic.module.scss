@@ -34,33 +34,28 @@
   }
 }
 
-.grid {
+// ── Grid ──
+.colGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: 220px 220px;
-  gap: 12px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 
-  // First child spans 2 rows
-  > :first-child {
-    grid-row: span 2;
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 160px 160px;
-
-    > :first-child {
-      grid-row: span 2;
-      grid-column: span 1;
-    }
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
 
+// ── Tile ──
 .tile {
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  height: 200px;
   cursor: pointer;
   background: linear-gradient(145deg, v2.$v2-navy-secondary 0%, v2.$v2-navy-primary 100%);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -72,46 +67,8 @@
     box-shadow: v2.$v2-sh-lg;
   }
 
-  .tileBody {
-    padding: 20px;
-
-    .tileName {
-      font-size: 22px;
-    }
-  }
-
-  // Big tile — first child styling
-  &:first-child .tileName {
-    font-size: 30px;
-  }
-}
-
-.tileSm {
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-  height: 140px;
-  background: linear-gradient(145deg, v2.$v2-navy-secondary 0%, v2.$v2-navy-primary 100%);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-decoration: none;
-  display: block;
-
-  &:hover {
-    transform: scale(1.015);
-    box-shadow: v2.$v2-sh-md;
-  }
-
-  .tileBody {
-    padding: 12px 14px;
-
-    .tileName {
-      font-size: 16px;
-    }
-  }
-
   @media (max-width: 768px) {
-    height: 110px;
+    height: 150px;
   }
 }
 
@@ -126,29 +83,16 @@
   bottom: 0;
   left: 0;
   right: 0;
-}
-
-.tileTag {
-  font-size: 9px;
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-  color: v2.$v2-text-muted;
-  margin-bottom: 5px;
+  padding: 14px 16px;
 }
 
 .tileName {
   font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
   color: v2.$v2-white;
   line-height: 1.2;
-  margin-bottom: 2px;
-}
-
-.rowSmall {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+    font-size: 17px;
   }
 }

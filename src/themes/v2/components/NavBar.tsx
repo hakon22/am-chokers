@@ -9,7 +9,6 @@ import {
   HeartOutlined,
   ShoppingCartOutlined,
   UserOutlined,
-  MenuOutlined,
   CloseOutlined,
   DownOutlined,
   UpOutlined,
@@ -23,7 +22,7 @@ import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { onFocus } from '@/utilities/onFocus';
-import { SearchContext, MobileContext, NavbarContext, SubmitContext } from '@/components/Context';
+import { SearchContext, MobileContext, NavbarContext, SubmitContext, AuthModalContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { changeLang } from '@/slices/userSlice';
 import styles from '@/themes/v2/components/NavBar.module.scss';
@@ -58,6 +57,7 @@ export const NavBar = () => {
   const { isMobile } = useContext(MobileContext);
   const { isActive, setIsActive } = useContext(NavbarContext);
   const { setIsSubmit } = useContext(SubmitContext);
+  const { openAuthModal } = useContext(AuthModalContext);
 
   const searchRef = useRef<GetRef<typeof AutoComplete>>(null);
   const searchParams = urlParams.get('search');
@@ -97,13 +97,16 @@ export const NavBar = () => {
 
   const catalogChildren = [...(isMobile
     ? [{ code: '', order: -1, translations: [{ name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.RU }, { name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.EN }] }, ...itemGroups]
-    : itemGroups)
-  ].sort((a, b) => a.order - b.order).map((itemGroup) => ({
-    label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((tr) => tr.lang === lang)?.name}</Link>,
-    className: 'navbar-padding',
-    key: itemGroup.code,
-    type: 'item' as const,
-  }));
+    : itemGroups),
+  ].sort((a, b) => a.order - b.order).flatMap((itemGroup) => [
+    {
+      label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>,
+      className: 'navbar-padding',
+      key: itemGroup.code,
+      type: 'item' as const,
+    },
+    ...(isMobile && itemGroup.code === '' ? [{ type: 'divider' as const, key: 'all-items-divider' }] : []),
+  ]);
 
   const items: MenuItem[] = [
     ...(isMobile ? [{
@@ -220,7 +223,7 @@ export const NavBar = () => {
                 />
                 <AutoComplete
                   ref={searchRef}
-                  className="custom-placeholder"
+                  className={cn('custom-placeholder', styles.navSearchAutocomplete)}
                   style={{ flex: 1, height: 'auto' }}
                   value={search}
                   onChange={setSearch}
@@ -249,13 +252,19 @@ export const NavBar = () => {
           <Button className={styles.iconBtn} title={t('search')} onClick={searchClick}>
             <SearchOutlined />
           </Button>
-          <Link href={routes.page.profile.favorites} title={t('favorites')}>
-            <Button className={styles.iconBtn}>
-              <Badge count={favCount} offset={[4, -3]} size="small">
-                <HeartOutlined />
-              </Badge>
+          {token ? (
+            <Link href={routes.page.profile.favorites} title={t('favorites')}>
+              <Button className={styles.iconBtn}>
+                <Badge count={favCount} offset={[4, -3]} size="small">
+                  <HeartOutlined />
+                </Badge>
+              </Button>
+            </Link>
+          ) : (
+            <Button className={styles.iconBtn} title={t('favorites')} onClick={() => openAuthModal?.('login')}>
+              <HeartOutlined />
             </Button>
-          </Link>
+          )}
           <Link href={routes.page.base.cartPage} title={t('cart')}>
             <Button className={styles.iconBtn}>
               <Badge count={cartCount} offset={[4, -3]} size="small">
@@ -263,22 +272,35 @@ export const NavBar = () => {
               </Badge>
             </Button>
           </Link>
-          <Link href={routes.page.profile.personalData} title={t('profile')}>
-            <Button className={styles.iconBtn}>
-              {name
-                ? <Avatar style={{ backgroundColor: '#2B3C5F', width: 26, height: 26 }}>{name[0]}</Avatar>
-                : <UserOutlined />}
+          {token ? (
+            <Link href={routes.page.profile.personalData} title={t('profile')}>
+              <Button className={styles.iconBtn}>
+                <Avatar style={{ backgroundColor: '#2B3C5F', width: 26, height: 26 }}>{name![0]}</Avatar>
+              </Button>
+            </Link>
+          ) : (
+            <Button className={styles.iconBtn} title={t('profile')} onClick={() => openAuthModal?.('login')}>
+              <UserOutlined />
             </Button>
-          </Link>
+          )}
         </div>
       </div>
     </nav>
   );
 
-  // ── Mobile ──
+  // ── Mobile (логика от v1, контент от v2) ──
+  const mobileContainer = useRef<HTMLDivElement>(null);
+  const [mobileDrawerContainer, setMobileDrawerContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (mobileContainer.current) {
+      setMobileDrawerContainer(mobileContainer.current);
+    }
+  }, []);
+
   const mobileNav = (
-    <>
-      <div className={styles.mobileHeader}>
+    <div className={styles.mobileHeader} ref={mobileContainer}>
+      <div className={styles.mobileHeaderRow}>
         <Link href={routes.page.base.homePage} className={styles.mobileLogo}>
           <Image src={logoImage} priority unoptimized className={styles.mobileLogoImg} alt={t('logo')} />
         </Link>
@@ -294,24 +316,19 @@ export const NavBar = () => {
                 <SearchOutlined />
               </Button>
             )}
-          <Link href={routes.page.base.cartPage}>
-            <Button className={styles.iconBtn}>
-              <Badge count={cartCount} size="small" offset={[4, -3]}>
-                <ShoppingCartOutlined />
-              </Badge>
-            </Button>
-          </Link>
-          <Button className={cn(styles.iconBtn, { 'text-primary': isActive })} onClick={onChangeHandler}>
-            {isActive ? <CloseOutlined /> : <MenuOutlined />}
-          </Button>
+          <div className={cn('menu-btn', { active: isActive })} onClick={onChangeHandler} role="button" tabIndex={0} aria-label={t('title')} onKeyDown={() => undefined}>
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
       </div>
       {isSearch?.value && (
-        <div style={{ padding: '8px 16px', background: '#fff', borderBottom: '1px solid #CED3DD' }}>
+        <div className={styles.mobileSearchRow}>
           <AutoComplete
             ref={searchRef}
-            className="custom-placeholder w-100"
-            style={{ height: 'auto' }}
+            className={cn('custom-placeholder', 'w-100', styles.navSearchAutocomplete)}
+            style={{ height: 'auto', width: '100%' }}
             value={search}
             onChange={setSearch}
             onInputKeyDown={onKeyboardSearch}
@@ -320,43 +337,46 @@ export const NavBar = () => {
           </AutoComplete>
         </div>
       )}
-      <Drawer
-        title={
-          <Link href={routes.page.base.homePage} onClick={onChangeHandler}>
-            <Image src={logoImage} priority unoptimized className={styles.drawerLogo} alt={t('logo')} />
-          </Link>
-        }
-        placement="right"
-        width="100%"
-        open={isActive}
-        onClose={onChangeHandler}
-        zIndex={1500}
-        styles={{ body: { padding: 0 } }}
-      >
-        <Menu
-          mode="inline"
-          expandIcon={null}
-          items={[...items, {
-            label: (
-              <div className={styles.drawerLang}>
-                {Object.values(UserLangEnum).map((language) => (
-                  <Radio.Button
-                    key={language}
-                    className={cn({ [styles.activeLang]: lang === language })}
-                    onClick={() => changeLanguage(language)}
-                  >
-                    {language}
-                  </Radio.Button>
-                ))}
-              </div>
-            ),
-            key: 'lang',
-          } as MenuItem]}
-          onOpenChange={onOpenChange}
-          rootClassName="bg-transparent"
-        />
-      </Drawer>
-    </>
+      {mobileDrawerContainer && (
+        <Drawer
+          title={
+            <Link href={routes.page.base.homePage} onClick={onChangeHandler}>
+              <Image src={logoImage} priority unoptimized className={styles.drawerLogo} alt={t('logo')} />
+            </Link>
+          }
+          getContainer={() => mobileDrawerContainer}
+          closeIcon={null}
+          width="100%"
+          open={isActive}
+          zIndex={1500}
+          styles={{ body: { padding: 0 } }}
+        >
+          <Menu
+            mode="inline"
+            expandIcon={null}
+            className={styles.drawerMenu}
+            items={[...items, {
+              label: (
+                <div className={styles.drawerLang}>
+                  {Object.values(UserLangEnum).map((language) => (
+                    <Radio.Button
+                      key={language}
+                      className={cn({ [styles.activeLang]: lang === language })}
+                      onClick={() => changeLanguage(language)}
+                    >
+                      {language}
+                    </Radio.Button>
+                  ))}
+                </div>
+              ),
+              key: 'lang',
+            } as MenuItem]}
+            onOpenChange={onOpenChange}
+            rootClassName="bg-transparent"
+          />
+        </Drawer>
+      )}
+    </div>
   );
 
   return isMobile ? mobileNav : desktopNav;

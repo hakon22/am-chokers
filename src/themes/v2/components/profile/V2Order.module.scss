@@ -1,0 +1,376 @@
+@use 'profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$navy2:  v2.$v2-navy-secondary;
+$navy3:  v2.$v2-navy-medium;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$white:  v2.$v2-white;
+$textD:  v2.$v2-text-dark;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+$error:  v2.$v2-error;
+$success: v2.$v2-success;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Back link ─────────────────────────────────────────────────────
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: $textS;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  transition: color 0.15s;
+
+  &:hover { color: $navy2; }
+}
+
+// ── Header card ───────────────────────────────────────────────────
+.headerCard {
+  @include card;
+  padding: 24px 28px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerMeta { display: flex; flex-direction: column; gap: 6px; }
+
+.orderTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 26px;
+  font-weight: 300;
+  color: $navy;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.orderDate {
+  font-size: 12px;
+  color: $textM;
+  letter-spacing: 0.5px;
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $white;
+}
+
+.adminInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.adminLink {
+  font-size: 13px;
+  color: $navy2;
+  text-decoration: none;
+  font-weight: 500;
+  &:hover { text-decoration: underline; }
+}
+
+.phoneCopyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid $border;
+  border-radius: 8px;
+  background: $bgAlt;
+  font-size: 12px;
+  color: $textS;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Inter', sans-serif;
+
+  &:hover { border-color: $navy3; color: $navy2; }
+}
+
+.telegramLink {
+  color: #0088cc;
+  text-decoration: none;
+  &:hover {
+    border-color: rgba(0, 136, 204, 0.45);
+    color: #006699;
+    text-decoration: none;
+  }
+}
+
+// ── Main grid ─────────────────────────────────────────────────────
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+// ── Items card ────────────────────────────────────────────────────
+.itemsCard {
+  @include card;
+  padding: 24px 28px;
+}
+
+.sectionTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: $navy;
+  margin: 0 0 20px;
+}
+
+// ── Order item row ────────────────────────────────────────────────
+.item {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid $border;
+
+  &:first-child { padding-top: 0; }
+  &:last-child  { border-bottom: none; padding-bottom: 0; }
+}
+
+.itemImg {
+  border-radius: 10px;
+  overflow: hidden;
+  background: $bgAlt;
+  aspect-ratio: 1 / 1.3;
+  position: relative;
+  flex-shrink: 0;
+
+  img, video { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itemEyebrow { @include eyebrow; }
+
+.itemName {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: $navy;
+  text-decoration: none;
+  line-height: 1.2;
+
+  &:hover { color: $navy2; }
+}
+
+.itemCountPrice {
+  font-size: 13px;
+  color: $textS;
+  margin-top: 2px;
+}
+
+.itemActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.btnRate {
+  @include btn-outline;
+  height: 34px;
+  font-size: 10px;
+  padding: 0 16px;
+}
+
+// ── Grade form ────────────────────────────────────────────────────
+.gradeForm {
+  @include card;
+  padding: 20px;
+  margin-top: 12px;
+  background: $bgAlt;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gradeLabel {
+  @include label;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.gradeSubmit {
+  @include btn-primary;
+  width: 100%;
+  height: 44px;
+  font-size: 10px;
+}
+
+.gradeCancel {
+  @include btn-outline;
+  height: 34px;
+  font-size: 10px;
+  padding: 0 16px;
+}
+
+// ── Info card ─────────────────────────────────────────────────────
+.infoCard {
+  @include card;
+  padding: 24px 24px 28px;
+  position: sticky;
+  top: 120px;
+}
+
+.infoRow {
+  @include info-row;
+}
+
+.infoLabel {
+  color: $textS;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: $textD;
+  font-family: 'Inter', sans-serif;
+  text-align: right;
+}
+
+.infoValueDiscount { color: $error; }
+.infoValueFree     { color: $success; }
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 16px;
+  margin-top: 4px;
+}
+
+.totalLabel {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: $textS;
+  font-family: 'Inter', sans-serif;
+}
+
+.totalValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: $navy;
+  letter-spacing: -0.5px;
+}
+
+// Payment
+.tagPaid {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: rgba(76, 175, 125, 0.1);
+  border: 1px solid rgba(76, 175, 125, 0.3);
+  font-size: 12px;
+  font-weight: 500;
+  color: $success;
+  margin-top: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.tagNotPaid {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: $bgAlt;
+  border: 1px solid $border;
+  font-size: 12px;
+  font-weight: 500;
+  color: $textS;
+  margin-top: 16px;
+  width: 100%;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.btnPay {
+  @include btn-primary;
+  width: 100%;
+  height: 48px;
+  margin-top: 16px;
+  font-size: 10px;
+}
+
+// Comment block
+.commentBlock {
+  background: $bgAlt;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 0;
+}
+
+.commentLabel {
+  @include eyebrow;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.commentText {
+  font-size: 13px;
+  color: $textS;
+  line-height: 1.6;
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoCard {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .headerCard { padding: 16px; }
+  .itemsCard  { padding: 16px; }
+  .infoCard   { padding: 16px 16px 20px; }
+  .orderTitle { font-size: 22px; }
+  .item { grid-template-columns: 60px 1fr; gap: 12px; }
+}

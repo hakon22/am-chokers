@@ -2,7 +2,7 @@
 
 .hero {
   display: grid;
-  grid-template-columns: 52% 48%;
+  grid-template-columns: 40% 60%;
   min-height: 520px;
 
   @media (max-width: 768px) {
@@ -61,7 +61,7 @@
   font-size: 52px;
   font-weight: 300;
   line-height: 1.15;
-  color: v2.$v2-white;
+  color: v2.$v2-white !important;
   margin-bottom: 16px;
 
   em {
@@ -135,6 +135,12 @@
   }
 }
 
+.heroCarousel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
 .heroImgPlaceholder {
   width: 100%;
   height: 100%;
@@ -156,6 +162,7 @@
 
 .heroCard {
   position: absolute;
+  z-index: 1;
   bottom: 28px;
   left: 28px;
   background: v2.$v2-white;
@@ -192,10 +199,11 @@
 
 .heroTag {
   position: absolute;
+  z-index: 1;
   top: 28px;
   right: 28px;
   background: v2.$v2-navy-primary;
-  color: v2.$v2-white;
+  color: v2.$v2-white !important;
   border-radius: 6px;
   padding: 6px 14px;
   font-size: 10px;
@@ -206,6 +214,7 @@
 
   &:hover {
     background: v2.$v2-navy-secondary;
+    color: #FFFFFF !important;
   }
 }
 

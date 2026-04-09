@@ -1,0 +1,193 @@
+@use '../profile/_profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$navy2:  v2.$v2-navy-secondary;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$bgMain: v2.$v2-bg-main;
+$white:  v2.$v2-white;
+$textD:  v2.$v2-text-dark;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+
+// ── Page ──────────────────────────────────────────────────────────
+.page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 48px;
+}
+
+.pageTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 40px;
+  font-weight: 300;
+  color: $navy;
+  text-align: center;
+  margin: 0 0 32px;
+  line-height: 1.1;
+}
+
+// ── Controls ──────────────────────────────────────────────────────
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+// ── Columns ───────────────────────────────────────────────────────
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+// ── Section ───────────────────────────────────────────────────────
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $textM;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $border;
+  margin: 0;
+}
+
+// ── Table card ────────────────────────────────────────────────────
+.tableCard {
+  @include card;
+  overflow: hidden;
+}
+
+// ── Table head ────────────────────────────────────────────────────
+.tableHead {
+  display: grid;
+  grid-template-columns: 1fr 140px 24px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: $bgAlt;
+  border-bottom: 1px solid $border;
+}
+
+.thCell {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: $textM;
+}
+
+// ── Table row ─────────────────────────────────────────────────────
+.tableRow {
+  display: grid;
+  grid-template-columns: 1fr 140px 24px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid $border;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  color: inherit;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: $bgMain;
+
+    .chevron { color: $navy2; }
+  }
+}
+
+// ── Item cell ─────────────────────────────────────────────────────
+.itemCell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.itemImg {
+  flex-shrink: 0;
+}
+
+.itemName {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: $textD;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+// ── Date cell ─────────────────────────────────────────────────────
+.dateCell {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: $textM;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 14px;
+  color: $textM;
+  transition: color 0.15s;
+  justify-self: end;
+  line-height: 1;
+}
+
+// ── Empty ─────────────────────────────────────────────────────────
+.empty {
+  @include card;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+
+  .pageTitle { font-size: 30px; }
+}
+
+@media (max-width: 768px) {
+  .tableHead { display: none; }
+
+  .tableRow {
+    grid-template-columns: 1fr 24px;
+    grid-template-rows: auto auto;
+    padding: 12px 16px;
+    row-gap: 4px;
+  }
+
+  .itemCell { grid-column: 1; grid-row: 1; }
+
+  .dateCell {
+    font-size: 11px;
+    grid-column: 1;
+    grid-row: 2;
+    padding-left: 0;
+  }
+
+  .chevron {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}

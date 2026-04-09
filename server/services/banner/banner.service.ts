@@ -1,3 +1,5 @@
+import { existsSync } from 'fs';
+
 import { Container, Singleton } from 'typescript-ioc';
 import type { EntityManager } from 'typeorm';
 
@@ -162,6 +164,17 @@ export class BannerService extends BaseService {
     if (video.path === tempPath) {
       this.uploadPathService.checkFolder(UploadPathEnum.PROMOTIONAL, 0);
       this.uploadPathService.moveFile(UploadPathEnum.PROMOTIONAL, 0, video.name);
+      if (/\.mp4$/i.test(video.name)) {
+        const posterName = video.name.replace(/\.mp4$/i, '.poster.jpg');
+        const posterInTemp = this.uploadPathService.getUploadPath(UploadPathEnum.TEMP, 0, posterName);
+        if (posterName !== video.name && existsSync(posterInTemp)) {
+          try {
+            this.uploadPathService.moveFile(UploadPathEnum.PROMOTIONAL, 0, posterName);
+          } catch (e) {
+            this.loggerService.error(e);
+          }
+        }
+      }
       video.path = this.uploadPathService.getUrlPath(UploadPathEnum.PROMOTIONAL);
       await manager.getRepository(ImageEntity).save(video);
     }

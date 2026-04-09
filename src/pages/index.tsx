@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState, useContext, type WheelEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, useContext, type WheelEvent } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
@@ -12,7 +12,6 @@ import type { InferGetServerSidePropsType } from 'next';
 
 import { VersionContext } from '@/components/Context';
 import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
-
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { routes } from '@/routes';
@@ -28,13 +27,30 @@ import { toast } from '@/utilities/toast';
 import type { ItemInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { BannerInterface, BannerListResponseInterface } from '@/types/banner/BannerInterface';
+import type { SiteVersion } from '@/types/SiteVersion';
+import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
+
+const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterface =>
+  images.reduce((acc, image) => {
+    if (!image.coverOrder || !image.coverType) {
+      return acc;
+    }
+    acc[`${image.coverType}${image.coverOrder}` as keyof GeneralPageCoverImageInterface] = image;
+    return acc;
+  }, {} as GeneralPageCoverImageInterface);
 
 export const getServerSideProps = async () => {
-  const [{ data: { specialItems } }, { data: { coverImages } }, { data: { banners } }] = await Promise.all([
+  const [{ data: { specialItems } }, { data: { siteVersion } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
     axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
-    axios.get<{ coverImages: ImageEntity[]; }>(routes.storage.image.getCoverImages({ isServer: false })),
+    axios.get<{ siteVersion: SiteVersion; }>(routes.settings.getSiteVersionSsr({ isServer: false })),
     axios.get<BannerListResponseInterface>(routes.banner.findMany({ isServer: false })),
+    axios.get<{ itemCollections: ItemCollectionEntity[]; }>(routes.itemCollection.findMany({ isServer: false })),
   ]);
+
+  const versionNumber = parseInt(siteVersion.slice(1));
+  const { data: { coverImages } } = await axios.get<{ coverImages: ImageEntity[]; }>(
+    routes.storage.image.getCoverImages({ isServer: false, siteVersion: versionNumber }),
+  );
 
   const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
     if (item.new) {
@@ -89,56 +105,7 @@ export const getServerSideProps = async () => {
     return acc;
   }, { collection1: undefined, collection2: undefined, collection3: undefined, collection4: undefined, collection5: undefined } as GeneralPageCollectionInterface);
     
-  const preparedCoverImages = coverImages.reduce((acc, image) => {
-    switch (image.coverOrder) {
-    case 1:
-      acc.coverImage1 = image;
-      break;
-    case 2:
-      acc.coverImage2 = image;
-      break;
-    case 3:
-      acc.coverImage3 = image;
-      break;
-    case 4:
-      acc.coverImage4 = image;
-      break;
-    case 5:
-      acc.coverImage5 = image;
-      break;
-    case 6:
-      acc.coverImage6 = image;
-      break;
-    case 9:
-      acc.coverCollectionImage9 = image;
-      break;
-    case 10:
-      acc.coverCollectionImage10 = image;
-      break;
-    case 11:
-      acc.coverCollectionImage11 = image;
-      break;
-    case 12:
-      acc.coverCollectionImage12 = image;
-      break;
-    case 13:
-      acc.coverCollectionImage13 = image;
-      break;
-    }
-    return acc;
-  }, {
-    coverImage1: undefined,
-    coverImage2: undefined,
-    coverImage3: undefined,
-    coverImage4: undefined,
-    coverImage5: undefined,
-    coverImage6: undefined,
-    coverCollectionImage9: undefined,
-    coverCollectionImage10: undefined,
-    coverCollectionImage11: undefined,
-    coverCollectionImage12: undefined,
-    coverCollectionImage13: undefined,
-  } as GeneralPageCoverImageInterface);
+  const preparedCoverImages = buildCoverImagesMap(coverImages);
 
   return {
     props: {
@@ -146,6 +113,7 @@ export const getServerSideProps = async () => {
       preparedBestsellers,
       preparedCollections,
       preparedCoverImages,
+      itemCollections,
       specialItems,
       coverImages,
       banners,
@@ -231,7 +199,7 @@ const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValu
   );
 };
 
-const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages, banners }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages, itemCollections, banners }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tBanner } = useTranslation('translation', { keyPrefix: 'modules.banner' });
@@ -248,7 +216,10 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
   const [autoPlay, setAutoPlay] = useState(false);
   const [bannerAutoPlay, setBannerAutoPlay] = useState(false);
-  const [throttledHandleWheel, setThrottledHandleWheel] = useState(() => () => {});
+  const throttledHandleWheelRef = useRef<(event: WheelEvent<HTMLDivElement>) => void>(() => {});
+  const handleCarouselWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    throttledHandleWheelRef.current(event);
+  }, []);
 
   const coefficient = 1.3;
 
@@ -347,6 +318,10 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   };
 
   useEffect(() => {
+    if (version === 'v2') {
+      throttledHandleWheelRef.current = () => {};
+      return undefined;
+    }
     const handler = throttle((event: WheelEvent<HTMLDivElement>) => {
       const carousel = carouselRef.current;
       if (carousel) {
@@ -358,18 +333,24 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
       }
     }, 1000);
 
-    setThrottledHandleWheel(() => handler);
-  
+    throttledHandleWheelRef.current = handler;
+
     return () => {
       handler.cancel?.();
     };
-  }, []);
+  }, [version]);
 
   useEffect(() => {
     dispatch(setAppData({ coverImages, specialItems }));
+  }, [dispatch, coverImages, specialItems]);
 
-    setTimeout(setAutoPlay, 2000, true);
-    setTimeout(setBannerAutoPlay, 2000, true);
+  useEffect(() => {
+    if (version === 'v2') {
+      return undefined;
+    }
+
+    const autoPlayTimer = window.setTimeout(() => setAutoPlay(true), 2000);
+    const bannerAutoPlayTimer = window.setTimeout(() => setBannerAutoPlay(true), 2000);
 
     const handleResize = () => {
       const extension = getWidth();
@@ -396,26 +377,34 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
     handleResize();
     window.addEventListener('resize', handleResize);
 
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    return () => {
+      window.clearTimeout(autoPlayTimer);
+      window.clearTimeout(bannerAutoPlayTimer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [version]);
 
   if (version === 'v2') {
     return (
-      <V2HomePage
-        news={news}
-        preparedBestsellers={preparedBestsellers}
-        preparedCollections={preparedCollections}
-        preparedCoverImages={preparedCoverImages}
-        coverImages={coverImages}
-        specialItems={specialItems}
-        banners={banners}
-        itemGroups={itemGroups}
-      />
+      <>
+        <Helmet title={t('title')} description={t('description')} />
+        <V2HomePage
+          news={news}
+          preparedBestsellers={preparedBestsellers}
+          preparedCollections={preparedCollections}
+          preparedCoverImages={preparedCoverImages}
+          coverImages={coverImages}
+          specialItems={specialItems}
+          banners={banners}
+          itemGroups={itemGroups}
+          itemCollections={itemCollections}
+        />
+      </>
     );
   }
 
   return (
-    <div className="d-flex justify-content-center" onWheel={throttledHandleWheel}>
+    <div className="d-flex justify-content-center" onWheel={handleCarouselWheel}>
       <Helmet title={t('title')} description={t('description')} />
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
@@ -619,12 +608,12 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage13} cover={13} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
+                <ContextMenu image={preparedCoverImages?.['COLLECTION_IMAGE13']} cover={13} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={preparedCoverImages?.coverCollectionImage13 ? [preparedCoverImages?.coverCollectionImage13] : []}
+                    images={preparedCoverImages?.['COLLECTION_IMAGE13'] ? [preparedCoverImages?.['COLLECTION_IMAGE13']] : []}
                   />
                 </ContextMenu>
               </div>
@@ -649,12 +638,12 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage9} cover={9} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
+                <ContextMenu image={preparedCoverImages?.['COLLECTION_IMAGE9']} cover={9} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={preparedCoverImages?.coverCollectionImage9 ? [preparedCoverImages?.coverCollectionImage9] : []}
+                    images={preparedCoverImages?.['COLLECTION_IMAGE9'] ? [preparedCoverImages?.['COLLECTION_IMAGE9']] : []}
                   />
                 </ContextMenu>
               </div>
@@ -679,12 +668,12 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage10} cover={10} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
+                <ContextMenu image={preparedCoverImages?.['COLLECTION_IMAGE10']} cover={10} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={preparedCoverImages?.coverCollectionImage10 ? [preparedCoverImages?.coverCollectionImage10] : []}
+                    images={preparedCoverImages?.['COLLECTION_IMAGE10'] ? [preparedCoverImages?.['COLLECTION_IMAGE10']] : []}
                   />
                 </ContextMenu>
               </div>
@@ -709,12 +698,12 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage11} cover={11} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
+                <ContextMenu image={preparedCoverImages?.['COLLECTION_IMAGE11']} cover={11} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={preparedCoverImages?.coverCollectionImage11 ? [preparedCoverImages?.coverCollectionImage11] : []}
+                    images={preparedCoverImages?.['COLLECTION_IMAGE11'] ? [preparedCoverImages?.['COLLECTION_IMAGE11']] : []}
                   />
                 </ContextMenu>
               </div>
@@ -739,12 +728,12 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     />
                   </div>
                 </ContextMenu>}
-                <ContextMenu image={preparedCoverImages?.coverCollectionImage12} cover={12} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
+                <ContextMenu image={preparedCoverImages?.['COLLECTION_IMAGE12']} cover={12} isCoverCollection {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                   <ImageHover
                     className={isMobile ? 'align-items-center' : ''}
                     width={coverSize.coverCollection.width}
                     height={coverSize.coverCollection.height}
-                    images={preparedCoverImages?.coverCollectionImage12 ? [preparedCoverImages?.coverCollectionImage12] : []}
+                    images={preparedCoverImages?.['COLLECTION_IMAGE12'] ? [preparedCoverImages?.['COLLECTION_IMAGE12']] : []}
                   />
                 </ContextMenu>
               </div>
@@ -755,64 +744,64 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
           </section>
           <section className="d-flex flex-column col-12 gap-5" style={{ marginBottom: '10rem' }}>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage1} cover={1} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.['IMAGE1']} cover={1} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={preparedCoverImages?.coverImage1 ? [preparedCoverImages?.coverImage1] : []}
+                  images={preparedCoverImages?.['IMAGE1'] ? [preparedCoverImages?.['IMAGE1']] : []}
                   href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('necklacesAndChokers')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage2} cover={2} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.['IMAGE2']} cover={2} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={preparedCoverImages?.coverImage2 ? [preparedCoverImages?.coverImage2] : []}
+                  images={preparedCoverImages?.['IMAGE2'] ? [preparedCoverImages?.['IMAGE2']] : []}
                   href={`${routes.page.base.catalog}?groupIds=1&groupIds=2`}
                 />
               </ContextMenu>
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage3} cover={3} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.['IMAGE3']} cover={3} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={preparedCoverImages?.coverImage3 ? [preparedCoverImages?.coverImage3] : []}
+                  images={preparedCoverImages?.['IMAGE3'] ? [preparedCoverImages?.['IMAGE3']] : []}
                   href={`${routes.page.base.catalog}/bracelet`}
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}/bracelet`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('bracelets')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage4} cover={4} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.['IMAGE4']} cover={4} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={preparedCoverImages?.coverImage4 ? [preparedCoverImages?.coverImage4] : []}
+                  images={preparedCoverImages?.['IMAGE4'] ? [preparedCoverImages?.['IMAGE4']] : []}
                   href={`${routes.page.base.catalog}/bracelet`}
                 />
               </ContextMenu>
             </div>
             <div className="d-flex flex-column flex-xl-row justify-content-between align-items-center gap-5 gap-xl-0">
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage5} cover={5} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.['IMAGE5']} cover={5} {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={preparedCoverImages?.coverImage5 ? [preparedCoverImages?.coverImage5] : []}
+                  images={preparedCoverImages?.['IMAGE5'] ? [preparedCoverImages?.['IMAGE5']] : []}
                   href={`${routes.page.base.catalog}/earrings`}
                 />
               </ContextMenu>
               <Link href={`${routes.page.base.catalog}/earrings`} className="col-12 col-xl-4 text-center h2" style={{ width: 'max-content' }}>{t('earrings')}</Link>
-              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.coverImage6} cover={6} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
+              <ContextMenu className="col-12 col-xl-4" image={preparedCoverImages?.['IMAGE6']} cover={6} {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })}>
                 <ImageHover
                   className={isMobile ? 'align-items-center' : ''}
                   width={coverSize.cover.width}
                   height={coverSize.cover.height}
-                  images={preparedCoverImages?.coverImage6 ? [preparedCoverImages?.coverImage6] : []}
+                  images={preparedCoverImages?.['IMAGE6'] ? [preparedCoverImages?.['IMAGE6']] : []}
                   href={`${routes.page.base.catalog}/earrings`}
                 />
               </ContextMenu>

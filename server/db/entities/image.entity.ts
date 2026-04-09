@@ -12,6 +12,7 @@ import {
 
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
+import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 
 /** Изображения */
 @Entity({
@@ -55,6 +56,22 @@ export class ImageEntity extends BaseEntity {
   })
   public coverOrder?: number;
 
+  /** Версия сайта для обложки */
+  @Column('smallint', {
+    nullable: true,
+    name: 'site_version',
+  })
+  public siteVersion?: number;
+
+  /** Тип обложки */
+  @Column({
+    type: 'enum',
+    enum: CoverTypeEnum,
+    nullable: true,
+    name: 'cover_type',
+  })
+  public coverType?: CoverTypeEnum;
+
   /** Товар изображения */
   @Index()
   @ManyToOne(() => ItemEntity, {
@@ -82,8 +99,17 @@ export class ImageEntity extends BaseEntity {
   /** Полный путь изображения для вставки */
   public src: string;
 
+  /** JPEG превью для mp4 (`имя.poster.jpg` рядом с файлом), если сгенерировано при загрузке */
+  public posterSrc?: string;
+
   @AfterLoad()
   genSrc() {
     this.src = [this.path, this.name].join('/').replaceAll('\\', '/');
+    if (/\.mp4$/i.test(this.name)) {
+      const posterName = this.name.replace(/\.mp4$/i, '.poster.jpg');
+      this.posterSrc = [this.path, posterName].join('/').replaceAll('\\', '/');
+    } else {
+      this.posterSrc = undefined;
+    }
   }
 }

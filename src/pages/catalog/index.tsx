@@ -11,9 +11,10 @@ import { chunk, isEmpty, isNil } from 'lodash';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { MobileContext, SearchContext, SubmitContext } from '@/components/Context';
+import { MobileContext, SearchContext, SubmitContext, VersionContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { CatalogItemsFilter } from '@/components/filters/catalog/CatalogItemsFilter';
+import { CatalogFilter } from '@/themes/v2/components/catalog/CatalogFilter';
 import { setPaginationParams } from '@/slices/appSlice';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
@@ -23,6 +24,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { getWidth } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { ProductCard } from '@/themes/v2/components/ProductCard';
 import type { PagePropsInterface } from '@/pages/catalog/[...path]';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
@@ -43,29 +45,58 @@ export interface CatalogFiltersInterface {
 
 export { getServerSideProps };
 
+const msPerDay = 86400000;
+const getBadge = (item: ItemInterface): 'new' | 'sale' | undefined => {
+  if (item.discountPrice > 0) {
+    return 'sale';
+  }
+  if (item.publicationDate && Date.now() - new Date(item.publicationDate).getTime() <= 30 * msPerDay) {
+    return 'new';
+  }
+  return undefined;
+};
+
 const RenderCatalogItem = ({ width, height, className, item, lang }: { width: number; height: number; className?: string; item?: ItemInterface; lang: UserLangEnum; }) => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { version } = useContext(VersionContext);
 
-  return item
-    ? (
-      <ImageHover
-        key={item.id}
-        href={getHref(item)}
-        className={className}
-        height={height}
-        width={width}
-        outStock={item.outStock}
-        images={item.images}
-        name={item?.translations.find((translation) => translation.lang === lang)?.name}
-        rating={{ rating: item.rating, grades: item.grades }}
-        description={tPrice('price', { price: item.price - item.discountPrice })}
-      />
-    ) 
-    : null;
+  if (!item) {
+    return null;
+  }
+
+  if (version === 'v2') {
+    return (
+      <div style={{ width }} className={className}>
+        <ProductCard
+          item={item}
+          badge={getBadge(item)}
+          rating={{ rating: item.rating, grades: item.grades }}
+          outStock={item.outStock ?? undefined}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <ImageHover
+      key={item.id}
+      href={getHref(item)}
+      className={className}
+      height={height}
+      width={width}
+      outStock={item.outStock}
+      images={item.images}
+      name={item?.translations.find((translation) => translation.lang === lang)?.name}
+      rating={{ rating: item.rating, grades: item.grades }}
+      description={tPrice('price', { price: item.price - item.discountPrice })}
+    />
+  );
 };
 
 const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInterface[]; i: number; isSkeleton?: boolean; lang: UserLangEnum; }) => {
   const { isMobile } = useContext(MobileContext);
+  const { version } = useContext(VersionContext);
+  const rowGap = isMobile && version === 'v2' ? 'gap-3' : 'gap-5';
 
   const isReverse = i % 2 !== 0;
 
@@ -128,7 +159,7 @@ const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInt
   return isMobile
     ? extensionValue < 768
       ? (
-        <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
+        <div id={`${i + 1}`} className={`d-flex flex-column ${rowGap} col-12 part`}>
           <div className="d-flex justify-content-between">
             {isSkeleton ? (
               <>
@@ -177,7 +208,7 @@ const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInt
         </div>
       )
       : (
-        <div id={`${i + 1}`} className="d-flex flex-column gap-5 col-12 part">
+        <div id={`${i + 1}`} className={`d-flex flex-column ${rowGap} col-12 part`}>
           <div className="d-flex justify-content-between">
             {isSkeleton ? (
               <>
@@ -287,6 +318,8 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const { setIsSearch } = useContext(SearchContext);
   const { isSearch } = useContext(SearchContext);
   const { isMobile } = useContext(MobileContext);
+  const { version } = useContext(VersionContext);
+  const isV2 = version === 'v2';
   
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -513,11 +546,34 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     setStatisticsEffect(propsStatistics);
   }, [itemGroup?.id, uuid]);
 
+  const filterProps = {
+    onFilters,
+    form,
+    initialValues,
+    setInitialValues,
+    showDrawer,
+    setShowDrawer,
+    setIsSubmit,
+    itemGroup,
+    uuid,
+    statistics,
+    resetFilters,
+  };
+
   return (
-    <div className="d-flex col-12 justify-content-between" style={isMobile ? { marginTop: '140px' } : {}}>
-      <Helmet title={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.name as string : t('title')} description={itemGroup ? itemGroup.translations.find((translation) => translation.lang === lang)?.description as string : t('description')} />
-      <CatalogItemsFilter onFilters={onFilters} form={form} initialValues={initialValues} setInitialValues={setInitialValues} showDrawer={showDrawer} setShowDrawer={setShowDrawer} setIsSubmit={setIsSubmit} itemGroup={itemGroup} uuid={uuid} statistics={statistics} resetFilters={resetFilters} />
-      <div className="d-flex col-12 col-xl-9">
+    <div
+      className={isV2 ? undefined : 'd-flex col-12 justify-content-between'}
+      style={{
+        ...(isV2 && !isMobile ? { display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24 } : {}),
+        ...(!isV2 && isMobile ? { marginTop: '140px' } : {}),
+      }}
+    >
+      <Helmet title={itemGroup ? itemGroup.translations.find(({ lang: translationLang }) => translationLang === lang)?.name as string : t('title')} description={itemGroup ? itemGroup.translations.find(({ lang: translationLang }) => translationLang === lang)?.description as string : t('description')} />
+      {isV2
+        ? <CatalogFilter {...filterProps} />
+        : <CatalogItemsFilter {...filterProps} />
+      }
+      <div className={isV2 ? undefined : 'd-flex col-12 col-xl-9'}>
         <div className="w-100">
           <InfiniteScroll
             dataLength={items.length}

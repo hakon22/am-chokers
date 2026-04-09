@@ -1,4 +1,4 @@
-import ImageGallery from 'react-image-gallery';
+import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
 import cn from 'classnames';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import { RightOutlined, InboxOutlined, UploadOutlined } from '@ant-design/icons'
 import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Breadcrumb, Button, Form, Input, InputNumber, Select, Upload, Modal, type UploadProps, type UploadFile, Switch, Checkbox, DatePicker, Divider } from 'antd';
 import { isEqual, some, isEmpty, omit, cloneDeep } from 'lodash';
 import moment, { type Moment } from 'moment';
@@ -15,7 +15,8 @@ import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { MobileContext, SubmitContext } from '@/components/Context';
+import { MobileContext, SubmitContext, VersionContext } from '@/components/Context';
+import { V2AdminCreateItem } from '@/themes/v2/components/admin/V2AdminCreateItem';
 import { routes } from '@/routes';
 import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -106,7 +107,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
-  const galleryRef = useRef<ImageGallery>(null);
+  const galleryRef = useRef<ImageGalleryRef>(null);
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
@@ -124,6 +125,25 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
+
+  const imageGalleryItems = useMemo(
+    () =>
+      images.map((image) => ({
+        original: image.src,
+        renderThumbInner: image.src.endsWith('.mp4') ? () => (
+          <video className="w-100" autoPlay loop muted playsInline src={image.src} />
+        ) : undefined,
+        thumbnail: image.src,
+        originalHeight: isMobile && originalHeight !== getHeight() ? undefined : String(originalHeight),
+        originalWidth: isMobile && originalHeight === getHeight() ? String(originalHeight / 1.3) : undefined,
+        renderItem: image.src.endsWith('.mp4')
+          ? () => (
+            <video style={{ maxHeight: originalHeight, width: '100%' }} autoPlay loop muted playsInline src={image.src} />
+          )
+          : undefined,
+      })),
+    [images, isMobile, originalHeight],
+  );
 
   const [form] = Form.useForm<ItemFormInterface>();
 
@@ -473,38 +493,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 ref={galleryRef}
                 additionalClass="w-100 mb-5 mb-xl-0"
                 showIndex
-                items={images.map((image) => ({
-                  original: image.src,
-                  renderThumbInner: image.src.endsWith('.mp4') ? () => (
-                    <video
-                      className="w-100"
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      src={image.src}
-                    />
-                  ) : undefined,
-                  thumbnail: image.src,
-                  originalHeight: isMobile && originalHeight !== getHeight()
-                    ? undefined
-                    : originalHeight,
-                  originalWidth: isMobile && originalHeight === getHeight()
-                    ? originalHeight / 1.3
-                    : undefined,
-                  renderItem: image.src.endsWith('.mp4')
-                    ? () => (
-                      <video
-                        style={{ maxHeight: originalHeight, width: '100%' }}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        src={image.src}
-                      />
-                    )
-                    : undefined,
-                }))}
+                items={imageGalleryItems}
                 infinite
                 showBullets={isMobile}
                 showNav={!isMobile}
@@ -791,4 +780,10 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   ) : null;
 };
 
-export default CreateItem;
+const AdminCreateItemPage = (props: { oldItem?: ItemInterface; itemCollections?: ItemCollectionInterface[]; updateItem?: (value: ItemInterface) => void; }) => {
+  const { version } = useContext(VersionContext);
+  if (version === 'v2') return <V2AdminCreateItem {...props} />;
+  return <CreateItem {...props} />;
+};
+
+export default AdminCreateItemPage;

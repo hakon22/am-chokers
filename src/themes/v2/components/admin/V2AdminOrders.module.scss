@@ -1,0 +1,48 @@
+@use '../profile/_profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:  v2.$v2-navy-primary;
+$border: v2.$v2-border;
+$textM: v2.$v2-text-muted;
+
+// ── Page ──────────────────────────────────────────────────────────
+.page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 48px;
+}
+
+.pageTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 40px;
+  font-weight: 300;
+  color: $navy;
+  text-align: center;
+  margin: 0 0 32px;
+  line-height: 1.1;
+}
+
+// ── Controls ──────────────────────────────────────────────────────
+.controls {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+// ── End line ──────────────────────────────────────────────────────
+.endLine {
+  text-align: center;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  color: $textM;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 24px 0;
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .pageTitle { font-size: 30px; }
+}

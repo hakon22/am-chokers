@@ -28,6 +28,25 @@ interface DataType extends Partial<MessageEntity> {
   key: React.Key;
 }
 
+// AD6: стили кнопки у Input.Search задаются через styles.button.root — иначе css-in-js Ant перебивает general.scss.
+const v2MessagesPhoneSearchStyles = {
+  root: {
+    alignItems: 'stretch',
+    width: '100%',
+  },
+  button: {
+    root: {
+      height: 44,
+      minHeight: 44,
+      maxHeight: 44,
+      boxSizing: 'border-box',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  },
+} satisfies SearchProps['styles'];
+
 const HtmlEllipsis = ({ text }: { text: string; }) => {
   return (
     <Typography>
@@ -136,23 +155,27 @@ const Message = () => {
           <Checkbox checked={onlyUnsent} onChange={onlyUnsentHandler}>{t('onlyUnsent')}</Checkbox>
         </div>
         <div className="d-flex flex-column flex-xl-row justify-content-between gap-3 gap-xl-0 col-12 col-xl-6">
-          <Input.Search placeholder={t('table.phone')} allowClear value={phone ?? ''} onChange={({ target }) => setPhone(target.value)} onSearch={onPhoneSearch} className="col-12 col-xl-5" style={{ borderColor: '#2b3c5f' }} />
-          <Select
-            key="select"
-            mode="multiple"
-            allowClear
-            className="col-12 col-xl-6"
-            notFoundContent={<NotFoundContent />}
-            value={types}
-            showSearch={{
-              optionFilterProp: 'label',
-              filterOption: (input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
-            }}
-            placeholder={t('table.type')}
-            onChange={(state) => setTypes(state)}
-            onClear={() => setTypes([])}
-            options={Object.values(MessageTypeEnum).map((type) => ({ label: type, value: type }))}
-          />
+          <div className="col-12 col-xl-5 min-w-0">
+            <Input.Search placeholder={t('table.phone')} allowClear value={phone ?? ''} onChange={({ target }) => setPhone(target.value)} onSearch={onPhoneSearch} className="w-100 v2-messages-phone-search" styles={v2MessagesPhoneSearchStyles} />
+          </div>
+          <div className="col-12 col-xl-6 min-w-0">
+            <Select
+              key="select"
+              mode="multiple"
+              allowClear
+              className="w-100"
+              notFoundContent={<NotFoundContent />}
+              value={types}
+              showSearch={{
+                optionFilterProp: 'label',
+                filterOption: (input, option) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
+              }}
+              placeholder={t('table.type')}
+              onChange={(state) => setTypes(state)}
+              onClear={() => setTypes([])}
+              options={Object.values(MessageTypeEnum).map((type) => ({ label: type, value: type }))}
+            />
+          </div>
         </div>
       </div>
       <InfiniteScroll

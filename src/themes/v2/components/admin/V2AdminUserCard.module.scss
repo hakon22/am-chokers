@@ -1,0 +1,361 @@
+@use '../profile/_profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$navy2:  v2.$v2-navy-secondary;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$bgMain: v2.$v2-bg-main;
+$white:  v2.$v2-white;
+$textD:  v2.$v2-text-dark;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+
+// ── Page ──────────────────────────────────────────────────────────
+.page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 48px;
+}
+
+// ── Page title ────────────────────────────────────────────────────
+.pageTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 40px;
+  font-weight: 300;
+  color: $navy;
+  text-align: center;
+  margin: 0 0 32px;
+  line-height: 1.1;
+}
+
+// ── Controls ──────────────────────────────────────────────────────
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+// ── Main card ─────────────────────────────────────────────────────
+.card {
+  @include card;
+  padding: 36px 40px 40px;
+  margin-bottom: 20px;
+}
+
+// ── Role badge ────────────────────────────────────────────────────
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $textS;
+  background: $bgAlt;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-bottom: 28px;
+}
+
+// ── Info grid ─────────────────────────────────────────────────────
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border: 1px solid $border;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 28px;
+
+  & + & {
+    border-left: 1px solid $border;
+  }
+}
+
+.infoSectionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $textM;
+  margin-bottom: 4px;
+}
+
+// ── Info row ──────────────────────────────────────────────────────
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.infoLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $textM;
+}
+
+.infoValue {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: $textD;
+  line-height: 1.3;
+}
+
+.infoLink {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: $navy2;
+  text-decoration: none;
+  transition: color 0.15s;
+
+  &:hover { color: $navy; }
+}
+
+// ── Telegram badge ────────────────────────────────────────────────
+.telegramOn {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0088cc;
+  background: rgba(0, 136, 204, 0.08);
+  border: 1px solid rgba(0, 136, 204, 0.2);
+  border-radius: 8px;
+  padding: 3px 10px;
+}
+
+.telegramOff {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: $textM;
+}
+
+// ── Stats row ─────────────────────────────────────────────────────
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 12px;
+  border: 1px solid $border;
+  border-radius: 14px;
+  background: $bgMain;
+  text-align: center;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background: $bgAlt;
+    box-shadow: v2.$v2-sh-sm;
+  }
+}
+
+.statLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: $textM;
+}
+
+.statValue {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: $navy;
+  line-height: 1;
+}
+
+.statLink {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: $navy2;
+  text-decoration: none;
+  line-height: 1;
+  transition: color 0.15s;
+
+  &:hover { color: $navy; }
+}
+
+// ── Favorites ─────────────────────────────────────────────────────
+// Keep in sync with imgWidth / imgHeight in V2AdminUserCard.tsx
+$favorite-thumb-w: 80px;
+$favorite-thumb-h: 104px;
+
+.favoritesCard {
+  @include card;
+  padding: 32px 40px 36px;
+}
+
+.sectionTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: $textM;
+  margin-bottom: 24px;
+}
+
+.favoritesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.favoriteCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 12px 14px;
+  background: $bgMain;
+  border: 1px solid $border;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    background: $white;
+    border-color: rgba($navy2, 0.35);
+    box-shadow: v2.$v2-sh-sm;
+
+    .favoriteName {
+      color: $navy2;
+    }
+  }
+}
+
+.favoriteThumb {
+  flex-shrink: 0;
+  width: $favorite-thumb-w;
+  height: $favorite-thumb-h;
+  border-radius: 10px;
+  overflow: hidden;
+  background: $bgAlt;
+  line-height: 0;
+
+  :global(.image-hover) {
+    border-radius: 10px;
+  }
+}
+
+.favoriteMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.favoriteName {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: $textD;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  transition: color 0.15s ease;
+}
+
+.favoritePrice {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: $navy;
+}
+
+.favoriteDeleted {
+  opacity: 0.45;
+}
+
+.emptyFavorites {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: $textM;
+  font-style: italic;
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 992px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .infoSection:nth-child(3) {
+    border-left: none;
+    border-top: 1px solid $border;
+    grid-column: 1 / -1;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pageTitle { font-size: 30px; }
+
+  .card,
+  .favoritesCard {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoSection + .infoSection {
+    border-left: none;
+    border-top: 1px solid $border;
+  }
+
+  .infoSection:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .favoritesGrid {
+    grid-template-columns: 1fr;
+  }
+}

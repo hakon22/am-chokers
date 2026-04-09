@@ -8,6 +8,7 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 
 const { t } = i18n;
 
@@ -420,6 +421,8 @@ const publishTelegramSchema = yup.object().shape({
 
 const setCoverImageSchema = yup.object().shape({
   coverOrder: numberSchema,
+  siteVersion: yup.number().optional().nullable(),
+  coverType: yup.string().oneOf(Object.values(CoverTypeEnum)).required(),
 }).concat(requiredIdSchema);
 
 export const confirmCodeValidation = validate(confirmCodeSchema);

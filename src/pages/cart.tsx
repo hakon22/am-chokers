@@ -33,6 +33,8 @@ import { MaskedInput } from '@/components/forms/MaskedInput';
 import { fetchConfirmCode, setRefreshToken } from '@/slices/userSlice';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { VersionContext } from '@/components/Context';
+import { V2CartPage } from '@/themes/v2/components/cart/V2CartPage';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
@@ -633,4 +635,9 @@ const Cart = () => {
   );
 };
 
-export default Cart;
+const CartPage = () => {
+  const { version } = useContext(VersionContext);
+  return version === 'v2' ? <V2CartPage /> : <Cart />;
+};
+
+export default CartPage;

@@ -13,6 +13,7 @@ export const SocialSection = () => {
 
   return (
     <HomeSectionWrapper>
+      {/**
       <div className={styles.sectionHead}>
         <div>
           <div className={styles.eyebrow}>{t('eyebrow')}</div>
@@ -24,7 +25,7 @@ export const SocialSection = () => {
           rel="noreferrer"
           className={styles.seeAllLink}
         >
-          <InstagramOutlined /> {t('followLink')}
+          <InstagramOutlined /> {t('followLink')}*
         </a>
       </div>
 
@@ -35,6 +36,7 @@ export const SocialSection = () => {
           </div>
         ))}
       </div>
+      */}
 
       <Card className={styles.tgBanner}>
         <div className={styles.tgIcon}><Telegram /></div>

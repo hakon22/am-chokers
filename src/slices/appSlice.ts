@@ -11,6 +11,7 @@ import type { DeferredPublicationEntity } from '@server/db/entities/deferred.pub
 import type { PaginationEntityInterface, PaginationInterface, PaginationSearchInterface } from '@/types/PaginationInterface';
 import type { ReplyComment } from '@/types/app/comment/ReplyComment';
 import type { MessageEntity } from '@server/db/entities/message.entity';
+import type { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 
 type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface; };
 
@@ -311,9 +312,9 @@ export const removeGrade = createAsyncThunk(
 
 export const setCoverImage = createAsyncThunk(
   'app/setCoverImage',
-  async ({ id, coverOrder }: { id: number; coverOrder: number; }, { rejectWithValue }) => {
+  async ({ id, coverOrder, siteVersion, coverType }: { id: number; coverOrder: number; siteVersion?: number; coverType: CoverTypeEnum; }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<ImageResponseInterface>(routes.storage.image.setCoverImage, { id, coverOrder });
+      const response = await axios.post<ImageResponseInterface>(routes.storage.image.setCoverImage, { id, coverOrder, siteVersion, coverType });
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

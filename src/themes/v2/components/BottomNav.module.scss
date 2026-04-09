@@ -59,4 +59,14 @@
   font-size: 20px;
   margin-bottom: 3px;
   line-height: 1;
+
+  :global(.ant-badge) {
+    font-size: 20px;
+    color: inherit;
+    line-height: 1;
+
+    .anticon {
+      font-size: 20px;
+    }
+  }
 }

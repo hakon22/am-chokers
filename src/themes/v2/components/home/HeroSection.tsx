@@ -1,18 +1,24 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { useContext } from 'react';
 import { Button } from 'antd';
 import { useTranslation } from 'react-i18next';
 
+import { MobileContext } from '@/components/Context';
 import { catalogPath, routes } from '@/routes';
+import loginImage from '@/images/login.image.jpg';
+import { BannerSlider } from '@/themes/v2/components/home/BannerSlider';
+import type { BannerInterface } from '@/types/banner/BannerInterface';
 import styles from '@/themes/v2/components/home/HeroSection.module.scss';
-import type { GeneralPageCoverImageInterface } from '@/types/item/Item';
 
 interface HeroSectionProps {
-  coverImages: GeneralPageCoverImageInterface;
+  banners: BannerInterface[];
 }
 
-export const HeroSection = ({ coverImages }: HeroSectionProps) => {
+export const HeroSection = ({ banners }: HeroSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home.hero' });
+  const { isMobile } = useContext(MobileContext);
+  const showBannerCarousel = !isMobile && banners.length > 0;
 
   return (
     <div className={styles.hero}>
@@ -25,7 +31,7 @@ export const HeroSection = ({ coverImages }: HeroSectionProps) => {
           <p className={styles.heroSub}>{t('subtitle')}</p>
           <div className={styles.heroBtns}>
             <Link href={catalogPath}>
-              <Button type="primary" size="large" className={styles.btnPrimary}>
+              <Button size="large" className={styles.btnPrimary}>
                 {t('catalogBtn')}
               </Button>
             </Link>
@@ -38,27 +44,22 @@ export const HeroSection = ({ coverImages }: HeroSectionProps) => {
         </div>
       </div>
       <div className={styles.heroRight}>
-        {coverImages.coverImage1 ? (
+        {showBannerCarousel ? (
+          <div className={styles.heroCarousel}>
+            <BannerSlider variant="hero" banners={banners} />
+          </div>
+        ) : (
           <Image
-            src={coverImages.coverImage1.url}
+            src={loginImage}
             alt={t('heroImageAlt')}
             fill
             style={{ objectFit: 'cover' }}
             priority
           />
-        ) : (
-          <div className={styles.heroImgPlaceholder}>
-            <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
-              <path d="M50 20C50 20 30 35 30 50C30 61.05 39 70 50 70C61.05 70 70 61.05 70 50C70 35 50 20 50 20Z" stroke="#A1B3CD" strokeWidth="2" fill="none" />
-              <circle cx="50" cy="50" r="8" stroke="#A1B3CD" strokeWidth="2" fill="none" />
-              <path d="M50 10 L50 20 M50 80 L50 90 M10 50 L20 50 M80 50 L90 50" stroke="#A1B3CD" strokeWidth="1.5" />
-            </svg>
-            <span className={styles.heroImgLabel}>{t('heroImageAlt')}</span>
-          </div>
         )}
         <div className={styles.heroCard}>
           <div>
-            <div className={styles.heroCardNum}>240+</div>
+            <div className={styles.heroCardNum}>200+</div>
             <div className={styles.heroCardLbl}>{t('heroCardLabel')}</div>
           </div>
           <div className={styles.heroCardDot} />

@@ -145,6 +145,26 @@
   animation: fadeInDown 0.2s ease;
   width: 100%;
   max-width: 480px;
+
+}
+
+// AutoComplete в AD6 — это Select: глобальные v2-стили (.ant-select-outlined) рисуют
+// рамку вокруг всего блока Input.Search (поле + кнопка). Убираем оболочку — рамка только у инпута.
+.navSearchAutocomplete:global(.ant-select.ant-select-outlined) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  --select-height: auto !important;
+}
+
+.navSearchAutocomplete:global(.ant-select.ant-select-outlined:hover:not(.ant-select-disabled)),
+.navSearchAutocomplete:global(.ant-select.ant-select-focused.ant-select-outlined),
+.navSearchAutocomplete:global(.ant-select.ant-select-open.ant-select-outlined) {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 @keyframes fadeInDown {
@@ -199,14 +219,54 @@
   display: none;
   background: v2.$v2-white;
   border-bottom: 1px solid v2.$v2-border;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1600;
   padding: 0 16px;
-  height: 56px;
+  min-height: 56px;
+  height: auto;
+  flex-direction: column;
+  align-items: stretch;
+  box-shadow: v2.$v2-sh-sm;
+}
+
+// Верхняя строка: лого + иконки (раньше поиск был третьим flex-элементом в ряд с height: 56px — ломало сетку).
+.mobileHeaderRow {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: v2.$v2-sh-sm;
+  flex: 0 0 auto;
+  min-height: 56px;
+  width: 100%;
+}
+
+.mobileSearchRow {
+  width: 100%;
+  padding: 0 0 12px;
+  box-sizing: border-box;
+
+  :global(.ant-input-group-wrapper.ant-input-search),
+  :global(.ant-input-search) {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  // На узкой ширине оболочка Select не тянулась на 100% — поле уезжало в один ряд с иконками.
+  .navSearchAutocomplete:global(.ant-select.ant-select-outlined) {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .navSearchAutocomplete:global(.ant-select-single.ant-select-outlined) {
+    align-items: stretch !important;
+  }
+
+  .navSearchAutocomplete:global(.ant-select .ant-select-content) {
+    width: 100%;
+  }
 }
 
 .mobileLogo {
@@ -235,15 +295,106 @@
 }
 
 .drawerLang {
-  padding: 12px 0 8px;
+  padding: 12px 24px 20px;
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  gap: 0;
+
+  :global(.ant-radio-button-wrapper) {
+    padding: 0 16px;
+    height: 32px;
+    line-height: 30px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    color: v2.$v2-text-secondary;
+    border-color: v2.$v2-border;
+    background: transparent;
+    transition: all 0.2s ease;
+
+    &:first-child { border-radius: 4px 0 0 4px; }
+    &:last-child  { border-radius: 0 4px 4px 0; }
+  }
 }
 
 .activeLang {
   background: v2.$v2-navy-primary !important;
   border-color: v2.$v2-navy-primary !important;
   color: #fff !important;
+}
+
+// ── Drawer menu (inline nav items) ──
+.drawerMenu {
+  border-inline-end: none !important;
+
+  :global(.ant-menu-item),
+  :global(.ant-menu-submenu-title) {
+    height: 52px !important;
+    line-height: 52px !important;
+    padding-inline: 24px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 1.2px !important;
+    text-transform: uppercase !important;
+    color: v2.$v2-text-secondary !important;
+    transition: background 0.15s, color 0.15s, border-color 0.15s !important;
+
+    &:hover {
+      background: v2.$v2-bg-main !important;
+      color: v2.$v2-navy-primary !important;
+    }
+
+    a { color: inherit !important; }
+  }
+
+  :global(.ant-menu-item-selected) {
+    background: v2.$v2-bg-main !important;
+    color: v2.$v2-navy-primary !important;
+    border-left: 3px solid v2.$v2-navy-primary;
+    padding-inline-start: 21px !important; // 24px - 3px border
+
+    &::after { display: none !important; }
+
+    a { color: v2.$v2-navy-primary !important; }
+  }
+
+  // Submenu inline (Каталог children)
+  :global(.ant-menu-sub.ant-menu-inline) {
+    background: v2.$v2-bg-main !important;
+    padding: 4px 0 !important;
+  }
+
+  :global(.ant-menu-sub .ant-menu-item) {
+    height: 44px !important;
+    line-height: 44px !important;
+    padding-inline-start: 40px !important;
+    padding-inline-end: 24px !important;
+    font-size: 12px !important;
+    letter-spacing: 1px !important;
+
+    &:global(.ant-menu-item-selected) {
+      border-left: none;
+      padding-inline-start: 40px !important;
+    }
+  }
+
+  // Expand arrow for submenu
+  :global(.ant-menu-submenu-arrow) {
+    color: v2.$v2-text-muted !important;
+    transition: transform 0.25s ease !important;
+  }
+
+  :global(.ant-menu-submenu-open > .ant-menu-submenu-title .ant-menu-submenu-arrow) {
+    color: v2.$v2-navy-primary !important;
+  }
+
+  :global(.ant-menu-submenu-open > .ant-menu-submenu-title) {
+    color: v2.$v2-navy-primary !important;
+  }
 }
 
 // ── Responsive ──

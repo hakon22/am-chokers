@@ -64,7 +64,6 @@ body {
 
 #__next {
   overflow-x: hidden;
-  overflow-y: scroll;
 }
 
 h2 {
@@ -610,6 +609,18 @@ a {
   border: unset;
 }
 
+// v2 mobile: поднять над BottomNav (~56px), выровнять по центру иконки корзины (5-й из 5 пунктов = 10vw от правого края)
+body.v2-mobile .ant-float-btn {
+  bottom: 68px !important;
+  right: calc(10vw - 20px) !important;
+}
+
+// v2 product page mobile: поднять над sticky-баром с избранным, выровнять по центру кнопки ♥
+body.v2-product-mobile .ant-float-btn {
+  bottom: 124px !important;
+  right: 24px !important;
+}
+
 .instagram {
   position: relative;
 
@@ -729,7 +740,7 @@ body.v2-theme {
 
   // Fix link hover from general.scss (overrides navy links in v2)
   a:hover {
-    color: #3B5382 !important;
+    color: #3B5382;
   }
 
   // Font override — Inter instead of Oswald
@@ -815,9 +826,7 @@ body.v2-theme {
     }
   }
 
-  // Input/Select focus border
-  .ant-select-outlined:hover .ant-select-selector,
-  .ant-select-focused .ant-select-selector,
+  // Input focus border (Select: отдельный блок ниже — AD6 без .ant-select-selector)
   .ant-input-outlined:hover,
   .ant-input-outlined:focus-within {
     border-color: #2B3C5F !important;
@@ -878,6 +887,36 @@ body.v2-theme {
     font-family: 'Cormorant Garamond', Georgia, serif !important;
     color: #2B3C5F !important;
     letter-spacing: 2px;
+    margin-top: 0 !important;
+  }
+
+  // ── Кнопка «Назад» — v2 outline style ──────────────────────────
+  .back-button {
+    background-color: transparent !important;
+    border: 1.5px solid #CED3DD !important;
+    color: #2B3C5F !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    height: 40px !important;
+    padding: 0 20px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+
+    &:hover,
+    &:active {
+      background-color: #EAEEF6 !important;
+      border-color: #2B3C5F !important;
+      color: #2B3C5F !important;
+    }
+  }
+
+  // ── Breadcrumb и отступы в редакторе товара — убрать v1 сдвиги ──
+  main.container .font-oswald.mb-5[style] {
+    padding-top: 0 !important;
   }
 
   // ── Корзина ──
@@ -908,7 +947,7 @@ body.v2-theme {
   }
 
   // Кнопка оформления заказа
-  .ant-btn-lg {
+  .ant-btn-lg:not(.ant-float-btn) {
     height: 48px;
     font-size: 15px;
     letter-spacing: 0.5px;
@@ -987,8 +1026,495 @@ body.v2-theme {
     margin-inline-end: 4px;
   }
 
-  .ant-rate .ant-rate-star-full .anticon,
-  .ant-rate .ant-rate-star-half .anticon {
-    color: #2B3C5F;
+  // ── V2 Input / Select / Picker styles ──────────────────────────────
+
+  // Общий Inter-шрифт для всех полей
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number,
+  .ant-picker,
+  .ant-select,
+  .ant-select-content,
+  .ant-select-selector,
+  .ant-input-number-input {
+    font-family: 'Inter', sans-serif !important;
   }
+
+  // ── Text inputs (outlined, с иконкой-prefix) ───────────────────────
+  .ant-input-outlined,
+  .ant-input-affix-wrapper.ant-input-outlined {
+    border: 1.5px solid #CED3DD !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease !important;
+
+    &:hover {
+      border-color: #5A6E96 !important;
+    }
+
+    &:focus,
+    &:focus-within,
+    &.ant-input-affix-wrapper-focused {
+      border-color: #2B3C5F !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // Plain input без wrapper
+  .ant-input-outlined:not(.ant-input-affix-wrapper) {
+    padding: 10px 14px !important;
+    font-size: 15px !important;
+    color: #363B44 !important;
+
+    &::placeholder {
+      color: #A1B3CD !important;
+    }
+  }
+
+  // Большой размер (size="large")
+  .ant-input-affix-wrapper-lg {
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+  }
+
+  // Средний размер (size="middle", default)
+  .ant-input-affix-wrapper:not(.ant-input-affix-wrapper-lg):not(.ant-input-affix-wrapper-sm) {
+    padding: 9px 14px !important;
+    font-size: 14px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+
+  // Сам input внутри affix-wrapper
+  .ant-input-affix-wrapper .ant-input {
+    font-size: inherit !important;
+    color: #363B44 !important;
+    background: transparent !important;
+    font-family: 'Inter', sans-serif !important;
+
+    &::placeholder {
+      color: #A1B3CD !important;
+    }
+  }
+
+  // Иконки prefix/suffix
+  .ant-input-prefix,
+  .ant-input-suffix {
+    color: #A1B3CD !important;
+    font-size: 16px !important;
+
+    .anticon {
+      color: #A1B3CD !important;
+      transition: color 0.2s ease !important;
+    }
+  }
+
+  .ant-input-affix-wrapper:focus-within {
+    .ant-input-prefix .anticon,
+    .ant-input-prefix {
+      color: #5A6E96 !important;
+    }
+  }
+
+  // Кнопка показа/скрытия пароля
+  .ant-input-password-icon,
+  .ant-input-password-icon.anticon,
+  .ant-input-suffix .anticon-eye,
+  .ant-input-suffix .anticon-eye-invisible {
+    color: #A1B3CD !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    transition: color 0.2s ease !important;
+
+    &:hover {
+      color: #2B3C5F !important;
+    }
+  }
+
+  // ── Input.Search (enterButton): sync button height with V2 inputs ────
+  // В V2 инпуты увеличены до 44/52px, поэтому кнопка поиска тоже должна
+  // наследовать эту высоту, иначе визуально "проваливается".
+  .ant-input-search {
+    .ant-input {
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+
+    .ant-input-search-btn,
+    .ant-input-search-button,
+    .ant-btn.ant-input-search-btn.ant-btn-compact-item.ant-btn-compact-last-item {
+      min-height: 100% !important;
+      max-height: 100% !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 1 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      box-shadow: none !important;
+      --ant-btn-shadow: none !important;
+    }
+
+    &.ant-input-search-large .ant-input-search-btn,
+    &.ant-input-search-large .ant-input-search-button,
+    .ant-input-large + .ant-input-group-addon .ant-input-search-btn,
+    .ant-input-large + .ant-input-group-addon .ant-input-search-button {
+      height: 52px !important;
+      min-height: 52px !important;
+      max-height: 52px !important;
+    }
+  }
+
+  // V2 admin «Сообщения»: поиск по телефону. В AD6 Input.Search = Space.Compact + кнопка (не input-group):
+  // глобальные правила .ant-input-search с height:100% на кнопку не работают; кнопка middle ~32px при поле 44px.
+  .v2-messages-phone-search {
+    // Не задавать width: 100% на корне: классы col-xl-5 / col-12 задают ширину колонки;
+    // иначе правило перебивает Bootstrap и строка «Телефон + Тип» ломается (поле на всю ширину).
+    max-width: 100%;
+    min-width: 0;
+
+    &.ant-space-compact.ant-input-search {
+      display: flex !important;
+      align-items: stretch !important;
+    }
+
+    > *:first-child {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    input.ant-input.ant-input-outlined.ant-input-compact-item.ant-input-compact-first-item,
+    input.ant-input.ant-input-outlined.ant-input-compact-item.ant-input-compact-first-item:hover,
+    input.ant-input.ant-input-outlined.ant-input-compact-item.ant-input-compact-first-item:focus,
+    .ant-input-affix-wrapper.ant-input-outlined.ant-input-compact-first-item,
+    .ant-input-affix-wrapper.ant-input-outlined.ant-input-compact-first-item:hover,
+    .ant-input-affix-wrapper.ant-input-outlined.ant-input-compact-first-item:focus-within,
+    .ant-input-group > .ant-input.ant-input-outlined,
+    .ant-input-group > .ant-input.ant-input-outlined:hover,
+    .ant-input-group > .ant-input.ant-input-outlined:focus {
+      border-radius: 12px 0 0 12px !important;
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+      border-start-end-radius: 0 !important;
+      border-end-end-radius: 0 !important;
+    }
+
+    // Явная высота как у v2 middle input (44px). height: auto здесь ломало растягивание и давало «крошечную» кнопку.
+    .ant-input-search-btn.ant-btn {
+      height: 44px !important;
+      min-height: 44px !important;
+      max-height: none !important;
+      flex: 0 0 auto !important;
+      align-self: stretch !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+      border-radius: 0 12px 12px 0 !important;
+      border: 1.5px solid #CED3DD !important;
+      border-inline-start-width: 0 !important;
+      margin-inline-start: -1.5px !important;
+      background: #fff !important;
+      color: #69788E !important;
+      box-shadow: none !important;
+      --ant-btn-shadow: none !important;
+    }
+
+    .ant-input-search-btn.ant-btn:hover:not(:disabled) {
+      border-color: #5A6E96 !important;
+      color: #2B3C5F !important;
+      background: #EAEEF6 !important;
+      z-index: 3;
+    }
+  }
+
+  // ── Select (Ant Design 6: рамка и высота на корне .ant-select, не .ant-select-selector) ──
+  .ant-select.ant-select-outlined {
+    border: 1.5px solid #CED3DD !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease !important;
+
+    &:hover:not(.ant-select-disabled) {
+      border-color: #5A6E96 !important;
+    }
+
+    &.ant-select-focused,
+    &.ant-select-open {
+      border-color: #2B3C5F !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // Single: в AD6 на корне align-items: flex-start — текст и стрелка «прилипают» к верху
+  .ant-select-single.ant-select-outlined {
+    align-items: center !important;
+  }
+
+  .ant-select:not(.ant-select-lg):not(.ant-select-sm) {
+    --select-height: 44px !important;
+  }
+
+  .ant-select-lg {
+    --select-height: 52px !important;
+  }
+
+  // Текст значения / плейсхолдер (AD6)
+  .ant-select:not(.ant-select-lg):not(.ant-select-sm) {
+    .ant-select-content-value,
+    .ant-select-placeholder {
+      font-size: 14px !important;
+    }
+  }
+
+  .ant-select-lg {
+    .ant-select-content-value,
+    .ant-select-placeholder {
+      font-size: 15px !important;
+    }
+  }
+
+  .ant-select-content-value {
+    color: #363B44 !important;
+  }
+
+  .ant-select-placeholder {
+    color: #A1B3CD !important;
+  }
+
+  // Legacy class names (multiple / старые варианты)
+  .ant-select-selection-item {
+    color: #363B44 !important;
+  }
+
+  .ant-select-selection-placeholder {
+    color: #A1B3CD !important;
+  }
+
+  .ant-select-suffix,
+  .ant-select-arrow {
+    color: #A1B3CD !important;
+  }
+
+  // AD5-совместимость: если где-то остался .ant-select-selector
+  .ant-select-outlined .ant-select-selector {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  // Dropdown select
+  .ant-select-dropdown {
+    border-radius: 12px !important;
+    border: 1.5px solid #CED3DD !important;
+    box-shadow: 0 4px 16px rgba(43, 60, 95, 0.12) !important;
+    padding: 6px !important;
+    font-family: 'Inter', sans-serif !important;
+
+    .ant-select-item {
+      border-radius: 8px !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 14px !important;
+      color: #363B44 !important;
+      padding: 8px 12px !important;
+
+      &:hover,
+      &.ant-select-item-option-active {
+        background: #EAEEF6 !important;
+      }
+
+      &.ant-select-item-option-selected {
+        background: #EAEEF6 !important;
+        color: #2B3C5F !important;
+        font-weight: 600 !important;
+      }
+    }
+  }
+
+  // ── InputNumber ─────────────────────────────────────────────────────
+  .ant-input-number-outlined {
+    border: 1.5px solid #CED3DD !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease !important;
+
+    &:hover {
+      border-color: #5A6E96 !important;
+    }
+
+    &:focus-within {
+      border-color: #2B3C5F !important;
+      box-shadow: none !important;
+    }
+
+    .ant-input-number-input {
+      font-size: 15px !important;
+      color: #363B44 !important;
+      padding: 0 14px !important;
+      font-family: 'Inter', sans-serif !important;
+
+      &::placeholder {
+        color: #A1B3CD !important;
+      }
+    }
+
+    .ant-input-number-prefix {
+      color: #A1B3CD !important;
+    }
+  }
+
+  // ── DatePicker / RangePicker ─────────────────────────────────────────
+  .ant-picker-outlined {
+    border: 1.5px solid #CED3DD !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease !important;
+
+    &:hover {
+      border-color: #5A6E96 !important;
+    }
+
+    &.ant-picker-focused {
+      border-color: #2B3C5F !important;
+      box-shadow: none !important;
+    }
+
+    .ant-picker-input input {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 15px !important;
+      color: #363B44 !important;
+
+      &::placeholder {
+        color: #A1B3CD !important;
+      }
+    }
+
+    .ant-picker-suffix {
+      color: #A1B3CD !important;
+    }
+  }
+
+  // ── Textarea ─────────────────────────────────────────────────────────
+  textarea.ant-input {
+    border: 1.5px solid #CED3DD !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 15px !important;
+    color: #363B44 !important;
+    padding: 12px 16px !important;
+    transition: border-color 0.2s ease !important;
+    resize: vertical !important;
+
+    &::placeholder {
+      color: #A1B3CD !important;
+    }
+
+    &:hover {
+      border-color: #5A6E96 !important;
+    }
+
+    &:focus {
+      border-color: #2B3C5F !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // ── Form item label (ant-form) ───────────────────────────────────────
+  .ant-form-item-label > label {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    color: #69788E !important;
+    height: auto !important;
+  }
+
+  // Сообщения об ошибке
+  .ant-form-item-explain-error {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 12px !important;
+    color: #e05c5c !important;
+    margin-top: 4px !important;
+  }
+
+  // ── Checkbox (в формах) ──────────────────────────────────────────────
+  .ant-checkbox-wrapper {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 13px !important;
+    color: #69788E !important;
+
+    a {
+      color: #3B5382 !important;
+      text-decoration: underline !important;
+
+      &:hover {
+        color: #2B3C5F !important;
+      }
+    }
+  }
+
+  .ant-checkbox .ant-checkbox-inner {
+    border-color: #CED3DD !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .ant-checkbox-checked .ant-checkbox-inner {
+    background: #2B3C5F !important;
+    border-color: #2B3C5F !important;
+
+    &::after {
+      border-color: #ffffff !important;
+      inset-inline-start: 28% !important;
+    }
+  }
+
+  .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-inner,
+  .ant-checkbox:not(.ant-checkbox-disabled):hover .ant-checkbox-inner {
+    border-color: #3B5382 !important;
+  }
+
+  .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-disabled):hover .ant-checkbox-checked .ant-checkbox-inner {
+    background: #2B3C5F !important;
+    border-color: #2B3C5F !important;
+  }
+
+  // ── large-input обёртка — переопределяем v1-размеры ──────────────────
+  &.large-input,
+  .large-input {
+    .ant-input-affix-wrapper-lg {
+      height: 52px !important;
+      padding: 12px 16px !important;
+    }
+  }
+}
+
+// ── Admin «Сообщения»: поиск по телефону (вне body.v2-theme — подстраховка от порядка загрузки / css-in-js Ant) ──
+.v2-messages-phone-search.ant-space-compact.ant-input-search {
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+.v2-messages-phone-search .ant-input-search-btn.ant-btn.ant-btn-icon-only {
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  min-width: 44px !important;
+  padding-inline: 12px !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }

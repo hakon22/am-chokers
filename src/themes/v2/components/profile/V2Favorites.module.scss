@@ -1,0 +1,157 @@
+@use 'profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$navy2:  v2.$v2-navy-secondary;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$white:  v2.$v2-white;
+$textD:  v2.$v2-text-dark;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+$error:  v2.$v2-error;
+
+.wrap { display: flex; flex-direction: column; gap: 0; }
+
+.title { @include page-title; }
+
+// ── Empty ─────────────────────────────────────────────────────────
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: $textM;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+
+  svg { font-size: 40px; }
+}
+
+// ── Item row ──────────────────────────────────────────────────────
+.item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 20px;
+  align-items: stretch;
+  padding: 20px 0;
+  border-bottom: 1px solid $border;
+  transition: background 0.15s;
+
+  &:first-child { padding-top: 0; }
+  &:last-child  { border-bottom: none; }
+}
+
+.itemImg {
+  border-radius: 12px;
+  overflow: hidden;
+  background: $bgAlt;
+  position: relative;
+  flex-shrink: 0;
+  min-height: 90px;
+}
+
+.itemImg img, .itemImg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.itemEyebrow { @include eyebrow; }
+
+.itemNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.itemName {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: $navy;
+  text-decoration: none;
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s;
+
+  &:hover { color: $navy2; }
+  &.deleted { opacity: 0.45; pointer-events: none; }
+}
+
+.itemPrice {
+  font-size: 16px;
+  font-weight: 700;
+  color: $navy;
+  letter-spacing: -0.3px;
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+
+  // Constrain the cart control so it's compact
+  > :first-child {
+    width: 160px;
+    flex-shrink: 0;
+  }
+}
+
+// ── Compact fav icon btn ──────────────────────────────────────────
+.itemActions :global(.icon-button) {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid v2.$v2-border;
+  border-radius: 10px;
+  background: transparent;
+  color: v2.$v2-text-secondary;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: v2.$v2-error;
+    color: v2.$v2-error;
+    background: #fff5f5;
+  }
+}
+
+.badgeOutStock, .badgeDeleted {
+  display: inline-block;
+  white-space: nowrap;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.badgeOutStock { background: #fff3e0; color: #c47d00; }
+.badgeDeleted  { background: #fde8e8; color: #c53030; }
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .item { grid-template-columns: 96px 1fr; gap: 14px; }
+  .itemImg { aspect-ratio: 3 / 4; min-height: unset; }
+  .itemName { font-size: 16px; }
+}

@@ -1,4 +1,5 @@
 import { unlink, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
 
 import sharp, { type ResizeOptions } from 'sharp';
 import { Container, Singleton } from 'typescript-ioc';
@@ -15,6 +16,7 @@ import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { paramsIdSchema, queryUploadImageParams } from '@server/utilities/convertation.params';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
+import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { CommentEntity } from '@server/db/entities/comment.entity';
@@ -27,9 +29,10 @@ ffmpeg.setFfmpegPath(ffmpegPath as string);
 ffmpeg.setFfprobePath(ffprobePath.path);
 
 const DEFAULT_VIDEO_RATIO = 1 / 1.3; // ширина:высота
+/** Выходное разрешение после FFmpeg (раньше 550×310 под V1; hero V2 и широкие экраны требуют больший источник). */
 const BANNER_MEDIA_SIZES: Record<BannerMediaTypeEnum, { width: number; height: number; }> = {
-  [BannerMediaTypeEnum.DESKTOP]: { width: 550, height: 310 },
-  [BannerMediaTypeEnum.MOBILE]: { width: 300, height: Math.round(300 * 1.3) },
+  [BannerMediaTypeEnum.DESKTOP]: { width: 1920, height: 1080 },
+  [BannerMediaTypeEnum.MOBILE]: { width: 1080, height: Math.round(1080 * 1.3) },
 };
 
 interface BannerMediaOptions {
@@ -52,6 +55,8 @@ export class ImageService extends BaseService {
         'image.path',
         'image.deleted',
         'image.coverOrder',
+        'image.siteVersion',
+        'image.coverType',
       ]);
 
     if (query?.withDeleted) {
@@ -161,6 +166,16 @@ export class ImageService extends BaseService {
           }
           : { targetRatio: DEFAULT_VIDEO_RATIO });
 
+        if (bannerOptions) {
+          const posterFileName = outputName.replace(/\.mp4$/i, '.poster.jpg');
+          const posterPath = join(dirname(outputPath), posterFileName);
+          try {
+            await this.extractVideoPosterJpeg(outputPath, posterPath);
+          } catch (e) {
+            this.loggerService.error(e);
+          }
+        }
+
         const image = await ImageEntity.save({
           name: outputName,
           path: this.uploadPathService.getUrlPath(UploadPathEnum.TEMP),
@@ -226,15 +241,17 @@ export class ImageService extends BaseService {
   public setCoverImage = async (req: Request, res: Response) => {
     try {
       const user = this.getCurrentUser(req);
-      const { id, coverOrder } = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; };
-  
+      const { id, coverOrder, siteVersion, coverType } = await setCoverImageValidation.serverValidator(req.body) as ParamsIdInterface & { coverOrder: number; siteVersion?: number; coverType: CoverTypeEnum; };
+
       const image = await this.findOne({ id }, user.lang);
 
       this.uploadPathService.moveFile(UploadPathEnum.COVER, 0, image.name);
 
       image.path = this.uploadPathService.getUrlPath(UploadPathEnum.COVER);
       image.coverOrder = coverOrder;
-  
+      image.siteVersion = siteVersion ?? 1;
+      image.coverType = coverType;
+
       await image.save();
 
       image.src = this.getSrc(image);
@@ -264,12 +281,14 @@ export class ImageService extends BaseService {
 
   public getCoverImages = async (req: Request, res: Response) => {
     try {
+      const siteVersion = req.query.siteVersion ? Number(req.query.siteVersion) : 1;
+
       const builder = this.createQueryBuilder()
-        .where('image.coverOrder IS NOT NULL')
+        .where('image.siteVersion = :siteVersion', { siteVersion })
         .orderBy('image.coverOrder', 'ASC');
-  
+
       const coverImages = await builder.getMany();
-  
+
       res.json({ code: 1, coverImages });
     } catch (e) {
       this.errorHandler(e, res);
@@ -377,6 +396,17 @@ export class ImageService extends BaseService {
     }
   };
 
+  private extractVideoPosterJpeg = async (videoPath: string, posterPath: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      ffmpeg(videoPath)
+        .inputOptions(['-ss', '0.12'])
+        .outputOptions(['-vframes', '1', '-q:v', '2', '-f', 'image2', '-c:v', 'mjpeg'])
+        .save(posterPath)
+        .on('end', () => resolve())
+        .on('error', (err) => reject(err));
+    });
+  };
+
   private cropVideo = async (
     input: string,
     output: string,
@@ -395,8 +425,10 @@ export class ImageService extends BaseService {
         .videoFilter(filter)
         .outputOptions([
           '-c:v libx264', // Используем кодек x264
-          '-preset veryslow', // Баланс качества и скорости (slow/medium/fast по желанию)
-          '-crf 20', // Качество (по желанию, 18-23 обычно)
+          '-preset slow', // Баланс качества и скорости (slow/medium/fast по желанию)
+          '-crf 18', // Качество (по желанию, 18-23 обычно)
+          '-pix_fmt yuv420p',
+          '-movflags +faststart',
           '-an', // Отключаем звук
         ])
         .noAudio()

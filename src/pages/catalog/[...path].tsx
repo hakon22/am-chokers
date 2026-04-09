@@ -1,9 +1,12 @@
+import { useContext } from 'react';
 import axios from 'axios';
 import { isEmpty } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CardItem } from '@/components/CardItem';
 import Catalog from '@/pages/catalog';
+import { ProductPage } from '@/themes/v2/components/catalog/ProductPage';
+import { VersionContext } from '@/components/Context';
 import { routes } from '@/routes';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
@@ -146,6 +149,13 @@ export const getServerSideProps = async ({ params, query }: GetServerSidePropsIn
   }
 };
 
-const Page = ({ item, paginationParams, items, itemGroup, uuid, statistics }: PagePropsInterface) => (item ? <CardItem item={item} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />);
+const ItemPageResolver = ({ item, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
+  const { version } = useContext(VersionContext);
+  return version === 'v2'
+    ? <ProductPage item={item} paginationParams={paginationParams} />
+    : <CardItem item={item} paginationParams={paginationParams} />;
+};
+
+const Page = ({ item, paginationParams, items, itemGroup, uuid, statistics }: PagePropsInterface) => (item ? <ItemPageResolver item={item} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />);
 
 export default Page;
