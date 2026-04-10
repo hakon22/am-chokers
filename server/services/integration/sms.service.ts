@@ -144,7 +144,7 @@ export class SmsService {
 
   public sendReceipt = async (phone: string, receipt: string, lang: UserLangEnum): Promise<MainSmsResponseInterface & { receipt: string }> => {
     try {
-      const text = `Receipt: ${receipt}`;
+      const text = `Ваш чек: ${receipt}`;
       const result = await this.sendSms(phone, text, { preset: SmsMessagePreset.RECEIPT });
 
       if (process.env.NODE_ENV !== 'production') {
