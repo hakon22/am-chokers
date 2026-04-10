@@ -247,7 +247,6 @@ export const V2AdminReviews = () => {
                     ? <a className={styles.cardLink} onClick={() => onGradeRestore(value.id)}>{t('restore')}</a>
                     : (
                       <Popconfirm
-                        rootClassName="ant-input-group-addon"
                         title={t('declineTitle')}
                         description={t('declineDescription')}
                         okText={t('decline')}

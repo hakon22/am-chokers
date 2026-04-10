@@ -99,6 +99,7 @@ $success: v2.$v2-success;
   border-radius: 8px;
   background: $bgAlt;
   font-size: 12px;
+  line-height: 1.5;
   color: $textS;
   cursor: pointer;
   transition: all 0.15s;
@@ -236,9 +237,9 @@ $success: v2.$v2-success;
 .tagPaid {
   display: inline-flex;
   align-items: center;
-  height: 30px;
+  height: 36px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: rgba(76, 175, 125, 0.1);
   border: 1px solid rgba(76, 175, 125, 0.3);
   font-size: 12px;
@@ -312,7 +313,9 @@ $success: v2.$v2-success;
 .btnRate {
   @include btn-outline;
   height: 36px;
-  font-size: 10px;
+  font-size: 9px;
+  padding: 0 14px;
+  border-radius: 10px;
 }
 
 // ── Responsive ────────────────────────────────────────────────────
@@ -320,4 +323,8 @@ $success: v2.$v2-success;
   .card { padding: 16px; }
   .thumb { width: 52px; height: 68px; }
   .thumbMore { width: 52px; height: 68px; }
+  .tagPaid { height: 30px; }
+  .tagNotPaid { height: 30px; }
+  .btnRate { height: 30px; }
+  .btnCancel { height: 30px; }
 }

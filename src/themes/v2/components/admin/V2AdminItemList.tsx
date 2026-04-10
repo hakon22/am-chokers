@@ -219,7 +219,6 @@ export const V2AdminItemList = () => {
                   )
                   : (
                     <Popconfirm
-                      rootClassName="ant-input-group-addon"
                       title={t('removeTitle')}
                       description={t('removeDescription')}
                       okText={t('remove')}

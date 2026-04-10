@@ -44,6 +44,7 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const gradeFormRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { setIsSubmit } = useContext(SubmitContext);
@@ -108,10 +109,11 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
   };
 
   useEffect(() => {
-    if (inputRef?.current) {
-      inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      inputRef.current.focus();
+    if (gradeFormRef.current) {
+      const elementPosition = gradeFormRef.current.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: elementPosition - 116, behavior: 'smooth' });
     }
+    inputRef.current?.focus();
   }, [grade.position]);
 
   useEffect(() => {
@@ -209,43 +211,44 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
                     </div>
                   )}
 
-                  {/* Grade form */}
-                  {isGrading && (
-                    <Form name="createGrade" initialValues={grade} onFinish={onFinish} form={form}>
-                      <div className={styles.gradeForm}>
-                        <div>
-                          <label className={styles.gradeLabel}>{t('rate')}</label>
-                          <Form.Item name="grade" rules={[newGradeValidation]} style={{ marginBottom: 0 }}>
-                            <Rate value={grade.grade} onChange={setRate} />
-                          </Form.Item>
-                        </div>
-                        <Form.Item name={['comment', 'text']} rules={[newGradeValidation]} style={{ marginBottom: 0 }}>
-                          <Input.TextArea
-                            ref={inputRef}
-                            rows={3}
-                            placeholder={t('enterComment')}
-                            style={{ borderRadius: 10 }}
-                          />
-                        </Form.Item>
-                        <UploadImage
-                          crop
-                          preview
-                          filelist={fileList}
-                          setFileList={setFileList}
-                          previewImage={previewImage}
-                          previewOpen={previewOpen}
-                          setCommentImages={setCommentImages}
-                          setPreviewImage={setPreviewImage}
-                          setPreviewOpen={setPreviewOpen}
-                        />
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button className={styles.gradeSubmit} type="submit">{t('rateSubmit')}</button>
-                          <button className={styles.gradeCancel} type="button" onClick={clearGradeForm}>{t('cancel')}</button>
-                        </div>
-                      </div>
-                    </Form>
-                  )}
                 </div>
+
+                {/* Grade form — spans full card width */}
+                {isGrading && (
+                  <Form name="createGrade" initialValues={grade} onFinish={onFinish} form={form} className={styles.gradeFormRow}>
+                    <div className={styles.gradeForm} ref={gradeFormRef}>
+                      <div>
+                        <label className={styles.gradeLabel}>{t('rate')}</label>
+                        <Form.Item name="grade" rules={[newGradeValidation]} style={{ marginBottom: 0 }}>
+                          <Rate value={grade.grade} onChange={setRate} />
+                        </Form.Item>
+                      </div>
+                      <Form.Item name={['comment', 'text']} rules={[newGradeValidation]} style={{ marginBottom: 0 }}>
+                        <Input.TextArea
+                          ref={inputRef}
+                          rows={3}
+                          placeholder={t('enterComment')}
+                          style={{ borderRadius: 10 }}
+                        />
+                      </Form.Item>
+                      <UploadImage
+                        crop
+                        preview
+                        filelist={fileList}
+                        setFileList={setFileList}
+                        previewImage={previewImage}
+                        previewOpen={previewOpen}
+                        setCommentImages={setCommentImages}
+                        setPreviewImage={setPreviewImage}
+                        setPreviewOpen={setPreviewOpen}
+                      />
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+                        <button className={styles.gradeSubmit} type="submit">{t('rateSubmit')}</button>
+                        <button className={styles.gradeCancel} type="button" onClick={clearGradeForm}>{t('cancel')}</button>
+                      </div>
+                    </div>
+                  </Form>
+                )}
               </div>
             );
           })}

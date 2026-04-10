@@ -1499,6 +1499,91 @@ body.v2-theme {
       padding: 12px 16px !important;
     }
   }
+
+  // ── antd-img-crop: шрифты ─────────────────────────────────────────────
+  .img-crop-modal {
+    font-family: 'Inter', sans-serif !important;
+
+    .ant-modal-title {
+      font-family: 'Cormorant Garamond', Georgia, serif !important;
+      font-weight: 400 !important;
+    }
+  }
+
+  // ── Popconfirm (confirm-окна) ──────────────────────────────────────────
+  .ant-popconfirm {
+    .ant-popover-inner {
+      background: #ffffff !important;
+      border: 1px solid #CED3DD !important;
+      border-radius: 10px !important;
+      box-shadow: 0 4px 16px rgba(43, 60, 95, 0.12) !important;
+      padding: 16px 20px !important;
+    }
+
+    .ant-popover-arrow::before,
+    .ant-popover-arrow::after {
+      background: #ffffff !important;
+    }
+
+    .ant-popconfirm-title {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: #363B44 !important;
+    }
+
+    .ant-popconfirm-description {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 13px !important;
+      color: #69788E !important;
+      margin-top: 4px !important;
+    }
+
+    .ant-popconfirm-message-icon .anticon {
+      color: #2B3C5F !important;
+    }
+
+    .ant-popconfirm-buttons {
+      margin-top: 14px !important;
+      display: flex !important;
+      gap: 8px !important;
+      justify-content: flex-end !important;
+
+      .ant-btn {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        height: 34px !important;
+        padding: 0 16px !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+      }
+
+      .ant-btn-default {
+        border: 1.5px solid #CED3DD !important;
+        color: #363B44 !important;
+        background: #ffffff !important;
+
+        &:hover {
+          border-color: #2B3C5F !important;
+          color: #2B3C5F !important;
+          background: #EAEEF6 !important;
+        }
+      }
+
+      .ant-btn-primary,
+      .ant-btn-color-primary.ant-btn-variant-solid {
+        background: #2B3C5F !important;
+        border-color: #2B3C5F !important;
+        color: #ffffff !important;
+
+        &:hover {
+          background: #3B5382 !important;
+          border-color: #3B5382 !important;
+        }
+      }
+    }
+  }
 }
 
 // ── Admin «Сообщения»: поиск по телефону (вне body.v2-theme — подстраховка от порядка загрузки / css-in-js Ant) ──

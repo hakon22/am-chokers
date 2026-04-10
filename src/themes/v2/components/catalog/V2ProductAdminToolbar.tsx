@@ -95,7 +95,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
         {item.deleted
           ? <button type="button" className={styles.actionBtn} onClick={restoreItemHandler}>{t('restore')}</button>
           : (
-            <Popconfirm rootClassName="ant-input-group-addon" title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
+            <Popconfirm title={t('removeTitle')} description={t('removeDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={deleteItemHandler}>
               <button type="button" className={cn(styles.actionBtn, styles.actionDanger)}>{t('remove')}</button>
             </Popconfirm>
           )}
@@ -116,7 +116,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
               <button type="button" className={styles.chipIconBtn} onClick={onPublicationDateEdit} title={t('editDeferredPublication')}>
                 <EditOutlined />
               </button>
-              <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationDateRemove}>
+              <Popconfirm title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationDateRemove}>
                 <button type="button" className={styles.chipIconBtn} title={t('cancelDeferredPublicationTitle')}>
                   <CloseOutlined style={{ fontSize: 13 }} />
                 </button>
@@ -132,7 +132,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
               <button type="button" className={styles.chipIconBtn} onClick={onDeferredPublicationEdit} title={t('editDeferredPublication')}>
                 <EditOutlined />
               </button>
-              <Popconfirm rootClassName="ant-input-group-addon" title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationRemove}>
+              <Popconfirm title={t('cancelDeferredPublicationTitle')} description={t('cancelDeferredPublicationDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onPublicationRemove}>
                 <button type="button" className={styles.chipIconBtn} title={t('cancelDeferredPublicationTitle')}>
                   <CloseOutlined style={{ fontSize: 13 }} />
                 </button>
@@ -145,7 +145,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
             <span className={cn(styles.chip, styles.chipTgDone)}>
               <Telegram size={16} />
               <span>{t('publish', { date: moment(item.message?.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM) })}</span>
-              <Popconfirm rootClassName="ant-input-group-addon" title={t('removeMessageTitle')} description={t('removeMessageDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onMessageRemove}>
+              <Popconfirm title={t('removeMessageTitle')} description={t('removeMessageDescription')} okText={t('remove')} cancelText={t('cancel')} onConfirm={onMessageRemove}>
                 <button type="button" className={styles.chipIconBtn} title={t('removeMessageTitle')}>
                   <CloseOutlined style={{ fontSize: 13 }} />
                 </button>
