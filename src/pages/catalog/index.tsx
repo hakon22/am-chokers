@@ -8,7 +8,7 @@ import { Skeleton, Button, Form } from 'antd';
 import cn from 'classnames';
 import { chunk, isEmpty, isNil } from 'lodash';
 
-import { routes } from '@/routes';
+import { routes, catalogPath } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SearchContext, SubmitContext, VersionContext } from '@/components/Context';
@@ -337,7 +337,6 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const bestsellerParams = urlParams.get('bestseller');
   const inStockParams = urlParams.get('inStock');
   const sortParams = urlParams.get('sort');
-  const pageParams = urlParams.get('page');
 
   const [isFilters, setIsFilters] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -507,10 +506,39 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   }, [router]);
 
   useEffect(() => {
-    if (pageParams && pageParams !== '1') {
-      scrollToElement(pageParams, 120);
+    if (!router.isReady) {
+      return;
     }
-  }, []);
+    const raw = router.query.page;
+    const pageStr = raw === undefined ? undefined : Array.isArray(raw) ? raw[0] : raw;
+    if (pageStr && pageStr !== '1') {
+      scrollToElement(pageStr, 120);
+    } else {
+      scrollTop('instant');
+    }
+  }, [router.isReady]);
+
+  useEffect(() => {
+    const onCatalogNavComplete = (url: string, { shallow }: { shallow?: boolean; } = {}) => {
+      if (shallow) {
+        return;
+      }
+      try {
+        const u = new URL(url, window.location.origin);
+        if (!u.pathname.startsWith(catalogPath)) {
+          return;
+        }
+        const page = u.searchParams.get('page');
+        if (!page || page === '1') {
+          scrollTop('instant');
+        }
+      } catch {
+        // ignore
+      }
+    };
+    router.events.on('routeChangeComplete', onCatalogNavComplete);
+    return () => router.events.off('routeChangeComplete', onCatalogNavComplete);
+  }, [router]);
 
   useEffect(() => {
     if (!hasInitialized) {

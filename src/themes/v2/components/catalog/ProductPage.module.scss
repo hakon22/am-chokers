@@ -261,6 +261,30 @@ $error:          #e05c5c;
   :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-right-nav .image-gallery-svg) {
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
   }
+
+  // Полноэкран: в `general.scss` у `.image-gallery-icon` z-index: 1 — ниже буллетов (4), кнопка «выйти» уезжает под слой или пропадает.
+  :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-fullscreen-button) {
+    z-index: 24;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding-right: calc(16px + env(safe-area-inset-right, 0px));
+    padding-top: 12px;
+    padding-left: 12px;
+    box-sizing: content-box;
+    // Контраст на светлых фото (иконка белая)
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 999px;
+  }
+
+  @media (max-width: 768px) {
+    :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-fullscreen-button) {
+      // Крупнее зона нажатия на тач-устройствах
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
 }
 
 /* Чёрный экран на время перехода в/из нативного fullscreen (см. ProductPage.tsx). */

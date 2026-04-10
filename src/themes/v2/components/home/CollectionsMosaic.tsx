@@ -1,6 +1,8 @@
+import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 
+import { catalogPath } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
@@ -39,7 +41,7 @@ export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosai
 
           return (
             <ContextMenu key={collection.id} cover={collection.id} isCoverCollection image={img} siteVersion={2} style={{ height: '100%' }}>
-              <div className={styles.tile}>
+              <Link href={`${catalogPath}?collectionIds=${collection.id}`} className={styles.tile}>
                 {img && (
                   <Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
                 )}
@@ -47,7 +49,7 @@ export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosai
                 <div className={styles.tileBody}>
                   <div className={styles.tileName}>{name}</div>
                 </div>
-              </div>
+              </Link>
             </ContextMenu>
           );
         })}
