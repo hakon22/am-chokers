@@ -48,15 +48,6 @@ class Server extends BaseService {
       this.tokenService.tokenChecker(passport);
       this.tokenService.refreshTokenChecker(passport);
 
-      if (!this.dev) {
-        this.server.use('/_next/image', (req, _res, next) => {
-          req.headers['x-forwarded-proto'] = 'http';
-          req.headers['x-forwarded-host'] = '';
-          req.headers.host = `localhost:${port}`;
-          next();
-        });
-      }
-
       this.server.use(express.json());
       this.server.use(cors());
       this.server.use(passport.initialize());

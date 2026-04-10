@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 
 import { catalogPath } from '@/routes';
@@ -8,6 +7,7 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ContextMenu } from '@/components/ContextMenu';
 import styles from '@/themes/v2/components/home/CollectionsMosaic.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import type { GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
@@ -43,7 +43,7 @@ export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosai
             <ContextMenu key={collection.id} cover={collection.id} isCoverCollection image={img} siteVersion={2} style={{ height: '100%' }}>
               <Link href={`${catalogPath}?collectionIds=${collection.id}`} className={styles.tile}>
                 {img && (
-                  <Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
+                  <V2Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
                 )}
                 <div className={styles.tileOverlay} />
                 <div className={styles.tileBody}>

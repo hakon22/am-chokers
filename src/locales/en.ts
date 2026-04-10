@@ -1079,6 +1079,7 @@ export default {
         cancelDeferredPublicationTitle: 'Cancel a deferred publication',
         cancelDeferredPublicationDescription: 'Are you sure you want to cancel the scheduled publication?',
         cancel: 'Cancel',
+        openFullscreen: 'Open photo fullscreen',
         closeFullscreen: 'Close viewer',
         publish: 'Published {{ date }}',
         planned: 'Planned {{ date }}',

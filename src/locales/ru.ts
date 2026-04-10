@@ -1079,6 +1079,7 @@ export default {
         cancelDeferredPublicationTitle: 'Отмена отложенной публикации',
         cancelDeferredPublicationDescription: 'Вы действительно хотите отменить отложенную публикацию?',
         cancel: 'Отменить',
+        openFullscreen: 'Открыть фото на весь экран',
         closeFullscreen: 'Закрыть просмотр',
         publish: 'Опубликовано {{ date }}',
         planned: 'Запланировано {{ date }}',

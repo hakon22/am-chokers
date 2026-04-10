@@ -529,7 +529,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       <button
         type="button"
         className="image-gallery-icon image-gallery-fullscreen-button"
-        aria-label={fs ? 'Close fullscreen' : 'Open fullscreen'}
+        aria-label={fs ? t('closeFullscreen') : t('openFullscreen')}
         onClick={() => {
           if (!fs) {
             const i = prepareGalleryFullscreenLayout();
@@ -549,7 +549,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
         <GalleryFullscreenSvg exit={fs} />
       </button>
     ),
-    [armFsCurtainFallback, prepareGalleryFullscreenLayout],
+    [armFsCurtainFallback, prepareGalleryFullscreenLayout, t],
   );
 
   const imageGalleryItems = useMemo(() => {

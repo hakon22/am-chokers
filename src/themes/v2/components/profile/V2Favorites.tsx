@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
-import Image from 'next/image';
 import { HeartOutlined } from '@ant-design/icons';
 import cn from 'classnames';
 
@@ -10,6 +9,7 @@ import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { getHref } from '@/utilities/getHref';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/profile/V2Favorites.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 
 const isVideo = (src: string) => src.endsWith('.mp4');
 
@@ -45,7 +45,7 @@ export const V2Favorites = () => {
             <Link href={getHref(item)} className={styles.itemImg} tabIndex={-1}>
               {cover && (isVideo(cover)
                 ? <video src={cover} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <Image src={cover} alt={name} fill style={{ objectFit: 'cover' }} unoptimized />
+                : <V2Image src={cover} alt={name} fill style={{ objectFit: 'cover' }} unoptimized />
               )}
             </Link>
 

@@ -6,7 +6,6 @@ import {
   StopOutlined, ForwardOutlined, BackwardOutlined,
   CopyOutlined, ContainerOutlined, ShoppingOutlined,
 } from '@ant-design/icons';
-import Image from 'next/image';
 import Link from 'next/link';
 import moment from 'moment';
 import axios from 'axios';
@@ -32,6 +31,7 @@ import { PreviewImage } from '@/components/PreviewImage';
 import { urlToBase64, getBase64 } from '@/components/UploadImage';
 import { getWidth } from '@/utilities/screenExtension';
 import styles from '@/themes/v2/components/profile/V2OrderHistory.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import type { OrderInterface } from '@/types/order/Order';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
@@ -222,7 +222,7 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
                       <Link href={getHref(position.item)} className={styles.thumb}>
                         {src && (isVideo(src)
                           ? <video src={src} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <Image src={src} alt="" fill unoptimized style={{ objectFit: 'cover' }} />
+                          : <V2Image src={src} alt="" fill unoptimized style={{ objectFit: 'cover' }} />
                         )}
                       </Link>
                     </Tooltip>

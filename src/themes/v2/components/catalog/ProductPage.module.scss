@@ -160,6 +160,12 @@ $error:          #e05c5c;
     }
   }
 
+  // Модальный полноэкран (iOS и др.): в библиотеке z-index: 5 — ниже NavBar, BottomNav и Ant FloatButton (~1100),
+  // из‑за этого «просмотр» оказывается под хромом и FAB; кнопка выхода не видна и не нажимается.
+  :global(.image-gallery.fullscreen-modal) {
+    z-index: 2500;
+  }
+
   // Полноэкран (только v2): центр ряда при скрытых миниатюрах; картинка по высоте вьюпорта, ширина по пропорции
   :global(.image-gallery.fullscreen-modal .image-gallery-content.fullscreen) {
     top: 0;
@@ -262,9 +268,9 @@ $error:          #e05c5c;
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));
   }
 
-  // Полноэкран: в `general.scss` у `.image-gallery-icon` z-index: 1 — ниже буллетов (4), кнопка «выйти» уезжает под слой или пропадает.
+  // Полноэкран: в `general.scss` у `.image-gallery-icon` z-index: 1; поверх буллетов (4) и прочих слоёв слайда.
   :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-fullscreen-button) {
-    z-index: 24;
+    z-index: 50;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     padding-right: calc(16px + env(safe-area-inset-right, 0px));
     padding-top: 12px;

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 
 import { catalogPath } from '@/routes';
@@ -9,6 +8,7 @@ import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ContextMenu } from '@/components/ContextMenu';
 import styles from '@/themes/v2/components/home/CategoriesSection.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import type { GeneralPageCoverImageInterface } from '@/types/item/Item';
 
@@ -54,7 +54,7 @@ export const CategoriesSection = ({ itemGroups, coverImages }: CategoriesSection
               <Link href={`${catalogPath}/${group.code}`} className={styles.catCard}>
                 <div className={styles.catCardImg}>
                   {img ? (
-                    <Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
+                    <V2Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
                   ) : (
                     getIcon(group.code)
                   )}

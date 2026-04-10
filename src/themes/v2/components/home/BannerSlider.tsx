@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Carousel, { type DotProps } from 'react-multi-carousel';
@@ -10,6 +9,7 @@ import 'react-multi-carousel/lib/styles.css';
 import { MobileContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import styles from '@/themes/v2/components/home/BannerSlider.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import type { BannerInterface } from '@/types/banner/BannerInterface';
 
 const responsiveStrip = {
@@ -346,7 +346,7 @@ const BannerSlide = ({ banner, isMobile, onCopy, variant, imagePriority }: Banne
       );
     }
     return (
-      <Image
+      <V2Image
         src={media.src}
         alt={banner.name}
         fill

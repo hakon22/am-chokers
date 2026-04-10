@@ -1,6 +1,5 @@
 import { useContext, useRef, useState, useEffect, type MouseEvent as ReactMouseEvent } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +25,7 @@ import { SearchContext, MobileContext, NavbarContext, SubmitContext, AuthModalCo
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { changeLang } from '@/slices/userSlice';
 import styles from '@/themes/v2/components/NavBar.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 
 type NavigationKeys = {
   key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home' | 'lang';
@@ -208,7 +208,7 @@ export const NavBar = () => {
         {/* Left — logo */}
         <div className={styles.navLeft}>
           <Link href={routes.page.base.homePage} className={styles.navLogo}>
-            <Image src={logoImage} priority unoptimized className={styles.logoImg} alt={t('logo')} />
+            <V2Image src={logoImage} priority unoptimized className={styles.logoImg} alt={t('logo')} />
           </Link>
         </div>
 
@@ -302,7 +302,7 @@ export const NavBar = () => {
     <div className={styles.mobileHeader} ref={mobileContainer}>
       <div className={styles.mobileHeaderRow}>
         <Link href={routes.page.base.homePage} className={styles.mobileLogo}>
-          <Image src={logoImage} priority unoptimized className={styles.mobileLogoImg} alt={t('logo')} />
+          <V2Image src={logoImage} priority unoptimized className={styles.mobileLogoImg} alt={t('logo')} />
         </Link>
         <div className={styles.mobileRight}>
           {isSearch?.value
@@ -341,7 +341,7 @@ export const NavBar = () => {
         <Drawer
           title={
             <Link href={routes.page.base.homePage} onClick={onChangeHandler}>
-              <Image src={logoImage} priority unoptimized className={styles.drawerLogo} alt={t('logo')} />
+              <V2Image src={logoImage} priority unoptimized className={styles.drawerLogo} alt={t('logo')} />
             </Link>
           }
           getContainer={() => mobileDrawerContainer}

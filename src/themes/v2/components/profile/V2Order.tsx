@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { Form, Input, Rate, Tooltip, type UploadFile } from 'antd';
 import { ArrowLeftOutlined, CopyOutlined } from '@ant-design/icons';
-import Image from 'next/image';
 import Link from 'next/link';
 import moment from 'moment';
 import cn from 'classnames';
@@ -30,6 +29,7 @@ import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enu
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import styles from '@/themes/v2/components/profile/V2Order.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
@@ -187,7 +187,7 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
                 <Link href={getHref(position.item)} className={styles.itemImg}>
                   {cover && (isVideo(cover)
                     ? <video src={cover} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <Image src={cover} alt={name} fill unoptimized style={{ objectFit: 'cover' }} />
+                    : <V2Image src={cover} alt={name} fill unoptimized style={{ objectFit: 'cover' }} />
                   )}
                 </Link>
 

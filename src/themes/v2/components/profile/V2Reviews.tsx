@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Rate, Skeleton } from 'antd';
-import Image from 'next/image';
 import Link from 'next/link';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { StarOutlined } from '@ant-design/icons';
@@ -19,6 +18,7 @@ import { SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/profile/V2Reviews.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
@@ -112,7 +112,7 @@ export const V2Reviews = () => {
               <div className={styles.cardImg}>
                 {cover && (isVideo(cover)
                   ? <video src={cover} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <Image src={cover} alt={name} fill unoptimized style={{ objectFit: 'cover' }} />
+                  : <V2Image src={cover} alt={name} fill unoptimized style={{ objectFit: 'cover' }} />
                 )}
               </div>
 
@@ -151,7 +151,7 @@ export const V2Reviews = () => {
                         className={styles.cardThumb}
                         onClick={() => { setPreviewImage(img.src); setPreviewOpen(true); }}
                       >
-                        <Image src={img.src} alt="" fill unoptimized style={{ objectFit: 'cover' }} />
+                        <V2Image src={img.src} alt="" fill unoptimized style={{ objectFit: 'cover' }} />
                       </div>
                     ))}
                   </div>

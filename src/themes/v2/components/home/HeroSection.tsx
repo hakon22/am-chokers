@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useContext } from 'react';
 import { Button } from 'antd';
 import { useTranslation } from 'react-i18next';
@@ -8,8 +7,9 @@ import { MobileContext } from '@/components/Context';
 import { catalogPath, routes } from '@/routes';
 import loginImage from '@/images/login.image.jpg';
 import { BannerSlider } from '@/themes/v2/components/home/BannerSlider';
-import type { BannerInterface } from '@/types/banner/BannerInterface';
 import styles from '@/themes/v2/components/home/HeroSection.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
+import type { BannerInterface } from '@/types/banner/BannerInterface';
 
 interface HeroSectionProps {
   banners: BannerInterface[];
@@ -49,7 +49,7 @@ export const HeroSection = ({ banners }: HeroSectionProps) => {
             <BannerSlider variant="hero" banners={banners} />
           </div>
         ) : (
-          <Image
+          <V2Image
             src={loginImage}
             alt={t('heroImageAlt')}
             fill

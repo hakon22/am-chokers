@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useContext, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +10,7 @@ import { getHref } from '@/utilities/getHref';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { SubmitContext, AuthModalContext } from '@/components/Context';
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
+import { V2Image } from '@/themes/v2/components/V2Image';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -32,7 +32,7 @@ const MediaItem = ({ src, alt, className, onLoad }: { src: string; alt: string; 
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
     />
   )
-  : <Image src={src} alt={alt} fill style={{ objectFit: 'cover' }} className={className} onLoad={onLoad} />;
+  : <V2Image src={src} alt={alt} fill style={{ objectFit: 'cover' }} className={className} onLoad={onLoad} />;
 
 export interface ProductCardProps {
   item: ItemInterface;

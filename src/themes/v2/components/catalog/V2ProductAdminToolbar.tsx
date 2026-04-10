@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { FloatButton, Popconfirm } from 'antd';
 import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
-import Image from 'next/image';
 import moment from 'moment';
 import { Telegram } from 'react-bootstrap-icons';
 import cn from 'classnames';
@@ -10,8 +9,9 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import { ItemAdminPublishModal } from '@/components/item-admin/ItemAdminPublishModal';
 import { useItemAdminPanel } from '@/components/item-admin/useItemAdminPanel';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import type { ItemInterface } from '@/types/item/Item';
 import styles from '@/themes/v2/components/catalog/ProductPageAdmin.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
+import type { ItemInterface } from '@/types/item/Item';
 
 const floatBtnStyle = { backgroundColor: '#2B3C5F' };
 
@@ -64,7 +64,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
             ? (
               <FloatButton
                 className="float-custom-icon"
-                icon={<Image src={telegramIcon} width={36} height={36} alt="Telegram" />}
+                icon={<V2Image src={telegramIcon} width={36} height={36} alt="Telegram" />}
                 onClick={() => setIsTgPublish(true)}
                 style={floatBtnStyle}
               />

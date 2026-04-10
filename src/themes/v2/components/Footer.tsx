@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { Button, Col, Row } from 'antd';
 import { InstagramOutlined } from '@ant-design/icons';
@@ -9,8 +8,9 @@ import { catalogPath, routes } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import logoImage from '@/images/logo.svg';
-import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import styles from '@/themes/v2/components/Footer.module.scss';
+import { V2Image } from '@/themes/v2/components/V2Image';
+import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
@@ -26,7 +26,7 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
         <Row gutter={[40, 32]}>
           {/* Brand */}
           <Col lg={8} xs={24}>
-            <Image src={logoImage} alt="AM Chokers" unoptimized className={styles.footerLogo} />
+            <V2Image src={logoImage} alt="AM Chokers" unoptimized className={styles.footerLogo} />
             <div className={styles.brandSub}>{tv2('brandTagline')}</div>
             <p className={styles.brandDesc}>{tv2('brandDesc')}</p>
             <div className={styles.socialRow}>
