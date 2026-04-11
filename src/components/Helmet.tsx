@@ -19,7 +19,7 @@ export const Helmet = ({
   const productionHost = process.env.NEXT_PUBLIC_PRODUCTION_HOST ?? '';
   const lang = i18n.language;
 
-  const canonical = `${productionHost}${router.pathname}`;
+  const canonical = `${productionHost}${router.asPath.split('?')[0].split('#')[0]}`;
   const ogUrl = `${productionHost}${router.asPath}`;
   const ogLocale = lang === 'en' ? 'en_US' : 'ru_RU';
   const ogLocaleAlternate = lang === 'en' ? 'ru_RU' : 'en_US';
