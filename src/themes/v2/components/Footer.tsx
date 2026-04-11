@@ -77,15 +77,14 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
         </Row>
 
         <div className={styles.bottomBar}>
-          <span className={styles.copy}>{tv2('copyright', { year: new Date().getFullYear() })}</span>
+          <div className={styles.legalInfo}>
+            <span>{lang === UserLangEnum.RU ? process.env.NEXT_PUBLIC_FIO : process.env.NEXT_PUBLIC_FIO_EN}</span>
+            <span>{t('inn', { number: process.env.NEXT_PUBLIC_INN })}</span>
+          </div>
           <div className={styles.legalLinks}>
             <Link href={routes.page.base.privacyPolicy}>{t('privacyPolicy')}</Link>
             <Link href={routes.page.base.offerAgreement}>{t('offerAgreement')}</Link>
           </div>
-        </div>
-        <div className={styles.legalInfo}>
-          <span>{lang === UserLangEnum.RU ? process.env.NEXT_PUBLIC_FIO : process.env.NEXT_PUBLIC_FIO_EN}</span>
-          <span>{t('inn', { number: process.env.NEXT_PUBLIC_INN })}</span>
         </div>
         <div className={styles.instagramNote}>
           {tv2('instagramText1')} {tv2('instagramText2')}

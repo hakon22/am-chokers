@@ -350,6 +350,14 @@ $success: v2.$v2-success;
   flex-direction: column;
   gap: 0;
   box-shadow: v2.$v2-sh-sm;
+
+  // Same 10px radius as .deliveryOption — overrides body.v2-theme form controls (12px / tall pickers)
+  :global(.ant-picker-outlined),
+  :global(.ant-input-affix-wrapper.ant-input-outlined),
+  :global(.ant-input-outlined:not(.ant-input-affix-wrapper)),
+  :global(textarea.ant-input) {
+    border-radius: 10px !important;
+  }
 }
 
 .summaryTitle {

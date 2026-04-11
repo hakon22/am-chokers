@@ -771,9 +771,9 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
           <hr className={styles.sep} />
 
           {/* Qty + Cart */}
-          {!item.deleted && !item.outStock && (
+          {!item.deleted && (
             <>
-              <div className={styles.qtyLabel}>{t('quantity')}</div>
+              {!item.outStock && <div className={styles.qtyLabel}>{t('quantity')}</div>}
               <div className={styles.cartRow} ref={cartRowRef}>
                 <V2CartControl
                   variant="page"
@@ -1043,7 +1043,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
         </div>
       )}
       {/* ── Sticky cart bar ── */}
-      {!item.deleted && !item.outStock && !cartRowVisible && (
+      {!item.deleted && !cartRowVisible && (
         <div
           className={styles.stickyBar}
           style={!isMobile && infoRect ? { left: infoRect.left, width: infoRect.width } as CSSProperties : undefined}

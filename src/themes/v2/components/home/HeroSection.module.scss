@@ -172,7 +172,6 @@
   display: flex;
   gap: 14px;
   align-items: center;
-  min-width: 200px;
 }
 
 .heroCardNum {
@@ -194,6 +193,7 @@
   border-radius: 50%;
   background: #52c41a;
   flex-shrink: 0;
+  align-self: start;
   animation: pulse 2s infinite;
 }
 
