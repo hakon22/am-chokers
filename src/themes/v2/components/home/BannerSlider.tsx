@@ -1,9 +1,24 @@
 import Link from 'next/link';
-import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { MutableRefObject } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import Carousel, { type DotProps } from 'react-multi-carousel';
+import type {
+  ButtonGroupProps,
+  CarouselInternalState,
+} from 'react-multi-carousel/lib/types';
 import { Skeleton } from 'antd';
 import cn from 'classnames';
+import { isEmpty, isNil } from 'lodash';
 import 'react-multi-carousel/lib/styles.css';
 
 import { MobileContext } from '@/components/Context';
@@ -23,6 +38,8 @@ const responsiveHero = {
 };
 
 const BANNER_VIDEO_POSTER_MAX_SIDE = 960;
+const BANNER_AUTOPLAY_START_DELAY_MS = 1500;
+const BANNER_IMAGE_DWELL_MS = 5000;
 
 const schedulePosterPaint = (video: HTMLVideoElement, fn: () => void) => {
   const v = video as HTMLVideoElement & {
@@ -42,6 +59,156 @@ const schedulePosterPaint = (video: HTMLVideoElement, fn: () => void) => {
 type StaticPosterLoad = 'checking' | 'ok' | 'bad';
 
 /**
+ * Таблица соответствия индекса в треке с клонами (infinite) и индекса оригинального слайда.
+ * Логика совпадает с `getOriginalIndexLookupTableByClones` в react-multi-carousel.
+ */
+const buildOriginalIndexLookupTable = (
+  slidesToShow: number,
+  childrenCount: number,
+): Record<number, number> => {
+  if (childrenCount > 2 * slidesToShow) {
+    const table: Record<number, number> = {};
+    const firstBeginningOfClones = childrenCount - 2 * slidesToShow;
+    const firstEndOfClones = childrenCount - firstBeginningOfClones;
+    let firstCount = firstBeginningOfClones;
+    for (let index = 0; index < firstEndOfClones; index += 1) {
+      table[index] = firstCount;
+      firstCount += 1;
+    }
+    const secondBeginningOfClones = childrenCount + firstEndOfClones;
+    const secondEndOfClones =
+      secondBeginningOfClones
+      + Math.min(2 * slidesToShow, childrenCount);
+    let secondCount = 0;
+    for (
+      let index = secondBeginningOfClones;
+      index <= secondEndOfClones;
+      index += 1
+    ) {
+      table[index] = secondCount;
+      secondCount += 1;
+    }
+    const originalEnd = secondBeginningOfClones;
+    let originalCounter = 0;
+    for (let index = firstEndOfClones; index < originalEnd; index += 1) {
+      table[index] = originalCounter;
+      originalCounter += 1;
+    }
+    return table;
+  }
+  const table: Record<number, number> = {};
+  const totalSlides = 3 * childrenCount;
+  let count = 0;
+  for (let index = 0; index < totalSlides; index += 1) {
+    table[index] = count;
+    if (++count === childrenCount) {
+      count = 0;
+    }
+  }
+  return table;
+};
+
+const mapCarouselSlideToOriginalIndex = (state: CarouselInternalState, childrenCount: number): number => {
+  if (childrenCount <= 1) {
+    return 0;
+  }
+  const { slidesToShow, totalItems, currentSlide } = state;
+  if (!slidesToShow || totalItems < slidesToShow) {
+    return Math.min(Math.max(currentSlide, 0), childrenCount - 1);
+  }
+  const table = buildOriginalIndexLookupTable(slidesToShow, childrenCount);
+  const mapped = table[currentSlide];
+  if (typeof mapped === 'number') {
+    return mapped;
+  }
+  return currentSlide % childrenCount;
+};
+
+/**
+ * Стор без React setState в родителе карусели: иначе лишний рендер родителя
+ * снимает inline transition с трека сразу после `correctClonesPosition` (infinite),
+ * и анимация пропадает при переходе с последнего слайда к первому.
+ */
+type BannerActiveSlideStore = {
+  getSnapshot: () => number;
+  notifyCarouselState: (state: CarouselInternalState, childrenCount: number) => void;
+  subscribe: (onStoreChange: () => void) => () => void;
+};
+
+const createBannerActiveSlideStore = (): BannerActiveSlideStore => {
+  let activeOriginalIndex = 0;
+  const listeners = new Set<() => void>();
+  return {
+    subscribe: (onStoreChange) => {
+      listeners.add(onStoreChange);
+      return () => {
+        listeners.delete(onStoreChange);
+      };
+    },
+    getSnapshot: () => activeOriginalIndex,
+    notifyCarouselState: (carouselState, childrenCount) => {
+      const nextIndex =
+        childrenCount <= 0
+          ? 0
+          : mapCarouselSlideToOriginalIndex(carouselState, childrenCount);
+      if (nextIndex !== activeOriginalIndex) {
+        activeOriginalIndex = nextIndex;
+        listeners.forEach((listener) => {
+          listener();
+        });
+      }
+    },
+  };
+};
+
+type BannerCarouselStateBridgeProps = ButtonGroupProps & {
+  advanceRef: MutableRefObject<(() => void) | null>;
+  activeSlideStore: BannerActiveSlideStore;
+  sortedLength: number;
+};
+
+const BannerCarouselStateBridge = ({
+  advanceRef,
+  activeSlideStore,
+  carouselState,
+  next,
+  sortedLength,
+}: BannerCarouselStateBridgeProps) => {
+  useEffect(() => {
+    if (isNil(next)) {
+      advanceRef.current = null;
+      return () => {
+        advanceRef.current = null;
+      };
+    }
+    advanceRef.current = () => {
+      next();
+    };
+    return () => {
+      advanceRef.current = null;
+    };
+  }, [advanceRef, next]);
+
+  useEffect(() => {
+    if (isNil(carouselState)) {
+      return;
+    }
+    activeSlideStore.notifyCarouselState(carouselState, sortedLength);
+  }, [
+    activeSlideStore,
+    carouselState,
+    sortedLength,
+    carouselState?.currentSlide,
+    carouselState?.slidesToShow,
+    carouselState?.totalItems,
+    carouselState?.domLoaded,
+    carouselState?.itemWidth,
+    carouselState?.containerWidth,
+  ]);
+  return <div className={styles.carouselStateBridge} aria-hidden />;
+};
+
+/**
  * Превью: 1) JPEG с сервера (`*.poster.jpg`, тот же origin/path — без CORS для <img>).
  * 2) Если файла нет (старые баннеры) — кадр через canvas (часто ломается на чужом CDN из‑за CORS у drawImage).
  */
@@ -50,11 +217,17 @@ const BannerVideo = ({
   staticPosterUrl,
   objectFit = 'cover',
   posterSizes,
+  isActive,
+  shouldLoopVideo,
+  onPlaybackComplete,
 }: {
   src: string;
   staticPosterUrl: string;
   objectFit?: 'cover' | 'contain';
   posterSizes?: V2ImageProps['sizes'];
+  isActive: boolean;
+  shouldLoopVideo: boolean;
+  onPlaybackComplete?: () => void;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const posterBlobUrlRef = useRef<string | null>(null);
@@ -62,6 +235,12 @@ const BannerVideo = ({
   const [blobPosterUrl, setBlobPosterUrl] = useState<string | null>(null);
   const [videoCanPlay, setVideoCanPlay] = useState(false);
   const staticPosterImgRef = useRef<HTMLImageElement>(null);
+  const isActiveRef = useRef(isActive);
+  const wasActiveRef = useRef(false);
+
+  useLayoutEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
 
   useLayoutEffect(() => {
     const video = videoRef.current;
@@ -102,16 +281,22 @@ const BannerVideo = ({
   }, [src]);
 
   useEffect(() => {
-    if (!videoCanPlay) {
+    const video = videoRef.current;
+    if (!video || !videoCanPlay) {
       return undefined;
     }
-    const v = videoRef.current;
-    if (!v) {
+    if (!isActive) {
+      wasActiveRef.current = false;
+      video.pause();
       return undefined;
     }
-    void v.play().catch(() => {});
+    if (!wasActiveRef.current) {
+      video.currentTime = 0;
+      wasActiveRef.current = true;
+    }
+    void video.play().catch(() => {});
     return undefined;
-  }, [videoCanPlay, src]);
+  }, [videoCanPlay, src, isActive]);
 
   useLayoutEffect(() => {
     const el = staticPosterImgRef.current;
@@ -201,7 +386,11 @@ const BannerVideo = ({
         }
         tryCapture();
         video.currentTime = 0;
-        void video.play();
+        if (isActiveRef.current) {
+          void video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
       });
     };
 
@@ -227,13 +416,23 @@ const BannerVideo = ({
     };
   }, [src, staticPoster]);
 
-  // Не скрывать постер через videoPosterHidden при videoCanPlay: иначе, если canplay раньше onLoad JPEG,
-  // к моменту «ok» постер так и остаётся с visibility:hidden. Видео при canplay поднимаем z-index над постером.
   const hideStaticPoster = staticPoster !== 'ok';
   const showBlobPosterImg = staticPoster === 'bad' && !!blobPosterUrl;
 
   const markStaticPosterDecoded = () => {
     setStaticPoster('ok');
+  };
+
+  const handleVideoPlaybackEnded = () => {
+    if (isActiveRef.current) {
+      onPlaybackComplete?.();
+    }
+  };
+
+  const handleVideoPlaybackError = () => {
+    if (isActiveRef.current) {
+      onPlaybackComplete?.();
+    }
   };
 
   return (
@@ -252,10 +451,12 @@ const BannerVideo = ({
         )}
         src={src}
         autoPlay
-        loop
+        loop={shouldLoopVideo}
         muted
         playsInline
         preload="auto"
+        onEnded={handleVideoPlaybackEnded}
+        onError={handleVideoPlaybackError}
       />
       <V2Image
         ref={staticPosterImgRef}
@@ -299,16 +500,99 @@ const BannerVideo = ({
   );
 };
 
-interface BannerSlideProps {
-  banner: BannerInterface;
-  isMobile: boolean;
-  onCopy: (value: string) => void;
-  variant: 'strip' | 'hero';
+interface BannerStaticBannerImageProps {
+  autoplayLogicEnabled: boolean;
+  bannerName: string;
   imagePriority: boolean;
+  imageSizes: string;
+  isActive: boolean;
+  isHero: boolean;
+  isMobile: boolean;
+  isMultiSlide: boolean;
+  mediaSrc: string;
+  onRequestAdvance: () => void;
 }
 
-const BannerSlide = ({ banner, isMobile, onCopy, variant, imagePriority }: BannerSlideProps) => {
+const BannerStaticBannerImage = ({
+  autoplayLogicEnabled,
+  bannerName,
+  imagePriority,
+  imageSizes,
+  isActive,
+  isHero,
+  isMobile,
+  isMultiSlide,
+  mediaSrc,
+  onRequestAdvance,
+}: BannerStaticBannerImageProps) => {
+  const [imageDecoded, setImageDecoded] = useState(false);
+
+  useEffect(() => {
+    if (
+      !isMultiSlide
+      || !autoplayLogicEnabled
+      || !isActive
+      || !imageDecoded
+    ) {
+      return undefined;
+    }
+    const timeoutId = window.setTimeout(() => {
+      onRequestAdvance();
+    }, BANNER_IMAGE_DWELL_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    autoplayLogicEnabled,
+    imageDecoded,
+    isActive,
+    isMultiSlide,
+    onRequestAdvance,
+  ]);
+
+  return (
+    <V2Image
+      src={mediaSrc}
+      alt={bannerName}
+      fill
+      className={cn(styles.media, !isHero && isMobile && styles.mediaStripMobile)}
+      sizes={imageSizes}
+      priority={imagePriority}
+      onLoad={() => setImageDecoded(true)}
+    />
+  );
+};
+
+interface BannerSlideProps {
+  activeSlideStore: BannerActiveSlideStore;
+  autoplayLogicEnabled: boolean;
+  banner: BannerInterface;
+  imagePriority: boolean;
+  isMobile: boolean;
+  isMultiSlide: boolean;
+  onCopy: (value: string) => void;
+  onRequestAdvance: () => void;
+  slideIndex: number;
+  variant: 'strip' | 'hero';
+}
+
+const BannerSlide = ({
+  activeSlideStore,
+  autoplayLogicEnabled,
+  banner,
+  imagePriority,
+  isMobile,
+  isMultiSlide,
+  onCopy,
+  onRequestAdvance,
+  slideIndex,
+  variant,
+}: BannerSlideProps) => {
   const isHero = variant === 'hero';
+  const activeOriginalIndex = useSyncExternalStore(
+    activeSlideStore.subscribe,
+    activeSlideStore.getSnapshot,
+    () => 0,
+  );
+  const isActive = slideIndex === activeOriginalIndex;
 
   const media = banner.desktopVideo;
 
@@ -348,17 +632,25 @@ const BannerSlide = ({ banner, isMobile, onCopy, variant, imagePriority }: Banne
           staticPosterUrl={staticPosterUrl}
           objectFit={videoFit}
           posterSizes={imageSizes}
+          isActive={isActive}
+          shouldLoopVideo={false}
+          onPlaybackComplete={onRequestAdvance}
         />
       );
     }
     return (
-      <V2Image
-        src={media.src}
-        alt={banner.name}
-        fill
-        className={cn(styles.media, !isHero && isMobile && styles.mediaStripMobile)}
-        sizes={imageSizes}
-        priority={imagePriority}
+      <BannerStaticBannerImage
+        key={media.src}
+        autoplayLogicEnabled={autoplayLogicEnabled}
+        bannerName={banner.name}
+        imagePriority={imagePriority}
+        imageSizes={imageSizes}
+        isActive={isActive}
+        isHero={isHero}
+        isMobile={isMobile}
+        isMultiSlide={isMultiSlide}
+        mediaSrc={media.src}
+        onRequestAdvance={onRequestAdvance}
       />
     );
   };
@@ -407,17 +699,47 @@ interface BannerSliderProps {
 export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.banner' });
   const { isMobile } = useContext(MobileContext);
-  const [autoPlay, setAutoPlay] = useState(false);
+  const [autoplayLogicEnabled, setAutoplayLogicEnabled] = useState(false);
   const isHero = variant === 'hero';
 
+  const carouselAdvanceRef = useRef<(() => void) | null>(null);
+
   useEffect(() => {
-    const timer = setTimeout(() => setAutoPlay(true), 1500);
+    const timer = setTimeout(() => {
+      setAutoplayLogicEnabled(true);
+    }, BANNER_AUTOPLAY_START_DELAY_MS);
     return () => clearTimeout(timer);
   }, []);
 
-  const sorted = [...banners].sort((a, b) => a.order - b.order);
+  const sorted = useMemo(
+    () => [...banners].sort((a, b) => a.order - b.order),
+    [banners],
+  );
 
-  if (!sorted.length) {
+  const activeSlideStore = useMemo(
+    () => createBannerActiveSlideStore(),
+    [sorted.length, variant],
+  );
+
+  const handleRequestAdvance = useCallback(() => {
+    if (!autoplayLogicEnabled || sorted.length <= 1) {
+      return;
+    }
+    carouselAdvanceRef.current?.();
+  }, [autoplayLogicEnabled, sorted.length]);
+
+  const carouselButtonGroup = useMemo(
+    () => (
+      <BannerCarouselStateBridge
+        advanceRef={carouselAdvanceRef}
+        activeSlideStore={activeSlideStore}
+        sortedLength={sorted.length}
+      />
+    ),
+    [activeSlideStore, sorted.length],
+  );
+
+  if (isEmpty(sorted)) {
     return null;
   }
 
@@ -430,15 +752,16 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
     }
   };
 
+  const isMultiSlide = sorted.length > 1;
+
   const carousel = (
     <Carousel
       responsive={isHero ? responsiveHero : responsiveStrip}
-      autoPlay={autoPlay}
-      autoPlaySpeed={5000}
+      autoPlay={false}
       infinite
-      pauseOnHover
+      pauseOnHover={false}
       shouldResetAutoplay={false}
-      showDots={sorted.length > 1}
+      showDots={isMultiSlide}
       arrows={false}
       swipeable
       draggable={false}
@@ -447,15 +770,21 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
       containerClass={cn(styles.carouselContainer, isHero && styles.carouselContainerHero)}
       dotListClass={cn(styles.dotList, isHero && styles.dotListHero)}
       customDot={<BannerCarouselDot />}
+      customButtonGroup={carouselButtonGroup}
     >
       {sorted.map((banner, index) => (
         <BannerSlide
           key={banner.id}
+          activeSlideStore={activeSlideStore}
+          autoplayLogicEnabled={autoplayLogicEnabled}
           banner={banner}
+          imagePriority={isHero && index === 0}
+          isMultiSlide={isMultiSlide}
           isMobile={isMobile}
           onCopy={handleCopy}
+          onRequestAdvance={handleRequestAdvance}
+          slideIndex={index}
           variant={variant}
-          imagePriority={isHero && index === 0}
         />
       ))}
     </Carousel>

@@ -235,6 +235,11 @@
   z-index: 3;
 }
 
+// Служебный узел для customButtonGroup (react-multi-carousel): не влияет на вёрстку.
+.carouselStateBridge {
+  display: none;
+}
+
 // Dots
 .dotList {
   bottom: -28px;
