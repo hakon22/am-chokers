@@ -13,12 +13,11 @@ import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext } from '@/components/Context';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import styles from '@/themes/v2/components/catalog/CatalogFilter.module.scss';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';
 import type { ColorInterface } from '@/types/color/ColorInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
-
-import styles from './CatalogFilter.module.scss';
 
 interface CatalogFilterPropsInterface {
   setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
@@ -107,10 +106,18 @@ export const CatalogFilter = ({
   // others open only when they have active values
   const defaultActiveKeys = useMemo(() => {
     const keys = ['1', '4'];
-    if (initialValues.compositionIds?.length) keys.push('2');
-    if (initialValues.collectionIds?.length) keys.push('3');
-    if (initialValues.new || initialValues.bestseller || initialValues.inStock) keys.push('5');
-    if (initialValues.colorIds?.length) keys.push('6');
+    if (initialValues.compositionIds?.length) {
+      keys.push('2');
+    }
+    if (initialValues.collectionIds?.length) {
+      keys.push('3');
+    }
+    if (initialValues.new || initialValues.bestseller || initialValues.inStock) {
+      keys.push('5');
+    }
+    if (initialValues.colorIds?.length) {
+      keys.push('6');
+    }
     return keys;
   }, []);
 
@@ -164,7 +171,7 @@ export const CatalogFilter = ({
   };
 
   const toggleBoolValue = (field: keyof CatalogFiltersInterface) => {
-    const updated = { ...initialValues, [field]: initialValues[field] ? undefined : '1' };
+    const updated = { ...initialValues, [field]: initialValues[field] ? undefined : 'true' };
     setInitialValues(updated);
     form.setFieldValue(field, updated[field]);
     onFilters(updated);
