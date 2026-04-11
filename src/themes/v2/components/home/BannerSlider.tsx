@@ -9,7 +9,7 @@ import 'react-multi-carousel/lib/styles.css';
 import { MobileContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import styles from '@/themes/v2/components/home/BannerSlider.module.scss';
-import { V2Image } from '@/themes/v2/components/V2Image';
+import { V2Image, type V2ImageProps } from '@/themes/v2/components/V2Image';
 import type { BannerInterface } from '@/types/banner/BannerInterface';
 
 const responsiveStrip = {
@@ -49,10 +49,12 @@ const BannerVideo = ({
   src,
   staticPosterUrl,
   objectFit = 'cover',
+  posterSizes,
 }: {
   src: string;
   staticPosterUrl: string;
   objectFit?: 'cover' | 'contain';
+  posterSizes?: V2ImageProps['sizes'];
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const posterBlobUrlRef = useRef<string | null>(null);
@@ -255,11 +257,12 @@ const BannerVideo = ({
         playsInline
         preload="auto"
       />
-      {/* eslint-disable-next-line @next/next/no-img-element -- превью с того же хранилища, что и mp4 */}
-      <img
+      <V2Image
         ref={staticPosterImgRef}
         src={staticPosterUrl}
         alt=""
+        fill
+        sizes={posterSizes ?? '100vw'}
         className={cn(
           styles.videoPoster,
           styles.videoPosterLayer,
@@ -331,7 +334,9 @@ const BannerSlide = ({ banner, isMobile, onCopy, variant, imagePriority }: Banne
   );
 
   const renderMedia = () => {
-    if (!media?.src) return null;
+    if (!media?.src) {
+      return null;
+    }
 
     if (media.src.endsWith('.mp4')) {
       const staticPosterUrl = staticPosterUrlForMp4(media.src);
@@ -342,6 +347,7 @@ const BannerSlide = ({ banner, isMobile, onCopy, variant, imagePriority }: Banne
           src={media.src}
           staticPosterUrl={staticPosterUrl}
           objectFit={videoFit}
+          posterSizes={imageSizes}
         />
       );
     }
