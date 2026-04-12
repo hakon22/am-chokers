@@ -39,4 +39,6 @@ export interface AppDataInterface {
 export interface FetchItemInterface extends PaginationQueryInterface {
   withDeleted?: boolean;
   search?: string;
+  /** Только товары с заполненной датой «нет в наличии» */
+  outOfStock?: boolean;
 }

@@ -113,8 +113,45 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     new: booleanSchema,
     bestseller: booleanSchema,
     inStock: booleanSchema,
+    outOfStock: booleanSchema,
     sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
     excludeIds: yup.array(yup.number().required()).optional(),
+  }),
+);
+
+const itemBulkSelectionShape = {
+  all: booleanSchema,
+  ids: yup.array(yup.number().integer().required()).optional(),
+  withDeleted: booleanSchema,
+  search: yup.string().optional(),
+  outOfStock: booleanSchema,
+};
+
+/** Режим `all: true` (фильтры списка) или непустой `ids` — взаимоисключающие */
+export const bodyItemBulkSelectionSchema = yup.object(itemBulkSelectionShape).test(
+  'bulk-selection-mode',
+  'Either all: true without ids or non-empty ids without all: true',
+  (value) => {
+    if (!value) {
+      return false;
+    }
+    if (value.all === true) {
+      return !value.ids?.length;
+    }
+    return Array.isArray(value.ids) && value.ids.length > 0;
+  },
+);
+
+export const bodyItemBulkOutStockSchema = bodyItemBulkSelectionSchema.concat(
+  yup.object({ outStock: yup.mixed().required() }),
+);
+
+export const bodyItemBulkOutStockClearSchema = bodyItemBulkSelectionSchema;
+
+export const bodyItemBulkPriceAdjustSchema = bodyItemBulkSelectionSchema.concat(
+  yup.object({
+    percentage: yup.number().required(),
+    multiple: yup.number().integer().min(1).required(),
   }),
 );
 

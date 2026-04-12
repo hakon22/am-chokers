@@ -1,5 +1,5 @@
 ---
-description: Конвенции am-chokers — TypeScript, БД, миграции, темы, стиль кода
+description: Конвенции am-chokers — TypeScript, БД, миграции, темы, стиль кода, JSDoc для методов
 alwaysApply: true
 ---
 
@@ -42,3 +42,27 @@ alwaysApply: true
 
 - Типы массивов: **`Type[]`**, не `Array<Type>`.
 - В описаниях полей объектных типов — единообразные завершающие **`;`** в полях.
+
+## JSDoc для методов и функций
+
+- Для **каждого** метода/функции (включая приватные и стрелочные поля класса) указывать **краткое описание назначения** в первой строке блока.
+- Для **каждого** параметра — строка **`@param имя - пояснение`** (что означает, в каких единицах, допустимые значения).
+- Если метод что-то **возвращает** — строка **`@returns`** с описанием результата.
+- Для `async`-методов при необходимости уточнять, что возвращается после `await` / что лежит в `Promise`.
+
+Пример оформления:
+
+```typescript
+/**
+ * Рассчитывает новую цену товара
+ * @param price - текущая цена товара
+ * @param percentage - процент увеличения (например, 10 для 10%)
+ * @param multiple - кратность для округления (например, 100)
+ * @returns новая цена, округлённая до кратного значения в большую сторону
+ */
+private calculateNewPrice = (price: number, percentage: number, multiple: number): number => {
+  const priceWithPercentage = price * (1 + percentage / 100);
+  const newPrice = Math.ceil(priceWithPercentage / multiple) * multiple;
+  return newPrice;
+};
+```

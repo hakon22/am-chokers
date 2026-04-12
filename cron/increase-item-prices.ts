@@ -6,10 +6,11 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
+import { adjustPriceByPercentAndMultiple } from '@server/utilities/item-price-adjust';
 
 const TAG = 'IncreaseItemPrices';
 
-/** Увеличивает цены всех товаров на определённый процент с округлением до заданной кратности */
+/** Увеличивает или уменьшает цены всех товаров на процент с округлением до заданной кратности */
 class IncreaseItemPricesCron {
 
   public readonly loggerService = Container.get(LoggerService);
@@ -17,23 +18,6 @@ class IncreaseItemPricesCron {
   private readonly databaseService = Container.get(DatabaseService);
 
   private readonly redisService = Container.get(RedisService);
-
-  /**
-   * Рассчитывает новую цену товара
-   * @param price - текущая цена товара
-   * @param percentage - процент увеличения (например, 10 для 10%)
-   * @param multiple - кратность для округления (например, 100)
-   * @returns новая цена, округлённая до кратного значения в большую сторону
-   */
-  private calculateNewPrice = (price: number, percentage: number, multiple: number): number => {
-    // Увеличиваем цену на процент
-    const priceWithPercentage = price * (1 + percentage / 100);
-
-    // Округляем до кратного значения в большую сторону
-    const newPrice = Math.ceil(priceWithPercentage / multiple) * multiple;
-
-    return newPrice;
-  };
 
   public start = async () => {
     await this.databaseService.init();
@@ -44,7 +28,7 @@ class IncreaseItemPricesCron {
     const multipleArg = process.argv[3];
 
     if (!percentageArg || !multipleArg) {
-      this.loggerService.error(TAG, 'Необходимо указать два аргумента: процент увеличения и кратность');
+      this.loggerService.error(TAG, 'Необходимо указать два аргумента: процент (положительный — рост, отрицательный — снижение) и кратность');
       process.exit(1);
     }
 
@@ -75,7 +59,7 @@ class IncreaseItemPricesCron {
 
     for (const item of items) {
       const oldPrice = item.price;
-      const newPrice = this.calculateNewPrice(oldPrice, percentage, multiple);
+      const newPrice = adjustPriceByPercentAndMultiple(oldPrice, percentage, multiple);
 
       if (oldPrice !== newPrice) {
         item.price = newPrice;

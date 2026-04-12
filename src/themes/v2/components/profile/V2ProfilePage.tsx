@@ -281,12 +281,6 @@ export const V2ProfilePage = ({ path }: Props) => {
           {/* ── Mobile: horizontal tab bar ────────────────────────── */}
           <div className={styles.mobileTabs}>
             <div className={styles.mobileTabsInner}>
-              {navItems.map(({ key, href, icon, label }) => (
-                <Link key={key} href={href} className={cn(styles.mobileTab, { [styles.active]: activeKey === key })}>
-                  <span className={styles.mobileTabIcon}>{icon}</span>
-                  {label}
-                </Link>
-              ))}
               {isAdmin && (
                 <button
                   type="button"
@@ -297,6 +291,12 @@ export const V2ProfilePage = ({ path }: Props) => {
                   {t('menu.admin.title')}
                 </button>
               )}
+              {navItems.map(({ key, href, icon, label }) => (
+                <Link key={key} href={href} className={cn(styles.mobileTab, { [styles.active]: activeKey === key })}>
+                  <span className={styles.mobileTabIcon}>{icon}</span>
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
 

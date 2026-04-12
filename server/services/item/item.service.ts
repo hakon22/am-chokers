@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
-import { Brackets } from 'typeorm';
+import { Brackets, In } from 'typeorm';
 import ExcelJS, { type Anchor } from 'exceljs';
 import moment from 'moment';
 import _ from 'lodash';
@@ -21,6 +21,7 @@ import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
 import { hasJoin } from '@server/utilities/has.join';
+import { adjustPriceByPercentAndMultiple, MIN_ITEM_PRICE_AFTER_ADJUST } from '@server/utilities/item-price-adjust';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -233,6 +234,9 @@ export class ItemService extends TranslationHelper {
     }
     if (query?.inStock) {
       builder.andWhere('item.outStock IS NULL');
+    }
+    if (query?.outOfStock) {
+      builder.andWhere('item.outStock IS NOT NULL');
     }
     if (query?.groupCode) {
       if (!hasJoin(builder, 'group')) {
@@ -900,6 +904,9 @@ export class ItemService extends TranslationHelper {
     if (query?.inStock) {
       builder.andWhere('item.outStock IS NULL');
     }
+    if (query?.outOfStock) {
+      builder.andWhere('item.outStock IS NOT NULL');
+    }
 
     const statistics = await builder.getRawMany<{ groupId: number; count: number; }>();
 
@@ -907,6 +914,157 @@ export class ItemService extends TranslationHelper {
       acc[groupId] = count;
       return acc;
     }, {} as Record<number, number>);
+  };
+
+  private resolveBulkTargetIds = async (body: {
+    all?: boolean;
+    ids?: number[];
+    withDeleted?: boolean;
+    search?: string;
+    outOfStock?: boolean;
+  }): Promise<number[]> => {
+    if (body.all === true) {
+      const query: ItemQueryInterface = {};
+      if (body.withDeleted === true) {
+        query.withDeleted = true;
+      }
+      if (body.search) {
+        query.search = body.search;
+      }
+      if (body.outOfStock === true) {
+        query.outOfStock = true;
+      }
+      const builder = this.createQueryBuilder(query, { onlyIds: true });
+      builder.andWhere('item.deleted IS NULL');
+      const rows = await builder.getMany();
+      return rows.map(({ id }) => id);
+    }
+    const unique = [...new Set(body.ids ?? [])];
+    if (!unique.length) {
+      return [];
+    }
+    const manager = this.databaseService.getManager();
+    const rows = await manager
+      .createQueryBuilder(ItemEntity, 'item')
+      .select('item.id', 'id')
+      .where('item.deleted IS NULL')
+      .andWhere('item.id IN (:...ids)', { ids: unique })
+      .getRawMany<{ id: number; }>();
+    return rows.map(({ id }) => Number(id));
+  };
+
+  private refreshRedisForItemIds = async (ids: number[]) => {
+    const size = 500;
+    for (let i = 0; i < ids.length; i += size) {
+      const slice = ids.slice(i, i + size);
+      const items = await this.findMany(
+        { withDeleted: true, withNotPublished: true },
+        { withoutCache: true, fullItem: true, withGrades: true, ids: slice },
+      );
+      await Promise.all(items.map((item) => this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item)));
+    }
+  };
+
+  public bulkSetOutStock = async (
+    body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; outStock: unknown; },
+    lang: UserLangEnum,
+  ) => {
+    const ids = await this.resolveBulkTargetIds(body);
+    if (!ids.length) {
+      return { code: 1, affectedCount: 0 };
+    }
+    const minDay = moment().add(1, 'day').startOf('day');
+    const chosen = moment(body.outStock as string | Date).startOf('day');
+    if (!chosen.isValid() || chosen.isBefore(minDay)) {
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Дата «Нет в наличии» должна быть не раньше завтрашнего дня.'
+        : 'The out-of-stock date must be no earlier than tomorrow.');
+    }
+    const outStock = chosen.toDate();
+    const CHUNK = 500;
+    const manager = this.databaseService.getManager();
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const chunk = ids.slice(i, i + CHUNK);
+      await manager
+        .createQueryBuilder()
+        .update(ItemEntity)
+        .set({ outStock })
+        .where('id IN (:...ids)', { ids: chunk })
+        .execute();
+    }
+    await this.refreshRedisForItemIds(ids);
+    return { code: 1 as const, affectedCount: ids.length };
+  };
+
+  public bulkClearOutStock = async (
+    body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; },
+  ) => {
+    const ids = await this.resolveBulkTargetIds(body);
+    if (!ids.length) {
+      return { code: 1 as const, affectedCount: 0 };
+    }
+    const CHUNK = 500;
+    const manager = this.databaseService.getManager();
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const chunk = ids.slice(i, i + CHUNK);
+      await manager
+        .createQueryBuilder()
+        .update(ItemEntity)
+        .set({ outStock: null })
+        .where('id IN (:...ids)', { ids: chunk })
+        .execute();
+    }
+    await this.refreshRedisForItemIds(ids);
+    return { code: 1 as const, affectedCount: ids.length };
+  };
+
+  public bulkPriceAdjust = async (
+    body: {
+      all?: boolean;
+      ids?: number[];
+      withDeleted?: boolean;
+      search?: string;
+      outOfStock?: boolean;
+      percentage: number;
+      multiple: number;
+    },
+  ) => {
+    const ids = await this.resolveBulkTargetIds(body);
+    if (!ids.length) {
+      return { code: 1 as const, affectedCount: 0, skippedBelowMin: 0 };
+    }
+    const { percentage, multiple } = body;
+    const manager = this.databaseService.getManager();
+    const repo = manager.getRepository(ItemEntity);
+    const CHUNK = 500;
+    const changedIds: number[] = [];
+    let skippedBelowMin = 0;
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const chunk = ids.slice(i, i + CHUNK);
+      const rows = await repo.find({
+        where: { id: In(chunk) },
+        select: ['id', 'price'],
+      });
+      const toSave: Pick<ItemEntity, 'id' | 'price'>[] = [];
+      for (const row of rows) {
+        const newPrice = adjustPriceByPercentAndMultiple(row.price, percentage, multiple);
+        if (newPrice < MIN_ITEM_PRICE_AFTER_ADJUST) {
+          skippedBelowMin += 1;
+          continue;
+        }
+        if (newPrice !== row.price) {
+          toSave.push({ id: row.id, price: newPrice });
+          changedIds.push(row.id);
+        }
+      }
+      if (toSave.length) {
+        await repo.save(toSave);
+      }
+    }
+    if (changedIds.length) {
+      await this.refreshRedisForItemIds(changedIds);
+    }
+    return { code: 1, affectedCount: changedIds.length, skippedBelowMin };
   };
 
   public getGrades = (params: ParamsIdInterface, query: PaginationQueryInterface) => this.gradeService.findManyByItem(params, query);

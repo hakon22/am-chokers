@@ -15,6 +15,9 @@ export class ItemRoute extends BaseRouter {
       .delete(this.routes.item.deleteOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.deleteOne);
     router.get(this.routes.item.restoreOne(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.restoreOne);
     router.post(this.routes.item.createOne, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createOne);
+    router.post(this.routes.item.bulkOutStock, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.bulkSetOutStock);
+    router.post(this.routes.item.bulkOutStockClear, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.bulkClearOutStock);
+    router.post(this.routes.item.bulkPriceAdjust, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.bulkPriceAdjust);
     router.get(this.routes.item.search, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.search);
     router.get(this.routes.item.getLinks({ isServer: true }), this.itemController.getLinks);
     router.get(this.routes.item.getByName({ isServer: true }), this.middlewareService.optionalJwtAuth, this.itemController.getByName);

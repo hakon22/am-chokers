@@ -21,9 +21,11 @@ interface SearchPropsInterface {
   withDeleted?: boolean;
   setSearch: React.Dispatch<React.SetStateAction<{ value: string; onFetch: boolean; } | undefined>>;
   fetch: () => Promise<void>;
+  /** Root class on AutoComplete; default keeps catalog-friendly width (`col-xl-4`). */
+  className?: string;
 }
 
-export const Search = ({ search, setSearch, fetch, withDeleted = false }: SearchPropsInterface) => {
+export const Search = ({ search, setSearch, fetch, withDeleted = false, className = 'd-flex col-xl-4' }: SearchPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.search' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
@@ -89,7 +91,7 @@ export const Search = ({ search, setSearch, fetch, withDeleted = false }: Search
   return (
     <AutoComplete
       value={search?.value}
-      className="d-flex col-xl-4"
+      className={className}
       classNames={{
         content: 'custom-placeholder not-padding fs-6',
         placeholder: 'custom-placeholder not-padding fs-6',

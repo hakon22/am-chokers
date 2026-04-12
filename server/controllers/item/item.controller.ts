@@ -4,7 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { BaseService } from '@server/services/app/base.service';
 import { publishTelegramValidation, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams, bodyItemBulkOutStockSchema, bodyItemBulkOutStockClearSchema, bodyItemBulkPriceAdjustSchema } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
 
@@ -248,6 +248,43 @@ export class ItemController extends BaseService {
       res
         .send(buffer)
         .end();
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public bulkSetOutStock = async (req: Request, res: Response) => {
+    try {
+      const user = this.getCurrentUser(req);
+      const body = await bodyItemBulkOutStockSchema.validate(req.body);
+
+      const result = await this.itemService.bulkSetOutStock(body, user.lang);
+
+      res.json(result);
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public bulkClearOutStock = async (req: Request, res: Response) => {
+    try {
+      const body = await bodyItemBulkOutStockClearSchema.validate(req.body);
+
+      const result = await this.itemService.bulkClearOutStock(body);
+
+      res.json(result);
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  public bulkPriceAdjust = async (req: Request, res: Response) => {
+    try {
+      const body = await bodyItemBulkPriceAdjustSchema.validate(req.body);
+
+      const result = await this.itemService.bulkPriceAdjust(body);
+
+      res.json(result);
     } catch (e) {
       this.errorHandler(e, res);
     }
