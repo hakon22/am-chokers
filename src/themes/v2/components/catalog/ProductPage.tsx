@@ -29,6 +29,7 @@ import { scrollToElement } from '@/utilities/scrollToElement';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
@@ -553,7 +554,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   );
 
   const imageGalleryItems = useMemo(() => {
-    return [...(images ?? [])].sort((a, b) => a.order - b.order).map((image) => {
+    return sortItemImagesByOrder(images).map((image) => {
       if (image.src.endsWith('.mp4')) {
         return {
           original: image.src,
@@ -610,7 +611,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
   return (
     <>
-      <Helmet title={name ?? ''} description={description ?? ''} image={images?.[0]?.src} />
+      <Helmet title={name ?? ''} description={description ?? ''} image={sortItemImagesByOrder(images)[0]?.src} />
 
       {typeof document !== 'undefined' && galleryFsCurtain
         ? createPortal(<div className={styles.fsCurtain} aria-hidden />, document.body)

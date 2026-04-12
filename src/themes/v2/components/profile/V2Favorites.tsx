@@ -10,6 +10,7 @@ import { getHref } from '@/utilities/getHref';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/profile/V2Favorites.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 
 const isVideo = (src: string) => src.endsWith('.mp4');
 
@@ -36,7 +37,7 @@ export const V2Favorites = () => {
       {sorted.map((item) => {
         const name = item.translations.find((translation) => translation.lang === lang)?.name ?? '';
         const price = item.price - item.discountPrice;
-        const cover = item.images?.[0]?.src ?? '';
+        const cover = sortItemImagesByOrder(item.images)[0]?.src ?? '';
         const isDeleted = !!item.deleted || item.outStock;
 
         return (

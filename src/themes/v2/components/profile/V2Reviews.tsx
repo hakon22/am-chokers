@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useEffectEvent } from 'react';
+import { useEffect, useState, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Rate, Skeleton } from 'antd';
 import Link from 'next/link';
@@ -10,11 +10,11 @@ import cn from 'classnames';
 
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { getHref } from '@/utilities/getHref';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import { routes } from '@/routes';
 import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { PreviewImage } from '@/components/PreviewImage';
-import { SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/profile/V2Reviews.module.scss';
@@ -32,7 +32,6 @@ export const V2Reviews = () => {
 
   const dispatch = useAppDispatch();
 
-  const { setIsSubmit } = useContext(SubmitContext);
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
@@ -43,7 +42,9 @@ export const V2Reviews = () => {
 
   const fetchMyGrades = async (params: PaginationQueryInterface) => {
     try {
-      if (isLoading) return;
+      if (isLoading) {
+        return;
+      }
       setIsLoading(true);
       const { data: { items, paginationParams, code } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(
         routes.user.getMyGrades, { params },
@@ -61,7 +62,9 @@ export const V2Reviews = () => {
   const fetchMyGradesEffect = useEffectEvent(fetchMyGrades);
 
   useEffect(() => {
-    if (axiosAuth) fetchMyGradesEffect({ limit: 10, offset: 0 });
+    if (axiosAuth) {
+      fetchMyGradesEffect({ limit: 10, offset: 0 });
+    }
   }, [axiosAuth]);
 
   if (!data.length && isLoading) {
@@ -102,7 +105,7 @@ export const V2Reviews = () => {
       >
         {data.map((grade) => {
           const name = grade.item?.translations.find((translation) => translation.lang === lang)?.name ?? '';
-          const cover = grade.item?.images?.[0]?.src ?? '';
+          const cover = sortItemImagesByOrder(grade.item?.images)[0]?.src ?? '';
           const isAccepted = grade.checked === true;
           const isRejected = grade.deleted !== null && grade.checked === false;
 

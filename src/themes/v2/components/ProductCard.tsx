@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { HeartFilled, HeartOutlined, LikeOutlined } from '@ant-design/icons';
@@ -14,8 +14,9 @@ import { V2Image } from '@/themes/v2/components/V2Image';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import type { ItemInterface } from '@/types/item/Item';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import styles from '@/themes/v2/components/home/ProductsSection.module.scss';
+import type { ItemInterface } from '@/types/item/Item';
 
 const isVideo = (src: string) => src.endsWith('.mp4');
 
@@ -52,8 +53,9 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
   const inFavorites = favorites?.find((favItem) => favItem.id === item.id);
   const name = item.translations?.find((translation) => translation.lang === lang)?.name ?? item.translateName;
   const groupName = item.group?.translations?.find((translation) => translation.lang === lang)?.name ?? '';
-  const image = item.images?.[0];
-  const image2 = item.images?.[1];
+  const sortedImages = useMemo(() => sortItemImagesByOrder(item.images), [item.images]);
+  const image = sortedImages[0];
+  const image2 = sortedImages[1];
   const grade = rating?.rating?.rating ?? 0;
 
   const onFavoritesClick = async (e: React.MouseEvent) => {

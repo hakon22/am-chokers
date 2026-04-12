@@ -19,6 +19,7 @@ import { UploadImage } from '@/components/UploadImage';
 import { newGradeValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import { getDeliveryStatusTranslate } from '@/utilities/order/getDeliveryStatusTranslate';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
@@ -180,7 +181,7 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
 
           {order.positions.map((position) => {
             const name = position.item.translations.find((translation) => translation.lang === lang)?.name ?? '';
-            const cover = position.item.images[0]?.src ?? '';
+            const cover = sortItemImagesByOrder(position.item.images)[0]?.src ?? '';
             const isRating = !orderParams && !position.grade && order.status === OrderStatusEnum.COMPLETED;
             const isGrading = grade.position?.id === position.id;
 

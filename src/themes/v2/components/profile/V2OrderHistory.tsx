@@ -25,6 +25,7 @@ import { toast } from '@/utilities/toast';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { V2OrderStatusFilter } from '@/themes/v2/components/profile/V2OrderStatusFilter';
 import { getHref } from '@/utilities/getHref';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { PreviewImage } from '@/components/PreviewImage';
@@ -216,7 +217,7 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
                       +{order.positions.length - maxPosition}
                     </div>
                   );
-                  const src = position.item.images[0]?.src ?? '';
+                  const src = sortItemImagesByOrder(position.item.images)[0]?.src ?? '';
                   return (
                     <Tooltip key={position.id} title={isMobile ? '' : position.item.translations.find((translation) => translation.lang === lang)?.name} placement="top" color="#4d689e">
                       <Link href={getHref(position.item)} className={styles.thumb}>
