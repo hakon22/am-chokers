@@ -19,9 +19,9 @@ export const CustomOrderSection = () => {
           </h2>
           <p className={styles.text}>{t('text')}</p>
           <Button
-            type="primary"
+            type="default"
             size="large"
-            icon={<Telegram style={{ fontSize: 18, verticalAlign: 'middle' }} />}
+            icon={<Telegram className={styles.tgBtnIcon} aria-hidden />}
             href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? '#'}
             target="_blank"
             className={styles.tgBtn}

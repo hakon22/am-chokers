@@ -45,8 +45,9 @@ export const SocialSection = () => {
           <div className={styles.tgSub}>{t('tgSub')}</div>
         </div>
         <Button
-          type="primary"
+          type="default"
           size="large"
+          icon={<Telegram className={styles.tgBtnIcon} aria-hidden />}
           href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? '#'}
           target="_blank"
           className={styles.tgBtn}

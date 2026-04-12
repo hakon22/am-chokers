@@ -30,13 +30,13 @@ export const HeroSection = ({ banners }: HeroSectionProps) => {
           </h1>
           <p className={styles.heroSub}>{t('subtitle')}</p>
           <div className={styles.heroBtns}>
-            <Link href={catalogPath}>
-              <Button size="large" className={styles.btnPrimary}>
+            <Link href={catalogPath} className={styles.heroBtnLink}>
+              <Button type="default" className={styles.btnPrimary}>
                 {t('catalogBtn')}
               </Button>
             </Link>
-            <Link href={routes.page.base.contactsPage}>
-              <Button size="large" className={styles.btnOutline}>
+            <Link href={routes.page.base.contactsPage} className={styles.heroBtnLink}>
+              <Button type="default" className={styles.btnOutline}>
                 {t('customOrderBtn')}
               </Button>
             </Link>

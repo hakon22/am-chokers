@@ -96,13 +96,15 @@
     display: flex;
     align-items: center;
     gap: 24px;
-    justify-content: space-between;
+    justify-content: center;
     flex-wrap: wrap;
     padding: 28px 36px !important;
 
     @media (max-width: 768px) {
+      flex-direction: column;
       padding: 20px !important;
       gap: 16px;
+      text-align: center;
     }
   }
 }
@@ -120,6 +122,12 @@
 .tgText {
   flex: 1;
   min-width: 200px;
+
+  @media (max-width: 768px) {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 .tgTitle {
@@ -134,13 +142,34 @@
   color: v2.$v2-text-secondary;
 }
 
+.tgBtnIcon {
+  font-size: 20px;
+  color: v2.$v2-white;
+  vertical-align: -0.15em;
+}
+
 .tgBtn {
-  background: #27A7E5 !important;
-  border-color: #27A7E5 !important;
+  height: auto !important;
+  padding: 14px 36px !important;
+  line-height: 1.25 !important;
+  border-radius: 999px !important;
+  background: #2e4370 !important;
   color: v2.$v2-white !important;
+  border: 1px solid v2.$v2-white !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase;
+  box-shadow: none !important;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 
   &:hover {
-    background: #1d8fc7 !important;
-    border-color: #1d8fc7 !important;
+    background: #3a5080 !important;
+    border-color: v2.$v2-white !important;
+    color: v2.$v2-white !important;
+  }
+
+  &:active {
+    background: #263858 !important;
   }
 }
