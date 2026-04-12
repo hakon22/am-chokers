@@ -1,0 +1,276 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+// ── Telegram + site schedule modals (theme v2) ───────────────────────────────
+
+.v2Modal {
+  // Узкие экраны: не вылезать за вьюпорт
+  :global(.ant-modal) {
+    @media (max-width: 560px) {
+      max-width: calc(100vw - 20px) !important;
+    }
+  }
+
+  :global(.ant-modal-content) {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: v2.$v2-sh-lg;
+  }
+
+  :global(.ant-modal-header) {
+    margin: 0;
+    padding: 22px 48px 16px 22px;
+    border-bottom: 1px solid v2.$v2-border;
+    background: v2.$v2-white;
+  }
+
+  :global(.ant-modal-title) {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(22px, 4vw, 26px);
+    font-weight: 400;
+    color: v2.$v2-navy-primary;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  :global(.ant-modal-close) {
+    top: 16px;
+    inset-inline-end: 16px;
+    color: v2.$v2-text-muted;
+
+    &:hover {
+      color: v2.$v2-navy-secondary;
+    }
+  }
+
+  :global(.ant-modal-body) {
+    padding: 20px 22px 8px;
+    background: v2.$v2-bg-main;
+  }
+
+  :global(.ant-modal-footer) {
+    margin: 0;
+    padding: 0 22px 22px;
+    border: none;
+    background: v2.$v2-bg-main;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  :global(.ant-form-item) {
+    margin-bottom: 16px;
+  }
+
+  :global(.ant-form-item-label > label) {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: v2.$v2-text-secondary;
+  }
+
+  :global(.ant-picker) {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 10px !important;
+    background: v2.$v2-white !important;
+    border-color: v2.$v2-border !important;
+    font-family: 'Inter', sans-serif;
+  }
+
+  :global(.ant-picker .ant-picker-input > input) {
+    background: transparent !important;
+  }
+
+  :global(.ant-select .ant-select-selector) {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 10px !important;
+    background: v2.$v2-white !important;
+    border-color: v2.$v2-border !important;
+    font-family: 'Inter', sans-serif;
+  }
+
+  :global(.ant-picker:hover),
+  :global(.ant-select:hover .ant-select-selector) {
+    border-color: v2.$v2-navy-medium !important;
+  }
+
+  :global(.ant-input) {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: v2.$v2-text-dark;
+    border-radius: 12px;
+    background: v2.$v2-bg-alt;
+    border-color: v2.$v2-border;
+    padding: 12px 14px;
+
+    &:hover {
+      border-color: v2.$v2-navy-medium;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 2px rgba(43, 60, 95, 0.12);
+    }
+  }
+
+  :global(.ant-input-textarea) {
+    :global(.ant-input) {
+      min-height: 168px;
+      resize: vertical;
+    }
+  }
+}
+
+.v2Form {
+  width: 100%;
+}
+
+.v2DateTimeRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px 14px;
+  width: 100%;
+
+  @media (min-width: 480px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.v2Field {
+  min-width: 0;
+}
+
+.v2Footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding-top: 18px;
+  border-top: 1px solid v2.$v2-border;
+}
+
+// Внутри модалки ~520px нельзя ориентироваться на ширину вьюпорта — всегда колонка:
+// 1) «Сгенерировать…» на всю ширину, 2) отмена + публикация в одну строку с равным flex.
+.v2FooterMain {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.v2BtnGenerate {
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
+  height: auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  color: v2.$v2-navy-primary;
+  background: v2.$v2-white;
+  border: 1px solid v2.$v2-border;
+  white-space: normal;
+  line-height: 1.25;
+  padding: 10px 12px;
+
+  &:hover {
+    color: v2.$v2-navy-primary !important;
+    border-color: v2.$v2-navy-medium !important;
+    background: v2.$v2-bg-alt !important;
+  }
+}
+
+.v2FooterActions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  :global(.ant-btn) {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    height: auto;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    white-space: normal;
+    line-height: 1.25;
+    padding: 10px 12px;
+  }
+}
+
+.v2FooterActionsEnd {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  :global(.ant-btn) {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    height: auto;
+    white-space: normal;
+    line-height: 1.25;
+    padding: 10px 12px;
+  }
+}
+
+.v2BtnCancel {
+  color: v2.$v2-navy-secondary;
+  background: v2.$v2-white;
+  border: 1px solid v2.$v2-navy-medium;
+
+  &:hover {
+    color: v2.$v2-navy-primary !important;
+    border-color: v2.$v2-navy-primary !important;
+    background: v2.$v2-bg-alt !important;
+  }
+}
+
+.v2BtnOk {
+  color: v2.$v2-white !important;
+  background: v2.$v2-navy-primary !important;
+  border: none !important;
+  box-shadow: none !important;
+
+  &:hover,
+  &:focus,
+  &:focus-visible {
+    background: v2.$v2-navy-secondary !important;
+    color: v2.$v2-white !important;
+    box-shadow: none !important;
+  }
+
+  &:active {
+    box-shadow: none !important;
+  }
+
+  &:disabled {
+    box-shadow: none !important;
+  }
+}
+
+.v2SiteModalBody {
+  padding-bottom: 16px;
+}

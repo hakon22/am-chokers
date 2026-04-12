@@ -18,4 +18,6 @@ export interface ItemAdminPublishModalProps {
   onPublicationDateUpdate: (values: PublicationDateFormInterface) => void;
   generateDescription: () => void;
   lang: UserLangEnum;
+  /** Оформление модалок в стиле темы v2 (карточка товара). По умолчанию — прежний вид. */
+  uiVariant?: 'default' | 'v2';
 }

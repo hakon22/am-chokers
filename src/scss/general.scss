@@ -1383,6 +1383,11 @@ body.v2-theme {
     background: #ffffff !important;
     box-shadow: none !important;
     transition: border-color 0.2s ease !important;
+    // Как у `.ant-input-affix-wrapper` size middle (корзина: дата самовывоза = поле Telegram)
+    min-height: 44px !important;
+    height: 44px !important;
+    padding-inline: 14px !important;
+    box-sizing: border-box !important;
 
     &:hover {
       border-color: #5A6E96 !important;
@@ -1391,6 +1396,12 @@ body.v2-theme {
     &.ant-picker-focused {
       border-color: #2B3C5F !important;
       box-shadow: none !important;
+    }
+
+    .ant-picker-input {
+      display: flex;
+      align-items: center;
+      min-height: 100%;
     }
 
     .ant-picker-input input {

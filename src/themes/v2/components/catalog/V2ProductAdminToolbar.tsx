@@ -44,7 +44,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
     return (
       <>
         <V2ItemHistoryModal itemId={item.id} open={historyOpen} onClose={() => setHistoryOpen(false)} />
-        <ItemAdminPublishModal {...modalProps} />
+        <ItemAdminPublishModal {...modalProps} uiVariant="v2" />
         <FloatButton.Group
           trigger="click"
           rootClassName={styles.floatRoot}
@@ -96,7 +96,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
   return (
     <div className={styles.desktop}>
       <V2ItemHistoryModal itemId={item.id} open={historyOpen} onClose={() => setHistoryOpen(false)} />
-      <ItemAdminPublishModal {...modalProps} />
+      <ItemAdminPublishModal {...modalProps} uiVariant="v2" />
       <div className={styles.actions}>
         <button type="button" className={styles.actionBtn} onClick={onEdit}>{t('edit')}</button>
         <button type="button" className={styles.actionBtn} onClick={() => setHistoryOpen(true)}>{t('history')}</button>

@@ -9,6 +9,7 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { locale } from '@/locales/pickers.locale.ru';
 import { publishTelegramValidation } from '@/validations/validations';
+import styles from '@/components/item-admin/ItemAdminPublishModal.module.scss';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
 import type { ItemAdminPublishModalProps, PublicationDateFormInterface } from '@/components/item-admin/itemAdmin.types';
 
@@ -24,6 +25,7 @@ export const ItemAdminPublishModal = ({
   onPublish,
   generateDescription,
   lang,
+  uiVariant = 'default',
 }: ItemAdminPublishModalProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
@@ -39,6 +41,8 @@ export const ItemAdminPublishModal = ({
 
   const setPublicationTimeEffect = useEffectEvent(setPublicationTime);
   const setTimeEffect = useEffectEvent(setTime);
+
+  const isV2 = uiVariant === 'v2';
 
   const onTgFinish = () => {
     form.validateFields().then((values) => {
@@ -104,45 +108,123 @@ export const ItemAdminPublishModal = ({
     form.setFieldValue('description', publishData.description);
   }, [publishData.description]);
 
+  const tgFooterV2 = (
+    <div className={styles.v2Footer}>
+      <div className={styles.v2FooterMain}>
+        <Button className={styles.v2BtnGenerate} onClick={generateDescription}>
+          {t('generateDescription')}
+        </Button>
+        <div className={styles.v2FooterActions}>
+          <Button className={styles.v2BtnCancel} onClick={handleTgCancel}>
+            {t('cancel')}
+          </Button>
+          <Button className={styles.v2BtnOk} type="primary" onClick={onTgFinish}>
+            {t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const siteScheduleFooterV2 = (
+    <div className={styles.v2Footer}>
+      <div className={`${styles.v2FooterActions} ${styles.v2FooterActionsEnd}`}>
+        <Button className={styles.v2BtnCancel} onClick={handlePublicationDateCancel}>
+          {t('cancel')}
+        </Button>
+        <Button
+          className={styles.v2BtnOk}
+          type="primary"
+          disabled={[publicationDateValue, publicationTime].filter(Boolean).length !== 2}
+          onClick={onPublicationDateFinish}
+        >
+          {t('publishUpdate')}
+        </Button>
+      </div>
+    </div>
+  );
+
   return isTgPublish
     ? (
       <Modal
         title={t('publishTitle')}
         centered
         zIndex={10000}
-        classNames={{ header: 'text-center', footer: 'ant-input-group-addon' }}
+        width={isV2 ? 520 : undefined}
+        rootClassName={isV2 ? styles.v2Modal : undefined}
+        classNames={isV2 ? undefined : { header: 'text-center', footer: 'ant-input-group-addon' }}
         open={isTgPublish}
-        onOk={onTgFinish}
-        okText={t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
-        cancelText={t('cancel')}
+        onOk={isV2 ? undefined : onTgFinish}
+        okText={isV2 ? undefined : t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
+        cancelText={isV2 ? undefined : t('cancel')}
         onCancel={handleTgCancel}
-        footer={(_, { OkBtn, CancelBtn }) => (
-          <div className="d-flex flex-column flex-xl-row justify-content-end gap-2 mt-4">
-            {isTgPublish ? <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button> : null}
-            <CancelBtn />
-            <OkBtn />
-          </div>
-        )}
+        footer={isV2
+          ? tgFooterV2
+          : (_, { OkBtn, CancelBtn }) => (
+            <div className="d-flex flex-column flex-xl-row justify-content-end gap-2 mt-4">
+              {isTgPublish ? <Button style={{ background: 'linear-gradient(135deg,#fdd8a6,#f7daed)' }} onClick={generateDescription}>{t('generateDescription')}</Button> : null}
+              <CancelBtn />
+              <OkBtn />
+            </div>
+          )}
       >
-        <Form form={form} key={1} className="mt-4">
-          <div className="d-flex justify-content-around">
-            <Form.Item<PublishTelegramInterface> name="date" getValueProps={(value) => ({ value: value ? moment(value) : value })} rules={[publishTelegramValidation]}>
-              <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
-            </Form.Item>
-            <Form.Item<PublishTelegramInterface> name="time">
-              <TimePicker
-                onChange={(value) => setTime(value)}
-                value={time}
-                minDate={date}
-                placeholder={t('placeholderTime')}
-                step={10}
-              />
-            </Form.Item>
-          </div>
-          <Form.Item<PublishTelegramInterface> name="description" rules={[publishTelegramValidation]}>
-            <Input.TextArea rows={6} placeholder={t('enterDescription')} />
-          </Form.Item>
-        </Form>
+        {isV2
+          ? (
+            <Form form={form} layout="vertical" className={styles.v2Form}>
+              <div className={styles.v2DateTimeRow}>
+                <Form.Item<PublishTelegramInterface>
+                  className={styles.v2Field}
+                  label={t('placeholderDate')}
+                  name="date"
+                  getValueProps={(value) => ({ value: value ? moment(value) : value })}
+                  rules={[publishTelegramValidation]}
+                >
+                  <MomentDatePicker
+                    minDate={moment()}
+                    placeholder={t('placeholderDate')}
+                    showNow={false}
+                    format={DateFormatEnum.DD_MM_YYYY}
+                    locale={lang === UserLangEnum.RU ? locale : undefined}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+                <Form.Item<PublishTelegramInterface> className={styles.v2Field} label={t('placeholderTime')} name="time">
+                  <TimePicker
+                    onChange={(value) => setTime(value)}
+                    value={time}
+                    minDate={date}
+                    placeholder={t('placeholderTime')}
+                    step={10}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              </div>
+              <Form.Item<PublishTelegramInterface> label={t('descriptionSection')} name="description" rules={[publishTelegramValidation]}>
+                <Input.TextArea rows={6} placeholder={t('enterDescription')} />
+              </Form.Item>
+            </Form>
+          )
+          : (
+            <Form form={form} key={1} className="mt-4">
+              <div className="d-flex justify-content-around">
+                <Form.Item<PublishTelegramInterface> name="date" getValueProps={(value) => ({ value: value ? moment(value) : value })} rules={[publishTelegramValidation]}>
+                  <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
+                </Form.Item>
+                <Form.Item<PublishTelegramInterface> name="time">
+                  <TimePicker
+                    onChange={(value) => setTime(value)}
+                    value={time}
+                    minDate={date}
+                    placeholder={t('placeholderTime')}
+                    step={10}
+                  />
+                </Form.Item>
+              </div>
+              <Form.Item<PublishTelegramInterface> name="description" rules={[publishTelegramValidation]}>
+                <Input.TextArea rows={6} placeholder={t('enterDescription')} />
+              </Form.Item>
+            </Form>
+          )}
       </Modal>
     )
     : (
@@ -150,32 +232,61 @@ export const ItemAdminPublishModal = ({
         title={t('publishSiteTitle')}
         centered
         zIndex={10000}
-        classNames={{ header: 'text-center', footer: 'ant-input-group-addon' }}
+        width={isV2 ? 520 : undefined}
+        rootClassName={isV2 ? styles.v2Modal : undefined}
+        classNames={isV2 ? undefined : { header: 'text-center', footer: 'ant-input-group-addon' }}
         open={!!publicationDate}
-        onOk={onPublicationDateFinish}
-        okText={t('publishUpdate')}
-        cancelText={t('cancel')}
+        onOk={isV2 ? undefined : onPublicationDateFinish}
+        okText={isV2 ? undefined : t('publishUpdate')}
+        cancelText={isV2 ? undefined : t('cancel')}
         onCancel={handlePublicationDateCancel}
-        okButtonProps={{
-          disabled: [publicationDateValue, publicationTime].filter(Boolean).length !== 2,
-        }}
+        okButtonProps={isV2
+          ? undefined
+          : {
+            disabled: [publicationDateValue, publicationTime].filter(Boolean).length !== 2,
+          }}
+        footer={isV2 ? siteScheduleFooterV2 : undefined}
       >
-        <Form form={publicationDateForm} key={2} className="mt-4">
-          <div className="d-flex justify-content-around">
-            <Form.Item<PublicationDateFormInterface> name="publicationDate" getValueProps={(value) => ({ value: value ? moment(value) : value })}>
-              <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
-            </Form.Item>
-            <Form.Item<PublicationDateFormInterface> name="publicationTime">
-              <TimePicker
-                onChange={(value) => setPublicationTime(value)}
-                value={publicationTime}
-                minDate={publicationDateValue}
-                placeholder={t('placeholderTime')}
-                step={10}
-              />
-            </Form.Item>
-          </div>
-        </Form>
+        {isV2
+          ? (
+            <div className={styles.v2SiteModalBody}>
+              <Form form={publicationDateForm} layout="vertical" className={styles.v2Form}>
+                <div className={styles.v2DateTimeRow}>
+                  <Form.Item<PublicationDateFormInterface> className={styles.v2Field} label={t('placeholderDate')} name="publicationDate" getValueProps={(value) => ({ value: value ? moment(value) : value })}>
+                    <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} style={{ width: '100%' }} />
+                  </Form.Item>
+                  <Form.Item<PublicationDateFormInterface> className={styles.v2Field} label={t('placeholderTime')} name="publicationTime">
+                    <TimePicker
+                      onChange={(value) => setPublicationTime(value)}
+                      value={publicationTime}
+                      minDate={publicationDateValue}
+                      placeholder={t('placeholderTime')}
+                      step={10}
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
+                </div>
+              </Form>
+            </div>
+          )
+          : (
+            <Form form={publicationDateForm} key={2} className="mt-4">
+              <div className="d-flex justify-content-around">
+                <Form.Item<PublicationDateFormInterface> name="publicationDate" getValueProps={(value) => ({ value: value ? moment(value) : value })}>
+                  <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
+                </Form.Item>
+                <Form.Item<PublicationDateFormInterface> name="publicationTime">
+                  <TimePicker
+                    onChange={(value) => setPublicationTime(value)}
+                    value={publicationTime}
+                    minDate={publicationDateValue}
+                    placeholder={t('placeholderTime')}
+                    step={10}
+                  />
+                </Form.Item>
+              </div>
+            </Form>
+          )}
       </Modal>
     );
 };
