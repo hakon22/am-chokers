@@ -34,6 +34,13 @@ import type { ParamsIdInterface } from '@server/types/params.id.interface';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
 import type { CacheInfoInterface } from '@server/types/db/cache-info.interface';
+import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
+import {
+  ItemHistoryService,
+  ITEM_HISTORY_FIELD_DELETED,
+  ITEM_HISTORY_FIELD_OUT_STOCK,
+  ITEM_HISTORY_FIELD_PRICE,
+} from '@server/services/item/item.history.service';
 
 @Singleton
 export class ItemService extends TranslationHelper {
@@ -46,6 +53,8 @@ export class ItemService extends TranslationHelper {
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
 
   private readonly deferredPublicationService = Container.get(DeferredPublicationService);
+
+  private readonly itemHistoryService = Container.get(ItemHistoryService);
 
   private createQueryBuilder = (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -388,7 +397,8 @@ export class ItemService extends TranslationHelper {
     return shortItems;
   };
 
-  public createOne = async (body: ItemEntity, images: ImageEntity[], lang: UserLangEnum) => {
+  public createOne = async (body: ItemEntity, images: ImageEntity[], user: PassportRequestInterface) => {
+    const { lang } = user;
     const isExist = await this.exist({ names: body.translations.map((translation) => translation.name) });
 
     if (isExist) {
@@ -435,7 +445,9 @@ export class ItemService extends TranslationHelper {
         await this.deferredPublicationService.createOne(deferredPublication, lang, { manager });
       }
 
-      return this.findOne({ id: created.id }, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
+      const createdItem = await this.findOne({ id: created.id }, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
+      await this.itemHistoryService.recordItemCreated(manager, createdItem.id, user, createdItem.created);
+      return createdItem;
     });
 
     const url = this.getUrl(item);
@@ -447,10 +459,12 @@ export class ItemService extends TranslationHelper {
     return { code: 1, item, url };
   };
 
-  public updateOne = async (params: ParamsIdInterface, body: ItemEntity, lang: UserLangEnum) => {
-    const { translations: oldTranslations, ...item } = await this.findOne(params, lang, { withDeleted: true, withNotPublished: true });
+  public updateOne = async (params: ParamsIdInterface, body: ItemEntity, user: PassportRequestInterface) => {
+    const { lang } = user;
+    const beforeItem = await this.findOne(params, lang, { withDeleted: true, withNotPublished: true }, { withoutCache: true, fullItem: true, withGrades: true });
+    const oldTranslations = beforeItem.translations;
 
-    const isExist = await this.exist({ names: body.translations.map((translation) => translation.name), excludeIds: [item.id] });
+    const isExist = await this.exist({ names: body.translations.map((translation) => translation.name), excludeIds: [beforeItem.id] });
 
     if (isExist) {
       return { code: 2 };
@@ -470,13 +484,18 @@ export class ItemService extends TranslationHelper {
         rest.translateName = translate(newNameRu);
       }
 
-      await this.syncTranslations(itemTranslateRepo, translations, oldTranslations, item, 'item');
+      await this.syncTranslations(itemTranslateRepo, translations, oldTranslations, beforeItem, 'item');
 
       await itemRepo.save(rest);
 
       await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, rest.id, manager);
 
-      return this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
+      const nextItem = await this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
+      const deltas = this.itemHistoryService.buildDeltasBetweenItems(beforeItem, nextItem);
+      if (!_.isEmpty(deltas)) {
+        await this.itemHistoryService.persistDeltas(manager, nextItem.id, user, deltas);
+      }
+      return nextItem;
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -484,8 +503,8 @@ export class ItemService extends TranslationHelper {
 
     const url = this.getUrl(updated);
 
-    if ((updated.group.code !== item.group.code) || (updated.translateName !== item.translateName)) {
-      const oldUrl = this.getUrl(item);
+    if ((updated.group.code !== beforeItem.group.code) || (updated.translateName !== beforeItem.translateName)) {
+      const oldUrl = this.getUrl(beforeItem);
 
       this.uploadPathService.updateSitemap(oldUrl, url);
     }
@@ -495,11 +514,13 @@ export class ItemService extends TranslationHelper {
     return { code: 1, item: updated, url };
   };
 
-  public partialUpdateOne = async (params: ParamsIdInterface, body: ItemEntity, lang: UserLangEnum) => {
-    const { translations: oldTranslations, ...item } = await this.findOne(params, lang, { withDeleted: true, withNotPublished: true });
+  public partialUpdateOne = async (params: ParamsIdInterface, body: ItemEntity, user: PassportRequestInterface) => {
+    const { lang } = user;
+    const beforeItem = await this.findOne(params, lang, { withDeleted: true, withNotPublished: true }, { withoutCache: true, fullItem: true, withGrades: true });
+    const oldTranslations = beforeItem.translations;
 
     if (body.translations && body.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name !== oldTranslations.find((translation) => translation.lang === UserLangEnum.RU)?.name) {
-      const isExist = await this.exist({ names: body.translations.map((translation) => translation.name), excludeIds: [item.id] });
+      const isExist = await this.exist({ names: body.translations.map((translation) => translation.name), excludeIds: [beforeItem.id] });
 
       if (isExist) {
         return { code: 2 };
@@ -519,18 +540,23 @@ export class ItemService extends TranslationHelper {
           body.translateName = translate(newNameRu);
         }
 
-        await this.syncTranslations(itemTranslateRepo, body.translations, oldTranslations, item, 'item');
+        await this.syncTranslations(itemTranslateRepo, body.translations, oldTranslations, beforeItem, 'item');
       }
 
-      if (body.message === null && item.deferredPublication) {
-        await deferredPublicationRepo.softRemove(item.deferredPublication);
+      if (body.message === null && beforeItem.deferredPublication) {
+        await deferredPublicationRepo.softRemove(beforeItem.deferredPublication);
       }
 
       await itemRepo.update(params, body);
 
-      await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, item.id, manager);
+      await this.imageService.processingImages(body.images, UploadPathEnum.ITEM, beforeItem.id, manager);
 
-      return this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
+      const nextItem = await this.findOne(params, lang, { withNotPublished: true, withDeleted: true }, { manager, withGrades: true, fullItem: true, withoutCache: true });
+      const deltas = this.itemHistoryService.buildDeltasBetweenItems(beforeItem, nextItem);
+      if (!_.isEmpty(deltas)) {
+        await this.itemHistoryService.persistDeltas(manager, nextItem.id, user, deltas);
+      }
+      return nextItem;
     });
 
     const [grades] = await this.getGrades(params, { limit: 10, offset: 0 });
@@ -538,8 +564,8 @@ export class ItemService extends TranslationHelper {
 
     const url = this.getUrl(updated);
 
-    if ((updated.group.code !== item.group.code) || (updated.translateName !== item.translateName)) {
-      const oldUrl = this.getUrl(item);
+    if ((updated.group.code !== beforeItem.group.code) || (updated.translateName !== beforeItem.translateName)) {
+      const oldUrl = this.getUrl(beforeItem);
 
       this.uploadPathService.updateSitemap(oldUrl, url);
     }
@@ -549,7 +575,8 @@ export class ItemService extends TranslationHelper {
     return { code: 1, item: updated, url };
   };
 
-  public publishToTelegram = async (params: ParamsIdInterface, lang: UserLangEnum, body?: PublishTelegramInterface) => {
+  public publishToTelegram = async (params: ParamsIdInterface, user: PassportRequestInterface, body?: PublishTelegramInterface) => {
+    const { lang } = user;
     const isRu = lang === UserLangEnum.RU;
 
     if (!process.env.TELEGRAM_GROUP_ID) {
@@ -558,15 +585,15 @@ export class ItemService extends TranslationHelper {
         : 'No group specified for sending to Telegram');
     }
 
-    const item = await this.findOne(params, lang, { withNotPublished: true });
+    const beforeItem = await this.findOne(params, lang, { withNotPublished: true });
 
-    if (item.images.length < 2) {
+    if (beforeItem.images.length < 2) {
       throw new Error(isRu
         ? 'Для публикации в группу Telegram товар должен иметь более одной фотографии'
         : 'To be published in a Telegram group, a item must have more than one photo');
     }
 
-    if (item.message?.send) {
+    if (beforeItem.message?.send) {
       throw new Error(isRu
         ? 'Товар уже опубликован!'
         : 'The item has already been published!');
@@ -575,8 +602,8 @@ export class ItemService extends TranslationHelper {
     if (body && body.date && body.description) {
       const deferredPublicationBody = {
         date: body.date,
-        item: { id: item.id },
-        description: body.description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string,
+        item: { id: beforeItem.id },
+        description: body.description || beforeItem.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string,
       } as DeferredPublicationEntity;
 
       if (moment(deferredPublicationBody.date).isBefore(moment())) {
@@ -585,15 +612,22 @@ export class ItemService extends TranslationHelper {
           : 'The publication date must not be in the past tense');
       }
 
-      item.deferredPublication = await this.deferredPublicationService.createOne(deferredPublicationBody, lang);
-      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
+      beforeItem.deferredPublication = await this.deferredPublicationService.createOne(deferredPublicationBody, lang);
+      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, beforeItem);
     } else {
-      item.deferredPublication = null;
-      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
-      this.publishProcess(item, body?.description);
+      beforeItem.deferredPublication = null;
+      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, beforeItem);
+      this.publishProcess(beforeItem, body?.description);
     }
 
-    return item;
+    const afterItem = await this.findOne(params, lang, { withNotPublished: true });
+    const manager = this.databaseService.getManager();
+    const deltas = this.itemHistoryService.buildDeltasBetweenItems(beforeItem, afterItem);
+    if (!_.isEmpty(deltas)) {
+      await this.itemHistoryService.persistDeltas(manager, afterItem.id, user, deltas);
+    }
+
+    return afterItem;
   };
 
   public getLinks = async () => {
@@ -664,12 +698,14 @@ export class ItemService extends TranslationHelper {
     return redisItem;
   };
 
-  public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+  public deleteOne = async (params: ParamsIdInterface, user: PassportRequestInterface) => {
+    const { lang } = user;
     const item = await this.findOne(params, lang, {}, { withGrades: true, fullItem: true });
 
-    await ItemEntity.update(item.id, { deleted: new Date() });
+    const deletedAt = new Date();
+    await ItemEntity.update(item.id, { deleted: deletedAt });
 
-    item.deleted = new Date();
+    item.deleted = deletedAt;
 
     if (item.deferredPublication) {
       item.deferredPublication = null;
@@ -680,11 +716,20 @@ export class ItemService extends TranslationHelper {
 
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
 
+    const manager = this.databaseService.getManager();
+    await this.itemHistoryService.persistSingleDelta(manager, item.id, user, {
+      field: ITEM_HISTORY_FIELD_DELETED,
+      oldValue: null,
+      newValue: moment(deletedAt).toISOString(),
+    });
+
     return item;
   };
 
-  public restoreOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+  public restoreOne = async (params: ParamsIdInterface, user: PassportRequestInterface) => {
+    const { lang } = user;
     const deletedItem = await this.findOne(params, lang, { withDeleted: true }, { withGrades: true, fullItem: true });
+    const previousDeletedAt = deletedItem.deleted;
 
     await ItemEntity.update(deletedItem.id, { deleted: null });
 
@@ -694,6 +739,13 @@ export class ItemService extends TranslationHelper {
     deletedItem.grades = grades;
 
     await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, deletedItem);
+
+    const manager = this.databaseService.getManager();
+    await this.itemHistoryService.persistSingleDelta(manager, deletedItem.id, user, {
+      field: ITEM_HISTORY_FIELD_DELETED,
+      oldValue: !_.isNil(previousDeletedAt) ? moment(previousDeletedAt).toISOString() : null,
+      newValue: null,
+    });
 
     return deletedItem;
   };
@@ -967,10 +1019,11 @@ export class ItemService extends TranslationHelper {
 
   public bulkSetOutStock = async (
     body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; outStock: unknown; },
-    lang: UserLangEnum,
+    user: PassportRequestInterface,
   ) => {
+    const { lang } = user;
     const ids = await this.resolveBulkTargetIds(body);
-    if (!ids.length) {
+    if (_.isEmpty(ids)) {
       return { code: 1, affectedCount: 0 };
     }
     const minDay = moment().add(1, 'day').startOf('day');
@@ -983,14 +1036,30 @@ export class ItemService extends TranslationHelper {
     const outStock = chosen.toDate();
     const CHUNK = 500;
     const manager = this.databaseService.getManager();
+    const newOutSerialized = moment(outStock).toISOString();
     for (let i = 0; i < ids.length; i += CHUNK) {
       const chunk = ids.slice(i, i + CHUNK);
+      const repo = manager.getRepository(ItemEntity);
+      const prevRows = await repo.find({
+        where: { id: In(chunk) },
+        select: ['id', 'outStock'],
+      });
       await manager
         .createQueryBuilder()
         .update(ItemEntity)
         .set({ outStock })
         .where('id IN (:...ids)', { ids: chunk })
         .execute();
+      for (const row of prevRows) {
+        const oldSerialized = row.outStock ? moment(row.outStock).toISOString() : null;
+        if (oldSerialized !== newOutSerialized) {
+          await this.itemHistoryService.persistSingleDelta(manager, row.id, user, {
+            field: ITEM_HISTORY_FIELD_OUT_STOCK,
+            oldValue: oldSerialized,
+            newValue: newOutSerialized,
+          });
+        }
+      }
     }
     await this.refreshRedisForItemIds(ids);
     return { code: 1 as const, affectedCount: ids.length };
@@ -998,21 +1067,36 @@ export class ItemService extends TranslationHelper {
 
   public bulkClearOutStock = async (
     body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; },
+    user: PassportRequestInterface,
   ) => {
     const ids = await this.resolveBulkTargetIds(body);
-    if (!ids.length) {
+    if (_.isEmpty(ids)) {
       return { code: 1 as const, affectedCount: 0 };
     }
     const CHUNK = 500;
     const manager = this.databaseService.getManager();
     for (let i = 0; i < ids.length; i += CHUNK) {
       const chunk = ids.slice(i, i + CHUNK);
+      const repo = manager.getRepository(ItemEntity);
+      const prevRows = await repo.find({
+        where: { id: In(chunk) },
+        select: ['id', 'outStock'],
+      });
       await manager
         .createQueryBuilder()
         .update(ItemEntity)
         .set({ outStock: null })
         .where('id IN (:...ids)', { ids: chunk })
         .execute();
+      for (const row of prevRows) {
+        if (!_.isNil(row.outStock)) {
+          await this.itemHistoryService.persistSingleDelta(manager, row.id, user, {
+            field: ITEM_HISTORY_FIELD_OUT_STOCK,
+            oldValue: moment(row.outStock).toISOString(),
+            newValue: null,
+          });
+        }
+      }
     }
     await this.refreshRedisForItemIds(ids);
     return { code: 1 as const, affectedCount: ids.length };
@@ -1028,9 +1112,10 @@ export class ItemService extends TranslationHelper {
       percentage: number;
       multiple: number;
     },
+    user: PassportRequestInterface,
   ) => {
     const ids = await this.resolveBulkTargetIds(body);
-    if (!ids.length) {
+    if (_.isEmpty(ids)) {
       return { code: 1 as const, affectedCount: 0, skippedBelowMin: 0 };
     }
     const { percentage, multiple } = body;
@@ -1057,11 +1142,21 @@ export class ItemService extends TranslationHelper {
           changedIds.push(row.id);
         }
       }
-      if (toSave.length) {
+      if (!_.isEmpty(toSave)) {
         await repo.save(toSave);
+        for (const saved of toSave) {
+          const oldRow = rows.find((row) => row.id === saved.id);
+          if (oldRow) {
+            await this.itemHistoryService.persistSingleDelta(manager, saved.id, user, {
+              field: ITEM_HISTORY_FIELD_PRICE,
+              oldValue: String(oldRow.price),
+              newValue: String(saved.price),
+            });
+          }
+        }
       }
     }
-    if (changedIds.length) {
+    if (!_.isEmpty(changedIds)) {
       await this.refreshRedisForItemIds(changedIds);
     }
     return { code: 1, affectedCount: changedIds.length, skippedBelowMin };

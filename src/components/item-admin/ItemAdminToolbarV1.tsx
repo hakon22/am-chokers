@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, FloatButton, Popconfirm, Tag } from 'antd';
-import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, HistoryOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import Image from 'next/image';
 import moment from 'moment';
 import { Telegram } from 'react-bootstrap-icons';
@@ -9,10 +10,12 @@ import telegramIcon from '@/images/icons/telegram.svg';
 import { ItemAdminPublishModal } from '@/components/item-admin/ItemAdminPublishModal';
 import { useItemAdminPanel } from '@/components/item-admin/useItemAdminPanel';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { V1ItemHistoryModal } from '@/components/item-admin/V1ItemHistoryModal';
 import type { ItemInterface } from '@/types/item/Item';
 
 export const ItemAdminToolbarV1 = ({ item, setItem }: { item: ItemInterface; setItem: (value: ItemInterface) => void; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const [historyOpen, setHistoryOpen] = useState(false);
   const panel = useItemAdminPanel(item, setItem);
 
   if (!panel.isAdmin) {
@@ -36,6 +39,7 @@ export const ItemAdminToolbarV1 = ({ item, setItem }: { item: ItemInterface; set
   return isMobile
     ? (
       <>
+        <V1ItemHistoryModal itemId={item.id} open={historyOpen} onClose={() => setHistoryOpen(false)} />
         <ItemAdminPublishModal {...modalProps} />
         <FloatButton.Group
           trigger="click"
@@ -43,6 +47,7 @@ export const ItemAdminToolbarV1 = ({ item, setItem }: { item: ItemInterface; set
           icon={<EllipsisOutlined />}
         >
           <FloatButton onClick={onEdit} icon={<SignatureOutlined />} />
+          <FloatButton onClick={() => setHistoryOpen(true)} icon={<HistoryOutlined />} />
           {item.deleted ? <FloatButton onClick={restoreItemHandler} icon={<UndoOutlined />} /> : <FloatButton onClick={deleteItemHandler} icon={<DeleteOutlined />} />}
           {item.publicationDate
             ? <FloatButton onClick={onPublicationDateEdit} className="float-custom-icon" icon={<RubyOutlined width={40} height={40} />} />
@@ -57,8 +62,10 @@ export const ItemAdminToolbarV1 = ({ item, setItem }: { item: ItemInterface; set
     )
     : (
       <>
+        <V1ItemHistoryModal itemId={item.id} open={historyOpen} onClose={() => setHistoryOpen(false)} />
         <ItemAdminPublishModal {...modalProps} />
         <Button type="text" className="action-button edit" onClick={onEdit}>{t('edit')}</Button>
+        <Button type="text" className="action-button edit" onClick={() => setHistoryOpen(true)}>{t('history')}</Button>
         {item.deleted
           ? <Button type="text" className="action-button restore" onClick={restoreItemHandler}>{t('restore')}</Button>
           : (

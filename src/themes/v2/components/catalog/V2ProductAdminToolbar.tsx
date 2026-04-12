@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FloatButton, Popconfirm } from 'antd';
-import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
+import { CloseOutlined, DeleteOutlined, EditOutlined, EllipsisOutlined, HistoryOutlined, RubyOutlined, SignatureOutlined, UndoOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import { Telegram } from 'react-bootstrap-icons';
 import cn from 'classnames';
@@ -11,12 +12,14 @@ import { useItemAdminPanel } from '@/components/item-admin/useItemAdminPanel';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import styles from '@/themes/v2/components/catalog/ProductPageAdmin.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
+import { V2ItemHistoryModal } from '@/themes/v2/components/catalog/V2ItemHistoryModal';
 import type { ItemInterface } from '@/types/item/Item';
 
 const floatBtnStyle = { backgroundColor: '#2B3C5F' };
 
 export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; setItem: (value: ItemInterface) => void; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const [historyOpen, setHistoryOpen] = useState(false);
   const panel = useItemAdminPanel(item, setItem);
 
   if (!panel.isAdmin) {
@@ -40,13 +43,15 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
   if (isMobile) {
     return (
       <>
+        <V2ItemHistoryModal itemId={item.id} open={historyOpen} onClose={() => setHistoryOpen(false)} />
         <ItemAdminPublishModal {...modalProps} />
         <FloatButton.Group
           trigger="click"
           rootClassName={styles.floatRoot}
           style={{
-            insetInlineEnd: 18,
-            bottom: 'calc(56px + env(safe-area-inset-bottom, 0px) + 12px)',
+            // Одна вертикаль с FloatButton.BackTop: тот же inset, bottom выше на кнопку + зазор (см. general.scss `body.v2-product-mobile .ant-float-btn`)
+            insetInlineEnd: 24,
+            bottom: 'calc(124px + 40px + 12px)',
             top: 'auto',
             zIndex: 220,
             height: 'min-content',
@@ -54,6 +59,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
           icon={<EllipsisOutlined />}
         >
           <FloatButton icon={<SignatureOutlined />} onClick={onEdit} style={floatBtnStyle} />
+          <FloatButton icon={<HistoryOutlined />} onClick={() => setHistoryOpen(true)} style={floatBtnStyle} />
           {item.deleted
             ? <FloatButton icon={<UndoOutlined />} onClick={restoreItemHandler} style={floatBtnStyle} />
             : <FloatButton icon={<DeleteOutlined />} onClick={deleteItemHandler} style={floatBtnStyle} />}
@@ -89,9 +95,11 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
 
   return (
     <div className={styles.desktop}>
+      <V2ItemHistoryModal itemId={item.id} open={historyOpen} onClose={() => setHistoryOpen(false)} />
       <ItemAdminPublishModal {...modalProps} />
       <div className={styles.actions}>
         <button type="button" className={styles.actionBtn} onClick={onEdit}>{t('edit')}</button>
+        <button type="button" className={styles.actionBtn} onClick={() => setHistoryOpen(true)}>{t('history')}</button>
         {item.deleted
           ? <button type="button" className={styles.actionBtn} onClick={restoreItemHandler}>{t('restore')}</button>
           : (

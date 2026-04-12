@@ -4,6 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { BaseService } from '@server/services/app/base.service';
 import { publishTelegramValidation, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
 import { ItemService } from '@server/services/item/item.service';
+import { ItemHistoryService } from '@server/services/item/item.history.service';
 import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams, bodyItemBulkOutStockSchema, bodyItemBulkOutStockClearSchema, bodyItemBulkPriceAdjustSchema } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
@@ -11,6 +12,49 @@ import type { PublishTelegramInterface } from '@/slices/appSlice';
 @Singleton
 export class ItemController extends BaseService {
   private readonly itemService = Container.get(ItemService);
+
+  private readonly itemHistoryService = Container.get(ItemHistoryService);
+
+  /**
+   * Возвращает постраничную историю изменений товара (только админ)
+   * @param req - HTTP-запрос с `params.id` и `query.limit` / `query.offset`
+   * @param res - HTTP-ответ JSON `{ code, history, paginationParams }`
+   * @returns `Promise`, завершающийся после отправки JSON через `res.json` (`code`, `history`, `paginationParams`)
+   */
+  public getItemHistory = async (req: Request, res: Response) => {
+    try {
+      this.getCurrentUser(req);
+      const params = await paramsIdSchema.validate(req.params);
+      const query = await queryPaginationSchema.validate(req.query);
+      const limitCandidate = query.limit;
+      const limit = Math.min(
+        200,
+        Number.isFinite(limitCandidate) && (limitCandidate as number) >= 1 ? (limitCandidate as number) : 50,
+      );
+      const offsetCandidate = query.offset;
+      const offset = Number.isFinite(offsetCandidate) && (offsetCandidate as number) >= 0
+        ? (offsetCandidate as number)
+        : 0;
+
+      const [history, count] = await this.itemHistoryService.findManyByItemId({
+        itemId: params.id,
+        limit,
+        offset,
+      });
+
+      res.json({
+        code: 1,
+        history,
+        paginationParams: {
+          count,
+          limit,
+          offset,
+        },
+      });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
 
   public findOne = async (req: Request, res: Response) => {
     try {
@@ -111,7 +155,7 @@ export class ItemController extends BaseService {
 
       const { images, ...rest } = body;
 
-      const result = await this.itemService.createOne(rest as ItemEntity, images, user.lang);
+      const result = await this.itemService.createOne(rest as ItemEntity, images, user);
 
       res.json(result);
     } catch (e) {
@@ -125,7 +169,7 @@ export class ItemController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
       const body = await newItemValidation.serverValidator(req.body) as ItemEntity;
 
-      const result = await this.itemService.updateOne(params, body, user.lang);
+      const result = await this.itemService.updateOne(params, body, user);
 
       res.json(result);
     } catch (e) {
@@ -139,7 +183,7 @@ export class ItemController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
       const body = await partialUpdateItemValidation.serverValidator(req.body) as ItemEntity;
 
-      const result = await this.itemService.partialUpdateOne(params, body, user.lang);
+      const result = await this.itemService.partialUpdateOne(params, body, user);
 
       res.json(result);
     } catch (e) {
@@ -152,7 +196,7 @@ export class ItemController extends BaseService {
       const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.itemService.deleteOne(params, user.lang);
+      const item = await this.itemService.deleteOne(params, user);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -165,7 +209,7 @@ export class ItemController extends BaseService {
       const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const item = await this.itemService.restoreOne(params, user.lang);
+      const item = await this.itemService.restoreOne(params, user);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -179,7 +223,7 @@ export class ItemController extends BaseService {
       const params = await paramsIdSchema.validate(req.params);
       const body = await publishTelegramValidation.serverValidator(req.body) as PublishTelegramInterface;
 
-      const item = await this.itemService.publishToTelegram(params, user.lang, body);
+      const item = await this.itemService.publishToTelegram(params, user, body);
 
       res.json({ code: 1, item });
     } catch (e) {
@@ -258,7 +302,7 @@ export class ItemController extends BaseService {
       const user = this.getCurrentUser(req);
       const body = await bodyItemBulkOutStockSchema.validate(req.body);
 
-      const result = await this.itemService.bulkSetOutStock(body, user.lang);
+      const result = await this.itemService.bulkSetOutStock(body, user);
 
       res.json(result);
     } catch (e) {
@@ -270,7 +314,8 @@ export class ItemController extends BaseService {
     try {
       const body = await bodyItemBulkOutStockClearSchema.validate(req.body);
 
-      const result = await this.itemService.bulkClearOutStock(body);
+      const user = this.getCurrentUser(req);
+      const result = await this.itemService.bulkClearOutStock(body, user);
 
       res.json(result);
     } catch (e) {
@@ -282,7 +327,8 @@ export class ItemController extends BaseService {
     try {
       const body = await bodyItemBulkPriceAdjustSchema.validate(req.body);
 
-      const result = await this.itemService.bulkPriceAdjust(body);
+      const user = this.getCurrentUser(req);
+      const result = await this.itemService.bulkPriceAdjust(body, user);
 
       res.json(result);
     } catch (e) {

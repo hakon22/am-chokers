@@ -30,6 +30,7 @@ import { YandexDirectCampaignEntity } from '@server/db/entities/yandex.direct.ca
 import { YandexDirectStatisticsEntity } from '@server/db/entities/yandex.direct.statistics.entity';
 import { BannerEntity } from '@server/db/entities/banner.entity';
 import { SiteSettingsEntity } from '@server/db/entities/site.settings.entity';
+import { ItemHistoryEntity } from '@server/db/entities/item.history.entity';
 
 export const entities = [
   UserEntity,
@@ -64,4 +65,5 @@ export const entities = [
   YandexDirectStatisticsEntity,
   BannerEntity,
   SiteSettingsEntity,
+  ItemHistoryEntity,
 ];

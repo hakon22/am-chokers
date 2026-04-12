@@ -1,0 +1,75 @@
+.modal {
+  :global(.ant-modal-content) {
+    border-radius: 12px;
+  }
+}
+
+.body {
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.meta {
+  font-size: 13px;
+  color: rgba(43, 60, 95, 0.72);
+  margin-bottom: 6px;
+}
+
+.titleLine {
+  font-weight: 600;
+  color: #2b3c5f;
+}
+
+.changeBlock {
+  color: rgba(43, 60, 95, 0.92);
+}
+
+.fieldLabel {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 2px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #2b3c5f;
+  background: rgba(43, 60, 95, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(43, 60, 95, 0.18);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  font-weight: 400;
+  line-height: 1.5;
+
+  ul {
+    flex: 1 1 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: rgba(43, 60, 95, 0.55);
+  font-weight: 500;
+}
+
+/** «Было» — как удалённая строка в диффе (Cursor) */
+.valueOld {
+  color: #f14c4c;
+}
+
+/** «Стало» — как добавленная строка */
+.valueNew {
+  color: #3fb950;
+}
+
+.loadMore {
+  margin-top: 16px;
+  text-align: center;
+}

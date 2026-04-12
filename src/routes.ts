@@ -152,6 +152,7 @@ export const routes = {
     updateOne: (id?: number) => [apiPath, 'item', id ?? ':id', 'update'].join('/'),
     restoreOne: (id?: number) => [apiPath, 'item', id ?? ':id', 'restore'].join('/'),
     deleteOne: (id?: number) => [apiPath, 'item', id ?? ':id', 'delete'].join('/'),
+    getHistory: (id?: number) => [apiPath, 'item', id ?? ':id', 'history'].join('/'),
     publishToTelegram: (id?: number) => [apiPath, 'item', id ?? ':id', 'publish'].join('/'),
     getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
     getCacheInfo: [apiPath, 'item', 'cache-info'].join('/'),

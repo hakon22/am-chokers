@@ -621,6 +621,13 @@ body.v2-product-mobile .ant-float-btn {
   right: 24px !important;
 }
 
+// Позицию админской группы задаём на контейнере; внутренним `.ant-float-btn` не нужны те же inset — иначе триггер смещается относительно BackTop
+body.v2-product-mobile .ant-float-btn-group .ant-float-btn {
+  bottom: auto !important;
+  right: auto !important;
+  inset-inline-end: auto !important;
+}
+
 .instagram {
   position: relative;
 

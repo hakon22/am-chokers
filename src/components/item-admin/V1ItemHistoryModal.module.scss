@@ -1,0 +1,45 @@
+.changeBlock {
+  color: #495057;
+}
+
+.fieldLabel {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 2px 12px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #212529;
+  background: #e9ecef;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  font-weight: 400;
+  line-height: 1.5;
+
+  ul {
+    flex: 1 1 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.valueOld {
+  color: #f14c4c;
+}
+
+.valueNew {
+  color: #3fb950;
+}
