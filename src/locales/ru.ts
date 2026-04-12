@@ -132,6 +132,9 @@ export default {
           actions: {
             stop: 'Отменить заказ',
             cancelConfirm: 'Уверены, что хотите отменить заказ?',
+            cancelConfirmAdmin: 'Отменить заказ №{{ number }}? Покупатель получит уведомление.',
+            statusChangeConfirm: 'Перевести заказ №{{ number }} в статус «{{ status }}»?',
+            adminPanelTitle: 'Управление заказом',
             cancel: 'Нет',
             okText: 'Да',
             change: 'Перевести в статус {{ status }}',

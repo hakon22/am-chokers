@@ -49,7 +49,7 @@ export const V2AdminOrder = ({ id }: Props) => {
   return (
     <>
       <Helmet title={tOrder('title', { id })} description={tOrder('description', { id })} />
-      {order && <V2Order order={order} orderId={order.id} />}
+      {order && <V2Order order={order} orderId={order.id} onAdminOrderUpdated={setOrder} />}
     </>
   );
 };

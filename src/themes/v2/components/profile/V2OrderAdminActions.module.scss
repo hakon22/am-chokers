@@ -1,0 +1,147 @@
+@use 'profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy2:  v2.$v2-navy-secondary;
+$navy3:  v2.$v2-navy-medium;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$white:  v2.$v2-white;
+$textS:  v2.$v2-text-secondary;
+$textM:  v2.$v2-text-muted;
+$error:  v2.$v2-error;
+
+.panel {
+  @include card;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(77, 104, 158, 0.04) 0%, $white 48%);
+  border: 1px solid rgba(77, 104, 158, 0.12);
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: $textM;
+  margin: 0 0 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+// Строка в футере карточки списка заказов (админка)
+.toolbarListRoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.toolbarListLeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbarListArrows {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btnPay {
+  @include btn-primary;
+  height: 36px;
+  padding: 0 20px;
+  font-size: 10px;
+}
+
+.btnCancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: $textS;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  &:hover { border-color: $error; color: $error; background: #fff5f5; }
+}
+
+.btnStatus {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: $bgAlt;
+  font-size: 15px;
+  color: $textS;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: $navy3; color: $navy2; background: $white; }
+}
+
+@media (max-width: 768px) {
+  .panel { padding: 14px; }
+  .btnCancel { height: 34px; }
+  .btnStatus { width: 34px; height: 34px; }
+
+  .toolbarListRoot {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
+    margin-inline: auto;
+    gap: 12px;
+  }
+
+  .toolbarListLeading {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex: none;
+    width: 100%;
+    gap: 12px;
+
+    > * {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin-inline: auto;
+      box-sizing: border-box;
+    }
+
+    .btnPay,
+    .btnCancel {
+      width: 100%;
+      max-width: none;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+
+  .toolbarListArrows {
+    justify-content: center;
+    width: 100%;
+  }
+}

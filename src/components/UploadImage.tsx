@@ -19,6 +19,8 @@ interface UploadImageInterface {
   preview?: boolean;
   previewImage?: string;
   previewOpen?: boolean;
+  /** When set, applied to the trigger `Button` and `type` becomes `default` so host styles (e.g. v2) win over Ant primary. */
+  uploadButtonClassName?: string;
   filelist: UploadFile[];
   setFileList: React.Dispatch<React.SetStateAction<UploadFile[]>>;
   setCommentImages: React.Dispatch<React.SetStateAction<ItemInterface['images']>>;
@@ -57,7 +59,7 @@ export const getBase64 = (file: FileType): Promise<string> =>
     reader.onerror = (error) => reject(error);
   });
 
-export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist, setFileList, setCommentImages, setPreviewImage, setPreviewOpen }: UploadImageInterface) => {
+export const UploadImage = ({ crop, preview, previewImage, previewOpen, uploadButtonClassName, filelist, setFileList, setCommentImages, setPreviewImage, setPreviewOpen }: UploadImageInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.uploadImage' });
 
   const { token } = useAppSelector((state) => state.user);
@@ -95,7 +97,7 @@ export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist
               setCommentImages((state) => state.filter((image) => image.id !== file.response?.image.id));
             }}
           >
-            <Button type="primary" icon={<UploadOutlined />}>
+            <Button type={uploadButtonClassName ? 'default' : 'primary'} className={uploadButtonClassName} icon={<UploadOutlined />}>
               {t('upload')}
             </Button>
           </Upload>
@@ -135,7 +137,7 @@ export const UploadImage = ({ crop, preview, previewImage, previewOpen, filelist
             setCommentImages((state) => state.filter((image) => image.id !== file.response?.image.id));
           }}
         >
-          <Button type="primary" icon={<UploadOutlined />}>
+          <Button type={uploadButtonClassName ? 'default' : 'primary'} className={uploadButtonClassName} icon={<UploadOutlined />}>
             {t('upload')}
           </Button>
         </Upload>

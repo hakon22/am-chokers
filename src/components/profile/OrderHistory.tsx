@@ -220,7 +220,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                       <span className="fw-bold">{getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}</span>
                     </Tag>
                   </div>
-                  {!setData && !order.positions.some((position) => position.grade) && order.status === OrderStatusEnum.COMPLETED &&
+                  {!setData && order.positions.some((position) => !position.grade) && order.status === OrderStatusEnum.COMPLETED &&
                     <div>
                       <Button className="button mt-2 fs-5" onClick={() => router.push(`${setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory}/${order.id}`)}>
                         {t('rateYourOrder')}

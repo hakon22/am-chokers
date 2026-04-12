@@ -31,13 +31,18 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import styles from '@/themes/v2/components/profile/V2Order.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
+import { V2OrderAdminActions } from '@/themes/v2/components/profile/V2OrderAdminActions';
 import type { GradeFormInterface } from '@/types/order/Grade';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
 
 const isVideo = (src: string) => src.endsWith('.mp4');
 
-export const V2Order = ({ orderId, order: orderParams }: { orderId: number; order?: OrderInterface }) => {
+export const V2Order = ({ orderId, order: orderParams, onAdminOrderUpdated }: {
+  orderId: number;
+  order?: OrderInterface;
+  onAdminOrderUpdated?: (order: OrderInterface) => void;
+}) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.profile.orders.order' });
   const { t: tOrders } = useTranslation('translation', { keyPrefix: 'pages.profile.orders' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
@@ -64,7 +69,7 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
 
   const setIsLoadedEffect = useEffectEvent(setIsLoaded);
 
-  const { id: userId, lang = UserLangEnum.RU, isAdmin } = useAppSelector((state) => state.user);
+  const { lang = UserLangEnum.RU, isAdmin } = useAppSelector((state) => state.user);
   const { loadingStatus } = useAppSelector((state) => state.order);
   const order = useAppSelector((state) => orderParams || selectors.selectById(state, orderId));
 
@@ -168,9 +173,18 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
             </div>
           )}
         </div>
-        <span className={styles.statusBadge} style={{ background: getOrderStatusColor(order.status) }}>
-          {tOrders(`statuses.${order.status}`)}
-        </span>
+        <div className={styles.headerBadges}>
+          {order.isPayment ? (
+            <span className={styles.tagPaid}>{tOrders('payment')}{tOrders('price', { price: getOrderPrice(order) })}</span>
+          ) : (
+            order.status !== OrderStatusEnum.CANCELED && (
+              <span className={styles.tagNotPaid}>{tOrders('notPayment', { price: getOrderPrice(order) })}</span>
+            )
+          )}
+          <span className={styles.statusBadge} style={{ background: getOrderStatusColor(order.status) }}>
+            {tOrders(`statuses.${order.status}`)}
+          </span>
+        </div>
       </div>
 
       {/* ── Body grid ── */}
@@ -232,17 +246,20 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
                           style={{ borderRadius: 10 }}
                         />
                       </Form.Item>
-                      <UploadImage
-                        crop
-                        preview
-                        filelist={fileList}
-                        setFileList={setFileList}
-                        previewImage={previewImage}
-                        previewOpen={previewOpen}
-                        setCommentImages={setCommentImages}
-                        setPreviewImage={setPreviewImage}
-                        setPreviewOpen={setPreviewOpen}
-                      />
+                      <div className={styles.gradeUploadWrap}>
+                        <UploadImage
+                          crop
+                          preview
+                          uploadButtonClassName={styles.gradeUploadTrigger}
+                          filelist={fileList}
+                          setFileList={setFileList}
+                          previewImage={previewImage}
+                          previewOpen={previewOpen}
+                          setCommentImages={setCommentImages}
+                          setPreviewImage={setPreviewImage}
+                          setPreviewOpen={setPreviewOpen}
+                        />
+                      </div>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                         <button className={styles.gradeSubmit} type="submit">{t('rateSubmit')}</button>
                         <button className={styles.gradeCancel} type="button" onClick={clearGradeForm}>{t('cancel')}</button>
@@ -338,19 +355,17 @@ export const V2Order = ({ orderId, order: orderParams }: { orderId: number; orde
             <span className={styles.totalValue}>{tOrders('price', { price: getOrderPrice(order) })}</span>
           </div>
 
-          {order.isPayment
-            ? <div className={styles.tagPaid}>{tOrders('payment')}{tOrders('price', { price: getOrderPrice(order) })}</div>
-            : order.status !== OrderStatusEnum.CANCELED
-              ? (isAdmin && order.user.id !== userId
-                ? <div className={styles.tagNotPaid}>{tOrders('notPayment', { price: getOrderPrice(order) })}</div>
-                : (
-                  <button className={styles.btnPay} type="button" onClick={() => onPay(order.id)}>
-                    {t('pay', { price: getOrderPrice(order) })}
-                  </button>
-                ))
-              : null}
+          {!(isAdmin && orderParams) && !order.isPayment && order.status !== OrderStatusEnum.CANCELED && (
+            <button className={styles.btnPay} type="button" onClick={() => onPay(order.id)}>
+              {t('pay', { price: getOrderPrice(order) })}
+            </button>
+          )}
         </div>
       </div>
+
+      {isAdmin && orderParams && (
+        <V2OrderAdminActions order={order} onOrderUpdated={onAdminOrderUpdated} />
+      )}
     </div>
   );
 };

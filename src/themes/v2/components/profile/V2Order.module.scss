@@ -68,6 +68,24 @@ $success: v2.$v2-success;
   gap: 8px;
 }
 
+.headerBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+
+  .tagPaid,
+  .tagNotPaid {
+    margin-top: 0;
+    width: auto;
+    min-height: 28px;
+    height: auto;
+    box-sizing: border-box;
+  }
+}
+
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -241,6 +259,60 @@ $success: v2.$v2-success;
   height: 34px;
   font-size: 10px;
   padding: 0 16px;
+}
+
+.gradeUploadWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+
+  :global(.ant-upload-wrapper),
+  :global(.ant-upload) {
+    width: auto !important;
+    max-width: 100%;
+  }
+
+  :global(.ant-upload-list) {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
+
+.gradeUploadTrigger:global(.ant-btn) {
+  @include btn-primary;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 16px !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  border-radius: 10px !important;
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: 0 2px 0 rgba(43, 58, 94, 0.12);
+  color: $white !important;
+  border-color: $navy2 !important;
+  background: $navy2 !important;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    color: $white !important;
+    border-color: $navy !important;
+    background: $navy !important;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+  }
+
+  :global(.anticon) {
+    font-size: 14px;
+    color: $white !important;
+  }
 }
 
 // ── Info card ─────────────────────────────────────────────────────

@@ -3,22 +3,22 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Popconfirm, Tooltip } from 'antd';
 import {
-  StopOutlined, ForwardOutlined, BackwardOutlined,
+  StopOutlined,
   CopyOutlined, ContainerOutlined, ShoppingOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import moment from 'moment';
 import axios from 'axios';
 import cn from 'classnames';
+import { isEmpty } from 'lodash';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
+import { type OrderResponseInterface, selectors, cancelOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
-import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
@@ -33,6 +33,7 @@ import { urlToBase64, getBase64 } from '@/components/UploadImage';
 import { getWidth } from '@/utilities/screenExtension';
 import styles from '@/themes/v2/components/profile/V2OrderHistory.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
+import { V2OrderAdminActions } from '@/themes/v2/components/profile/V2OrderAdminActions';
 import type { OrderInterface } from '@/types/order/Order';
 import type { CartItemInterface } from '@/types/cart/Cart';
 
@@ -76,24 +77,16 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
   };
 
   const handleUpdate = (result: OrderResponseInterface) => {
-    if (data?.length && setData) {
+    if (!isEmpty(data) && setData) {
       setData((prev) => {
         const next = [...prev];
-        const idx = next.findIndex((o) => o.id === result.order.id);
-        if (idx !== -1) next[idx] = result.order;
+        const idx = next.findIndex((order) => order.id === result.order.id);
+        if (idx !== -1) {
+          next[idx] = result.order;
+        }
         return next;
       });
     }
-  };
-
-  const changeStatusHandler = async (status: OrderStatusEnum, orderId: number) => {
-    setIsSubmit(true);
-    const { payload } = await dispatch(updateOrder({ id: orderId, data: { status } })) as { payload: OrderResponseInterface };
-    if (payload.code === 1) {
-      handleUpdate(payload);
-      toast(tToast('changeOrderStatusSuccess', { id: payload.order.id, status: t(`statuses.${payload.order.status}`) }), 'success');
-    }
-    setIsSubmit(false);
   };
 
   const cancelOrderHandler = async (orderId: number) => {
@@ -150,7 +143,20 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
   const visibleOrders = orders
     .slice()
     .sort((a, b) => b.id - a.id)
-    .filter((o) => !statuses.length || statuses.includes(o.status));
+    .filter((order) => !statuses.length || statuses.includes(order.status));
+
+  const patchOrderInAdminList = (updatedOrder: OrderInterface) => {
+    if (!isEmpty(data) && setData) {
+      setData((prev) => {
+        const next = [...prev];
+        const idx = next.findIndex((row) => row.id === updatedOrder.id);
+        if (idx !== -1) {
+          next[idx] = updatedOrder;
+        }
+        return next;
+      });
+    }
+  };
 
   return (
     <div className={styles.wrap}>
@@ -161,8 +167,12 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
       )}
 
       {visibleOrders.map((order) => {
-        const { back, next } = getNextOrderStatuses(order.status);
         const isCanceled = order.status === OrderStatusEnum.CANCELED;
+        const showClientPayAndCancel = !isAdmin && !order.isPayment && !isCanceled;
+        const showRateButton = !setData
+          && order.positions.some((position) => !position.grade)
+          && order.status === OrderStatusEnum.COMPLETED;
+        const showClientFooterActions = showClientPayAndCancel || showRateButton;
 
         return (
           <div key={order.id} className={styles.card}>
@@ -176,13 +186,22 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
                   {getDeliveryTypeTranslate(order.delivery.type, lang as UserLangEnum)}
                 </span>
               </div>
-              <span className={styles.statusBadge} style={{ background: getOrderStatusColor(order.status) }}>
-                {t(`statuses.${order.status}`)}
-              </span>
+              <div className={styles.cardHeaderRight}>
+                {order.isPayment ? (
+                  <span className={styles.tagPaid}>{t('payment')}{tPrice('price', { price: getOrderPrice(order) })}</span>
+                ) : (
+                  !isCanceled && (
+                    <span className={styles.tagNotPaid}>{t('notPayment', { price: getOrderPrice(order) })}</span>
+                  )
+                )}
+                <span className={styles.statusBadge} style={{ background: getOrderStatusColor(order.status) }}>
+                  {t(`statuses.${order.status}`)}
+                </span>
+              </div>
             </div>
 
-            {/* ── Admin user info ── */}
-            {isAdmin && (
+            {/* ── Контакты покупателя: только админ в списке заказов админки (не клиент) ── */}
+            {isAdmin && setData && (
               <div className={styles.adminMeta}>
                 <Link href={`${routes.page.admin.userCard}/${order.user.id}`} className={styles.adminLink}>
                   {order.user.name}
@@ -233,7 +252,7 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
             </div>
 
             {/* ── Footer ── */}
-            <div className={styles.cardFooter}>
+            <div className={cn(styles.cardFooter, isAdmin && styles.cardFooterAdminList)}>
               <div className={styles.cardFooterLeft}>
                 <span className={styles.totalAmount}>{t('totalAmount', { price: getOrderPrice(order) })}</span>
                 {order.receiptUrl && (
@@ -245,55 +264,45 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
                 )}
               </div>
 
-              <div className={styles.actions}>
-                {/* Payment */}
-                {order.isPayment ? (
-                  <span className={styles.tagPaid}>{t('payment')}{tPrice('price', { price: getOrderPrice(order) })}</span>
-                ) : (
-                  !isCanceled && (
-                    isAdmin && order.user.id !== userId
-                      ? <span className={styles.tagNotPaid}>{t('notPayment', { price: getOrderPrice(order) })}</span>
-                      : (
-                        <button className={styles.btnPay} type="button" onClick={() => onPay(order.id)}>
-                          {t('pay', { price: getOrderPrice(order) })}
-                        </button>
-                      )
-                  )
-                )}
-
-                {/* Rate order */}
-                {!setData && !order.positions.some((position) => position.grade) && order.status === OrderStatusEnum.COMPLETED && (
-                  <button className={styles.btnRate} type="button" onClick={() => router.push(`${baseRoute}/${order.id}`)}>
+              <div className={styles.cardFooterTrailing}>
+                {isAdmin && showRateButton && (
+                  <button
+                    type="button"
+                    className={styles.btnRateFeatured}
+                    onClick={() => router.push(`${baseRoute}/${order.id}`)}
+                  >
                     {t('rateYourOrder')}
                   </button>
                 )}
+                {isAdmin && (
+                  <V2OrderAdminActions variant="listRow" order={order} onOrderUpdated={patchOrderInAdminList} />
+                )}
+                {!isAdmin && showClientFooterActions && (
+                  <div className={styles.actions}>
+                    {showClientPayAndCancel && (
+                      <button className={styles.btnPay} type="button" onClick={() => onPay(order.id)}>
+                        {t('pay', { price: getOrderPrice(order) })}
+                      </button>
+                    )}
 
-                {/* Admin: cancel + status change */}
-                {isAdmin && !isCanceled && (
-                  <Popconfirm title={t('actions.cancelConfirm')} okText={t('actions.okText')} cancelText={t('actions.cancel')} onConfirm={() => cancelOrderHandler(order.id)}>
-                    <button className={styles.btnCancel} type="button">
-                      <StopOutlined /> {t('actions.stop')}
-                    </button>
-                  </Popconfirm>
-                )}
-                {isAdmin && back && (
-                  <button className={styles.btnStatus} type="button" title={t('actions.change', { status: t(`statuses.${back}`) })} onClick={() => changeStatusHandler(back, order.id)}>
-                    <BackwardOutlined />
-                  </button>
-                )}
-                {isAdmin && next && (
-                  <button className={styles.btnStatus} type="button" title={t('actions.change', { status: t(`statuses.${next}`) })} onClick={() => changeStatusHandler(next, order.id)}>
-                    <ForwardOutlined />
-                  </button>
-                )}
+                    {showRateButton && (
+                      <button
+                        type="button"
+                        className={styles.btnRateFeatured}
+                        onClick={() => router.push(`${baseRoute}/${order.id}`)}
+                      >
+                        {t('rateYourOrder')}
+                      </button>
+                    )}
 
-                {/* User: cancel unpaid */}
-                {!isAdmin && !order.isPayment && !isCanceled && (
-                  <Popconfirm title={t('actions.cancelConfirm')} okText={t('actions.okText')} cancelText={t('actions.cancel')} onConfirm={() => cancelOrderHandler(order.id)}>
-                    <button className={styles.btnCancel} type="button">
-                      <StopOutlined /> {t('actions.stop')}
-                    </button>
-                  </Popconfirm>
+                    {showClientPayAndCancel && (
+                      <Popconfirm title={t('actions.cancelConfirm')} okText={t('actions.okText')} cancelText={t('actions.cancel')} onConfirm={() => cancelOrderHandler(order.id)}>
+                        <button className={styles.btnCancel} type="button">
+                          <StopOutlined /> {t('actions.stop')}
+                        </button>
+                      </Popconfirm>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

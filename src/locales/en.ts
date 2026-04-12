@@ -132,6 +132,9 @@ export default {
           actions: {
             stop: 'Cancel the order',
             cancelConfirm: 'Are you sure you want to cancel your order?',
+            cancelConfirmAdmin: 'Cancel order #{{ number }}? The customer will be notified.',
+            statusChangeConfirm: 'Change order #{{ number }} to «{{ status }}»?',
+            adminPanelTitle: 'Order management',
             cancel: 'No',
             okText: 'Yes',
             change: 'Change status to {{ status }}',

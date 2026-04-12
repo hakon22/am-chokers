@@ -48,6 +48,15 @@ $success: v2.$v2-success;
   flex-wrap: wrap;
 }
 
+.cardHeaderRight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .cardMeta {
   display: flex;
   flex-direction: column;
@@ -210,6 +219,46 @@ $success: v2.$v2-success;
   flex-wrap: wrap;
 }
 
+// Админ: сумма слева, тулбар справа (мобиле — колонка, одинаковые отступы между блоками)
+.cardFooterAdminList {
+  flex-wrap: nowrap;
+  gap: 16px;
+
+  .cardFooterLeft {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 16px;
+  }
+}
+
+// Правая колонка футера: тулбар админа + действия пользователя / «Оценить»
+.cardFooterTrailing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+
+  .cardFooterAdminList & {
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 100%;
+      gap: 12px;
+    }
+  }
+}
+
 .cardFooterLeft {
   display: flex;
   align-items: center;
@@ -310,12 +359,16 @@ $success: v2.$v2-success;
   &:hover { border-color: $navy3; color: $navy2; }
 }
 
-.btnRate {
-  @include btn-outline;
+// «Оценить товары» — как «Оплатить» (btn-primary, та же высота и отступы)
+.btnRateFeatured {
+  @include btn-primary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   height: 36px;
-  font-size: 9px;
-  padding: 0 14px;
-  border-radius: 10px;
+  padding: 0 20px;
+  font-size: 10px;
 }
 
 // ── Responsive ────────────────────────────────────────────────────
@@ -325,6 +378,48 @@ $success: v2.$v2-success;
   .thumbMore { width: 52px; height: 68px; }
   .tagPaid { height: 30px; }
   .tagNotPaid { height: 30px; }
-  .btnRate { height: 30px; }
+  .btnRateFeatured {
+    height: 36px;
+    padding: 0 20px;
+    font-size: 10px;
+    width: 100%;
+    max-width: 280px;
+    margin-inline: auto;
+  }
   .btnCancel { height: 30px; }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 280px;
+    margin-inline: auto;
+    gap: 10px;
+
+    > * {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .btnPay,
+    .btnCancel {
+      width: 100%;
+      max-width: none;
+      justify-content: center;
+    }
+
+    .btnRateFeatured {
+      max-width: none;
+    }
+  }
+
+  .cardFooter.cardFooterAdminList {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .cardFooterLeft {
+    width: 100%;
+  }
 }
