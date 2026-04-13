@@ -123,15 +123,8 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, isMobile, it
             items={items}
             onOpenChange={onOpenChange}
             rootClassName="bg-transparent"
-            motion={{
-              motionName: 'ant-motion-collapse',
-              onAppearStart: () => ({ height: 0 }),
-              onAppearActive: (node) => ({ height: `${node.scrollHeight}px` }),
-              onEnterStart: () => ({ height: 0 }),
-              onEnterActive: (node) => ({ height: `${node.scrollHeight}px` }),
-              onLeaveStart: () => ({ height: 0, transition: 'none' }),
-              onLeaveActive: () => ({ height: 0, transition: 'none' }),
-            }}
+            // Truthy `{}` overrides antd collapse motion; no motionName ⇒ no height transition (rc-motion).
+            motion={{}}
           />
         </Drawer>
       )}
