@@ -4,6 +4,7 @@ import { Button, DatePicker, Form, Input, Modal } from 'antd';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import moment, { type Moment } from 'moment';
 
+import { DateTimeSplitField } from '@/components/forms/DateTimeSplitField';
 import { TimePicker } from '@/components/TimePicker';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -14,6 +15,10 @@ import type { PublishTelegramInterface } from '@/slices/appSlice';
 import type { ItemAdminPublishModalProps, PublicationDateFormInterface } from '@/components/item-admin/itemAdmin.types';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
+
+type PublishTelegramFormValues = Omit<PublishTelegramInterface, 'date'> & {
+  date?: Moment | Date | null;
+};
 
 export const ItemAdminPublishModal = ({
   publishData,
@@ -30,29 +35,36 @@ export const ItemAdminPublishModal = ({
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
 
-  const [form] = Form.useForm<PublishTelegramInterface>();
+  const [form] = Form.useForm<PublishTelegramFormValues>();
   const [publicationDateForm] = Form.useForm<PublicationDateFormInterface>();
 
-  const date = Form.useWatch('date', form);
+  const scheduledDateTime = Form.useWatch('date', form);
   const publicationDateValue = Form.useWatch('publicationDate', publicationDateForm);
 
-  const [time, setTime] = useState<string | null>(null);
   const [publicationTime, setPublicationTime] = useState<string | null>(null);
 
   const setPublicationTimeEffect = useEffectEvent(setPublicationTime);
-  const setTimeEffect = useEffectEvent(setTime);
 
   const isV2 = uiVariant === 'v2';
 
   const onTgFinish = () => {
     form.validateFields().then((values) => {
-      if ([date, time].filter(Boolean).length === 1) {
-        const name = date ? 'time' : 'date';
-        form.setFields([{ name, errors: [tValidation('required')] }]);
-      } else {
-        values.time = time;
-        onPublish(values);
+      const raw = values.date;
+      const dt = raw && moment.isMoment(raw) ? raw : raw ? moment(raw) : null;
+      if (dt?.isValid()) {
+        const payload: PublishTelegramInterface = {
+          description: values.description,
+          date: dt.clone().startOf('day').toDate(),
+          time: dt.format(DateFormatEnum.HH_MM),
+        };
+        onPublish(payload);
+        return;
       }
+      onPublish({
+        description: values.description,
+        date: null,
+        time: null,
+      });
     });
   };
 
@@ -69,7 +81,6 @@ export const ItemAdminPublishModal = ({
 
   const handleTgCancel = () => {
     form.resetFields();
-    setTime(null);
     setIsTgPublish(false);
   };
 
@@ -81,12 +92,17 @@ export const ItemAdminPublishModal = ({
 
   useEffect(() => {
     if (isTgPublish) {
-      setTimeEffect(publishData.time ? moment(publishData.time).format(DateFormatEnum.HH_MM) : null);
       form.resetFields();
-      form.setFieldsValue(publishData);
+      let dateField: Moment | null = null;
+      if (publishData.date && publishData.time) {
+        const [h, m] = publishData.time.split(':').map(Number);
+        dateField = moment(publishData.date).clone().startOf('day').hour(h).minute(m).second(0).millisecond(0);
+      } else if (publishData.date) {
+        dateField = moment(publishData.date);
+      }
+      form.setFieldsValue({ ...publishData, date: dateField });
     } else {
       form.resetFields();
-      setTimeEffect(null);
     }
   }, [isTgPublish, publishData]);
 
@@ -119,7 +135,7 @@ export const ItemAdminPublishModal = ({
             {t('cancel')}
           </Button>
           <Button className={styles.v2BtnOk} type="primary" onClick={onTgFinish}>
-            {t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
+            {t(scheduledDateTime ? 'publishToTelegramLater' : 'publishToTelegramNow')}
           </Button>
         </div>
       </div>
@@ -155,7 +171,7 @@ export const ItemAdminPublishModal = ({
         classNames={isV2 ? undefined : { header: 'text-center', footer: 'ant-input-group-addon' }}
         open={isTgPublish}
         onOk={isV2 ? undefined : onTgFinish}
-        okText={isV2 ? undefined : t(date && time ? 'publishToTelegramLater' : 'publishToTelegramNow')}
+        okText={isV2 ? undefined : t(scheduledDateTime ? 'publishToTelegramLater' : 'publishToTelegramNow')}
         cancelText={isV2 ? undefined : t('cancel')}
         onCancel={handleTgCancel}
         footer={isV2
@@ -171,56 +187,46 @@ export const ItemAdminPublishModal = ({
         {isV2
           ? (
             <Form form={form} layout="vertical" className={styles.v2Form}>
-              <div className={styles.v2DateTimeRow}>
-                <Form.Item<PublishTelegramInterface>
-                  className={styles.v2Field}
-                  label={t('placeholderDate')}
-                  name="date"
-                  getValueProps={(value) => ({ value: value ? moment(value) : value })}
-                  rules={[publishTelegramValidation]}
-                >
-                  <MomentDatePicker
-                    minDate={moment()}
-                    placeholder={t('placeholderDate')}
-                    showNow={false}
-                    format={DateFormatEnum.DD_MM_YYYY}
-                    locale={lang === UserLangEnum.RU ? locale : undefined}
-                    style={{ width: '100%' }}
-                  />
-                </Form.Item>
-                <Form.Item<PublishTelegramInterface> className={styles.v2Field} label={t('placeholderTime')} name="time">
-                  <TimePicker
-                    onChange={(value) => setTime(value)}
-                    value={time}
-                    minDate={date}
-                    placeholder={t('placeholderTime')}
-                    step={10}
-                    style={{ width: '100%' }}
-                  />
-                </Form.Item>
-              </div>
-              <Form.Item<PublishTelegramInterface> label={t('descriptionSection')} name="description" rules={[publishTelegramValidation]}>
+              <Form.Item<PublishTelegramFormValues>
+                label={t('publishDateTime')}
+                name="date"
+                getValueProps={(value) => ({ value: value ? moment(value) : value })}
+              >
+                <DateTimeSplitField
+                  datePickerSize="middle"
+                  step={10}
+                  datePlaceholder={t('placeholderDate')}
+                  disabledDate={(current) => !!current && current < moment().startOf('day')}
+                  locale={lang === UserLangEnum.RU ? locale : undefined}
+                  labels={{
+                    selectTime: t('publishSelectTime'),
+                    changeDate: t('publishChangeDate'),
+                    edit: t('publishEditDateTime'),
+                  }}
+                />
+              </Form.Item>
+              <Form.Item<PublishTelegramFormValues> label={t('descriptionSection')} name="description" rules={[publishTelegramValidation]}>
                 <Input.TextArea rows={6} placeholder={t('enterDescription')} />
               </Form.Item>
             </Form>
           )
           : (
             <Form form={form} key={1} className="mt-4">
-              <div className="d-flex justify-content-around">
-                <Form.Item<PublishTelegramInterface> name="date" getValueProps={(value) => ({ value: value ? moment(value) : value })} rules={[publishTelegramValidation]}>
-                  <MomentDatePicker minDate={moment()} placeholder={t('placeholderDate')} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />
-                </Form.Item>
-                <Form.Item<PublishTelegramInterface> name="time">
-                  <TimePicker
-                    onChange={(value) => setTime(value)}
-                    value={time}
-                    minDate={date}
-                    placeholder={t('placeholderTime')}
-                    step={10}
-                  />
-                </Form.Item>
-              </div>
-              <Form.Item<PublishTelegramInterface> name="description" rules={[publishTelegramValidation]}>
+              <Form.Item<PublishTelegramFormValues> name="date" label={t('publishDateTime')} getValueProps={(value) => ({ value: value ? moment(value) : value })}>
+                <DateTimeSplitField
+                  datePickerSize="middle"
+                  step={10}
+                  datePlaceholder={t('placeholderDate')}
+                  disabledDate={(current) => !!current && current < moment().startOf('day')}
+                  locale={lang === UserLangEnum.RU ? locale : undefined}
+                  labels={{
+                    selectTime: t('publishSelectTime'),
+                    changeDate: t('publishChangeDate'),
+                    edit: t('publishEditDateTime'),
+                  }}
+                />
+              </Form.Item>
+              <Form.Item<PublishTelegramFormValues> name="description" rules={[publishTelegramValidation]}>
                 <Input.TextArea rows={6} placeholder={t('enterDescription')} />
               </Form.Item>
             </Form>

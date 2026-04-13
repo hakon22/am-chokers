@@ -34,6 +34,7 @@ import { useVersionedComponents } from '@/components/version-resolver';
 import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
+import '@/themes/v2/styles/v2-fonts.scss';
 import type { SiteVersion } from '@/types/SiteVersion';
 import type { ItemGroupInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';

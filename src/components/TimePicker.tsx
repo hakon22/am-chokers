@@ -8,18 +8,23 @@ interface TimePickerInterface {
   step?: number;
   placeholder?: string;
   minDate?: Date | null;
+  /** Часы 0–23, которые не показывать в списке (например, вне интервала самовывоза) */
+  disabledHours?: number[];
   style?: React.CSSProperties;
   value: string | null;
   onChange?: (value: string | null) => void;
 }
 
-export const TimePicker = ({ step, placeholder, minDate, style, value, onChange }: TimePickerInterface) => {
+export const TimePicker = ({ step, placeholder, minDate, disabledHours, style, value, onChange }: TimePickerInterface) => {
   const generateTimeOptions = () => {
     const options = [];
     const now = moment();
     const isToday = minDate && now.isSame(minDate, 'day');
 
     for (let hour = isToday ? now.hour() : 0; hour < 24; hour += 1) {
+      if (disabledHours?.includes(hour)) {
+        continue;
+      }
       const startMinute = isToday && hour === now.hour() 
         ? Math.ceil(now.minute() / (step || 1)) * (step || 1)
         : 0;

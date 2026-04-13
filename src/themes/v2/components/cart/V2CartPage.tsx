@@ -1,10 +1,9 @@
 import { useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, DatePicker, Form, Input, Modal, Tag } from 'antd';
+import { Checkbox, Form, Input, Modal, Tag } from 'antd';
 import { CloseOutlined, DeleteOutlined, HeartFilled, HeartOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
 import moment, { type Moment } from 'moment';
-import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import cn from 'classnames';
@@ -12,7 +11,6 @@ import axios from 'axios';
 import type { CheckboxProps } from 'antd/lib';
 
 import { locale } from '@/locales/pickers.locale.ru';
-import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
@@ -24,10 +22,12 @@ import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
 import { newOrderPositionValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { PICKUP_DISABLED_HOURS } from '@/constants/pickupDelivery';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { getOrderPrice, getOrderDiscount } from '@/utilities/order/getOrderPrice';
+import { DateTimeSplitField } from '@/components/forms/DateTimeSplitField';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -44,7 +44,6 @@ import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 import type { CDEKDeliveryDataType } from '@server/types/delivery/cdek/cdek-delivery.interface';
 
 const YANDEX_MAPS_API_KEY = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY as string;
-const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
 // ── Qty stepper inside the item row ──────────────────────────────────────────
 const ItemQtyControl = ({ itemId }: { itemId: number }) => {
@@ -629,16 +628,18 @@ export const V2CartPage = () => {
                 layout="vertical"
                 style={{ marginBottom: 12 }}
               >
-                <MomentDatePicker
-                  size="middle"
-                  showTime
-                  format={DateFormatEnum.DD_MM_YYYY_HH_MM}
-                  showNow={false}
-                  style={{ width: '100%' }}
-                  disabledDate={(current) => current && current < moment().startOf('day')}
-                  disabledTime={() => ({ disabledHours: () => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 21, 22, 23], disabledMinutes: () => [], disabledSeconds: () => [] })}
+                <DateTimeSplitField
+                  datePickerSize="middle"
+                  step={10}
+                  datePlaceholder={t('pickupDatePlaceholder')}
+                  disabledDate={(current) => !!current && current < moment().startOf('day')}
+                  disabledHours={PICKUP_DISABLED_HOURS}
                   locale={lang === UserLangEnum.RU ? locale : undefined}
-                  styles={{ popup: isMobile ? { root: { maxHeight: '80vh', overflow: 'auto', maxWidth: 'min(375px, calc(100vw - 30px))' } } : undefined }}
+                  labels={{
+                    selectTime: t('pickupSelectTime'),
+                    changeDate: t('pickupChangeDate'),
+                    edit: t('pickupEditDateTime'),
+                  }}
                 />
               </Form.Item>
               <Form.Item name="telegramNickname" label={t('telegramUsername')} layout="vertical" style={{ marginBottom: 8 }}>
