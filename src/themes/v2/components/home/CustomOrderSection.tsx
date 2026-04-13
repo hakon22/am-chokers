@@ -1,7 +1,6 @@
-import { Button } from 'antd';
-import { Telegram } from 'react-bootstrap-icons';
 import { useTranslation } from 'react-i18next';
 
+import { routes } from '@/routes';
 import styles from '@/themes/v2/components/home/CustomOrderSection.module.scss';
 
 export const CustomOrderSection = () => {
@@ -18,16 +17,14 @@ export const CustomOrderSection = () => {
             {t('title')} <em>{t('titleEm')}</em>
           </h2>
           <p className={styles.text}>{t('text')}</p>
-          <Button
-            type="default"
-            size="large"
-            icon={<Telegram className={styles.tgBtnIcon} aria-hidden />}
-            href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? '#'}
+          <a
+            href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.page.base.homePage}
             target="_blank"
+            rel="noreferrer"
             className={styles.tgBtn}
           >
             {t('tgBtn')}
-          </Button>
+          </a>
         </div>
         <div className={styles.right}>
           <ol className={styles.steps}>

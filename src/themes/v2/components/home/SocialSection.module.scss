@@ -93,26 +93,46 @@
   border-radius: 12px !important;
 
   :global(.ant-card-body) {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    justify-content: center;
-    flex-wrap: wrap;
     padding: 28px 36px !important;
 
     @media (max-width: 768px) {
-      flex-direction: column;
       padding: 20px !important;
-      gap: 16px;
-      text-align: center;
     }
+  }
+}
+
+.tgBannerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.tgLead {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  min-width: min(100%, 280px);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
   }
 }
 
 .tgIcon {
   font-size: 40px;
   flex-shrink: 0;
-  color: #27A7E5;
+  color: #27a7e5;
+  line-height: 1;
 
   @media (max-width: 768px) {
     font-size: 30px;
@@ -121,12 +141,13 @@
 
 .tgText {
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
+  text-align: left;
 
   @media (max-width: 768px) {
     flex: none;
     width: 100%;
-    min-width: 0;
+    text-align: center;
   }
 }
 
@@ -142,34 +163,68 @@
   color: v2.$v2-text-secondary;
 }
 
-.tgBtnIcon {
-  font-size: 20px;
-  color: v2.$v2-white;
-  vertical-align: -0.15em;
-}
-
 .tgBtn {
-  height: auto !important;
-  padding: 14px 36px !important;
-  line-height: 1.25 !important;
-  border-radius: 999px !important;
-  background: #2e4370 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: 52px;
+  padding: 10px 28px 10px 12px;
+  line-height: 1.25;
+  border-radius: 999px;
+  text-decoration: none;
+  background: v2.$v2-navy-primary;
   color: v2.$v2-white !important;
-  border: 1px solid v2.$v2-white !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.2em !important;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  box-shadow: none !important;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    background: #3a5080 !important;
-    border-color: v2.$v2-white !important;
+    background: v2.$v2-navy-secondary;
+    border-color: rgba(255, 255, 255, 0.5);
     color: v2.$v2-white !important;
   }
 
   &:active {
-    background: #263858 !important;
+    background: #243352;
+    transform: scale(0.99);
   }
+
+  &:focus-visible {
+    outline: 2px solid v2.$v2-navy-medium;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 360px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+.tgBtnIconWrap {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: v2.$v2-white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tgBtnGlyph {
+  font-size: 19px;
+  color: #27a7e5;
+}
+
+.tgBtnLabel {
+  padding-top: 1px;
 }
