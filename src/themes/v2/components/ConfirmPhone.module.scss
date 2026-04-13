@@ -1,0 +1,139 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 0;
+}
+
+.title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  color: v2.$v2-navy-primary;
+  text-align: center;
+  margin: 0 0 28px;
+  line-height: 1.2;
+}
+
+.otpSection {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.otpContainer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.otpChar {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  border-radius: 10px !important;
+  border: 1px solid v2.$v2-navy-primary !important;
+  background: v2.$v2-bg-alt !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: v2.$v2-text-dark !important;
+  line-height: 52px !important;
+  box-sizing: border-box !important;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+
+  &::placeholder {
+    color: v2.$v2-text-muted !important;
+    opacity: 1;
+  }
+}
+
+.otpCharInactive {
+  color: v2.$v2-text-muted !important;
+}
+
+.otpCharSelected {
+  background: v2.$v2-white !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(43, 60, 95, 0.2) !important;
+  border-color: v2.$v2-navy-primary !important;
+}
+
+.otpCharFilled {
+  background: v2.$v2-white !important;
+  color: v2.$v2-text-dark !important;
+}
+
+.error {
+  position: absolute;
+  left: 50%;
+  bottom: -28px;
+  transform: translateX(-50%);
+  color: v2.$v2-error;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  text-align: center;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.hint {
+  margin: 0 0 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: v2.$v2-text-muted;
+  text-align: center;
+}
+
+.timer {
+  margin: 0 0 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: v2.$v2-text-secondary;
+  text-align: center;
+  line-height: 1.45;
+  max-width: 320px;
+}
+
+.resend {
+  margin: 0 0 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: v2.$v2-navy-secondary;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: v2.$v2-navy-primary;
+  }
+}
+
+.progressTrack {
+  width: 100%;
+  max-width: 320px;
+  height: 4px;
+  border-radius: 4px;
+  background: v2.$v2-bg-alt;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 4px;
+  background: v2.$v2-navy-primary;
+  transition: width 1s linear;
+}

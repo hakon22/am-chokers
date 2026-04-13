@@ -1,5 +1,24 @@
 @use '@/themes/v2/styles/variables' as v2;
 
+// Full-width primary actions: navy, white label, Inter, flat (matches v2 screenshots)
+.primaryAction {
+  margin-top: 4px;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.35;
+  min-height: 48px;
+  height: auto !important;
+  padding-block: 12px !important;
+  border-radius: 6px;
+  box-shadow: none !important;
+
+  &:not(:disabled):hover,
+  &:not(:disabled):focus-visible {
+    box-shadow: none !important;
+  }
+}
+
 .content {
   padding: 8px 4px 4px;
 }

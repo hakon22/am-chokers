@@ -113,7 +113,7 @@ export const V2Personal = () => {
   const password = Form.useWatch('password', form);
 
   if (phoneConfirm && !isConfirmed) {
-    return <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} />;
+    return <ConfirmPhone setState={setIsConfirmed} newPhone={phoneConfirm} variant="v2" />;
   }
 
   return (

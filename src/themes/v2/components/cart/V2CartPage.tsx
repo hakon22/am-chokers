@@ -517,7 +517,7 @@ export const V2CartPage = () => {
 
       {isProcessConfirmed && (
         <Modal centered zIndex={10000} open footer={null} onCancel={() => setIsProcessConfirmed(false)}>
-          <ConfirmPhone setState={setIsConfirmed} />
+          <ConfirmPhone setState={setIsConfirmed} variant="v2" />
         </Modal>
       )}
 

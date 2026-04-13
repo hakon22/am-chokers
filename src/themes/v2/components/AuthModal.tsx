@@ -66,7 +66,14 @@ const LoginView = ({ onClose, onNavigate }: { onClose: () => void; onNavigate: (
           <button type="button" className={styles.navLink} onClick={() => onNavigate('signup')}>{t('noAccount')}</button>
           <button type="button" className={styles.navLink} onClick={() => onNavigate('recovery')}>{t('forgotPassword')}</button>
         </div>
-        <Button htmlType="submit" className="w-100 button" disabled={isSubmit || !isPersonalDataConsent}>
+        <Button
+          type="primary"
+          size="large"
+          block
+          htmlType="submit"
+          className={styles.primaryAction}
+          disabled={isSubmit || !isPersonalDataConsent}
+        >
           {t('submitButton')}
         </Button>
       </Form>
@@ -112,7 +119,7 @@ const SignupView = ({ onClose, onNavigate }: { onClose: () => void; onNavigate: 
   return (
     <div className={styles.content}>
       {isProcessConfirmed ? (
-        <ConfirmPhone setState={setIsConfirmed} />
+        <ConfirmPhone setState={setIsConfirmed} variant="v2" />
       ) : (
         <>
           <h2 className={styles.title}>{t('title')}</h2>
@@ -157,7 +164,14 @@ const SignupView = ({ onClose, onNavigate }: { onClose: () => void; onNavigate: 
             <div className={styles.navLinks}>
               <button type="button" className={styles.navLink} onClick={() => onNavigate('login')}>{t('haveAccount')}</button>
             </div>
-            <Button htmlType="submit" className="w-100 button" disabled={isSubmit || !isPersonalDataConsent}>
+            <Button
+              type="primary"
+              size="large"
+              block
+              htmlType="submit"
+              className={styles.primaryAction}
+              disabled={isSubmit || !isPersonalDataConsent}
+            >
               {t('next')}
             </Button>
           </Form>
@@ -197,7 +211,9 @@ const RecoveryView = ({ onNavigate }: { onNavigate: (view: AuthModalView) => voi
         <CheckCircleOutlined className={styles.successIcon} />
         <p className={styles.successTitle}>{t('resultTitle')}</p>
         <p className={styles.successSubtitle}>{t('resultSubTitle')}</p>
-        <Button className="w-100 button" onClick={() => onNavigate('login')}>{t('home')}</Button>
+        <Button type="primary" size="large" block className={styles.primaryAction} onClick={() => onNavigate('login')}>
+          {t('home')}
+        </Button>
       </div>
     );
   }
@@ -223,7 +239,14 @@ const RecoveryView = ({ onNavigate }: { onNavigate: (view: AuthModalView) => voi
         <div className={styles.navLinks}>
           <button type="button" className={styles.navLink} onClick={() => onNavigate('login')}>{t('rememberPassword')}</button>
         </div>
-        <Button htmlType="submit" className="w-100 button" disabled={isSubmit || !isPersonalDataConsent}>
+        <Button
+          type="primary"
+          size="large"
+          block
+          htmlType="submit"
+          className={styles.primaryAction}
+          disabled={isSubmit || !isPersonalDataConsent}
+        >
           {t('submitButton')}
         </Button>
       </Form>
