@@ -198,12 +198,21 @@
   }
 }
 
+.cardCatRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  min-width: 0;
+}
+
 .cardCat {
+  flex: 1;
+  min-width: 0;
   font-size: 10.5px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   color: v2.$v2-text-secondary;
-  margin-bottom: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -337,37 +346,79 @@
   line-height: 1.2;
 }
 
+// Out of stock: light inset card, dark type, whole block @ 70% opacity (v2)
 .outStock {
-  top: unset;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  border-radius: 0;
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 14px 11px;
+  border-radius: 8px;
+  border: 1px solid v2.$v2-border;
+  background: linear-gradient(180deg, v2.$v2-white 0%, v2.$v2-bg-main 100%);
+  box-shadow: v2.$v2-sh-sm;
+  opacity: 0.7;
+  pointer-events: none;
   text-align: center;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+
+  @media (max-width: 768px) {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    padding: 8px 12px 9px;
+    gap: 4px;
+  }
+}
+
+.outStockLabel {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: v2.$v2-navy-primary;
-  border: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
-  padding: 7px 10px;
+  line-height: 1.25;
+
+  @media (max-width: 768px) {
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+  }
+}
+
+.outStockDate {
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 10px;
-  letter-spacing: 1px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: v2.$v2-navy-secondary;
+  white-space: nowrap;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+
+  @media (max-width: 768px) {
+    font-size: 9px;
+    letter-spacing: 0.05em;
+  }
 }
 
 .cardRating {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: v2.$v2-text-secondary;
-  min-width: 0;
+  gap: 4px;
+  flex-shrink: 0;
+  line-height: 1;
 
-  span:last-child {
+  > span {
+    font-size: 12px;
+    color: v2.$v2-text-secondary;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
+    font-variant-numeric: tabular-nums;
   }
 }

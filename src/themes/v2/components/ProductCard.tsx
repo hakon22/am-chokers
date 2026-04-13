@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useContext, useMemo, useState } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { HeartFilled, HeartOutlined, LikeOutlined } from '@ant-design/icons';
+import { HeartFilled, HeartOutlined } from '@ant-design/icons';
 import { Rate, Skeleton } from 'antd';
 import moment from 'moment';
 
@@ -94,30 +94,32 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
           )}
           {badge && <span className={`${styles.cardBadge} ${styles[badge]}`}>{badge === 'new' ? t('badgeNew') : t('badgeSale')}</span>}
           {outStock && (
-            <span className={`${styles.cardBadge} ${styles.outStock}`}>
-              {tCart('isAbsentLabel')}{' '}
-              <span style={{ whiteSpace: 'nowrap' }}>{tCart('isAbsentDate', { date: moment(outStock).format(DateFormatEnum.DD_MM) })}</span>
-            </span>
+            <div className={styles.outStock} role="status">
+              <span className={styles.outStockLabel}>{tCart('isAbsentLabel')}</span>
+              <span className={styles.outStockDate}>
+                {tCart('isAbsentDate', { date: moment(outStock).format(DateFormatEnum.DD_MM) })}
+              </span>
+            </div>
           )}
           <button className={styles.cardFav} aria-label={t('favorites')} onClick={onFavoritesClick}>
             {inFavorites ? <HeartFilled style={{ color: '#4d689e' }} /> : <HeartOutlined />}
           </button>
         </div>
         <div className={styles.cardBody}>
-          <div className={styles.cardCat}>{groupName}</div>
+          <div className={styles.cardCatRow}>
+            <div className={styles.cardCat}>{groupName}</div>
+            {rating ? (
+              <div className={styles.cardRating}>
+                <Rate disabled allowHalf count={1} value={grade} />
+                <span>{grade}</span>
+              </div>
+            ) : null}
+          </div>
           <div className={styles.cardName}>{name}</div>
           <div className={styles.cardPrice}>
             {item.price} ₽
             {item.discountPrice ? <span className={styles.cardPriceOld}>{item.discountPrice} ₽</span> : null}
           </div>
-          {rating && (
-            <div className={styles.cardRating}>
-              <Rate disabled allowHalf count={1} value={grade} />
-              <span>{grade}</span>
-              <LikeOutlined />
-              <span>{t('grades.gradeCount', { count: rating.grades?.length ?? 0 })}</span>
-            </div>
-          )}
         </div>
         <div className={styles.cardFooter}>
           <V2CartControl

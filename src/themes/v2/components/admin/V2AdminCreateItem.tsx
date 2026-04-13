@@ -9,7 +9,7 @@ import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortab
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Modal, Select, Switch, Upload, type UploadFile, type UploadProps } from 'antd';
-import { cloneDeep, isEmpty, isEqual, omit, some } from 'lodash';
+import { cloneDeep, isEmpty, isEqual, isNil, omit, some } from 'lodash';
 import moment, { type Moment } from 'moment';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
@@ -26,6 +26,7 @@ import { CropImage } from '@/components/CropImage';
 import { TimePicker } from '@/components/TimePicker';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { getHeight } from '@/utilities/screenExtension';
+import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -101,7 +102,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const galleryRef = useRef<ImageGalleryRef>(null);
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
-  const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
+  const [images, setImages] = useState<ItemInterface['images']>(() => sortItemImagesByOrder(oldItem?.images));
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
   const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
@@ -144,7 +145,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
     if (savedProgress) {
       const parsedSavedProgress = JSON.parse(savedProgress) as { data: ItemFormInterface; images: ImageEntity[]; lastProgress: Date; };
       form.setFieldsValue(parsedSavedProgress.data);
-      setImages(parsedSavedProgress.images);
+      setImages(sortItemImagesByOrder(parsedSavedProgress.images));
       setItemGroup(itemGroups.find(({ id }) => id === parsedSavedProgress.data.group));
       setItemCollection(itemCollections.find((collection) => collection?.id === parsedSavedProgress.data.collection));
       setItemCompositions(compositions?.filter(({ id }) => id === parsedSavedProgress.data.compositions?.find((composition) => composition === id)));
@@ -186,9 +187,16 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
     const { active, over } = event;
     if (over?.id && active.id !== over.id) {
       setImages((items) => {
-        const oldIndex = items.indexOf(items.find((image) => image.id === active.id) as ImageEntity);
-        const newIndex = items.indexOf(items.find((image) => image.id === over.id) as ImageEntity);
-        return arrayMove(items, oldIndex, newIndex);
+        const oldIndex = items.findIndex((image) => image.id === active.id);
+        const newIndex = items.findIndex((image) => image.id === over.id);
+        if (oldIndex < 0 || newIndex < 0) {
+          return items;
+        }
+        const moved = arrayMove(items, oldIndex, newIndex);
+        moved.forEach((image, index) => {
+          image.order = index;
+        });
+        return moved;
       });
     }
   };
@@ -373,6 +381,12 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   }, [isSortImage]);
 
   useEffect(() => {
+    if (!isNil(oldItem) && !isNil(oldItem.id)) {
+      setImages(sortItemImagesByOrder(oldItem.images));
+    }
+  }, [oldItem?.id]);
+
+  useEffect(() => {
     if (!oldItem) {
       const savedProgress = window.localStorage.getItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
       if (savedProgress) {
@@ -446,7 +460,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
             {images.length > 0 && (
               isSortImage ? (
                 <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart} modifiers={[restrictToWindowEdges]}>
-                  <SortableContext items={images} strategy={rectSortingStrategy}>
+                  <SortableContext items={images.map(({ id }) => id)} strategy={rectSortingStrategy}>
                     <div className={styles.sortGrid}>
                       {images.map((image, index) => (
                         <SortableItem
