@@ -55,17 +55,39 @@ export const SortableItem = ({ image, index, activeId, setImages, setFileList }:
     </button>
   );
 
+  const thumb = { width: 100, height: 100 } as const;
+
   return (
     <Badge count={DeleteButton} offset={[0, 90]}>
       <Badge count={index} color="blue">
-        {image.src.endsWith('.mp4') ? (
-          <video
-            src={image.src}
-            ref={setNodeRef}
-            style={{ ...style, width: 100, height: 100 }}
-            {...attributes} {...listeners}
-          />
-        ) : <Image src={src} width={100} height={100} unoptimized alt={name} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" ref={setNodeRef} style={style} {...attributes} {...listeners} />}
+        <div
+          ref={setNodeRef}
+          style={{
+            ...style,
+            ...thumb,
+            touchAction: 'none',
+            position: 'relative',
+          }}
+          {...attributes}
+          {...listeners}
+        >
+          {image.src.endsWith('.mp4') ? (
+            <video
+              src={image.src}
+              style={{ ...thumb, display: 'block', pointerEvents: 'none' }}
+            />
+          ) : (
+            <Image
+              src={src}
+              width={100}
+              height={100}
+              unoptimized
+              alt={name}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              style={{ display: 'block', pointerEvents: 'none' }}
+            />
+          )}
+        </div>
       </Badge>
     </Badge>
   );

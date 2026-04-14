@@ -14,6 +14,7 @@ import moment, { type Moment } from 'moment';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
 import { Helmet } from '@/components/Helmet';
+import { useSortableImageDndSensors } from '@/hooks/useSortableImageDndSensors';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext, VersionContext } from '@/components/Context';
 import { V2AdminCreateItem } from '@/themes/v2/components/admin/V2AdminCreateItem';
@@ -107,6 +108,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
+  const sortableImageDndSensors = useSortableImageDndSensors();
   const galleryRef = useRef<ImageGalleryRef>(null);
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
@@ -417,14 +419,6 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
   }, [fetchedItemCollections]);
 
   useEffect(() => {
-    if (isSortImage) {
-      document.body.style.overflowY = 'hidden';
-    } else {
-      document.body.style.overflowY = '';
-    }
-  }, [isSortImage]);
-
-  useEffect(() => {
     if (!oldItem) {
       const savedProgress = window.localStorage.getItem(process.env.NEXT_PUBLIC_NEW_ITEM_STORAGE_KEY ?? '');
       if (savedProgress) {
@@ -478,11 +472,12 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
           {images.length
             ? isSortImage ? (
               <DndContext
+                sensors={sortableImageDndSensors}
                 onDragEnd={handleDragEnd}
                 onDragStart={handleDragStart}
                 modifiers={[restrictToWindowEdges]}
               >
-                <SortableContext items={images} strategy={rectSortingStrategy}>
+                <SortableContext items={images.map(({ id }) => id)} strategy={rectSortingStrategy}>
                   <div className="d-flex flex-wrap gap-3 mb-5 mb-xl-0">
                     {images.map((image, index) => <SortableItem image={image} key={image.id} index={index + 1} activeId={activeId} setImages={setImages} setFileList={setFileList} />)}
                   </div>

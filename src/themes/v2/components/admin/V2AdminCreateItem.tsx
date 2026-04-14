@@ -14,6 +14,7 @@ import moment, { type Moment } from 'moment';
 import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
 import { Helmet } from '@/components/Helmet';
+import { useSortableImageDndSensors } from '@/hooks/useSortableImageDndSensors';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
@@ -99,6 +100,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
 
+  const sortableImageDndSensors = useSortableImageDndSensors();
   const galleryRef = useRef<ImageGalleryRef>(null);
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
@@ -373,14 +375,6 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   }, [fetchedItemCollections]);
 
   useEffect(() => {
-    if (isSortImage) {
-      document.body.style.overflowY = 'hidden';
-    } else {
-      document.body.style.overflowY = '';
-    }
-  }, [isSortImage]);
-
-  useEffect(() => {
     if (!isNil(oldItem) && !isNil(oldItem.id)) {
       setImages(sortItemImagesByOrder(oldItem.images));
     }
@@ -459,7 +453,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
 
             {images.length > 0 && (
               isSortImage ? (
-                <DndContext onDragEnd={handleDragEnd} onDragStart={handleDragStart} modifiers={[restrictToWindowEdges]}>
+                <DndContext sensors={sortableImageDndSensors} onDragEnd={handleDragEnd} onDragStart={handleDragStart} modifiers={[restrictToWindowEdges]}>
                   <SortableContext items={images.map(({ id }) => id)} strategy={rectSortingStrategy}>
                     <div className={styles.sortGrid}>
                       {images.map((image, index) => (
