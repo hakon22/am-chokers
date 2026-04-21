@@ -2,6 +2,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import moment from 'moment';
 import _ from 'lodash';
 
+import { SiteSettingsService } from '@server/services/settings/site.settings.service';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';
@@ -32,6 +33,8 @@ import type { ItemEntity } from '@server/db/entities/item.entity';
 
 @Singleton
 export class OrderService extends BaseService {
+  private readonly siteSettingsService = Container.get(SiteSettingsService);
+
   private readonly cartService = Container.get(CartService);
 
   private readonly userService = Container.get(UserService);
@@ -205,6 +208,11 @@ export class OrderService extends BaseService {
           ? `Промокод "${promotional.name}" не активен или истёк`
           : `Promo code "${promotional.name}" is not active or has expired`);
       }
+    }
+
+    if (delivery.type === DeliveryTypeEnum.PICKUP && delivery.deliveryDateTime) {
+      const blockedRanges = await this.siteSettingsService.getPickupBlockedDateRangesFromDatabase();
+      this.siteSettingsService.assertPickupDateTimeNotBlocked(delivery.deliveryDateTime, blockedRanges, user.lang);
     }
 
     const [order, refreshToken]: [OrderEntity, string | undefined] = await this.databaseService.getManager().transaction(async (manager) => {

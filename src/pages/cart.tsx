@@ -2,12 +2,13 @@ import { useTranslation } from 'react-i18next';
 import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
 import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
-import { useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
 import moment, { type Moment } from 'moment';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import cn from 'classnames';
 import axios from 'axios';
+import { isEmpty } from 'lodash';
 import type { CheckboxProps } from 'antd/lib';
 
 import { locale } from '@/locales/pickers.locale.ru';
@@ -24,6 +25,7 @@ import { getHref } from '@/utilities/getHref';
 import { newOrderPositionValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { PICKUP_DISABLED_HOURS } from '@/constants/pickupDelivery';
+import { isCalendarDayBlockedByPickupRanges } from '@/utilities/pickup/isCalendarDayBlockedByPickupRanges';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
@@ -82,6 +84,7 @@ const Cart = () => {
 
   const { name, phone, key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
+  const { publicPickupSettings } = useAppSelector((state) => state.app);
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -370,6 +373,23 @@ const Cart = () => {
   const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);
   const selectPromotionField = !!promotionalValue;
 
+  const pickupAddressLine = useMemo(
+    () => (isEmpty(publicPickupSettings.locationLabel?.trim())
+      ? t('pickupAddress')
+      : publicPickupSettings.locationLabel.trim()),
+    [publicPickupSettings.locationLabel, t],
+  );
+
+  const pickupCalendarDisabledDate = useCallback((current: Moment | null) => {
+    if (!current) {
+      return false;
+    }
+    if (current.isBefore(moment().startOf('day'), 'day')) {
+      return true;
+    }
+    return isCalendarDayBlockedByPickupRanges(current, publicPickupSettings.blockedDateRanges);
+  }, [publicPickupSettings.blockedDateRanges]);
+
   const onDeliveryTypeChange = (value: DeliveryTypeEnum) => {
     resetPVZ();
     setDeliveryType(value);
@@ -377,7 +397,7 @@ const Cart = () => {
       setDelivery({
         type: DeliveryTypeEnum.PICKUP,
         price: 0,
-        address: t('pickupAddress'),
+        address: pickupAddressLine,
       });
     }
   };
@@ -533,7 +553,8 @@ const Cart = () => {
           {deliveryType === DeliveryTypeEnum.PICKUP && delivery.address
             ? (
               <div className="d-flex flex-column fs-5 mb-4 fw-300 gap-2">
-                <span className="fw-300 mb-4">{t('pickupDescription')}</span>
+                <span className="fw-300 mb-2 d-block">{pickupAddressLine}</span>
+                <span className="fw-300 mb-4 d-block">{t('pickupContactNote')}</span>
                 <Form.Item
                   name={['delivery', 'deliveryDateTime']}
                   label={<span className="fs-5 font-oswald">{t('deliveryDateTime')}</span>}
@@ -543,7 +564,7 @@ const Cart = () => {
                     datePickerSize="small"
                     step={10}
                     datePlaceholder={t('pickupDatePlaceholder')}
-                    disabledDate={(current) => !!current && current < moment().startOf('day')}
+                    disabledDate={pickupCalendarDisabledDate}
                     disabledHours={PICKUP_DISABLED_HOURS}
                     locale={lang === UserLangEnum.RU ? locale : undefined}
                     labels={{

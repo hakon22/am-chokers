@@ -36,8 +36,9 @@ import i18n from '@/locales';
 import '@/scss/app.scss';
 import '@/themes/v2/styles/v2-fonts.scss';
 import type { SiteVersion } from '@/types/SiteVersion';
-import type { ItemGroupInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
+import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
+import type { PublicPickupSettingsInterface } from '@/types/site/PublicPickupSettings';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
@@ -52,13 +53,15 @@ moment.updateLocale('ru-ru', {
   },
 });
 
-interface InitPropsInterface extends AppProps, AppDataInterface {
+interface InitPropsInterface extends AppProps {
   isMobile: boolean;
   siteVersion: SiteVersion;
+  itemGroups: ItemGroupInterface[];
+  publicPickupSettings: PublicPickupSettingsInterface;
 }
 
 const Init = (props: InitPropsInterface) => {
-  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion } = props;
+  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion, publicPickupSettings } = props;
 
   const isLoaded = useRouterHandler();
   const { dispatch } = store;
@@ -101,7 +104,7 @@ const Init = (props: InitPropsInterface) => {
   useEffect(() => {
     window.dataLayer = window.dataLayer || [];
     AOS.init();
-    dispatch(setAppData({ itemGroups }));
+    dispatch(setAppData({ itemGroups, publicPickupSettings }));
   }, []);
 
   useEffect(() => {
@@ -243,10 +246,16 @@ const Init = (props: InitPropsInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
-  const [{ data: { itemGroups } }, { data: { siteVersion } }] = await Promise.all([
+  const emptyPickup: PublicPickupSettingsInterface = { locationLabel: '', blockedDateRanges: [] };
+  const [{ data: { itemGroups } }, { data: settingsData }] = await Promise.all([
     axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.findMany({ isServer: false })),
-    axios.get<{ siteVersion: SiteVersion; }>(routes.settings.getSiteVersionSsr({ isServer: false })),
+    axios.get<{ code: number; siteVersion: SiteVersion; pickup?: PublicPickupSettingsInterface; }>(
+      routes.settings.getSiteVersionSsr({ isServer: false }),
+    ),
   ]);
+
+  const siteVersion = settingsData.siteVersion ?? 'v1';
+  const publicPickupSettings = settingsData.pickup ?? emptyPickup;
 
   const { req } = context.ctx;
   const userAgent = req ? req.headers['user-agent'] : navigator.userAgent;
@@ -254,7 +263,7 @@ Init.getInitialProps = async (context: AppContext) => {
 
   const props = await AppNext.getInitialProps(context);
 
-  return { ...props, isMobile, itemGroups, siteVersion: siteVersion ?? 'v1' };
+  return { ...props, isMobile, itemGroups, siteVersion, publicPickupSettings };
 };
 
 export default Init;

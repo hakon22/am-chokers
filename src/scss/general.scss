@@ -1604,6 +1604,18 @@ body.v2-theme {
   }
 }
 
+// RangePicker (два месяца): на мобильном — панели столбцом, иначе выпадающий блок шире экрана (настройки самовывоза и т.п.)
+@media (max-width: 768px) {
+  .ant-picker-dropdown .ant-picker-panels {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .ant-picker-dropdown .ant-picker-panel-container {
+    max-width: min(100%, calc(100vw - 16px));
+  }
+}
+
 // ── Admin «Сообщения»: поиск по телефону (вне body.v2-theme — подстраховка от порядка загрузки / css-in-js Ant) ──
 .v2-messages-phone-search.ant-space-compact.ant-input-search {
   display: flex !important;

@@ -5,6 +5,8 @@ import {
   Unique,
 } from 'typeorm';
 
+import type { SiteSettingsJsonValue } from '@server/types/site/site.settings.json.value.type';
+
 /** Настройки сайта */
 @Entity({
   name: 'site_settings',
@@ -18,9 +20,9 @@ export class SiteSettingsEntity extends BaseEntity {
   @Column('character varying')
   public key: string;
 
-  /** Значение настройки */
-  @Column('character varying')
-  public value: string;
+  /** Значение настройки (JSONB: строка для siteVersion / pickupLocationLabel, массив для периодов самовывоза) */
+  @Column('jsonb')
+  public value: SiteSettingsJsonValue;
 
   @CreateDateColumn()
   public created: Date;

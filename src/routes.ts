@@ -241,6 +241,7 @@ export const routes = {
   settings: {
     getSiteVersion: [apiPath, 'settings', 'site-version'].join('/'),
     updateSiteVersion: [apiPath, 'settings', 'site-version'].join('/'),
+    updatePickupSiteSettings: [apiPath, 'settings', 'pickup'].join('/'),
     getSiteVersionSsr: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'settings', 'site-version'].join('/'),
   },
 

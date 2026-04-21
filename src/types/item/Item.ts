@@ -3,6 +3,7 @@ import type { OmitBase } from '@/types/OmitBase';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
+import type { PublicPickupSettingsInterface } from '@/types/site/PublicPickupSettings';
 
 export type ItemInterface = OmitBase<ItemEntity>;
 export type ItemGroupInterface = ItemInterface['group'];
@@ -34,6 +35,7 @@ export interface AppDataInterface {
   itemGroups: ItemGroupInterface[];
   specialItems: ItemInterface[];
   coverImages: ImageEntity[];
+  publicPickupSettings: PublicPickupSettingsInterface;
 }
 
 export interface FetchItemInterface extends PaginationQueryInterface {

@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import { routes } from '@/routes';
 import type { ItemGroupInterface, ItemCollectionInterface, ItemInterface, AppDataInterface } from '@/types/item/Item';
+import type { PublicPickupSettingsInterface } from '@/types/site/PublicPickupSettings';
 import type { InitialState } from '@/types/InitialState';
 import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 import type { ImageEntity } from '@server/db/entities/image.entity';
@@ -15,6 +16,11 @@ import type { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 
 type AppStoreInterface = AppDataInterface & InitialState & { axiosAuth: boolean; pagination: PaginationInterface; };
 
+const emptyPublicPickupSettings: PublicPickupSettingsInterface = {
+  locationLabel: '',
+  blockedDateRanges: [],
+};
+
 const initialState: AppStoreInterface = {
   loadingStatus: 'idle',
   error: null,
@@ -23,6 +29,7 @@ const initialState: AppStoreInterface = {
   itemGroups: [],
   specialItems: [],
   coverImages: [],
+  publicPickupSettings: emptyPublicPickupSettings,
   pagination: {
     count: 0,
     limit: 0,
@@ -359,6 +366,9 @@ const appSlice = createSlice({
       }
       if (payload.coverImages) {
         state.coverImages = payload.coverImages;
+      }
+      if (payload.publicPickupSettings) {
+        state.publicPickupSettings = payload.publicPickupSettings;
       }
     },
     addSpecialItem: (state, { payload }: PayloadAction<ItemInterface>) => {

@@ -1,26 +1,29 @@
 import type { Request, Response } from 'express';
-import { Singleton } from 'typescript-ioc';
+import { Container, Singleton } from 'typescript-ioc';
 
-import { SiteSettingsEntity } from '@server/db/entities/site.settings.entity';
 import { BaseService } from '@server/services/app/base.service';
+import { SiteSettingsService } from '@server/services/settings/site.settings.service';
 import type { SiteVersion } from '@/types/SiteVersion';
+import type { SavePickupSiteSettingsBody } from '@server/services/settings/site.settings.service';
 
 const SITE_VERSION_KEY = 'SITE_VERSION';
-const DEFAULT_VERSION: SiteVersion = 'v1';
 
 @Singleton
 export class SettingsController extends BaseService {
+  private readonly siteSettingsService = Container.get(SiteSettingsService);
+
   public getSiteVersion = async (req: Request, res: Response) => {
     try {
       let siteVersion = await this.redisService.get<SiteVersion>(SITE_VERSION_KEY);
 
       if (!siteVersion) {
-        const setting = await SiteSettingsEntity.findOne({ where: { key: 'siteVersion' } });
-        siteVersion = (setting?.value as SiteVersion) ?? DEFAULT_VERSION;
+        siteVersion = await this.siteSettingsService.getSiteVersionFromDatabase();
         await this.redisService.set(SITE_VERSION_KEY, siteVersion);
       }
 
-      res.json({ code: 1, siteVersion });
+      const pickup = await this.siteSettingsService.getPublicPickupPayload();
+
+      res.json({ code: 1, siteVersion, pickup });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -35,14 +38,23 @@ export class SettingsController extends BaseService {
         return;
       }
 
-      await SiteSettingsEntity.upsert(
-        { key: 'siteVersion', value: version },
-        { conflictPaths: ['key'] },
-      );
-
-      await this.redisService.set(SITE_VERSION_KEY, version);
+      await this.siteSettingsService.persistSiteVersion(version);
 
       res.json({ code: 1, siteVersion: version });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Обновляет настройки самовывоза (адрес и закрытые периоды)
+   */
+  public updatePickupSiteSettings = async (req: Request, res: Response) => {
+    try {
+      const body = req.body as SavePickupSiteSettingsBody;
+      await this.siteSettingsService.savePickupSiteSettings(body);
+      const pickup = await this.siteSettingsService.getPublicPickupPayload();
+      res.json({ code: 1, pickup });
     } catch (e) {
       this.errorHandler(e, res);
     }

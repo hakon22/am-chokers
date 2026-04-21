@@ -11,6 +11,7 @@ import { SubmitContext, VersionContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { AdminPickupSiteSettingsSection } from '@/components/admin/AdminPickupSiteSettingsSection';
 import { routes } from '@/routes';
 import type { SiteVersion } from '@/types/SiteVersion';
 import type { CacheInfoInterface, CacheItemInterface } from '@server/types/db/cache-info.interface';
@@ -87,6 +88,7 @@ export const V1AdminSettings = () => {
           ]}
         />
       </Card>
+      <AdminPickupSiteSettingsSection variant="v1" />
       {cacheInfo ? (
         <div className="d-flex flex-column">
           <Descriptions bordered style={{ marginBottom: '20px' }} className="col-12 col-xl-6" title={t('cache.items')} items={parsedInfo(cacheInfo.items)} />

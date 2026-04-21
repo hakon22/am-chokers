@@ -16,5 +16,11 @@ export class SettingsRoute extends BaseRouter {
       this.middlewareService.checkAdminAccess,
       this.settingsController.updateSiteVersion,
     );
+    router.patch(
+      this.routes.settings.updatePickupSiteSettings,
+      this.middlewareService.jwtToken,
+      this.middlewareService.checkAdminAccess,
+      this.settingsController.updatePickupSiteSettings,
+    );
   };
 }
