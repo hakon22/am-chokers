@@ -15,6 +15,7 @@ import { addItemCollection, deleteItemCollection, type ItemCollectionResponseInt
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { AdminListPrimaryActionButton } from '@/components/admin/AdminListPrimaryActionButton';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -320,9 +321,9 @@ const CreateItemCollection = () => {
           <BackButton style={{}} />
         </div>
         <div className="d-flex align-items-center gap-3 mb-3">
-          <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
+          <AdminListPrimaryActionButton onClick={handleAdd} disabled={!!editingKey}>
             {t('addItemCollection')}
-          </Button>
+          </AdminListPrimaryActionButton>
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
         </div>
       </div>

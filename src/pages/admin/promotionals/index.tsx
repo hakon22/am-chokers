@@ -20,6 +20,7 @@ import { toast } from '@/utilities/toast';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { AdminListPrimaryActionButton } from '@/components/admin/AdminListPrimaryActionButton';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -762,9 +763,9 @@ const CreatePromotional = () => {
           <BackButton style={{}} />
         </div>
         <div className="d-flex flex-column flex-xl-row align-items-start align-items-xl-center gap-3 mb-3">
-          <Button onClick={handleAdd} className="button border-button" disabled={!!editingKey}>
+          <AdminListPrimaryActionButton onClick={handleAdd} disabled={!!editingKey}>
             {t('addPromotional')}
-          </Button>
+          </AdminListPrimaryActionButton>
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
           <Checkbox checked={withExpired} onChange={withExpiredHandler}>{t('withExpired')}</Checkbox>
         </div>

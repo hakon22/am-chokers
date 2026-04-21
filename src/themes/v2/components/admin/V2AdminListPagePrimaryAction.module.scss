@@ -1,0 +1,5 @@
+@use '@/themes/v2/components/admin/_v2-admin-toolbar-primary' as toolbar;
+
+.addButton:global(.ant-btn.ant-btn-primary) {
+  @include toolbar.toolbar-primary-ant-btn;
+}

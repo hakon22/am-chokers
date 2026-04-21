@@ -1,5 +1,6 @@
-@use '../profile/profile-shared' as *;
+@use '@/themes/v2/components/profile/_profile-shared' as *;
 @use '@/themes/v2/styles/variables' as v2;
+@use '@/themes/v2/components/admin/_v2-admin-toolbar-primary' as toolbarPrimary;
 
 $navy:   v2.$v2-navy-primary;
 $navy2:  v2.$v2-navy-secondary;
@@ -79,37 +80,9 @@ $textM:  v2.$v2-text-muted;
   border-top: 1px solid $border;
 }
 
-// V2 primary action — same language as bulk bar / profile-shared btn-primary (flat, navy2, 12px radius)
+// V2 primary action — общий миксин с V2AdminListPagePrimaryAction / формой товара
 .controlsExcelBtn:global(.ant-btn.ant-btn-primary) {
-  flex-shrink: 0;
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
-  font-size: 13px !important;
-  line-height: 1.2 !important;
-  letter-spacing: 0.35px !important;
-  height: 40px !important;
-  padding: 0 18px !important;
-  border-radius: 12px !important;
-  background: $navy2 !important;
-  border: 2px solid $navy2 !important;
-  color: $white !important;
-  box-shadow: none !important;
-  display: inline-flex !important;
-  align-items: center !important;
-
-  &:not(:disabled):hover {
-    background: $navy !important;
-    border-color: $navy !important;
-    color: $white !important;
-    box-shadow: none !important;
-  }
-
-  &:not(:disabled):focus-visible,
-  &:not(:disabled):active {
-    background: $navy !important;
-    border-color: $navy !important;
-    box-shadow: none !important;
-  }
+  @include toolbarPrimary.toolbar-primary-ant-btn;
 }
 
 .controlsToolbarSearch {

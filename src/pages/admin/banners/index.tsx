@@ -33,6 +33,7 @@ import { newBannerValidation } from '@/validations/validations';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { AdminListPrimaryActionButton } from '@/components/admin/AdminListPrimaryActionButton';
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { BannerMediaTypeEnum } from '@server/types/banner/enums/banner.media.type.enum';
@@ -512,9 +513,9 @@ const CreateBanners = () => {
           <BackButton style={{}} />
         </div>
         <div className="d-flex align-items-center gap-3 mb-3">
-          <Button onClick={openCreateModal} className="button border-button">
+          <AdminListPrimaryActionButton onClick={openCreateModal}>
             {t('addBanner')}
-          </Button>
+          </AdminListPrimaryActionButton>
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
         </div>
       </div>

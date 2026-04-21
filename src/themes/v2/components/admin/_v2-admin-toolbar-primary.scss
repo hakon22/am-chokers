@@ -1,0 +1,37 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+// Тот же визуал, что у primary в тулбаре списка товаров (Excel и т.п.): Inter, navy2 → navy при hover.
+@mixin toolbar-primary-ant-btn {
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.35px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 18px !important;
+  border-radius: 12px !important;
+  background: v2.$v2-navy-secondary !important;
+  border: 2px solid v2.$v2-navy-secondary !important;
+  color: v2.$v2-white !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+
+  &:not(:disabled):hover {
+    background: v2.$v2-navy-primary !important;
+    border-color: v2.$v2-navy-primary !important;
+    color: v2.$v2-white !important;
+    box-shadow: none !important;
+  }
+
+  &:not(:disabled):focus-visible,
+  &:not(:disabled):active {
+    background: v2.$v2-navy-primary !important;
+    border-color: v2.$v2-navy-primary !important;
+    box-shadow: none !important;
+  }
+}

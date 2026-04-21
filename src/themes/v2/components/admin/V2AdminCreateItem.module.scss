@@ -1,4 +1,5 @@
 @use '@/themes/v2/styles/variables' as v2;
+@use './v2-admin-toolbar-primary' as toolbarPrimary;
 
 $navy:    v2.$v2-navy-primary;
 $navy2:   v2.$v2-navy-secondary;
@@ -270,24 +271,9 @@ $error:   v2.$v2-error;
 }
 
 .submitButton {
-  height: 48px;
-  padding: 0 32px;
-  background: $navy2;
-  color: $white;
-  border: 2px solid $navy2;
-  border-radius: 12px;
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-weight: 700;
-  cursor: pointer;
+  @include toolbarPrimary.toolbar-primary-ant-btn;
+  appearance: none;
   transition: background 0.2s, border-color 0.2s;
-
-  &:hover {
-    background: $navy;
-    border-color: $navy;
-  }
 }
 
 // ── Description section ───────────────────────────────────────────────────────
