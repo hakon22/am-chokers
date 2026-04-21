@@ -40,6 +40,7 @@ $textM:  v2.$v2-text-muted;
 .columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: stretch;
   gap: 24px;
 }
 
@@ -48,6 +49,19 @@ $textM:  v2.$v2-text-muted;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.sectionBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  > * {
+    flex: 1 1 auto;
+  }
 }
 
 .sectionTitle {
@@ -65,6 +79,8 @@ $textM:  v2.$v2-text-muted;
 // ── Table card ────────────────────────────────────────────────────
 .tableCard {
   @include card;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 

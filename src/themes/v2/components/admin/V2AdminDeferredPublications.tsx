@@ -45,44 +45,46 @@ const PublicationSection = ({ title, data, lang, isLoading, onRowClick, t }: Sec
   <div className={styles.section}>
     <p className={styles.sectionTitle}>{title}</p>
 
-    {isLoading && !data.length && <Skeleton active />}
+    <div className={styles.sectionBody}>
+      {isLoading && !data.length && <Skeleton active />}
 
-    {!isLoading && !data.length && (
-      <div className={styles.empty}>
-        <NotFoundContent />
-      </div>
-    )}
-
-    {!!data.length && (
-      <div className={styles.tableCard}>
-        <div className={styles.tableHead}>
-          <div className={styles.thCell}>{t('table.item')}</div>
-          <div className={styles.thCell}>{t('table.date')}</div>
-          <div />
+      {!isLoading && !data.length && (
+        <div className={styles.empty}>
+          <NotFoundContent />
         </div>
+      )}
 
-        {data.map((record) => (
-          <div
-            key={record.key as string}
-            className={styles.tableRow}
-            onClick={() => onRowClick(record.item)}
-          >
-            <div className={styles.itemCell}>
-              <div className={styles.itemImg}>
-                <ImageHover images={record.item.images} height={imgHeight} width={imgWidth} />
-              </div>
-              <span className={styles.itemName}>
-                {record.item.translations.find((translation) => translation.lang === lang)?.name}
-              </span>
-            </div>
-            <span className={styles.dateCell}>
-              {record.date ? moment(record.date).format(DateFormatEnum.DD_MM_YYYY_HH_MM) : '—'}
-            </span>
-            <span className={styles.chevron}>›</span>
+      {!!data.length && (
+        <div className={styles.tableCard}>
+          <div className={styles.tableHead}>
+            <div className={styles.thCell}>{t('table.item')}</div>
+            <div className={styles.thCell}>{t('table.date')}</div>
+            <div />
           </div>
-        ))}
-      </div>
-    )}
+
+          {data.map((record) => (
+            <div
+              key={record.key as string}
+              className={styles.tableRow}
+              onClick={() => onRowClick(record.item)}
+            >
+              <div className={styles.itemCell}>
+                <div className={styles.itemImg}>
+                  <ImageHover images={record.item.images} height={imgHeight} width={imgWidth} />
+                </div>
+                <span className={styles.itemName}>
+                  {record.item.translations.find((translation) => translation.lang === lang)?.name}
+                </span>
+              </div>
+              <span className={styles.dateCell}>
+                {record.date ? moment(record.date).format(DateFormatEnum.DD_MM_YYYY_HH_MM) : '—'}
+              </span>
+              <span className={styles.chevron}>›</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   </div>
 );
 
