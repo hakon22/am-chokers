@@ -51,6 +51,33 @@ $textM:  v2.$v2-text-muted;
   border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
+  width: 115px;
+  align-self: start;
+
+  // ImageHover: глобальные стили тянут img на 100%×100% без object-fit — фото искажается;
+  // на мобильной сетке колонка 80px при фиксированных 115px в inline — тоже ломает макет.
+  :global(a.image-hover),
+  :global(.image-hover) {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100%;
+    aspect-ratio: 115 / 149.5;
+    height: auto !important;
+    min-height: 0;
+  }
+
+  :global(.image-hover > div) {
+    position: relative;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0;
+  }
+
+  :global(.image-hover img),
+  :global(.image-hover video) {
+    object-fit: contain !important;
+    object-position: center;
+  }
 }
 
 .cardBody {
@@ -115,6 +142,10 @@ $textM:  v2.$v2-text-muted;
     grid-template-columns: 80px 1fr;
     gap: 14px;
     padding: 16px;
+  }
+
+  .cardImg {
+    width: 100%;
   }
 
   .cardActions {
