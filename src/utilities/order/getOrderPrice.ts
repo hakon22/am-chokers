@@ -24,7 +24,7 @@ const getPositionLineKey = (position: OrderPositionInterface, positionIndex: num
 
 /**
  * Список `items` задаёт, какие товары могут получить льготную цену по 2+1.
- * Число «подарков» K = floor(N/3), где N — сумма `count` по **всей** корзине; скидочная цена назначается к самым дешёвым **единицам среди товаров из списка** (не больше, чем таких единиц в корзине).
+ * Число «подарков» K = floor(N/3), где N — сумма `count` по товарным позициям (фиктивная доставка для чека НПД: `id` позиции = 0 и нет `item.id` — не считается); скидочная цена назначается к самым дешёвым единицам среди товаров из списка.
  */
 const getBuyTwoGetOneRestrictedItemIds = (promotional: PromotionalInterface): Set<number> | undefined => {
   if (!promotional.items?.length) {
@@ -33,7 +33,16 @@ const getBuyTwoGetOneRestrictedItemIds = (promotional: PromotionalInterface): Se
   return new Set(promotional.items.map((promotionalItem) => Number(promotionalItem.id)));
 };
 
+/**
+ * Определяет, участвует ли позиция в пуле 2+1. Не участвуют фиктивные строки доставки для чека (`id` позиции 0, без `item.id`, см. acquiring) и любые позиции без привязки к товару.
+ * @param position - позиция заказа
+ * @param restrictedItemIds - множество id товаров из промокода или undefined, если ограничения нет
+ * @returns true, если позиция может получить льготную цену по акции
+ */
 const isPositionInBuyTwoGetOneDiscountPool = (position: OrderPositionInterface, restrictedItemIds: Set<number> | undefined) => {
+  if (position.id === 0 || _.isNil(position.item?.id)) {
+    return false;
+  }
   if (!restrictedItemIds) {
     return true;
   }
@@ -42,7 +51,12 @@ const isPositionInBuyTwoGetOneDiscountPool = (position: OrderPositionInterface, 
 
 export const computeBuyTwoGetOneBreakdown = (positions: OrderInterface['positions'], promotional: PromotionalInterface): BuyTwoGetOneBreakdown => {
   const restrictedItemIds = getBuyTwoGetOneRestrictedItemIds(promotional);
-  const totalCartUnitCount = positions.reduce((accumulator, position) => accumulator + position.count, 0);
+  const totalCartUnitCount = positions.reduce((accumulator, position) => {
+    if (position.id === 0 || _.isNil(position.item?.id)) {
+      return accumulator;
+    }
+    return accumulator + position.count;
+  }, 0);
   const giftSlotsFromWholeCart = Math.floor(totalCartUnitCount / 3);
 
   let tieBreaker = 0;
