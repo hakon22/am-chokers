@@ -232,7 +232,7 @@ const Cart = () => {
       cdekWidgetRef.current.app.mount();
     } else {
       cdekWidgetRef.current = new window.CDEKWidget({
-        from: 'Москва',
+        from: 'Геленджик',
         apiKey: YANDEX_MAPS_API_KEY,
         canChoose: true,
         servicePath: routes.integration.cdek.root,
