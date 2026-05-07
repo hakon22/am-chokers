@@ -11,7 +11,7 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
-import { getDiscountPercent, getOrderPrice, getPositionAmount, getPositionPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
+import { getDiscountPercent, getOrderPrice, getOrderUnitAmounts, getPositionAmount, getPositionPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -41,20 +41,23 @@ export class AcquiringService extends BaseService {
 
   private readonly TAG = 'AcquiringService';
 
-  private readonly YOOKASSA_MAX_RECEIPT_POSITIONS = 6;
+  private readonly NPD_MAX_RECEIPT_POSITIONS = 6;
 
   /**
-   * ЮKassa: не более 6 строк в чеке — товарные позиции с ненулевой ценой + одна строка доставки при deliveryPrice > 0.
+   * НПД: не более 6 строк в чеке — товарные позиции с ненулевой ценой + одна строка доставки при deliveryPrice > 0.
    * Доставка 0 ₽ в чек не входит. Используется в `OrderService` и при формировании платежа.
    */
-  public assertYookassaReceiptPositionsWithinLimit = (productLines: { price: number; }[], deliveryPrice: number, lang: UserLangEnum): void => {
-    const productLineCount = productLines.filter((line) => line.price).length;
+  public assertReceiptPositionsWithinLimit = (productLines: { price: number; count: number; }[], deliveryPrice: number, lang: UserLangEnum): void => {
     const deliveryLineCount = deliveryPrice ? 1 : 0;
-    const receiptPositionCount = productLineCount + deliveryLineCount;
-    if (receiptPositionCount > this.YOOKASSA_MAX_RECEIPT_POSITIONS) {
+
+    const npdReceiptPositionCount = productLines
+      .filter((line) => line.price)
+      .reduce((acc, line) => acc + line.count, 0) + deliveryLineCount;
+
+    if (npdReceiptPositionCount > this.NPD_MAX_RECEIPT_POSITIONS) {
       const message = lang === UserLangEnum.RU
-        ? `Максимум ${this.YOOKASSA_MAX_RECEIPT_POSITIONS} позиций в одном заказе (включая доставку). Доставка 0 ₽ не учитывается.`
-        : `Maximum ${this.YOOKASSA_MAX_RECEIPT_POSITIONS} items per order (including delivery). Free delivery does not count as a line.`;
+        ? `Максимум ${this.NPD_MAX_RECEIPT_POSITIONS} позиций в одном заказе (включая доставку). Доставка 0 ₽ не учитывается.`
+        : `Maximum ${this.NPD_MAX_RECEIPT_POSITIONS} items per order (including delivery). Free delivery does not count as a line.`;
       throw new Error(message);
     }
   };
@@ -125,7 +128,7 @@ export class AcquiringService extends BaseService {
 
     const orderId = `${order.id}-1${transactions.length}`;
 
-    this.assertYookassaReceiptPositionsWithinLimit(order.positions, order.deliveryPrice, lang);
+    this.assertReceiptPositionsWithinLimit(order.positions, order.deliveryPrice, lang);
 
     const amount = getOrderPrice(order);
     const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
@@ -365,13 +368,23 @@ export class AcquiringService extends BaseService {
         positions.push(deliveryPosition);
       }
 
-      const positionsAmount = getPositionAmount({ ...order, positions } as OrderInterface);
-      const items = positions.map(({ id, count, item }) => ({
-        name: item.translations.find(({ lang }) => lang === UserLangEnum.RU)?.name as string,
-        quantity: count,
-        amount: positionsAmount[id],
+      const orderWithReceiptPositions = { ...order, positions } as OrderInterface;
+      const unitAmounts = getOrderUnitAmounts({ ...orderWithReceiptPositions, deliveryPrice: 0 });
+      const items = unitAmounts.map(({ positionIndex, amount }) => ({
+        name: positions[positionIndex].item.translations.find(({ lang }) => lang === UserLangEnum.RU)?.name as string,
+        quantity: 1,
+        amount,
       }));
+      const receiptAmountInCents = items.reduce((acc, item) => acc + (Math.round(Number(item.amount) * 100) * item.quantity), 0);
+      const orderAmountInCents = Math.round(getOrderPrice(order) * 100);
 
+      if (receiptAmountInCents !== orderAmountInCents) {
+        this.loggerService.error(
+          this.TAG,
+          `Расхождение суммы НПД-чека и заказа №${order.id}: чек ${receiptAmountInCents / 100}, заказ ${orderAmountInCents / 100}`,
+          { items },
+        );
+      }
       this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
       this.bullMQQueuesService.NPDNalogCreateOrder({ order: transaction.order, items });
     } catch (e) {

@@ -14,8 +14,14 @@ type BuyTwoGetOneUnit = {
 
 export type BuyTwoGetOneBreakdown = {
   paidByLineKey: Record<string, number>;
+  unitPaidByLineKey: Record<string, number[]>;
   eligibleFullTotal: number;
   eligiblePaidTotal: number;
+};
+
+export type OrderUnitAmountInterface = {
+  positionIndex: number;
+  amount: number;
 };
 
 const getPositionLineKey = (position: OrderPositionInterface, positionIndex: number) => String(
@@ -86,16 +92,38 @@ export const computeBuyTwoGetOneBreakdown = (positions: OrderInterface['position
   });
 
   const paidByLineKey: Record<string, number> = {};
+  const unitPaidByLineKey: Record<string, number[]> = {};
   const giftUnitCharge = (unitPrice: number) => Math.min(BUY_TWO_GET_ONE_GIFT_UNIT_PRICE_RUB, unitPrice);
 
   sortedUnits.forEach((unit, sortedIndex) => {
     const unitPaid = sortedIndex < giftUnitCount ? giftUnitCharge(unit.unitPrice) : unit.unitPrice;
     paidByLineKey[unit.lineKey] = (paidByLineKey[unit.lineKey] || 0) + unitPaid;
+    if (!unitPaidByLineKey[unit.lineKey]) {
+      unitPaidByLineKey[unit.lineKey] = [];
+    }
+    unitPaidByLineKey[unit.lineKey].push(+unitPaid.toFixed(2));
   });
 
   const eligiblePaidTotal = +Object.values(paidByLineKey).reduce((accumulator, value) => accumulator + value, 0).toFixed(2);
 
-  return { paidByLineKey, eligibleFullTotal, eligiblePaidTotal };
+  return { paidByLineKey, unitPaidByLineKey, eligibleFullTotal, eligiblePaidTotal };
+};
+
+/**
+ * Разбивает сумму строки на количество единиц без потери итоговой суммы.
+ * @param lineAmount - сумма строки в рублях
+ * @param quantity - количество единиц строки
+ * @returns массив сумм по единицам в рублях
+ */
+const splitLineAmountToUnitAmounts = (lineAmount: number, quantity: number): number[] => {
+  const lineAmountInCents = Math.round(lineAmount * 100);
+  const baseUnitAmountInCents = Math.floor(lineAmountInCents / quantity);
+  const remainderInCents = lineAmountInCents - (baseUnitAmountInCents * quantity);
+
+  return Array.from({ length: quantity }, (_, unitIndex) => {
+    const unitAmountInCents = baseUnitAmountInCents + (unitIndex < remainderInCents ? 1 : 0);
+    return +(unitAmountInCents / 100).toFixed(2);
+  });
 };
 
 export const getPositionsPrice = (positions: OrderInterface['positions'], deliveryPrice = 0, withoutDiscount = false) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (withoutDiscount ? 0 : position.discountPrice * 100)) * position.count, deliveryPrice * 100) / 100).toFixed(2);
@@ -196,4 +224,43 @@ export const getPositionAmount = (order: Omit<OrderInterface, 'error' | 'loading
   }, {} as Record<number, number>);
 
   return positionsAmount;
+};
+
+/**
+ * Формирует поштучные суммы позиций на базе общей логики расчёта заказа.
+ * @param order - заказ, для которого нужен поштучный расчёт
+ * @returns список сумм по единицам с индексом исходной позиции
+ */
+export const getOrderUnitAmounts = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>): OrderUnitAmountInterface[] => {
+  const promotional = order.promotional;
+  if (promotional?.buyTwoGetOne) {
+    const restrictedItemIds = getBuyTwoGetOneRestrictedItemIds(promotional);
+    const { unitPaidByLineKey } = computeBuyTwoGetOneBreakdown(order.positions, promotional);
+
+    return order.positions.flatMap((position, positionIndex) => {
+      if (isPositionInBuyTwoGetOneDiscountPool(position, restrictedItemIds)) {
+        const lineKey = getPositionLineKey(position, positionIndex);
+        const lineUnitAmounts = unitPaidByLineKey[lineKey] || [];
+        return lineUnitAmounts.map((amount) => ({ positionIndex, amount: +amount.toFixed(2) }));
+      }
+
+      const lineAmount = getPositionPrice(position);
+      const lineUnitAmounts = splitLineAmountToUnitAmounts(lineAmount, position.count);
+      return lineUnitAmounts.map((amount) => ({ positionIndex, amount }));
+    });
+  }
+
+  const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
+
+  return order.positions.flatMap((position, positionIndex) => {
+    let positionDiscountPercent = discountPercent;
+    if (order.promotional && order.promotional.items.length) {
+      if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
+        positionDiscountPercent = 0;
+      }
+    }
+    const lineAmount = getPositionPriceWithDiscount(position, positionDiscountPercent);
+    const lineUnitAmounts = splitLineAmountToUnitAmounts(lineAmount, position.count);
+    return lineUnitAmounts.map((amount) => ({ positionIndex, amount }));
+  });
 };

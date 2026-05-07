@@ -257,8 +257,8 @@ export class OrderService extends BaseService {
           : `Order cannot be placed: Item ${name} is temporarily out of stock`);
       }
 
-      this.acquiringService.assertYookassaReceiptPositionsWithinLimit(
-        cart.map(({ item }) => ({ price: item.price })),
+      this.acquiringService.assertReceiptPositionsWithinLimit(
+        cart.map(({ item, count }) => ({ price: item.price, count })),
         delivery.price,
         user.lang,
       );
