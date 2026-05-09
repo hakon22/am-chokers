@@ -36,11 +36,18 @@ class Server extends BaseService {
     await this.redisService.init({ withoutSubscribles: true });
     await this.CDEKService.init({ withWebhooks: true });
     await this.itemService.synchronizationCache();
-    await this.telegramBotService.init({ withWebhooks: true });
+    await this.telegramBotService.init({ mode: this.dev ? 'development' : 'production' });
   };
 
   public start = async () => {
     await this.init();
+
+    process.once('SIGINT', () => {
+      this.telegramBotService.stopBot('SIGINT');
+    });
+    process.once('SIGTERM', () => {
+      this.telegramBotService.stopBot('SIGTERM');
+    });
 
     this.app.prepare().then(() => {
       this.routerService.set();

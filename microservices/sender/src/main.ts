@@ -29,7 +29,7 @@ class Sender {
       await this.redisService.init();
       await this.orderService.subscribe();
       await this.CDEKService.init();
-      await this.telegramBotService.init();
+      await this.telegramBotService.init({ mode: 'outboundOnly' });
       this.bullMQWorker.init();
       this.loggerService.info('Сервис BullMQ Worker успешно запущен');
 
@@ -47,8 +47,9 @@ class Sender {
 
   private gracefulShutdown = async (signal: string) => {
     this.loggerService.info(`${signal} received, shutting down gracefully`);
-    
+
     try {
+      this.telegramBotService.stopBot(signal);
       await this.bullMQWorker.close();
       this.loggerService.info('BullMQ Worker stopped gracefully');
       process.exit(0);

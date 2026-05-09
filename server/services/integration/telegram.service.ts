@@ -1,7 +1,7 @@
+import _ from 'lodash';
 import { Container, Singleton } from 'typescript-ioc';
-import type { Context } from 'telegraf';
+import type { Context, Telegraf } from 'telegraf';
 import type { Message } from 'typegram/message';
-import type { Request, Response } from 'express';
 import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 import type { InputMediaPhoto, InputMediaVideo } from 'telegraf/types';
 
@@ -29,35 +29,60 @@ export class TelegramService {
 
   private readonly telegramBotService = Container.get(TelegramBotService);
 
-  public webhooks = async (req: Request, res: Response) => {
-    try {
-      const context = req.body as Context;
-      const message = context.message as Message.ContactMessage & Message.TextMessage;
-
-      const id = message?.from?.id?.toString();
-
-      if (message?.text === '/start') {
-        await this.start(id as string);
-      } else if (message?.contact?.phone_number) {
-        const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
-        if (user) {
-          await UserEntity.update(user.id, { telegramId: id, telegramUsername: message.from?.username ?? null });
-          await this.sendMessage(user.lang === UserLangEnum.RU
-            ? 'Вы успешно подписались на уведомления.'
-            : 'You have successfully subscribed to notifications.', id as string, { reply_markup: { keyboard: [], remove_keyboard: true } });
-        } else {
-          await this.sendMessage('Номер телефона не найден в базе данных.', id as string);
-        }
-      } else if (context.myChatMember?.new_chat_member?.status === 'kicked') {
-        const telegramId = context.myChatMember.chat.id.toString();
-        this.loggerService.info(this.TAG, `User has blocked a bot. Deleting telegramID: ${telegramId}`);
-
-        await UserEntity.update({ telegramId }, { telegramId: null, telegramUsername: null });
+  /**
+   * Регистрирует на экземпляре Telegraf middleware для входящих апдейтов (polling и webhook)
+   * @param bot - бот после инициализации в TelegramBotService
+   */
+  public registerInboundHandlersOnBot = (bot: Telegraf<Context>): void => {
+    bot.use(async (context, next) => {
+      try {
+        await this.handleIncomingContext(context);
+      } catch (error) {
+        this.loggerService.error(this.TAG, error);
       }
-      res.end();
-    } catch (e) {
-      this.loggerService.error(this.TAG, e);
-      res.sendStatus(500);
+      await next();
+    });
+  };
+
+  /**
+   * Обрабатывает входящее обновление Telegram (long polling или webhook через Telegraf)
+   * @param context - контекст Telegraf с сообщением или myChatMember
+   * @returns Promise, завершающийся после обработки апдейта
+   */
+  public handleIncomingContext = async (context: Context): Promise<void> => {
+    const message = context.message as (Message.ContactMessage & Message.TextMessage) | undefined;
+
+    const id = message?.from?.id?.toString();
+
+    if (message?.text === '/start') {
+      if (_.isNil(id)) {
+        return;
+      }
+      await this.start(id);
+      return;
+    }
+
+    if (message?.contact?.phone_number) {
+      if (_.isNil(id)) {
+        return;
+      }
+      const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
+      if (user) {
+        await UserEntity.update(user.id, { telegramId: id, telegramUsername: message.from?.username ?? null });
+        await this.sendMessage(user.lang === UserLangEnum.RU
+          ? 'Вы успешно подписались на уведомления.'
+          : 'You have successfully subscribed to notifications.', id, { reply_markup: { keyboard: [], remove_keyboard: true } });
+      } else {
+        await this.sendMessage('Номер телефона не найден в базе данных.', id);
+      }
+      return;
+    }
+
+    if (context.myChatMember?.new_chat_member?.status === 'kicked') {
+      const telegramId = context.myChatMember.chat.id.toString();
+      this.loggerService.info(this.TAG, `User has blocked a bot. Deleting telegramID: ${telegramId}`);
+
+      await UserEntity.update({ telegramId }, { telegramId: null, telegramUsername: null });
     }
   };
 
