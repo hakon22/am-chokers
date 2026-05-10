@@ -7,6 +7,7 @@ import { SubmitContext } from '@/components/Context';
 import { fetchConfirmCode } from '@/slices/userSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { toast } from '@/utilities/toast';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import v2Styles from '@/themes/v2/components/ConfirmPhone.module.scss';
 
 const SMS_COOLDOWN_SECONDS = 59;
@@ -27,7 +28,7 @@ export const ConfirmPhone = ({
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
   const dispatch = useAppDispatch();
 
-  const { key, loadingStatus, phone = '' } = useAppSelector((state) => state.user);
+  const { key, loadingStatus, phone = '', confirmPhoneOtpDeliveryChannel } = useAppSelector((state) => state.user);
 
   const { setIsSubmit } = useContext(SubmitContext);
 
@@ -36,7 +37,12 @@ export const ConfirmPhone = ({
   const [errorMessage, setErrorMessage] = useState('');
 
   const onFinish = async (codeValue: string) => {
-    const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: newPhone || phone, key, code: codeValue })) as { payload: { code: number } };
+    const { payload: { code } } = await dispatch(fetchConfirmCode({
+      phone: newPhone || phone,
+      key,
+      code: codeValue,
+      forProfilePhoneChange: Boolean(newPhone),
+    })) as { payload: { code: number; } };
     if (code === 2) {
       setState(true);
     }
@@ -51,12 +57,26 @@ export const ConfirmPhone = ({
   };
 
   const repeatSMS = async () => {
-    const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: newPhone || phone })) as { payload: { code: number } };
+    const resultAction = await dispatch(fetchConfirmCode({
+      phone: newPhone || phone,
+      forProfilePhoneChange: Boolean(newPhone),
+    }));
+
+    if (!fetchConfirmCode.fulfilled.match(resultAction)) {
+      toast(tToast('sendSmsError'), 'error');
+      return;
+    }
+
+    const { code, deliveryChannel } = resultAction.payload;
+
     if (code === 1) {
       setValue('');
       setErrorMessage('');
       setTimer(SMS_COOLDOWN_SECONDS);
-      toast(tToast('sendSmsSuccess'), 'success');
+      const successMessage = deliveryChannel === MessageTypeEnum.TELEGRAM
+        ? tToast('sendOtpDeliveredTelegram')
+        : tToast('sendOtpDeliveredSms');
+      toast(successMessage, 'success');
     } else {
       toast(tToast('sendSmsError'), 'error');
     }
@@ -77,10 +97,14 @@ export const ConfirmPhone = ({
 
   const cooldownProgress = timer > 0 ? timer / SMS_COOLDOWN_SECONDS : 0;
 
+  const enterCodeTitleKey = confirmPhoneOtpDeliveryChannel === MessageTypeEnum.TELEGRAM
+    ? 'enterTheCodeTelegram'
+    : 'enterTheCodeSms';
+
   if (variant === 'v2') {
     return (
       <Form name="confirmPhone" onFinish={onFinish} className={v2Styles.root}>
-        <h2 className={v2Styles.title}>{t('enterTheCode')}</h2>
+        <h2 className={v2Styles.title}>{t(enterCodeTitleKey)}</h2>
         <div className={v2Styles.otpSection}>
           <VerificationInput
             validChars="0-9"
@@ -120,7 +144,7 @@ export const ConfirmPhone = ({
 
   return (
     <Form name="confirmPhone" onFinish={onFinish} className="d-flex flex-column align-items-center fs-5 my-4 font-oswald w-100">
-      <span className="mb-3-5 text-center fs-4">{t('enterTheCode')}</span>
+      <span className="mb-3-5 text-center fs-4">{t(enterCodeTitleKey)}</span>
       <div className="d-flex justify-content-center mb-5 col-10 position-relative">
         <VerificationInput
           validChars="0-9"

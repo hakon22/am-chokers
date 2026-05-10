@@ -15,6 +15,8 @@ import { isUserOutboundMessagingSkipped } from '@server/utilities/is-user-outbou
 interface SmsParameterInterface {
   phone: string;
   lang: UserLangEnum;
+  /** Если задан, воркер sender может отправить то же содержимое в Telegram вместо SMS */
+  telegramId?: string;
 }
 
 export interface SmsCodeParameterInterface extends SmsParameterInterface {
@@ -71,6 +73,33 @@ export class SmsService {
   private readonly messageService = Container.get(MessageService);
 
   /**
+   * Текст сообщения с кодом подтверждения телефона (один шаблон для SMS и Telegram)
+   * @param code - одноразовый код
+   * @returns текст для провайдера SMS или для `TelegramService`
+   */
+  public buildPhoneVerificationCodeMessageText = (code: string): string => (
+    `Ваш код подтверждения: ${code}`
+  );
+
+  /**
+   * Текст сообщения с паролем для входа (один шаблон для SMS и Telegram)
+   * @param password - пароль
+   * @returns текст для провайдера SMS или для `TelegramService`
+   */
+  public buildLoginPasswordMessageText = (password: string): string => (
+    `Ваш пароль для входа: ${password} ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}`
+  );
+
+  /**
+   * Текст сообщения со ссылкой или текстом чека (один шаблон для SMS и Telegram)
+   * @param receipt - URL или текст чека
+   * @returns текст для провайдера SMS или для `TelegramService`
+   */
+  public buildReceiptMessageText = (receipt: string): string => (
+    `Ваш чек: ${receipt}`
+  );
+
+  /**
    * Единая точка отправки: `{ preset }` или `{ provider }` для произвольного текста.
    * Пресеты → основной оператор: CONFIRMATION_CODE → GREEN_SMS, PASSWORD → SMS_PROSTO, RECEIPT → MAIN_SMS.
    * При сбое основного (кроме случая, когда основной уже MAIN_SMS) — одна повторная отправка того же текста через MAIN_SMS.
@@ -118,7 +147,7 @@ export class SmsService {
 
   public sendCode = async (phone: string, code: string, lang: UserLangEnum): Promise<{ request_id: string, code: string; }> => {
     try {
-      const text = `Ваш код подтверждения: ${code}`;
+      const text = this.buildPhoneVerificationCodeMessageText(code);
       const result = await this.sendSms(phone, text, { preset: SmsMessagePreset.CONFIRMATION_CODE });
 
       if (isUserOutboundMessagingSkipped()) {
@@ -145,7 +174,7 @@ export class SmsService {
 
   public sendReceipt = async (phone: string, receipt: string, lang: UserLangEnum): Promise<MainSmsResponseInterface & { receipt: string }> => {
     try {
-      const text = `Ваш чек: ${receipt}`;
+      const text = this.buildReceiptMessageText(receipt);
       const result = await this.sendSms(phone, text, { preset: SmsMessagePreset.RECEIPT });
 
       if (isUserOutboundMessagingSkipped()) {
@@ -168,7 +197,7 @@ export class SmsService {
 
   public sendPass = async (phone: string, password: string, lang: UserLangEnum): Promise<string> => {
     try {
-      const text = `Ваш пароль для входа: ${password} ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}`;
+      const text = this.buildLoginPasswordMessageText(password);
       await this.sendSms(phone, text, { preset: SmsMessagePreset.PASSWORD });
 
       if (isUserOutboundMessagingSkipped()) {

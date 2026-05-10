@@ -18,7 +18,7 @@ const MOSCOW_TIMEZONE_NAME = 'Europe/Moscow';
 
 const RATING_REMINDER_WINDOW_END_MINUTE_EXCLUSIVE = 10;
 
-/** Ежедневное напоминание об оценке товаров по завершённым заказам (14:00 Europe/Moscow) */
+/** Ежедневное напоминание об оценке товаров по завершённым заказам (13:00 Europe/Moscow) */
 class TelegramOrderRatingReminderCron {
   public readonly loggerService = Container.get(LoggerService);
 
@@ -31,12 +31,12 @@ class TelegramOrderRatingReminderCron {
   public start = async () => {
     const moscowNow = moment.tz(MOSCOW_TIMEZONE_NAME);
 
-    if (moscowNow.hour() !== 14 || moscowNow.minute() >= RATING_REMINDER_WINDOW_END_MINUTE_EXCLUSIVE) {
+    if (moscowNow.hour() !== 13 || moscowNow.minute() >= RATING_REMINDER_WINDOW_END_MINUTE_EXCLUSIVE) {
       this.loggerService.info(
         TAG,
-        `Пропуск: текущее время в Москве ${moscowNow.format('HH:mm')} вне окна 14:00–14:${String(RATING_REMINDER_WINDOW_END_MINUTE_EXCLUSIVE).padStart(2, '0')}`,
+        `Пропуск: текущее время в Москве ${moscowNow.format('HH:mm')} вне окна 13:00–13:${String(RATING_REMINDER_WINDOW_END_MINUTE_EXCLUSIVE).padStart(2, '0')}`,
       );
-      //process.exit(0);
+      process.exit(0);
     }
 
     if (_.isEmpty(process.env.TELEGRAM_TOKEN ?? '')) {

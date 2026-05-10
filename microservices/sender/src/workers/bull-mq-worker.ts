@@ -1,11 +1,14 @@
 import { Worker, type Job } from 'bullmq';
 import { Container } from 'typescript-ioc';
+import _ from 'lodash';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { CDEKService } from '@server/services/delivery/cdek.service';
 import { NpdNalogService } from '@server/services/integration/npd-nalog.service';
 import { SmsService, type SmsCodeParameterInterface, type SmsPasswordParameterInterface, type SmsReceiptParameterInterface } from '@server/services/integration/sms.service';
+import { SmsTransactionalJobMethodEnum } from '@server/types/integration/enums/sms-transactional-job-method.enum';
+import { UserEntity } from '@server/db/entities/user.entity';
 import { redisConfig } from '@server/db/database.service';
 import { BullMQQueuesEnum } from '@microservices/sender/enums/bull-mq-queues.enum';
 import type { TelegramJobInterface, TelegramAdminJobInterface } from '@microservices/sender/types/telegram-job.interface';
@@ -69,23 +72,111 @@ export class BullMQWorker {
     this.loggerService.info(this.TAG, 'Все воркеры остановлены');
   };
 
-  private processSMSCodeJob = async (job: Job<SmsCodeParameterInterface>) => this.processSMSJob(job, 'sendCode');
+  private processSMSCodeJob = async (job: Job<SmsCodeParameterInterface>) => (
+    this.processSMSJob(job, SmsTransactionalJobMethodEnum.SEND_CODE)
+  );
 
-  private processSMSPasswordJob = async (job: Job<SmsPasswordParameterInterface>) => this.processSMSJob(job, 'sendPass');
+  private processSMSPasswordJob = async (job: Job<SmsPasswordParameterInterface>) => (
+    this.processSMSJob(job, SmsTransactionalJobMethodEnum.SEND_PASS)
+  );
 
-  private processSMSReceiptJob = async (job: Job<SmsReceiptParameterInterface>) => this.processSMSJob(job, 'sendReceipt');
+  private processSMSReceiptJob = async (job: Job<SmsReceiptParameterInterface>) => (
+    this.processSMSJob(job, SmsTransactionalJobMethodEnum.SEND_RECEIPT)
+  );
 
-  private processSMSJob = async (job: Job<SmsCodeParameterInterface | SmsPasswordParameterInterface | SmsReceiptParameterInterface>, method: 'sendCode' | 'sendPass' | 'sendReceipt') => {
+  /**
+   * Определяет chat id Telegram для transactional-сообщения: из задачи или по телефону в БД
+   * @param data - payload SMS-задачи BullMQ
+   * @returns telegramId или undefined
+   */
+  private resolveEffectiveTelegramIdFromSmsJob = async (
+    data: SmsCodeParameterInterface | SmsPasswordParameterInterface | SmsReceiptParameterInterface,
+  ): Promise<string | undefined> => {
+    if (!_.isEmpty(data.telegramId)) {
+      return data.telegramId;
+    }
+
+    const { phone } = data;
+    const user = await UserEntity.findOne({
+      select: ['telegramId'],
+      where: { phone },
+    });
+
+    if (user && !_.isEmpty(user.telegramId)) {
+      return user.telegramId ?? undefined;
+    }
+
+    return undefined;
+  };
+
+  /**
+   * Отправляет код / пароль / чек в Telegram; при успехе возвращает true (есть message_id)
+   * @param job - задача BullMQ
+   * @param method - вид сообщения
+   * @param telegramId - id чата Telegram
+   * @returns true если Bot API вернул message_id
+   */
+  private trySendTransactionalUserTelegramFromSmsJob = async (
+    job: Job<SmsCodeParameterInterface | SmsPasswordParameterInterface | SmsReceiptParameterInterface>,
+    method: SmsTransactionalJobMethodEnum,
+    telegramId: string,
+  ): Promise<boolean> => {
+    let messageText: string;
+
+    if (method === SmsTransactionalJobMethodEnum.SEND_CODE) {
+      const { code } = job.data as SmsCodeParameterInterface;
+      messageText = this.smsService.buildPhoneVerificationCodeMessageText(code);
+    } else if (method === SmsTransactionalJobMethodEnum.SEND_PASS) {
+      const { password } = job.data as SmsPasswordParameterInterface;
+      messageText = this.smsService.buildLoginPasswordMessageText(password);
+    } else {
+      const { receipt } = job.data as SmsReceiptParameterInterface;
+      messageText = this.smsService.buildReceiptMessageText(receipt);
+    }
+
+    try {
+      const result = await this.telegramService.sendMessage(messageText, telegramId);
+
+      if (result && typeof result.message_id === 'number') {
+        return true;
+      }
+    } catch (error) {
+      this.loggerService.error(this.TAG, `Transactional Telegram не отправлено (задача #${job.id}):`, error);
+    }
+
+    return false;
+  };
+
+  /**
+   * Обрабатывает SMS-задачу: при привязанном Telegram сначала Telegram, иначе или при сбое — SMS (резерв)
+   * @param job - задача BullMQ
+   * @param method - метод SmsService
+   */
+  private processSMSJob = async (
+    job: Job<SmsCodeParameterInterface | SmsPasswordParameterInterface | SmsReceiptParameterInterface>,
+    method: SmsTransactionalJobMethodEnum,
+  ) => {
     const name = 'SMS';
     try {
       this.loggerService.info(this.TAG, `Обработка ${name} задачи #${job.id}`, job.data);
 
       const { phone, lang } = job.data;
+      const effectiveTelegramId = await this.resolveEffectiveTelegramIdFromSmsJob(job.data);
 
-      if (method === 'sendCode') {
+      if (!_.isEmpty(effectiveTelegramId)) {
+        const telegramDelivered = await this.trySendTransactionalUserTelegramFromSmsJob(job, method, effectiveTelegramId as string);
+
+        if (telegramDelivered) {
+          return;
+        }
+
+        this.loggerService.warn(this.TAG, `Резерв SMS после неуспеха Telegram (задача #${job.id}, phone=${phone})`);
+      }
+
+      if (method === SmsTransactionalJobMethodEnum.SEND_CODE) {
         const { code } = job.data as SmsCodeParameterInterface;
         await this.smsService.sendCode(phone, code, lang);
-      } else if (method === 'sendPass') {
+      } else if (method === SmsTransactionalJobMethodEnum.SEND_PASS) {
         const { password } = job.data as SmsPasswordParameterInterface;
         await this.smsService.sendPass(phone, password, lang);
       } else {

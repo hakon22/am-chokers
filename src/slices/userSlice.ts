@@ -4,6 +4,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 
 import { routes } from '@/routes';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import type {
   UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface,
 } from '@/types/user/User';
@@ -79,11 +80,35 @@ export const fetchTokenStorage = createAsyncThunk(
   },
 );
 
+export interface FetchConfirmCodePayloadInterface {
+  phone: string;
+  key?: string;
+  code?: string;
+  forProfilePhoneChange?: boolean;
+  lang?: UserLangEnum;
+}
+
 export const fetchConfirmCode = createAsyncThunk(
   'user/fetchConfirmCode',
-  async (data: { phone: string, key?: string, code?: string }, { rejectWithValue }) => {
+  async (data: FetchConfirmCodePayloadInterface, { rejectWithValue, getState }) => {
     try {
-      const response = await axios.post<{ code: number, key: string, phone: string }>(routes.user.confirmPhone, data);
+      const state = getState() as { user: { token?: string; lang?: UserLangEnum; } };
+      const resolvedLang = data.lang ?? state.user.lang ?? UserLangEnum.RU;
+      const requestBody: FetchConfirmCodePayloadInterface = {
+        ...data,
+        lang: resolvedLang,
+      };
+      const headers = state.user.token
+        ? { Authorization: `Bearer ${state.user.token}` }
+        : undefined;
+
+      const response = await axios.post<{
+        code: number;
+        key: string;
+        phone: string;
+        deliveryChannel?: MessageTypeEnum;
+      }>(routes.user.confirmPhone, requestBody, headers ? { headers } : undefined);
+
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -163,6 +188,7 @@ const initialState: { [K in keyof (Partial<UserInterface> & InitialState)]: User
   error: null,
   lang: undefined,
   favorites: [],
+  confirmPhoneOtpDeliveryChannel: undefined,
 };
 
 const userSlice = createSlice({
@@ -287,6 +313,12 @@ const userSlice = createSlice({
           state.key = payload.key;
           if (!state.id) {
             state.phone = payload.phone;
+          }
+          if (
+            payload.deliveryChannel === MessageTypeEnum.TELEGRAM
+            || payload.deliveryChannel === MessageTypeEnum.SMS
+          ) {
+            state.confirmPhoneOtpDeliveryChannel = payload.deliveryChannel;
           }
         }
         state.loadingStatus = 'finish';

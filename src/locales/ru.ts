@@ -239,7 +239,8 @@ export default {
         personalDataConsent: 'Я даю согласие на обработку моих персональных данных в соответствии с ',
         home: 'На главную',
         resultTitle: 'Восстановление пароля прошло успешно!',
-        resultSubTitle: 'Новый пароль для входа выслан Вам в SMS-сообщении.',
+        resultSubTitleSms: 'Новый пароль для входа выслан Вам в SMS-сообщении.',
+        resultSubTitleTelegram: 'Новый пароль для входа отправлен Вам в Telegram.',
       },
       createItem: {
         title: 'Создание товара',
@@ -1020,7 +1021,8 @@ export default {
       },
       confirmPhone: {
         h1: 'Подтверждение телефона',
-        enterTheCode: 'Введите код из СМС',
+        enterTheCodeSms: 'Введите код из СМС',
+        enterTheCodeTelegram: 'Введите код из Telegram',
         didntReceive: 'Не получили код?',
         timerCode_zero: 'Отправка нового кода через {{ count }} секунд',
         timerCode_one: 'Отправка нового кода через {{ count }} секунду',
@@ -1235,7 +1237,7 @@ export default {
       userNotExists: 'Такой пользователь не зарегистрирован',
       incorrectPassword: 'Неверный пароль',
       incorrectCode: 'Неверный код',
-      timeNotOver: 'Время повторной отправки СМС не подошло',
+      timeNotOver: 'До повторной отправки кода ещё рано',
       isInFuture: 'Дата начала не должна быть позже даты завершения',
       isAfterStart: 'Дата завершения должна быть позже даты начала',
       dateNotInPast: 'Дата и время не должны быть в прошлом',
@@ -1253,6 +1255,8 @@ export default {
     },
     toast: {
       sendSmsSuccess: 'СМС успешно отправлено',
+      sendOtpDeliveredTelegram: 'Код отправлен в Telegram',
+      sendOtpDeliveredSms: 'Код отправлен по SMS',
       sendSmsError: 'Не удалось отправить СМС',
       timeNotOverForSms: 'Вы можете отправлять СМС только раз в минуту',
       unknownError: 'Ошибка: {{ error }}',

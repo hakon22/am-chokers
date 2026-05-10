@@ -15,6 +15,7 @@ import { loginValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import styles from '@/themes/v2/components/AuthModal.module.scss';
 import type { UserLoginInterface, UserSignupInterface } from '@/types/user/User';
 import type { AuthModalView } from '@/components/Context';
@@ -189,12 +190,22 @@ const RecoveryView = ({ onNavigate }: { onNavigate: (view: AuthModalView) => voi
   const [form] = Form.useForm();
   const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);
   const [isSent, setIsSent] = useState(false);
+  const [passwordDeliveryChannel, setPasswordDeliveryChannel] = useState<MessageTypeEnum>(MessageTypeEnum.SMS);
 
   const onFinish = async (values: { phone: string; }) => {
     try {
       setIsSubmit(true);
-      const { data: { code } } = await axios.post(routes.user.recoveryPassword, values);
+      const { data: { code, deliveryChannel } } = await axios.post<{
+        code: number;
+        deliveryChannel?: MessageTypeEnum;
+      }>(routes.user.recoveryPassword, values);
       if (code === 1) {
+        if (
+          deliveryChannel === MessageTypeEnum.TELEGRAM
+          || deliveryChannel === MessageTypeEnum.SMS
+        ) {
+          setPasswordDeliveryChannel(deliveryChannel);
+        }
         setIsSent(true);
       } else if (code === 2) {
         form.setFields([{ name: 'phone', errors: [tValidation('userNotExists')] }]);
@@ -210,7 +221,9 @@ const RecoveryView = ({ onNavigate }: { onNavigate: (view: AuthModalView) => voi
       <div className={styles.content}>
         <CheckCircleOutlined className={styles.successIcon} />
         <p className={styles.successTitle}>{t('resultTitle')}</p>
-        <p className={styles.successSubtitle}>{t('resultSubTitle')}</p>
+        <p className={styles.successSubtitle}>
+          {t(passwordDeliveryChannel === MessageTypeEnum.TELEGRAM ? 'resultSubTitleTelegram' : 'resultSubTitleSms')}
+        </p>
         <Button type="primary" size="large" block className={styles.primaryAction} onClick={() => onNavigate('login')}>
           {t('home')}
         </Button>

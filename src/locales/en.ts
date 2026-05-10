@@ -239,7 +239,8 @@ export default {
         personalDataConsent: 'I consent to the processing of my personal data in accordance with the ',
         home: 'Back to main page',
         resultTitle: 'Password has been successfully recovered!',
-        resultSubTitle: 'New login password has been sent to you via SMS.',
+        resultSubTitleSms: 'Your new login password has been sent to you by SMS.',
+        resultSubTitleTelegram: 'Your new login password has been sent to you in Telegram.',
       },
       createItem: {
         title: 'Create item',
@@ -1020,7 +1021,8 @@ export default {
       },
       confirmPhone: {
         h1: 'Phone confirmation',
-        enterTheCode: 'Enter the code',
+        enterTheCodeSms: 'Enter the code from the SMS',
+        enterTheCodeTelegram: 'Enter the code from Telegram',
         didntReceive: 'Did not receive the code?',
         timerCode_zero: 'New code will be sent in {{ count }} seconds',
         timerCode_one: 'New code will be sent in {{ count }} second',
@@ -1235,7 +1237,7 @@ export default {
       userNotExists: 'Such User is not registered',
       incorrectPassword: 'Incorrect password',
       incorrectCode: 'Incorrect code',
-      timeNotOver: 'SMS resend time has not elapsed yet',
+      timeNotOver: 'Please wait before requesting another code',
       isInFuture: 'Start date must not be after end date',
       isAfterStart: 'End date must be after start date',
       dateNotInPast: 'Date and time must not be in the past',
@@ -1253,6 +1255,8 @@ export default {
     },
     toast: {
       sendSmsSuccess: 'SMS has been sent successfully',
+      sendOtpDeliveredTelegram: 'The code was sent to Telegram',
+      sendOtpDeliveredSms: 'The code was sent by SMS',
       sendSmsError: 'Failed to send SMS',
       timeNotOverForSms: 'You can send SMS only once per minute',
       unknownError: 'Error: {{ error }}',

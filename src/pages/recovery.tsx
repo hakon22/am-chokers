@@ -12,6 +12,7 @@ import { loginValidation } from '@/validations/validations';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 
 
 type RecoveryType = {
@@ -33,12 +34,22 @@ const Recovery = () => {
   const { isMobile } = useContext(MobileContext);
 
   const [isSend, setIsSend] = useState(false);
+  const [passwordDeliveryChannel, setPasswordDeliveryChannel] = useState<MessageTypeEnum>(MessageTypeEnum.SMS);
 
   const onFinish = async (values: RecoveryType) => {
     try {
       setIsSubmit(true);
-      const { data: { code } } = await axios.post(routes.user.recoveryPassword, values);
+      const { data: { code, deliveryChannel } } = await axios.post<{
+        code: number;
+        deliveryChannel?: MessageTypeEnum;
+      }>(routes.user.recoveryPassword, values);
       if (code === 1) {
+        if (
+          deliveryChannel === MessageTypeEnum.TELEGRAM
+          || deliveryChannel === MessageTypeEnum.SMS
+        ) {
+          setPasswordDeliveryChannel(deliveryChannel);
+        }
         setIsSend(true);
       } else if (code === 2) {
         form.setFields([{ name: 'phone', errors: [tValidation('userNotExists')] }]);
@@ -56,7 +67,7 @@ const Recovery = () => {
         <Result
           status="success"
           title={t('resultTitle')}
-          subTitle={t('resultSubTitle')}
+          subTitle={t(passwordDeliveryChannel === MessageTypeEnum.TELEGRAM ? 'resultSubTitleTelegram' : 'resultSubTitleSms')}
           style={{ marginTop: isMobile ? '100px' : '15%' }}
           extra={<Button className="button col-xl-2 mx-auto" onClick={() => router.push(routes.page.base.loginPage)}>{t('home')}</Button>}
         />

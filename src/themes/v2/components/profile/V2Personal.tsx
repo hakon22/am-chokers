@@ -78,7 +78,7 @@ export const V2Personal = () => {
         setIsSubmit(true);
         const { data } = await axios.post<{ code: number; url?: string; }>(routes.user.telegramLinkToken);
         if (data.code === 1 && data.url) {
-          window.location.assign(data.url);
+          window.open(data.url, '_blank', 'noopener,noreferrer');
         } else if (data.code === 5) {
           toast(tToast('telegramLinkRateLimited'), 'error');
         } else {
@@ -102,7 +102,11 @@ export const V2Personal = () => {
     setUpdateValues(changedValues);
 
     if (changedValues.phone && !phoneConfirm) {
-      const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: changedValues.phone, key })) as { payload: { code: number } };
+      const { payload: { code } } = await dispatch(fetchConfirmCode({
+        phone: changedValues.phone,
+        key,
+        forProfilePhoneChange: true,
+      })) as { payload: { code: number; } };
       if (code === 1) setPhoneConfirm(changedValues.phone);
       if (code === 4) toast(tToast('timeNotOverForSms'), 'error');
       if (code === 5) form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);

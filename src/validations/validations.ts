@@ -78,6 +78,10 @@ const idNullableSchema = yup
 
 const confirmPhoneSchema = yup.object().shape({
   phone: phoneSchema,
+  lang: yup.string().oneOf(Object.values(UserLangEnum)).optional(),
+  key: yup.string().optional(),
+  code: yup.string().optional(),
+  forProfilePhoneChange: yup.boolean().optional(),
 });
 
 const loginSchema = yup.object().shape({

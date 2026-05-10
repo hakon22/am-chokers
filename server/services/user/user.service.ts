@@ -22,6 +22,7 @@ import { CartService } from '@server/services/cart/cart.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { verifyTelegramWebAppInitDataAndGetTelegramUserId } from '@server/utilities/telegram-web-app-init-data';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { codeGen } from '@server/utilities/code-generator';
 import { passwordGen } from '@server/utilities/password-generator';
 import { paramsIdSchema, queryLanguageParams, queryPaginationWithParams } from '@server/utilities/convertation.params';
@@ -230,8 +231,15 @@ export class UserService extends BaseService {
   public confirmPhone = async (req: Request, res: Response) => {
     try {
       req.body.phone = phoneTransform(req.body.phone);
-      const { phone, lang, key, code: userCode } = req.body as { phone: string, lang: UserLangEnum, key?: string, code?: string };
-      await phoneValidation.serverValidator({ phone });
+      const body = await phoneValidation.serverValidator(req.body) as {
+        phone: string;
+        lang?: UserLangEnum;
+        key?: string;
+        code?: string;
+        forProfilePhoneChange?: boolean;
+      };
+      const { phone, key, code: userCode, forProfilePhoneChange } = body;
+      const lang = body.lang ?? UserLangEnum.RU;
 
       const candidate = await this.findOne({ phone }, { withDeleted: true });
       if (candidate) {
@@ -240,7 +248,7 @@ export class UserService extends BaseService {
       }
 
       if (key) {
-        const data = await this.redisService.get<{ phone: string, code: string }>(key);
+        const data = await this.redisService.get<{ phone: string, code: string; }>(key);
 
         if (key && userCode) {
           await confirmCodeValidation.serverValidator({ code: userCode });
@@ -260,11 +268,32 @@ export class UserService extends BaseService {
       const code = codeGen();
       const uuid = uuidv4();
 
-      this.bullMQQueuesService.sendSMSCode({ phone, code, lang });
+      let telegramIdForSmsJob: string | undefined;
+      let deliveryChannel: MessageTypeEnum = MessageTypeEnum.SMS;
+
+      if (forProfilePhoneChange === true) {
+        const authenticatedUser = this.tokenService.getCurrentUserIfAuthenticated(req);
+
+        if (
+          authenticatedUser
+          && !_.isEmpty(authenticatedUser.telegramId)
+          && authenticatedUser.phone !== phone
+        ) {
+          telegramIdForSmsJob = authenticatedUser.telegramId ?? undefined;
+          deliveryChannel = MessageTypeEnum.TELEGRAM;
+        }
+      }
+
+      this.bullMQQueuesService.sendSMSCode({
+        phone,
+        code,
+        lang,
+        ...(telegramIdForSmsJob ? { telegramId: telegramIdForSmsJob } : {}),
+      });
       await this.redisService.setEx(uuid, { phone, code }, 3600);
       await this.redisService.setEx(phone, { phone }, 59);
 
-      res.json({ code: 1, key: uuid, phone });
+      res.json({ code: 1, key: uuid, phone, deliveryChannel });
     } catch (e) {
       this.errorHandler(e, res);
     }
@@ -356,12 +385,16 @@ export class UserService extends BaseService {
 
       const password = passwordGen();
 
+      const deliveryChannel: MessageTypeEnum = !_.isEmpty(user.telegramId)
+        ? MessageTypeEnum.TELEGRAM
+        : MessageTypeEnum.SMS;
+
       this.bullMQQueuesService.sendSMSPassword({ phone, password, lang: user.lang });
 
       const hashPassword = bcrypt.hashSync(password, 10);
 
       await UserEntity.update(user.id, { password: hashPassword });
-      res.json({ code: 1 });
+      res.json({ code: 1, deliveryChannel });
     } catch (e) {
       this.errorHandler(e, res);
     }
