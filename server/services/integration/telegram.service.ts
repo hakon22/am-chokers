@@ -16,7 +16,7 @@ import { resolveTelegramWebAppPublicOrigin } from '@server/utilities/telegram-we
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
-import { routes } from '@/routes';
+import { routes, serverHost } from '@/routes';
 
 const TELEGRAM_LINK_TOKEN_PREFIX = 'TELEGRAM_LINK_TOKEN:';
 
@@ -233,6 +233,75 @@ export class TelegramService {
     const replyMarkup = replyMarkupForMiniApp('Мои заказы');
 
     await this.sendMessage(textLines, telegramChatId, replyMarkup ? { reply_markup: replyMarkup } : undefined);
+  };
+
+  /**
+   * Отправляет напоминание об оценке товаров по завершённому заказу с кнопкой Mini App на карточку заказа
+   * @param orderId - номер заказа для текста и пути в Web App
+   * @param telegramChatId - идентификатор чата Telegram получателя
+   * @param userLang - язык пользователя для текста кнопки и сообщения
+   * @returns результат `sendMessage` при успешной доставке в Telegram (есть `message_id`), иначе `undefined`
+   */
+  public sendCompletedOrderRatingReminder = async (
+    orderId: number,
+    telegramChatId: string,
+    userLang: UserLangEnum,
+  ) => {
+    const publicOrigin = resolveTelegramWebAppPublicOrigin();
+    const orderPath = routes.page.telegram.order(orderId);
+    const miniAppOrderUrl = !_.isEmpty(publicOrigin) ? `${publicOrigin}${orderPath}` : '';
+
+    const trimmedServerHost = (serverHost ?? '').trim().replace(/\/$/, '');
+    const siteOrigin = !_.isEmpty(trimmedServerHost) ? trimmedServerHost : publicOrigin;
+    const userOrderOnWebsiteUrl = !_.isEmpty(siteOrigin)
+      ? `${siteOrigin}${routes.page.profile.orderHistory}/${orderId}`
+      : '';
+
+    const orderOnWebsiteLineRu = _.isEmpty(userOrderOnWebsiteUrl)
+      ? 'Для этого можно нажать кнопку ниже или оставить отзыв в личном кабинете на сайте.'
+      : `Для этого можно нажать кнопку ниже и откроется Ваш заказ, там можно поставить оценки. Либо можно оставить отзыв в личном кабинете <a href="${userOrderOnWebsiteUrl}">на сайте</a>.`;
+
+    const orderOnWebsiteLineEn = _.isEmpty(userOrderOnWebsiteUrl)
+      ? 'You can tap the button below or leave a review in your account on the website.'
+      : `You can tap the button below to open your order and add ratings. Or you can leave a review in your account <a href="${userOrderOnWebsiteUrl}">on the website</a>.`;
+
+    const isEnglish = userLang === UserLangEnum.EN;
+    const buttonText = isEnglish ? 'Rate items' : 'Оценить товары';
+    const textLines = isEnglish
+      ? [
+        'Hello, this is Maria from AM-Chokers.',
+        '',
+        'Thank you for your order! I hope you love your new jewelry and enjoy wearing it.',
+        'If you have a moment, I would love to hear your impressions — I would really appreciate it! :)',
+        '',
+        ...(miniAppOrderUrl
+          ? [orderOnWebsiteLineEn]
+          : ['For that, you can tap «My orders» in the bot (Mini App) once the app URL is configured on the server.']),
+        '',
+        'Thank you!',
+      ]
+      : [
+        'Здравствуйте, это Мария из AM-Chokers.',
+        '',
+        'Спасибо за заказ! Надеюсь, вам понравились новые украшения и вы с удовольствием их носите.',
+        'Если найдётся минутка, расскажите о ваших впечатлениях — буду Вам признательна! :)',
+        '',
+        ...(miniAppOrderUrl
+          ? [orderOnWebsiteLineRu]
+          : ['Для этого можно нажать кнопку «Мои заказы» у бота (Mini App), когда адрес приложения будет настроен на сервере.']),
+        '',
+        'Спасибо!',
+      ];
+
+    const replyMarkup = miniAppOrderUrl
+      ? {
+        inline_keyboard: [
+          [{ text: buttonText, web_app: { url: miniAppOrderUrl } }],
+        ],
+      }
+      : undefined;
+
+    return this.sendMessage(textLines, telegramChatId, replyMarkup ? { reply_markup: replyMarkup } : undefined);
   };
 
   public sendMessage = async (message: string | string[], telegramId: string, options?: ExtraReplyMessage) => {

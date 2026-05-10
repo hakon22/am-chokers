@@ -10,6 +10,7 @@ import { SmsMessagePreset, smsPresetPrimaryProvider } from '@server/types/integr
 import { SmsProviderEnum } from '@server/types/integration/enums/sms-provider.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
+import { isUserOutboundMessagingSkipped } from '@server/utilities/is-user-outbound-messaging-skipped';
 
 interface SmsParameterInterface {
   phone: string;
@@ -79,7 +80,7 @@ export class SmsService {
 
     const primary = this.resolvePrimaryProvider(routing);
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (isUserOutboundMessagingSkipped()) {
       console.log(text);
       return { providerUsed: primary };
     }
@@ -120,7 +121,7 @@ export class SmsService {
       const text = `Ваш код подтверждения: ${code}`;
       const result = await this.sendSms(phone, text, { preset: SmsMessagePreset.CONFIRMATION_CODE });
 
-      if (process.env.NODE_ENV !== 'production') {
+      if (isUserOutboundMessagingSkipped()) {
         const data = { request_id: Date.now().toString(), error: 'null' };
         return { ...data, code };
       }
@@ -147,7 +148,7 @@ export class SmsService {
       const text = `Ваш чек: ${receipt}`;
       const result = await this.sendSms(phone, text, { preset: SmsMessagePreset.RECEIPT });
 
-      if (process.env.NODE_ENV !== 'production') {
+      if (isUserOutboundMessagingSkipped()) {
         const data: MainSmsResponseInterface & { receipt: string; } = { messages_id: [Date.now()], receipt };
         return data;
       }
@@ -170,7 +171,7 @@ export class SmsService {
       const text = `Ваш пароль для входа: ${password} ${process.env.NEXT_PUBLIC_PRODUCTION_HOST}`;
       await this.sendSms(phone, text, { preset: SmsMessagePreset.PASSWORD });
 
-      if (process.env.NODE_ENV !== 'production') {
+      if (isUserOutboundMessagingSkipped()) {
         console.log(password);
       }
 

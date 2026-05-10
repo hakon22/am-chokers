@@ -98,6 +98,13 @@ export class OrderEntity extends BaseEntity {
   })
   public receiptId: string;
 
+  /** Дата отправки напоминания в Telegram об оценке товаров по завершённому заказу */
+  @Column('timestamp with time zone', {
+    nullable: true,
+    name: 'telegram_order_rating_reminder_sent_at',
+  })
+  public telegramOrderRatingReminderSentAt: Date | null;
+
   /** Позиции */
   @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
   public positions: OrderPositionEntity[];

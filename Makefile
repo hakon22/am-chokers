@@ -34,6 +34,9 @@ increase-item-prices:
 clear-user-refresh-tokens:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/clear-user-refresh-tokens.ts
 
+telegram-order-rating-reminder:
+	cross-env DB='LOCAL' CRON='TRUE' tsx cron/telegram-order-rating-reminder.ts
+
 build-docker-dev:
 	docker compose -f docker-compose.dev.yml build
 

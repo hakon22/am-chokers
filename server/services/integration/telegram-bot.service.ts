@@ -8,6 +8,7 @@ import type { Context } from 'telegraf';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
+import { isTelegramDevOutboundAllowlistedChatId, isUserOutboundMessagingSkipped } from '@server/utilities/is-user-outbound-messaging-skipped';
 import { resolveTelegramWebAppPublicOrigin } from '@server/utilities/telegram-web-app-public-origin';
 import { routes } from '@/routes';
 
@@ -179,6 +180,14 @@ export class TelegramBotService {
    * @returns результат sendMessage
    */
   public sendMessage = async (text: string, telegramId: string, options?: ExtraReplyMessage) => {
+    if (isUserOutboundMessagingSkipped() && !isTelegramDevOutboundAllowlistedChatId(telegramId)) {
+      this.loggerService.info(
+        this.TAG,
+        `Пропуск Telegram sendMessage (небоевое окружение): telegramId=${telegramId}`,
+      );
+      return undefined;
+    }
+
     try {
       return this.getBot().telegram.sendMessage(telegramId, text, {
         parse_mode: 'HTML',
@@ -198,6 +207,14 @@ export class TelegramBotService {
    * @returns результат sendMediaGroup
    */
   public sendMediaGroup = async (media: MediaGroup, telegramId: string, options?: ExtraReplyMessage) => {
+    if (isUserOutboundMessagingSkipped() && !isTelegramDevOutboundAllowlistedChatId(telegramId)) {
+      this.loggerService.info(
+        this.TAG,
+        `Пропуск Telegram sendMediaGroup (небоевое окружение): telegramId=${telegramId}`,
+      );
+      return undefined;
+    }
+
     try {
       return this.getBot().telegram.sendMediaGroup(telegramId, media, {
         parse_mode: 'HTML',
