@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Alert, Badge, Button, Card, Popconfirm, Tag, Tooltip } from 'antd';
+import { Alert, Badge, Button, Card, Popconfirm, Skeleton, Tag, Tooltip } from 'antd';
 import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import moment from 'moment';
 import Image from 'next/image';
@@ -20,6 +20,7 @@ import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { MobileContext, SubmitContext } from '@/components/Context';
+import { TelegramOrderAppRoutesContext } from '@/contexts/TelegramOrderAppRoutesContext';
 import { toast } from '@/utilities/toast';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { OrderStatusFilter } from '@/components/filters/order/OrderStatusFilter';
@@ -48,6 +49,8 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
 
   const dispatch = useAppDispatch();
 
+  const telegramOrderRoutes = useContext(TelegramOrderAppRoutesContext);
+
   const coefficient = 1.3;
 
   const width = 77;
@@ -67,6 +70,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const { id: userId, isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
 
   const stateOrders = useAppSelector(selectors.selectAll);
+  const { loadingStatus: ordersLoadingStatus } = useAppSelector((state) => state.order);
 
   const setOrdersEffect = useEffectEvent(setOrders);
 
@@ -175,6 +179,32 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const ordersListBasePath = setData
+    ? (telegramOrderRoutes?.adminOrdersListPath ?? routes.page.admin.allOrders)
+    : (telegramOrderRoutes?.userOrdersListPath ?? routes.page.profile.orderHistory);
+
+  const isUserOrdersFromStore = !setData;
+  const ordersMirrorPendingFromStore = isUserOrdersFromStore && stateOrders.length > 0 && orders.length === 0;
+  const showOrdersListSkeleton =
+    isUserOrdersFromStore
+    && !!userId
+    && !orders.length
+    && (
+      ordersLoadingStatus === 'loading'
+      || ordersLoadingStatus === 'idle'
+      || ordersMirrorPendingFromStore
+    );
+
+  if (showOrdersListSkeleton) {
+    return (
+      <div className={cn('d-flex flex-column gap-3 w-100 without-padding', { 'ms-xl-3': !setData })}>
+        <Skeleton active paragraph={{ rows: 5 }} title={{ width: '45%' }} />
+        <Skeleton active paragraph={{ rows: 6 }} title={{ width: '38%' }} />
+        <Skeleton active paragraph={{ rows: 6 }} title={{ width: '52%' }} />
+      </div>
+    );
+  }
+
   return orders.length
     ? (
       <div className={cn('d-flex flex-column gap-4 w-100 without-padding', { 'ms-xl-3': !setData })}>
@@ -187,7 +217,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
               classNames={{ actions: 'd-flex justify-content-center align-items-center' }}
             >
               <div className="d-flex flex-column flex-xl-row justify-content-xl-between align-items-xl-center mb-2 mb-xl-4 gap-2">
-                <Link href={`${setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory}/${order.id}`} className="fs-5 fw-bold font-oswald text-decoration-underline text-primary text-muted fw-light text-center text-xl-start">
+                <Link href={`${ordersListBasePath}/${order.id}`} className="fs-5 fw-bold font-oswald text-decoration-underline text-primary text-muted fw-light text-center text-xl-start">
                   {t('orderDate', { number: order.id, date: moment(order.created).format(DateFormatEnum.DD_MM_YYYY) })}
                 </Link>
                 {!order.isPayment
@@ -222,7 +252,7 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
                   </div>
                   {!setData && order.positions.some((position) => !position.grade) && order.status === OrderStatusEnum.COMPLETED &&
                     <div>
-                      <Button className="button mt-2 fs-5" onClick={() => router.push(`${setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory}/${order.id}`)}>
+                      <Button className="button mt-2 fs-5" onClick={() => router.push(`${ordersListBasePath}/${order.id}`)}>
                         {t('rateYourOrder')}
                       </Button>
                     </div>

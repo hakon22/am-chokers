@@ -22,8 +22,6 @@ export const AdminSettings = () => {
   const { setIsSubmit } = useContext(SubmitContext);
   const { version: currentVersion } = useContext(VersionContext);
 
-  if (currentVersion !== 'v2') return <V1AdminSettings />;
-
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const [cacheInfo, setCacheInfo] = useState<CacheInfoInterface>();
@@ -79,10 +77,14 @@ export const AdminSettings = () => {
   );
 
   useEffect(() => {
-    if (axiosAuth) {
+    if (axiosAuth && currentVersion === 'v2') {
       getCacheInfoEffect();
     }
-  }, [axiosAuth]);
+  }, [axiosAuth, currentVersion]);
+
+  if (currentVersion !== 'v2') {
+    return <V1AdminSettings />;
+  }
 
   return (
     <div className="d-flex flex-column col-11">

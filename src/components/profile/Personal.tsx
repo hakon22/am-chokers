@@ -3,7 +3,6 @@ import axios from 'axios';
 import cn from 'classnames';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { useContext, useEffect, useState, useEffectEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button, Form, Input } from 'antd';
 import { isEmpty } from 'lodash';
 import type { TFunction } from 'i18next';
@@ -19,12 +18,13 @@ import { profileValidation } from '@/validations/validations';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import type { UserProfileType } from '@/types/user/User';
 
-const TelegramButton = ({ telegramId, t, telegramHandler }: { telegramId?: string | null; t: TFunction, telegramHandler: () => void; }) => (
+const TelegramButton = ({ telegramId, t, telegramHandler }: { telegramId?: string | null; t: TFunction; telegramHandler: () => void; }) => (
   <div className="text-center">
     <Button type="link" className={cn('mb-2 fs-5 px-3 py-3-5', { 'text-danger mt-2': telegramId })} style={{ backgroundColor: 'white' }} onClick={telegramHandler}>
       {t(telegramId ? 'unlinkTelegram' : 'linkTelegram')}
     </Button>
     <p className={cn('lh-sm', { 'text-danger': telegramId, 'text-muted': !telegramId })}>{t(telegramId ? 'unlinkDescription' : 'linkDescription')}</p>
+    {!telegramId ? <p className="lh-sm text-muted small mb-0 mt-1">{t('linkTelegramVpnHint')}</p> : null}
   </div>
 );
 
@@ -34,8 +34,6 @@ export const Personal = () => {
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
 
   const dispatch = useAppDispatch();
-  const router = useRouter();
-
   const { telegramId, key, name, phone } = useAppSelector((state) => state.user);
 
   const [updateValues, setUpdateValues] = useState<UserProfileType>();
@@ -91,7 +89,16 @@ export const Personal = () => {
         }
         setIsSubmit(false);
       } else {
-        router.push('https://t.me/AM_CHOKERS_BOT');
+        setIsSubmit(true);
+        const { data } = await axios.post<{ code: number; url?: string; }>(routes.user.telegramLinkToken);
+        if (data.code === 1 && data.url) {
+          window.location.assign(data.url);
+        } else if (data.code === 5) {
+          toast(tToast('telegramLinkRateLimited'), 'error');
+        } else {
+          toast(tToast('telegramLinkCreateFailed'), 'error');
+        }
+        setIsSubmit(false);
       }
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);

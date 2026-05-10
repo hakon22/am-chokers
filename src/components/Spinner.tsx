@@ -4,7 +4,7 @@ export const Spinner = ({ isLoaded }: { isLoaded: boolean }) => {
   useEffect(() => {
     const next = document.getElementById('__next');
     if (!next) {
-      return;
+      return undefined;
     }
 
     if (!isLoaded) {
@@ -14,6 +14,11 @@ export const Spinner = ({ isLoaded }: { isLoaded: boolean }) => {
       document.body.style.overflowY = '';
       next.style.overflowY = '';
     }
+
+    return () => {
+      document.body.style.overflowY = '';
+      next.style.overflowY = '';
+    };
   }, [isLoaded]);
 
   return !isLoaded && (

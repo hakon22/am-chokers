@@ -8,6 +8,7 @@ interface ServerClientInterface {
 export const catalogPath = '/catalog';
 const profilePath = '/profile';
 const adminPath = '/admin';
+const telegramPath = '/telegram';
 
 export const routes = {
   // pages
@@ -53,6 +54,13 @@ export const routes = {
       metricaReport: [adminPath, 'reports', 'metrica'].join('/'),
       banners: [adminPath, 'banners'].join('/'),
     },
+    telegram: {
+      root: telegramPath,
+      orders: [telegramPath, 'orders'].join('/'),
+      order: (id?: number) => [telegramPath, 'orders', id ?? ':id'].join('/'),
+      adminOrders: [telegramPath, 'admin', 'orders'].join('/'),
+      adminOrder: (id?: number) => [telegramPath, 'admin', 'orders', id ?? ':id'].join('/'),
+    },
   },
 
   // user
@@ -65,6 +73,8 @@ export const routes = {
     confirmPhone: [apiPath, 'user', 'confirm-phone'].join('/'),
     changeUserProfile: [apiPath, 'user', 'change-user-profile'].join('/'),
     unlinkTelegram: [apiPath, 'user', 'unlink-telegram'].join('/'),
+    telegramWebAppAuth: [apiPath, 'user', 'telegram-web-app-auth'].join('/'),
+    telegramLinkToken: [apiPath, 'user', 'telegram-link-token'].join('/'),
     getMyGrades: [apiPath, 'user', 'myGrades'].join('/'),
     getUserCard: (id?: number) => [apiPath, 'user', 'card', id ?? ':id'].join('/'),
     changeLang: [apiPath, 'user', 'change-lang'].join('/'),

@@ -10,6 +10,7 @@ export class UserRoute extends BaseRouter {
   private readonly userService = Container.get(UserService);
 
   public set = (router: Router) => {
+    router.post(this.routes.user.telegramWebAppAuth, this.userService.telegramWebAppAuth);
     router.post(this.routes.user.login, this.userService.login);
     router.post(this.routes.user.signup, this.userService.signup);
     router.post(this.routes.user.recoveryPassword, this.userService.recoveryPassword);
@@ -18,6 +19,7 @@ export class UserRoute extends BaseRouter {
     router.post(this.routes.user.confirmPhone, this.userService.confirmPhone);
     router.post(this.routes.user.changeUserProfile, this.middlewareService.jwtToken, this.userService.changeUserProfile);
     router.get(this.routes.user.unlinkTelegram, this.middlewareService.jwtToken, this.userService.unlinkTelegram);
+    router.post(this.routes.user.telegramLinkToken, this.middlewareService.jwtToken, this.userService.createTelegramLinkToken);
     router.get(this.routes.user.getMyGrades, this.middlewareService.jwtToken, this.userService.getMyGrades);
     router.get(this.routes.user.getUserCard(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.userService.getUserCard);
     router.get(this.routes.user.addFavorites(), this.middlewareService.jwtToken, this.userService.addFavorites);

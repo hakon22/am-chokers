@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import bcrypt from 'bcryptjs';
 import { Container, Singleton } from 'typescript-ioc';
 import moment from 'moment';
@@ -9,7 +11,7 @@ import { Brackets, type EntityManager } from 'typeorm';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
 import { phoneTransform } from '@server/utilities/phone.transform';
-import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation, profileServerSchema } from '@/validations/validations';
+import { confirmCodeValidation, phoneValidation, signupValidation, loginValidation, profileServerSchema, telegramWebAppAuthValidation } from '@/validations/validations';
 import { upperCase } from '@server/utilities/text.transform';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { BaseService } from '@server/services/app/base.service';
@@ -18,6 +20,7 @@ import { GradeService } from '@server/services/rating/grade.service';
 import { MessageService } from '@server/services/message/message.service';
 import { CartService } from '@server/services/cart/cart.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import { verifyTelegramWebAppInitDataAndGetTelegramUserId } from '@server/utilities/telegram-web-app-init-data';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { codeGen } from '@server/utilities/code-generator';
 import { passwordGen } from '@server/utilities/password-generator';
@@ -87,6 +90,9 @@ export class UserService extends BaseService {
     }
     if (query?.phone) {
       builder.andWhere('user.phone = :phone', { phone: query.phone });
+    }
+    if (query?.telegramId) {
+      builder.andWhere('user.telegramId = :telegramId', { telegramId: query.telegramId });
     }
     if (options?.withPassword) {
       builder.addSelect('user.password');
@@ -635,6 +641,103 @@ export class UserService extends BaseService {
       }
 
       res.json({ code: 1 });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Выдаёт пару JWT по валидной строке initData Telegram Web App для пользователя с привязанным telegramId
+   * @param req - HTTP-запрос, тело JSON `{ initData: string }`
+   * @param res - JSON: `code` 1 и `user` с `token` и `refreshToken`; `code` 2 при неверной подписи или сроке; `code` 3 если пользователь с таким Telegram не найден
+   * @returns Promise после отправки ответа
+   */
+  public telegramWebAppAuth = async (req: Request, res: Response) => {
+    try {
+      const { initData } = await telegramWebAppAuthValidation.serverValidator(req.body) as { initData: string; };
+      const botToken = process.env.TELEGRAM_TOKEN ?? '';
+
+      if (_.isNil(botToken) || botToken === '') {
+        this.loggerService.warn('UserService', 'TELEGRAM_TOKEN is not set, telegramWebAppAuth rejected');
+        res.json({ code: 2 });
+        return;
+      }
+
+      const telegramUserId = verifyTelegramWebAppInitDataAndGetTelegramUserId(initData, botToken);
+
+      if (_.isNil(telegramUserId)) {
+        this.loggerService.info('UserService', 'telegramWebAppAuth: invalid initData');
+        res.json({ code: 2 });
+        return;
+      }
+
+      const user = await this.findOne({ telegramId: telegramUserId });
+
+      if (_.isNil(user)) {
+        this.loggerService.info('UserService', `telegramWebAppAuth: no user for telegramId ${telegramUserId}`);
+        res.json({ code: 3 });
+        return;
+      }
+
+      const token = this.tokenService.generateAccessToken(user.id, user.phone);
+      const refreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
+
+      await UserRefreshTokenEntity.insert({ refreshToken, user });
+
+      res.json({
+        code: 1,
+        user: { ...user, token, refreshToken },
+      });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Создаёт одноразовый токен привязки Telegram в Redis и URL deep link `https://t.me/...?start=...`
+   * @param req - HTTP-запрос с JWT пользователя без привязанного Telegram
+   * @param res - JSON: `code` 1 и поле `url`; `code` 2 при отсутствии имени бота в конфигурации; `code` 4 если Telegram уже привязан; `code` 5 при превышении лимита запросов
+   * @returns Promise после отправки ответа
+   */
+  public createTelegramLinkToken = async (req: Request, res: Response) => {
+    try {
+      const currentUser = this.getCurrentUser(req);
+
+      if (!_.isEmpty(currentUser.telegramId)) {
+        res.json({ code: 4 });
+        return;
+      }
+
+      const rateLimitKey = `TELEGRAM_LINK_RL:${currentUser.id}`;
+      const rateLimitWindowSeconds = Number.parseInt(process.env.TELEGRAM_LINK_RATE_LIMIT_WINDOW_SEC ?? '60', 10);
+      const rateLimitMaxRequests = Number.parseInt(process.env.TELEGRAM_LINK_RATE_LIMIT_MAX ?? '10', 10);
+      const requestCount = await this.redisService.incrementWithWindowTtl(rateLimitKey, rateLimitWindowSeconds);
+
+      if (requestCount > rateLimitMaxRequests) {
+        this.loggerService.info('UserService', `createTelegramLinkToken: rate limit userId=${currentUser.id}`);
+        res.json({ code: 5 });
+        return;
+      }
+
+      const tokenBytesLength = 16;
+      const linkToken = crypto.randomBytes(tokenBytesLength).toString('hex');
+      const ttlSeconds = Number.parseInt(process.env.TELEGRAM_LINK_TOKEN_TTL_SEC ?? '900', 10);
+      const redisKey = `TELEGRAM_LINK_TOKEN:${linkToken}`;
+
+      await this.redisService.setEx(redisKey, { userId: currentUser.id }, ttlSeconds);
+
+      const botUsername = (process.env.TELEGRAM_BOT_USERNAME ?? '').replace(/^@/, '');
+
+      if (botUsername === '') {
+        this.loggerService.error('UserService', 'TELEGRAM_BOT_USERNAME is not set, cannot build telegram link');
+        await this.redisService.delete(redisKey);
+        res.json({ code: 2 });
+        return;
+      }
+
+      const url = `https://t.me/${botUsername}?start=${linkToken}`;
+
+      res.json({ code: 1, url });
     } catch (e) {
       this.errorHandler(e, res);
     }

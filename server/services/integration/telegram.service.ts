@@ -12,10 +12,19 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
 import { RedisService } from '@server/db/redis.service';
 import { TelegramBotService } from '@server/services/integration/telegram-bot.service';
-import { phoneTransform } from '@server/utilities/phone.transform';
+import { resolveTelegramWebAppPublicOrigin } from '@server/utilities/telegram-web-app-public-origin';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
+import { routes } from '@/routes';
+
+const TELEGRAM_LINK_TOKEN_PREFIX = 'TELEGRAM_LINK_TOKEN:';
+
+const START_COMMAND_PATTERN = /^\/start(?:@\w+)?(?:\s+(\S+))?$/;
+
+interface TelegramLinkTokenRedisValue {
+  userId: number;
+}
 
 @Singleton
 export class TelegramService {
@@ -50,56 +59,180 @@ export class TelegramService {
    * @returns Promise, завершающийся после обработки апдейта
    */
   public handleIncomingContext = async (context: Context): Promise<void> => {
-    const message = context.message as (Message.ContactMessage & Message.TextMessage) | undefined;
+    const message = context.message as Message.TextMessage | undefined;
+    const telegramChatId = message?.from?.id?.toString();
 
-    const id = message?.from?.id?.toString();
-
-    if (message?.text === '/start') {
-      if (_.isNil(id)) {
-        return;
-      }
-      await this.start(id);
+    if (_.isNil(telegramChatId)) {
       return;
     }
 
-    if (message?.contact?.phone_number) {
-      if (_.isNil(id)) {
+    const rawText = message?.text?.trim() ?? '';
+    const startMatch = START_COMMAND_PATTERN.exec(rawText);
+
+    if (!_.isNil(startMatch)) {
+      const deepLinkPayload = startMatch[1];
+
+      if (_.isNil(deepLinkPayload) || deepLinkPayload === '') {
+        await this.sendStartWithoutPayloadWelcome(telegramChatId);
         return;
       }
-      const user = await UserEntity.findOne({ where: { phone: phoneTransform(message.contact.phone_number) } });
-      if (user) {
-        await UserEntity.update(user.id, { telegramId: id, telegramUsername: message.from?.username ?? null });
-        await this.sendMessage(user.lang === UserLangEnum.RU
-          ? 'Вы успешно подписались на уведомления.'
-          : 'You have successfully subscribed to notifications.', id, { reply_markup: { keyboard: [], remove_keyboard: true } });
-      } else {
-        await this.sendMessage('Номер телефона не найден в базе данных.', id);
-      }
+
+      await this.bindUserTelegramFromLinkToken(telegramChatId, message?.from?.username, deepLinkPayload);
       return;
     }
 
     if (context.myChatMember?.new_chat_member?.status === 'kicked') {
-      const telegramId = context.myChatMember.chat.id.toString();
-      this.loggerService.info(this.TAG, `User has blocked a bot. Deleting telegramID: ${telegramId}`);
+      const blockedTelegramId = context.myChatMember.chat.id.toString();
+      this.loggerService.info(this.TAG, `User has blocked a bot. Deleting telegramID: ${blockedTelegramId}`);
 
-      await UserEntity.update({ telegramId }, { telegramId: null, telegramUsername: null });
+      await UserEntity.update({ telegramId: blockedTelegramId }, { telegramId: null, telegramUsername: null });
     }
   };
 
-  public start = async (telegramId: string) => {
-    const replyMarkup = {
-      keyboard: [
-        [
-          {
-            text: '📞 Отправить номер телефона',
-            request_contact: true,
-          },
+  /**
+   * Привязывает Telegram к пользователю сайта по одноразовому токену из Redis
+   * @param telegramChatId - id чата Telegram (строка)
+   * @param telegramUsername - username отправителя или undefined
+   * @param linkToken - токен из параметра deep link `start`
+   */
+  private bindUserTelegramFromLinkToken = async (
+    telegramChatId: string,
+    telegramUsername: string | undefined,
+    linkToken: string,
+  ): Promise<void> => {
+    if (!/^[\dA-Za-z_-]+$/.test(linkToken) || linkToken.length > 64) {
+      await this.sendMessage(
+        'Ссылка привязки недействительна. Создайте новую ссылку в личном кабинете на сайте.',
+        telegramChatId,
+      );
+      return;
+    }
+
+    const redisKey = `${TELEGRAM_LINK_TOKEN_PREFIX}${linkToken}`;
+    const payload = await this.redisService.get<TelegramLinkTokenRedisValue>(redisKey);
+
+    if (_.isNil(payload) || _.isNil(payload.userId)) {
+      this.loggerService.info(this.TAG, `bindUserTelegramFromLinkToken: missing or expired token for chat ${telegramChatId}`);
+      await this.sendMessage(
+        'Ссылка привязки устарела или уже использована. Откройте сайт и нажмите «Привязать Telegram» ещё раз.',
+        telegramChatId,
+      );
+      return;
+    }
+
+    const user = await UserEntity.findOne({ where: { id: payload.userId } });
+
+    if (_.isNil(user)) {
+      this.loggerService.warn(this.TAG, `bindUserTelegramFromLinkToken: user ${payload.userId} not found`);
+      await this.redisService.delete(redisKey);
+      await this.sendMessage('Пользователь не найден. Обратитесь в поддержку.', telegramChatId);
+      return;
+    }
+
+    if (!_.isEmpty(user.telegramId) && user.telegramId !== telegramChatId) {
+      await this.redisService.delete(redisKey);
+      await this.sendMessage(
+        user.lang === UserLangEnum.RU
+          ? 'Этот аккаунт на сайте уже привязан к другому Telegram. Отвяжите его в профиле на сайте.'
+          : 'This site account is already linked to another Telegram. Unlink it in your profile on the website.',
+        telegramChatId,
+      );
+      return;
+    }
+
+    if (user.telegramId === telegramChatId) {
+      await this.redisService.delete(redisKey);
+      await this.sendMessage(
+        user.lang === UserLangEnum.RU
+          ? 'Telegram уже был привязан к этому аккаунту.'
+          : 'Telegram was already linked to this account.',
+        telegramChatId,
+      );
+      return;
+    }
+
+    await UserEntity.update(user.id, {
+      telegramId: telegramChatId,
+      telegramUsername: telegramUsername ?? null,
+    });
+    await this.redisService.delete(redisKey);
+
+    await this.sendMessage(
+      user.lang === UserLangEnum.RU
+        ? 'Вы успешно подписались на уведомления. Откройте мини-приложение «Заказы» через меню бота.'
+        : 'You have successfully subscribed to notifications. Open the «Orders» mini app from the bot menu.',
+      telegramChatId,
+    );
+  };
+
+  /**
+   * Отправляет приветствие без deep link: инструкция по привязке или кратко про заказы/оценки, если Telegram уже привязан к аккаунту
+   * @param telegramChatId - id чата Telegram
+   */
+  private sendStartWithoutPayloadWelcome = async (telegramChatId: string): Promise<void> => {
+    const linkedUser = await UserEntity.findOne({
+      select: ['id', 'lang'],
+      where: { telegramId: telegramChatId },
+    });
+
+    const publicOrigin = resolveTelegramWebAppPublicOrigin();
+    const ordersPath = routes.page.telegram.orders;
+    const miniAppUrl = !_.isEmpty(publicOrigin) ? `${publicOrigin}${ordersPath}` : '';
+
+    const replyMarkupForMiniApp = (buttonText: string) => (miniAppUrl
+      ? {
+        inline_keyboard: [
+          [{ text: buttonText, web_app: { url: miniAppUrl } }],
         ],
-      ],
-      resize_keyboard: true,
-      one_time_keyboard: true,
-    };
-    await this.sendMessage('Пожалуйста, предоставьте ваш номер телефона через кнопку ниже:', telegramId, { reply_markup: replyMarkup });
+      }
+      : undefined);
+
+    if (!_.isNil(linkedUser)) {
+      const isEnglish = linkedUser.lang === UserLangEnum.EN;
+      const textLines = isEnglish
+        ? [
+          'Your account is already linked to Telegram.',
+          '',
+          'In the «My orders» mini app you can track order statuses, pay when needed, and rate items from completed purchases.',
+          '',
+          ...(miniAppUrl
+            ? ['Open the mini app with the button below.']
+            : ['Use the bot «Menu» button to open the mini app once the app URL is configured.']),
+        ]
+        : [
+          'Ваш аккаунт уже привязан к Telegram.',
+          '',
+          'В мини-приложении «Мои заказы» вы можете следить за статусами заказов, при необходимости оплачивать их и оценивать товары из завершённых покупок.',
+          '',
+          ...(miniAppUrl
+            ? ['Откройте мини-приложение кнопкой ниже.']
+            : ['Используйте кнопку «Меню» у бота, чтобы открыть мини-приложение, когда адрес приложения настроен на сервере.']),
+        ];
+
+      const replyMarkup = replyMarkupForMiniApp(isEnglish ? 'My orders' : 'Мои заказы');
+
+      await this.sendMessage(textLines, telegramChatId, replyMarkup ? { reply_markup: replyMarkup } : undefined);
+      return;
+    }
+
+    const profileUrl = !_.isEmpty(publicOrigin) ? `${publicOrigin}${routes.page.profile.personalData}` : '';
+    const stepLoginWithProfileLink = !_.isEmpty(profileUrl)
+      ? `1) Войдите на сайт в <a href="${profileUrl}">личный кабинет</a>.`
+      : '1) Войдите на сайт в личный кабинет.';
+
+    const textLines = [
+      'Чтобы получать уведомления и открывать заказы в Telegram, привяжите аккаунт:',
+      stepLoginWithProfileLink,
+      '2) Нажмите «Привязать Telegram» — откроется ссылка с подтверждением.',
+      '',
+      ...(miniAppUrl
+        ? ['После привязки откройте мини-приложение кнопкой ниже.']
+        : ['После привязки используйте кнопку «Меню» у бота (Mini App), когда адрес приложения будет настроен на сервере.']),
+    ];
+
+    const replyMarkup = replyMarkupForMiniApp('Мои заказы');
+
+    await this.sendMessage(textLines, telegramChatId, replyMarkup ? { reply_markup: replyMarkup } : undefined);
   };
 
   public sendMessage = async (message: string | string[], telegramId: string, options?: ExtraReplyMessage) => {
@@ -120,10 +253,10 @@ export class TelegramService {
   public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
-    const media: (InputMediaPhoto | InputMediaVideo)[] = images.map((image, i) => ({
+    const media: (InputMediaPhoto | InputMediaVideo)[] = images.map((image, index) => ({
       type: image.endsWith('.mp4') ? 'video' : 'photo',
       media: image,
-      ...(!i ? { caption: text, parse_mode: 'HTML' } : {}),
+      ...(!index ? { caption: text, parse_mode: 'HTML' } : {}),
     }));
 
     const { message: messageHistory } = await this.messageService.createOne({ text, mediaFiles: media, type: MessageTypeEnum.TELEGRAM, telegramId });
@@ -148,9 +281,9 @@ export class TelegramService {
         }
         return { ...result, text, history: messageHistory };
       }
-    } catch (e) {
-      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, e);
-      throw e;
+    } catch (error) {
+      this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, error);
+      throw error;
     }
   };
 
@@ -168,5 +301,5 @@ export class TelegramService {
     }
   };
 
-  private serializeText = (message: string | string[]) => Array.isArray(message) ? message.reduce((acc, field) => acc += `${field}\n`, '') : message;
+  private serializeText = (message: string | string[]) => (Array.isArray(message) ? message.reduce((acc, field) => acc + `${field}\n`, '') : message);
 }

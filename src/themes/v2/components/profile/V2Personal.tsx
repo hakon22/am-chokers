@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState, useEffectEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
 import { Form, Input } from 'antd';
 import { LockOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
@@ -26,8 +25,6 @@ export const V2Personal = () => {
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
 
   const dispatch = useAppDispatch();
-  const router = useRouter();
-
   const { telegramId, key, name, phone } = useAppSelector((state) => state.user);
   const { setIsSubmit } = useContext(SubmitContext);
 
@@ -78,7 +75,16 @@ export const V2Personal = () => {
         }
         setIsSubmit(false);
       } else {
-        router.push('https://t.me/AM_CHOKERS_BOT');
+        setIsSubmit(true);
+        const { data } = await axios.post<{ code: number; url?: string; }>(routes.user.telegramLinkToken);
+        if (data.code === 1 && data.url) {
+          window.location.assign(data.url);
+        } else if (data.code === 5) {
+          toast(tToast('telegramLinkRateLimited'), 'error');
+        } else {
+          toast(tToast('telegramLinkCreateFailed'), 'error');
+        }
+        setIsSubmit(false);
       }
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);
@@ -130,6 +136,7 @@ export const V2Personal = () => {
               {t('linkTelegram')}
             </button>
             <span className={styles.telegramHint}>{t('linkDescription')}</span>
+            <span className={styles.telegramHint}>{t('linkTelegramVpnHint')}</span>
           </div>
         )}
 

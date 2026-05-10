@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Telegraf } from 'telegraf';
 import { Container, Singleton } from 'typescript-ioc';
@@ -7,6 +8,7 @@ import type { Context } from 'telegraf';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
+import { resolveTelegramWebAppPublicOrigin } from '@server/utilities/telegram-web-app-public-origin';
 import { routes } from '@/routes';
 
 export type TelegramBotInitMode = 'development' | 'production' | 'outboundOnly';
@@ -54,6 +56,40 @@ export class TelegramBotService {
   };
 
   /**
+   * Устанавливает кнопку меню по умолчанию с Mini App «Заказы»
+   * @returns Promise после ответа Bot API или раннего выхода при отсутствии URL
+   */
+  private setDefaultWebAppMenuButton = async (): Promise<void> => {
+    if (!this.bot) {
+      return;
+    }
+
+    const publicOrigin = resolveTelegramWebAppPublicOrigin();
+    const miniAppUrl = !_.isEmpty(publicOrigin) ? `${publicOrigin}${routes.page.telegram.orders}` : '';
+
+    if (_.isEmpty(miniAppUrl)) {
+      this.loggerService.warn(
+        this.TAG,
+        'Публичный URL для Telegram Web App не задан (serverHost / NEXT_PUBLIC_TELEGRAM_WEB_APP_ORIGIN), пропуск setChatMenuButton',
+      );
+      return;
+    }
+
+    try {
+      await this.bot.telegram.setChatMenuButton({
+        menuButton: {
+          type: 'web_app',
+          text: 'Мои заказы',
+          web_app: { url: miniAppUrl },
+        },
+      });
+      this.loggerService.info(this.TAG, 'Telegram: кнопка меню Web App (Мои заказы) установлена');
+    } catch (error) {
+      this.loggerService.error(this.TAG, 'setChatMenuButton (Web App) failed', error);
+    }
+  };
+
+  /**
    * Создаёт бота, команды, webhook (production) или long polling (development); outboundOnly — только исходящие API
    * @param options - режим работы: development | production | outboundOnly (по умолчанию outboundOnly)
    */
@@ -81,6 +117,7 @@ export class TelegramBotService {
       if (mode === 'development' || mode === 'production') {
         Container.get(TelegramService).registerInboundHandlersOnBot(this.bot);
         await this.syncDefaultCommandMenu();
+        await this.setDefaultWebAppMenuButton();
       }
 
       if (mode === 'production') {

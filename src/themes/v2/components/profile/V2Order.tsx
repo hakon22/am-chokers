@@ -25,6 +25,7 @@ import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTrans
 import { getRussianPostRussianPostTranslate } from '@/utilities/order/getRussianPostTypeTranslate';
 import { scrollTop } from '@/utilities/scrollTop';
 import { SubmitContext } from '@/components/Context';
+import { TelegramOrderAppRoutesContext } from '@/contexts/TelegramOrderAppRoutesContext';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -54,6 +55,7 @@ export const V2Order = ({ orderId, order: orderParams, onAdminOrderUpdated }: {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { setIsSubmit } = useContext(SubmitContext);
+  const telegramOrderRoutes = useContext(TelegramOrderAppRoutesContext);
 
   const newGrade: Partial<GradeFormInterface> = { grade: undefined, position: undefined, comment: { text: '', images: [] } };
 
@@ -124,16 +126,21 @@ export const V2Order = ({ orderId, order: orderParams, onAdminOrderUpdated }: {
 
   useEffect(() => {
     if (loadingStatus === 'finish' && !order) {
-      router.replace(routes.page.profile.orderHistory);
+      const ordersListFallback = orderParams
+        ? (telegramOrderRoutes?.adminOrdersListPath ?? routes.page.admin.allOrders)
+        : (telegramOrderRoutes?.userOrdersListPath ?? routes.page.profile.orderHistory);
+      router.replace(ordersListFallback);
       setIsLoadedEffect(false);
     } else if (order) {
       setIsLoadedEffect(false);
     }
-  }, [order, loadingStatus]);
+  }, [order, loadingStatus, telegramOrderRoutes, router, orderParams]);
 
   if (!order) return <Spinner isLoaded={isLoaded} />;
 
-  const backRoute = orderParams ? routes.page.admin.allOrders : routes.page.profile.orderHistory;
+  const backRoute = orderParams
+    ? (telegramOrderRoutes?.adminOrdersListPath ?? routes.page.admin.allOrders)
+    : (telegramOrderRoutes?.userOrdersListPath ?? routes.page.profile.orderHistory);
 
   return (
     <div className={styles.wrap}>

@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { createGrade, selectors } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { MobileContext } from '@/components/Context';
+import { TelegramOrderAppRoutesContext } from '@/contexts/TelegramOrderAppRoutesContext';
 import { ImageHover } from '@/components/ImageHover';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getOrderDiscount, getOrderPrice, getPositionsPrice } from '@/utilities/order/getOrderPrice';
@@ -45,6 +46,7 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
   const dispatch = useAppDispatch();
 
   const { isMobile } = useContext(MobileContext);
+  const telegramOrderRoutes = useContext(TelegramOrderAppRoutesContext);
   
   const newGrade: Partial<GradeFormInterface> = {
     grade: undefined,
@@ -120,12 +122,15 @@ export const Order = ({ orderId, order: orderParams }: { orderId: number; order?
 
   useEffect(() => {
     if (loadingStatus === 'finish' && !order) {
-      router.replace(routes.page.profile.orderHistory);
+      const ordersListFallback = orderParams
+        ? (telegramOrderRoutes?.adminOrdersListPath ?? routes.page.admin.allOrders)
+        : (telegramOrderRoutes?.userOrdersListPath ?? routes.page.profile.orderHistory);
+      router.replace(ordersListFallback);
       setIsLoadedEffect(false);
     } else if (order) {
       setIsLoadedEffect(false);
     }
-  }, [order, loadingStatus]);
+  }, [order, loadingStatus, telegramOrderRoutes, router, orderParams]);
 
   return order
     ? (

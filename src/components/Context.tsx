@@ -61,5 +61,7 @@ export const VersionContext = createContext<{ version: SiteVersion }>({
 });
 
 export const AuthModalContext = createContext<{
-  openAuthModal: ((view?: AuthModalView) => void) | null;
-}>({ openAuthModal: null });
+    openAuthModal: ((view?: AuthModalView) => void) | null;
+      }>({
+        openAuthModal: null,
+      });

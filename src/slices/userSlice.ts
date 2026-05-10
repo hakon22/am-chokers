@@ -1,4 +1,5 @@
 import axios from 'axios';
+import get from 'lodash/get';
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
 import { routes } from '@/routes';
@@ -32,6 +33,22 @@ export const fetchLogin = createAsyncThunk(
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
+    }
+  },
+);
+
+export const fetchTelegramWebAppAuth = createAsyncThunk(
+  'user/fetchTelegramWebAppAuth',
+  async (initData: string, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post<UserResponseInterface>(routes.user.telegramWebAppAuth, { initData });
+      if (data.code === 1) {
+        return data;
+      }
+      return rejectWithValue({ code: data.code });
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: unknown; } };
+      return rejectWithValue(axiosError.response?.data ?? { code: 0 });
     }
   },
 );
@@ -204,6 +221,25 @@ const userSlice = createSlice({
       .addCase(fetchLogin.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(fetchTelegramWebAppAuth.pending, (state) => {
+        state.loadingStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchTelegramWebAppAuth.fulfilled, (state, { payload }) => {
+        if (payload.code === 1) {
+          const entries = Object.entries(payload.user);
+          entries.forEach(([key, value]) => {
+            state[key] = value;
+          });
+          window.localStorage.setItem(storageKey, payload.user.refreshToken);
+        }
+        state.loadingStatus = 'finish';
+        state.error = null;
+      })
+      .addCase(fetchTelegramWebAppAuth.rejected, (state, { payload }: PayloadAction<any>) => {
+        state.loadingStatus = 'failed';
+        state.error = get(payload, 'code', null);
       })
       .addCase(fetchSignup.pending, (state) => {
         state.loadingStatus = 'loading';

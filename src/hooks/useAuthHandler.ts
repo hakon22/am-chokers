@@ -25,6 +25,9 @@ export const useAuthHandler = () => {
   const { token, refreshToken, url, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
 
+  const pathWithoutQuery = (router.asPath.split('?')[0] ?? '').split('#')[0];
+  const isTelegramMiniAppRoute = pathWithoutQuery.startsWith(routes.page.telegram.root);
+
   const fetchToken = useCallback(() => {
     if (refreshToken) {
       dispatch(updateTokens(refreshToken));
@@ -32,11 +35,14 @@ export const useAuthHandler = () => {
   }, [dispatch, refreshToken]);
 
   useEffect(() => {
+    if (isTelegramMiniAppRoute) {
+      return;
+    }
     const tokenStorage = window.localStorage.getItem(storageKey);
     if (tokenStorage) {
       dispatch(fetchTokenStorage(tokenStorage));
     }
-  }, []);
+  }, [dispatch, isTelegramMiniAppRoute]);
 
   useEffect(() => {
     if (token) {
@@ -49,9 +55,11 @@ export const useAuthHandler = () => {
     if (token && !loggedIn) {
       logIn();
       if (url) {
-        router.push(url);
+        if (!isTelegramMiniAppRoute) {
+          router.push(url);
+        }
         dispatch(removeUrl());
-      } else if (router.asPath === routes.page.base.loginPage) {
+      } else if (!isTelegramMiniAppRoute && router.asPath === routes.page.base.loginPage) {
         router.push(routes.page.base.homePage);
       }
       dispatch(fetchOrders());

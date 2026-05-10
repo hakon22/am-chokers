@@ -3,4 +3,6 @@ export interface UserQueryInterface {
   id?: number;
   /** Телефон пользователя */
   phone?: string;
+  /** Id пользователя в Telegram (строка) */
+  telegramId?: string;
 }

@@ -7,7 +7,7 @@ import {
   useCallback, useEffect, useMemo, useState, type JSX,
 } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
@@ -31,6 +31,10 @@ import favicon57 from '@/images/favicons/favicon57x57.png';
 import favicon180 from '@/images/favicons/favicon180x180.png';
 import store from '@/slices/index';
 import { useVersionedComponents } from '@/components/version-resolver';
+import { TelegramMiniAppAuthBridge } from '@/components/telegram/TelegramMiniAppAuthBridge';
+import { TelegramMiniAppBootstrap } from '@/components/telegram/TelegramMiniAppBootstrap';
+import { TelegramMiniAppPageShell } from '@/components/telegram/TelegramMiniAppPageShell';
+import { TelegramOrderAppRoutesContext, telegramOrderAppRoutesMiniApp } from '@/contexts/TelegramOrderAppRoutesContext';
 import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
@@ -77,7 +81,10 @@ const Init = (props: InitPropsInterface) => {
 
   const closeNavbar = () => setIsActive(false);
 
-  const pathname = usePathname();
+  const router = useRouter();
+  const pathWithoutQuery = router.asPath.split('?')[0] ?? '';
+
+  const isTelegramMiniAppRoute = pathWithoutQuery.startsWith('/telegram') || router.pathname.startsWith('/telegram');
 
   const logIn = () => setLoggedIn(true);
   const logOut = useCallback(async () => {
@@ -108,10 +115,10 @@ const Init = (props: InitPropsInterface) => {
   }, []);
 
   useEffect(() => {
-	  if (pathname !== routes.page.base.catalog) {
+    if (pathWithoutQuery !== routes.page.base.catalog) {
       scrollTop('instant');
     }
-  }, [pathname]);
+  }, [pathWithoutQuery]);
 
   return (
     <I18nextProvider i18n={i18n}>
@@ -219,20 +226,34 @@ const Init = (props: InitPropsInterface) => {
                       />
                       <Spinner isLoaded={isLoaded} />
                       <ToastContainer style={{ zIndex: 999999 }} />
-                      <CookieConsent
-                        containerClasses="justify-content-center text-center"
-                        style={{ zIndex: 1001, backgroundColor: '#2b3c5f' }}
-                        buttonStyle={{ backgroundColor: '#eaeef6', borderRadius: '7px', padding: '10px 20px' }}
-                        buttonText={i18n.t('cookieConsent.buttonText')}
-                      >
-                        <>
-                          {i18n.t('cookieConsent.contentText')}
-                          <Link className="text-decoration-underline" href={routes.page.base.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
-                        </>
-                      </CookieConsent>
-                      <VersionedShell itemGroups={itemGroups}>
-                        <Component {...pageProps} />
-                      </VersionedShell>
+                      {!isTelegramMiniAppRoute ? (
+                        <CookieConsent
+                          containerClasses="justify-content-center text-center"
+                          style={{ zIndex: 1001, backgroundColor: '#2b3c5f' }}
+                          buttonStyle={{ backgroundColor: '#eaeef6', borderRadius: '7px', padding: '10px 20px' }}
+                          buttonText={i18n.t('cookieConsent.buttonText')}
+                        >
+                          <>
+                            {i18n.t('cookieConsent.contentText')}
+                            <Link className="text-decoration-underline" href={routes.page.base.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
+                          </>
+                        </CookieConsent>
+                      ) : null}
+                      {isTelegramMiniAppRoute ? (
+                        <TelegramOrderAppRoutesContext.Provider value={telegramOrderAppRoutesMiniApp}>
+                          <TelegramMiniAppAuthBridge>
+                            <TelegramMiniAppBootstrap>
+                              <TelegramMiniAppPageShell>
+                                <Component {...pageProps} />
+                              </TelegramMiniAppPageShell>
+                            </TelegramMiniAppBootstrap>
+                          </TelegramMiniAppAuthBridge>
+                        </TelegramOrderAppRoutesContext.Provider>
+                      ) : (
+                        <VersionedShell itemGroups={itemGroups}>
+                          <Component {...pageProps} />
+                        </VersionedShell>
+                      )}
                     </Provider>
                   </NavbarContext.Provider>
                 </ItemContext.Provider>

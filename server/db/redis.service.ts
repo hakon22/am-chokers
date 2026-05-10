@@ -75,6 +75,24 @@ export class RedisService {
     await this.redis.del(`${this.commonOptions.prefix}${key}`);
   };
 
+  /**
+   * Увеличивает счётчик по ключу; при первом обращении задаёт TTL окна
+   * @param key - логический ключ без префикса приложения
+   * @param windowSeconds - длительность окна в секундах
+   * @returns новое значение счётчика после инкремента
+   */
+  public incrementWithWindowTtl = async (key: string, windowSeconds: number): Promise<number> => {
+    const fullKey = `${this.commonOptions.prefix}${key}`;
+    const nextValueRaw = await this.redis.incr(fullKey);
+    const nextValue = Number(nextValueRaw);
+
+    if (nextValue === 1) {
+      await this.redis.expire(fullKey, windowSeconds);
+    }
+
+    return nextValue;
+  };
+
   /** Сохранение списка значений
    * @param key Ключ {@link RedisKeyEnum}
    * @param items Список сохраняемых значений

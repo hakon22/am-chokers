@@ -85,6 +85,10 @@ const loginSchema = yup.object().shape({
   password: stringSchema,
 });
 
+const telegramWebAppAuthSchema = yup.object().shape({
+  initData: stringSchema.min(1),
+});
+
 const signupSchema = yup.object().shape({
   phone: phoneSchema,
   lang: yup.string().oneOf(Object.values(UserLangEnum)),
@@ -428,6 +432,7 @@ const setCoverImageSchema = yup.object().shape({
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
+export const telegramWebAppAuthValidation = validate(telegramWebAppAuthSchema);
 export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
 export const newItemValidation = validate(newItemSchema);

@@ -1,12 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
+import { routes } from '@/routes';
+
 export const useRouterHandler = () => {
   const router = useRouter();
 
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const pathWithoutQuery = (router.asPath.split('?')[0] ?? '').split('#')[0];
+    if (pathWithoutQuery.startsWith(routes.page.telegram.root)) {
+      const deferLoadedTimerId = window.setTimeout(() => {
+        setIsLoaded(true);
+      }, 0);
+      return () => {
+        window.clearTimeout(deferLoadedTimerId);
+      };
+    }
+
     let timeoutId: NodeJS.Timeout | null = null;
 
     const handleStart = (url: string, { shallow }: { shallow?: boolean; } = {}) => {

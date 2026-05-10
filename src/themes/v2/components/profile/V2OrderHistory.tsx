@@ -1,7 +1,7 @@
 import { useContext, useEffect, useEffectEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Popconfirm, Tooltip } from 'antd';
+import { Popconfirm, Skeleton, Tooltip } from 'antd';
 import {
   StopOutlined,
   CopyOutlined, ContainerOutlined, ShoppingOutlined,
@@ -21,6 +21,7 @@ import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { MobileContext, SubmitContext } from '@/components/Context';
+import { TelegramOrderAppRoutesContext } from '@/contexts/TelegramOrderAppRoutesContext';
 import { toast } from '@/utilities/toast';
 import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTranslate';
 import { V2OrderStatusFilter } from '@/themes/v2/components/profile/V2OrderStatusFilter';
@@ -57,9 +58,11 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
+  const telegramOrderRoutes = useContext(TelegramOrderAppRoutesContext);
 
   const { id: userId, isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const stateOrders = useAppSelector(selectors.selectAll);
+  const { loadingStatus: ordersLoadingStatus } = useAppSelector((state) => state.order);
 
   const [maxPosition, setMaxPosition] = useState(4);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);
@@ -127,6 +130,28 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
     return () => window.removeEventListener('resize', handleResize);
   }, [isMobile]);
 
+  const isUserOrdersFromStore = !setData;
+  const ordersMirrorPendingFromStore = isUserOrdersFromStore && stateOrders.length > 0 && orders.length === 0;
+  const showOrdersListSkeleton =
+    isUserOrdersFromStore
+    && !!userId
+    && !orders.length
+    && (
+      ordersLoadingStatus === 'loading'
+      || ordersLoadingStatus === 'idle'
+      || ordersMirrorPendingFromStore
+    );
+
+  if (showOrdersListSkeleton) {
+    return (
+      <div className={styles.wrap}>
+        <Skeleton active paragraph={{ rows: 5 }} title={{ width: '45%' }} />
+        <Skeleton active paragraph={{ rows: 6 }} title={{ width: '38%' }} style={{ marginTop: 24 }} />
+        <Skeleton active paragraph={{ rows: 6 }} title={{ width: '52%' }} style={{ marginTop: 24 }} />
+      </div>
+    );
+  }
+
   if (!orders.length) {
     return (
       <div className={styles.wrap}>
@@ -138,7 +163,9 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
     );
   }
 
-  const baseRoute = setData ? routes.page.admin.allOrders : routes.page.profile.orderHistory;
+  const baseRoute = setData
+    ? (telegramOrderRoutes?.adminOrdersListPath ?? routes.page.admin.allOrders)
+    : (telegramOrderRoutes?.userOrdersListPath ?? routes.page.profile.orderHistory);
 
   const visibleOrders = orders
     .slice()
