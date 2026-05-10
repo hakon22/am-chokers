@@ -237,12 +237,19 @@ export class UserService extends BaseService {
         key?: string;
         code?: string;
         forProfilePhoneChange?: boolean;
+        forGuestOrderPhoneVerification?: boolean;
       };
-      const { phone, key, code: userCode, forProfilePhoneChange } = body;
+      const {
+        phone,
+        key,
+        code: userCode,
+        forGuestOrderPhoneVerification,
+      } = body;
+      const forGuestOrderVerification = forGuestOrderPhoneVerification === true;
       const lang = body.lang ?? UserLangEnum.RU;
 
       const candidate = await this.findOne({ phone }, { withDeleted: true });
-      if (candidate) {
+      if (candidate && !forGuestOrderVerification) {
         res.json({ code: 5 });
         return;
       }
@@ -268,27 +275,13 @@ export class UserService extends BaseService {
       const code = codeGen();
       const uuid = uuidv4();
 
-      let telegramIdForSmsJob: string | undefined;
-      let deliveryChannel: MessageTypeEnum = MessageTypeEnum.SMS;
-
-      if (forProfilePhoneChange === true) {
-        const authenticatedUser = this.tokenService.getCurrentUserIfAuthenticated(req);
-
-        if (
-          authenticatedUser
-          && !_.isEmpty(authenticatedUser.telegramId)
-          && authenticatedUser.phone !== phone
-        ) {
-          telegramIdForSmsJob = authenticatedUser.telegramId ?? undefined;
-          deliveryChannel = MessageTypeEnum.TELEGRAM;
-        }
-      }
+      const deliveryChannel: MessageTypeEnum = MessageTypeEnum.SMS;
 
       this.bullMQQueuesService.sendSMSCode({
         phone,
         code,
         lang,
-        ...(telegramIdForSmsJob ? { telegramId: telegramIdForSmsJob } : {}),
+        forceSmsDelivery: true,
       });
       await this.redisService.setEx(uuid, { phone, code }, 3600);
       await this.redisService.setEx(phone, { phone }, 59);
@@ -530,8 +523,16 @@ export class UserService extends BaseService {
 
     if (candidate && password) {
       return { code: 2 };
-    } else if (candidate && !password) {
-      return { code: 1, user: candidate };
+    }
+    if (candidate && !password) {
+      const userRefreshTokenRepo = manager.getRepository(UserRefreshTokenEntity);
+      const createdToken = this.tokenService.generateAccessToken(candidate.id, candidate.phone);
+      const createdRefreshToken = this.tokenService.generateRefreshToken(candidate.id, candidate.phone);
+      await userRefreshTokenRepo.insert({
+        refreshToken: createdRefreshToken,
+        user: { id: candidate.id } as UserEntity,
+      });
+      return { code: 1, user: candidate, token: createdToken, refreshToken: createdRefreshToken };
     }
 
     const userRepo = manager.getRepository(UserEntity);

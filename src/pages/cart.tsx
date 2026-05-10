@@ -336,16 +336,17 @@ const Cart = () => {
       ? { ...delivery, telegramNickname: values.telegramNickname ?? '', deliveryDateTime: values.delivery?.deliveryDateTime?.toISOString?.() }
       : delivery;
     if (!name && !user.phone) {
-      const { payload: { code } } = await dispatch(fetchConfirmCode({ phone: values.phone, key })) as { payload: { code: number } };
+      const { payload: { code } } = await dispatch(fetchConfirmCode({
+        phone: values.phone,
+        key,
+        forGuestOrderPhoneVerification: true,
+      })) as { payload: { code: number; } };
       if (code === 1) {
         setIsProcessConfirmed(true);
         setTempUser({ name: values.name, phone: values.phone, lang: lang as UserLangEnum });
       }
       if (code === 4) {
         toast(tToast('timeNotOverForSms'), 'error');
-      }
-      if (code === 5) {
-        form.setFields([{ name: 'phone', errors: [tToast('userAlreadyExists')] }]);
       }
     } else {
       const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
@@ -480,7 +481,7 @@ const Cart = () => {
             footer={null}
             onCancel={() => setIsProcessConfirmed(false)}
           >
-            <ConfirmPhone setState={setIsConfirmed} />
+            <ConfirmPhone setState={setIsConfirmed} guestOrderPhoneVerification />
           </Modal>
         )
         : null}

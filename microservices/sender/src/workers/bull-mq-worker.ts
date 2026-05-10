@@ -92,6 +92,10 @@ export class BullMQWorker {
   private resolveEffectiveTelegramIdFromSmsJob = async (
     data: SmsCodeParameterInterface | SmsPasswordParameterInterface | SmsReceiptParameterInterface,
   ): Promise<string | undefined> => {
+    if (data.forceSmsDelivery === true) {
+      return undefined;
+    }
+
     if (!_.isEmpty(data.telegramId)) {
       return data.telegramId;
     }

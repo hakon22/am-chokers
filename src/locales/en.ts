@@ -1251,6 +1251,7 @@ export default {
       incorrectColor: 'Invalid color value',
       translationsRequired: 'All languages are required',
       uniqueLanguages: 'Unique languages required',
+      confirmPhoneContextConflict: 'Profile phone change and guest order phone verification cannot be combined',
       personalDataConsentRequired: 'You must consent to the processing of personal data',
     },
     toast: {

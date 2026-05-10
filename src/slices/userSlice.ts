@@ -85,6 +85,8 @@ export interface FetchConfirmCodePayloadInterface {
   key?: string;
   code?: string;
   forProfilePhoneChange?: boolean;
+  /** Запрос кода для гостевого оформления заказа по номеру уже зарегистрированного пользователя (только SMS) */
+  forGuestOrderPhoneVerification?: boolean;
   lang?: UserLangEnum;
 }
 

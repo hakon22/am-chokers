@@ -82,7 +82,21 @@ const confirmPhoneSchema = yup.object().shape({
   key: yup.string().optional(),
   code: yup.string().optional(),
   forProfilePhoneChange: yup.boolean().optional(),
-});
+  forGuestOrderPhoneVerification: yup.boolean().optional(),
+}).test(
+  'confirmPhoneExclusiveContext',
+  () => t('validation.confirmPhoneContextConflict'),
+  (value) => {
+    if (!value) {
+      return true;
+    }
+    const { forProfilePhoneChange, forGuestOrderPhoneVerification } = value;
+    if (forProfilePhoneChange === true && forGuestOrderPhoneVerification === true) {
+      return false;
+    }
+    return true;
+  },
+);
 
 const loginSchema = yup.object().shape({
   phone: phoneSchema,

@@ -1251,6 +1251,7 @@ export default {
       incorrectColor: 'Неверное значение цвета',
       translationsRequired: 'Все языки обязательны',
       uniqueLanguages: 'Требуется уникальность переводов',
+      confirmPhoneContextConflict: 'Нельзя одновременно указывать смену телефона в профиле и подтверждение для гостевого заказа',
       personalDataConsentRequired: 'Необходимо дать согласие на обработку персональных данных',
     },
     toast: {

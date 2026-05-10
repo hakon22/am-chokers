@@ -17,6 +17,10 @@ interface SmsParameterInterface {
   lang: UserLangEnum;
   /** Если задан, воркер sender может отправить то же содержимое в Telegram вместо SMS */
   telegramId?: string;
+  /**
+   * Если true, воркер отправляет только через SMS (не использует Telegram и не ищет telegramId по телефону в БД)
+   */
+  forceSmsDelivery?: boolean;
 }
 
 export interface SmsCodeParameterInterface extends SmsParameterInterface {

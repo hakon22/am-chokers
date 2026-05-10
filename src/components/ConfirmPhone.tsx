@@ -18,10 +18,13 @@ export const ConfirmPhone = ({
   setState,
   newPhone,
   variant = 'legacy',
+  guestOrderPhoneVerification = false,
 }: {
   setState: (arg: boolean) => void;
   newPhone?: string;
   variant?: ConfirmPhoneVariant;
+  /** Подтверждение телефона при гостевом заказе (номер может быть уже зарегистрирован; только SMS) */
+  guestOrderPhoneVerification?: boolean;
 }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.confirmPhone' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -36,12 +39,17 @@ export const ConfirmPhone = ({
   const [value, setValue] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
+  const confirmPhoneRequestBase = {
+    forProfilePhoneChange: Boolean(newPhone),
+    ...(guestOrderPhoneVerification ? { forGuestOrderPhoneVerification: true as const } : {}),
+  };
+
   const onFinish = async (codeValue: string) => {
     const { payload: { code } } = await dispatch(fetchConfirmCode({
       phone: newPhone || phone,
       key,
       code: codeValue,
-      forProfilePhoneChange: Boolean(newPhone),
+      ...confirmPhoneRequestBase,
     })) as { payload: { code: number; } };
     if (code === 2) {
       setState(true);
@@ -59,7 +67,7 @@ export const ConfirmPhone = ({
   const repeatSMS = async () => {
     const resultAction = await dispatch(fetchConfirmCode({
       phone: newPhone || phone,
-      forProfilePhoneChange: Boolean(newPhone),
+      ...confirmPhoneRequestBase,
     }));
 
     if (!fetchConfirmCode.fulfilled.match(resultAction)) {
