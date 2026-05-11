@@ -16,6 +16,7 @@ import { toast } from '@/utilities/toast';
 import { fetchConfirmCode, removeTelegramId, userProfileUpdate } from '@/slices/userSlice';
 import { profileValidation } from '@/validations/validations';
 import { routes } from '@/routes';
+import { closeBlankPopup, navigateBlankPopup, openBlankPopup } from '@/utilities/blankPopup';
 import styles from '@/themes/v2/components/profile/V2Personal.module.scss';
 import type { UserProfileType } from '@/types/user/User';
 
@@ -65,8 +66,8 @@ export const V2Personal = () => {
   const updateProfileEffect = useEffectEvent(updateProfile);
 
   const telegramHandler = async () => {
-    try {
-      if (telegramId) {
+    if (telegramId) {
+      try {
         setIsSubmit(true);
         const { data } = await axios.get(routes.user.unlinkTelegram) as { data: { code: number } };
         if (data.code === 1) {
@@ -74,19 +75,30 @@ export const V2Personal = () => {
           toast(tToast('unlinkTelegramSuccess'), 'success');
         }
         setIsSubmit(false);
+      } catch (e) {
+        axiosErrorHandler(e, tToast, setIsSubmit);
+      }
+      return;
+    }
+    // popup открываем СИНХРОННО внутри пользовательского жеста, иначе iOS Safari
+    // и часть мобильных браузеров блокируют window.open после await
+    const popup = openBlankPopup();
+    try {
+      setIsSubmit(true);
+      const { data } = await axios.post<{ code: number; url?: string; }>(routes.user.telegramLinkToken);
+      if (data.code === 1 && data.url) {
+        navigateBlankPopup(popup, data.url);
       } else {
-        setIsSubmit(true);
-        const { data } = await axios.post<{ code: number; url?: string; }>(routes.user.telegramLinkToken);
-        if (data.code === 1 && data.url) {
-          window.open(data.url, '_blank', 'noopener,noreferrer');
-        } else if (data.code === 5) {
+        closeBlankPopup(popup);
+        if (data.code === 5) {
           toast(tToast('telegramLinkRateLimited'), 'error');
         } else {
           toast(tToast('telegramLinkCreateFailed'), 'error');
         }
-        setIsSubmit(false);
       }
+      setIsSubmit(false);
     } catch (e) {
+      closeBlankPopup(popup);
       axiosErrorHandler(e, tToast, setIsSubmit);
     }
   };
