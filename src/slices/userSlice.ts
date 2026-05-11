@@ -323,6 +323,14 @@ const userSlice = createSlice({
             state.confirmPhoneOtpDeliveryChannel = payload.deliveryChannel;
           }
         }
+        if (payload.code === 2 && 'user' in payload && payload.user) {
+          const { user } = payload as { user: UserInterface; };
+          window.localStorage.setItem(storageKey, user.refreshToken);
+          const entries = Object.entries(user);
+          entries.forEach(([key, value]) => {
+            state[key] = value;
+          });
+        }
         state.loadingStatus = 'finish';
         state.error = null;
       })

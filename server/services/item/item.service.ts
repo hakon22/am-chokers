@@ -136,6 +136,7 @@ export class ItemService extends TranslationHelper {
           'item.order',
           'item.translateName',
           'item.publicationDate',
+          'item.yookassaInvoiceId',
         ])
         .leftJoin('item.translations', 'translations')
         .addSelect([
@@ -1015,6 +1016,15 @@ export class ItemService extends TranslationHelper {
       );
       await Promise.all(items.map((item) => this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item)));
     }
+  };
+
+  /**
+   * Перезаписывает JSON товара в Redis из БД после точечного изменения полей вне ItemService
+   * @param itemId - идентификатор товара
+   * @returns `Promise`, завершающийся после обновления кэша
+   */
+  public refreshCachedItemById = async (itemId: number): Promise<void> => {
+    await this.refreshRedisForItemIds([itemId]);
   };
 
   public bulkSetOutStock = async (

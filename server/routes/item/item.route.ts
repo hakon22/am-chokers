@@ -28,6 +28,10 @@ export class ItemRoute extends BaseRouter {
     router.get(this.routes.item.getStatistics({ isServer: true }), this.itemController.getStatistics);
     router.get(this.routes.item.getListExcel, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.getListExcel);
     router.post(this.routes.item.publishToTelegram(), this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.publishToTelegram);
+    router
+      .route(this.routes.item.yookassaInvoice())
+      .post(this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.createItemYookassaInvoice)
+      .get(this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.getItemYookassaInvoice);
     router.get(this.routes.item.getCacheInfo, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.getCacheInfo);
     router.post(this.routes.item.synchronizationCache, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.itemController.synchronizationCache);
   };

@@ -260,6 +260,25 @@ export class UserService extends BaseService {
         if (key && userCode) {
           await confirmCodeValidation.serverValidator({ code: userCode });
           if (data && data.phone === phone && data.code === userCode) {
+            if (forGuestOrderVerification) {
+              const sessionUser = await this.findOne({ phone });
+              if (!_.isNil(sessionUser)) {
+                const accessToken = this.tokenService.generateAccessToken(sessionUser.id, sessionUser.phone);
+                const newRefreshToken = this.tokenService.generateRefreshToken(sessionUser.id, sessionUser.phone);
+                await UserRefreshTokenEntity.insert({ refreshToken: newRefreshToken, user: sessionUser });
+                const rest = _.omit(sessionUser, ['password']);
+                this.loggerService.info(
+                  'UserService',
+                  `guest order phone verification: session issued for userId=${sessionUser.id}`,
+                );
+                res.json({
+                  code: 2,
+                  key,
+                  user: { ...rest, token: accessToken, refreshToken: newRefreshToken },
+                });
+                return;
+              }
+            }
             res.json({ code: 2, key });
             return;
           }

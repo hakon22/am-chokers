@@ -33,8 +33,37 @@ $purple-tg:      #7c6fa3;
   background: none;
   border: none;
   padding: 4px 0;
+  line-height: 1.25;
   font-family: inherit;
   transition: color 0.2s;
+
+  &:hover {
+    color: $navy-primary;
+  }
+}
+
+/** Обёртка «показать счёт ЮKassa» + иконка обновления в правом верхнем углу от подписи */
+.yookassaInvoiceActionWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.yookassaInvoicePrimaryWithRefresh {
+  padding-right: 16px;
+  text-align: left;
+}
+
+.yookassaInvoiceRefreshCorner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0;
+  line-height: 1;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     color: $navy-primary;

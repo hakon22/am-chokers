@@ -164,6 +164,7 @@ export const routes = {
     deleteOne: (id?: number) => [apiPath, 'item', id ?? ':id', 'delete'].join('/'),
     getHistory: (id?: number) => [apiPath, 'item', id ?? ':id', 'history'].join('/'),
     publishToTelegram: (id?: number) => [apiPath, 'item', id ?? ':id', 'publish'].join('/'),
+    yookassaInvoice: (id?: number) => [apiPath, 'item', id ?? ':id', 'yookassa-invoice'].join('/'),
     getGrades: ({ id, isServer }: ServerClientInterface & { id?: number }) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', id ?? ':id', 'grades'].join('/'),
     getCacheInfo: [apiPath, 'item', 'cache-info'].join('/'),
     synchronizationCache: [apiPath, 'item', 'synchronization-cache'].join('/'),

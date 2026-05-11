@@ -8,7 +8,9 @@ import cn from 'classnames';
 
 import telegramIcon from '@/images/icons/telegram.svg';
 import { ItemAdminPublishModal } from '@/components/item-admin/ItemAdminPublishModal';
+import { ItemAdminYookassaInvoiceModal, ItemAdminYookassaQrControls, ItemAdminYookassaQrFloatButtons } from '@/components/item-admin/ItemAdminYookassaQrControls';
 import { useItemAdminPanel } from '@/components/item-admin/useItemAdminPanel';
+import { useItemAdminYookassaInvoice } from '@/components/item-admin/useItemAdminYookassaInvoice';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import styles from '@/themes/v2/components/catalog/ProductPageAdmin.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
@@ -21,6 +23,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const [historyOpen, setHistoryOpen] = useState(false);
   const panel = useItemAdminPanel(item, setItem);
+  const yookassaInvoiceController = useItemAdminYookassaInvoice(item, setItem);
 
   if (!panel.isAdmin) {
     return null;
@@ -63,6 +66,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
           {item.deleted
             ? <FloatButton icon={<UndoOutlined />} onClick={restoreItemHandler} style={floatBtnStyle} />
             : <FloatButton icon={<DeleteOutlined />} onClick={deleteItemHandler} style={floatBtnStyle} />}
+          <ItemAdminYookassaQrFloatButtons controller={yookassaInvoiceController} floatBtnStyle={floatBtnStyle} />
           {item.publicationDate
             ? <FloatButton className="float-custom-icon" icon={<RubyOutlined style={{ fontSize: 22 }} />} onClick={onPublicationDateEdit} style={floatBtnStyle} />
             : null}
@@ -79,6 +83,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
               ? <FloatButton className="float-custom-icon" icon={<Telegram width={36} height={36} color="#e8e0ff" />} onClick={onDeferredPublicationEdit} style={floatBtnStyle} />
               : <FloatButton className="float-custom-icon" icon={<Telegram width={36} height={36} color="#b8f5d0" />} style={floatBtnStyle} />}
         </FloatButton.Group>
+        <ItemAdminYookassaInvoiceModal controller={yookassaInvoiceController} />
       </>
     );
   }
@@ -100,6 +105,7 @@ export const V2ProductAdminToolbar = ({ item, setItem }: { item: ItemInterface; 
       <div className={styles.actions}>
         <button type="button" className={styles.actionBtn} onClick={onEdit}>{t('edit')}</button>
         <button type="button" className={styles.actionBtn} onClick={() => setHistoryOpen(true)}>{t('history')}</button>
+        <ItemAdminYookassaQrControls controller={yookassaInvoiceController} uiVariant="v2" />
         {item.deleted
           ? <button type="button" className={styles.actionBtn} onClick={restoreItemHandler}>{t('restore')}</button>
           : (

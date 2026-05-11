@@ -29,6 +29,9 @@ export const ITEM_HISTORY_FIELD_PRICE = 'price';
 /** Ключ `field` для даты «нет в наличии» */
 export const ITEM_HISTORY_FIELD_OUT_STOCK = 'out_stock';
 
+/** Ключ `field` для идентификатора счёта ЮKassa на карточке товара (`in-...`) */
+export const ITEM_HISTORY_FIELD_YOOKASSA_INVOICE_ID = 'yookassa_invoice_id';
+
 /** Разделитель элементов списка в `old_value` / `new_value` (многострочный текст) */
 const ITEM_HISTORY_LIST_LINE_BREAK = '\n';
 
@@ -57,6 +60,7 @@ export class ItemHistoryService extends BaseService {
       ['publication_date', beforeItem.publicationDate, afterItem.publicationDate],
       ['out_stock', beforeItem.outStock, afterItem.outStock],
       ['deleted', beforeItem.deleted, afterItem.deleted],
+      ['yookassa_invoice_id', beforeItem.yookassaInvoiceId, afterItem.yookassaInvoiceId],
       ['group', this.serializeGroupLabel(beforeItem.group), this.serializeGroupLabel(afterItem.group)],
       ['collection', this.serializeCollectionLabel(beforeItem.collection), this.serializeCollectionLabel(afterItem.collection)],
       ['images', this.serializeImagesForHistory(beforeItem.images), this.serializeImagesForHistory(afterItem.images)],

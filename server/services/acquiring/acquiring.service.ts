@@ -13,10 +13,14 @@ import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.creden
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { getDiscountPercent, getOrderPrice, getOrderUnitAmounts, getPositionAmount, getPositionPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
+import { ItemEntity } from '@server/db/entities/item.entity';
+import { ItemHistoryService, ITEM_HISTORY_FIELD_YOOKASSA_INVOICE_ID } from '@server/services/item/item.history.service';
+import { ItemService } from '@server/services/item/item.service';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
 import { AcquiringTypeEnum } from '@server/types/acquiring/enums/acquiring.type.enum';
+import { YOOKASSA_ADMIN_ITEM_INVOICE_METADATA_PURPOSE } from '@server/types/acquiring/yookassa-admin-item-invoice.metadata';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -38,6 +42,10 @@ type Data = {
 
 export class AcquiringService extends BaseService {
   private readonly bullMQQueuesService = Container.get(BullMQQueuesService);
+
+  private readonly itemHistoryService = Container.get(ItemHistoryService);
+
+  private readonly itemService = Container.get(ItemService);
 
   private readonly TAG = 'AcquiringService';
 
@@ -81,7 +89,11 @@ export class AcquiringService extends BaseService {
       });
 
       if (!transaction) {
-        if (payment.status === 'succeeded') {
+        await this.clearItemYookassaInvoiceIfPaymentFinalized(payment);
+
+        const suppressUnknownPaymentTelegram = payment.metadata?.purpose === YOOKASSA_ADMIN_ITEM_INVOICE_METADATA_PURPOSE;
+
+        if (payment.status === 'succeeded' && !suppressUnknownPaymentTelegram) {
           this.bullMQQueuesService.sendTelegramAdminMessage({
             messageRu: `‼️Поступила оплата на сумму: <b>${payment.amount.value} ₽</b>‼️`,
             messageEn: `‼️Payment received in the amount of: <b>${payment.amount.value} ₽</b>‼️`,
@@ -289,6 +301,35 @@ export class AcquiringService extends BaseService {
       }
       throw new Error(error.description);
     }
+  };
+
+  /**
+   * Сбрасывает `item.yookassa_invoice_id`, если платёж завершён по счёту, привязанному к товару (без записи в acquiring_transaction).
+   * @param payment - объект платежа из уведомления ЮKassa
+   */
+  private clearItemYookassaInvoiceIfPaymentFinalized = async (payment: Payment): Promise<void> => {
+    const paymentWithInvoice = payment as Payment & { invoice_details?: { id?: string; }; };
+    const { invoice_details: invoiceDetails } = paymentWithInvoice;
+    const invoiceId = invoiceDetails?.id;
+    if (!invoiceId) {
+      return;
+    }
+    if (payment.status !== 'succeeded' && payment.status !== 'canceled') {
+      return;
+    }
+    const itemRow = await ItemEntity.findOne({ where: { yookassaInvoiceId: invoiceId } });
+    if (!itemRow) {
+      return;
+    }
+    await this.databaseService.getManager().transaction(async (manager) => {
+      await manager.update(ItemEntity, { id: itemRow.id }, { yookassaInvoiceId: null });
+      await this.itemHistoryService.persistSingleDelta(manager, itemRow.id, null, {
+        field: ITEM_HISTORY_FIELD_YOOKASSA_INVOICE_ID,
+        oldValue: invoiceId,
+        newValue: null,
+      });
+    });
+    await this.itemService.refreshCachedItemById(itemRow.id);
   };
 
   private successfulPayment = async (transaction: AcquiringTransactionEntity) => {

@@ -3,6 +3,7 @@ import { Container, Singleton } from 'typescript-ioc';
 
 import { BaseService } from '@server/services/app/base.service';
 import { publishTelegramValidation, newItemValidation, partialUpdateItemValidation } from '@/validations/validations';
+import { YookassaItemInvoiceService } from '@server/services/acquiring/yookassa-item-invoice.service';
 import { ItemService } from '@server/services/item/item.service';
 import { ItemHistoryService } from '@server/services/item/item.history.service';
 import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams, bodyItemBulkOutStockSchema, bodyItemBulkOutStockClearSchema, bodyItemBulkPriceAdjustSchema } from '@server/utilities/convertation.params';
@@ -14,6 +15,8 @@ export class ItemController extends BaseService {
   private readonly itemService = Container.get(ItemService);
 
   private readonly itemHistoryService = Container.get(ItemHistoryService);
+
+  private readonly yookassaItemInvoiceService = Container.get(YookassaItemInvoiceService);
 
   /**
    * Возвращает постраничную историю изменений товара (только админ)
@@ -212,6 +215,46 @@ export class ItemController extends BaseService {
       const item = await this.itemService.restoreOne(params, user);
 
       res.json({ code: 1, item });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Создаёт или обновляет счёт ЮKassa для оплаты товара с карточки (админ)
+   * @param req - HTTP-запрос с `params.id` товара
+   * @param res - JSON `{ code, invoiceUrl, invoiceId, invoiceExpiresAt }` (`invoiceExpiresAt` — ISO 8601 UTC)
+   */
+  public createItemYookassaInvoice = async (req: Request, res: Response) => {
+    try {
+      const user = this.getCurrentUser(req);
+      const params = await paramsIdSchema.validate(req.params);
+      const { invoiceUrl, invoiceId, invoiceExpiresAt } = await this.yookassaItemInvoiceService.createOrRefreshItemAdminInvoice(
+        params.id,
+        user,
+        user.lang,
+      );
+      res.json({ code: 1, invoiceUrl, invoiceId, invoiceExpiresAt });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Возвращает ссылку на неоплаченный счёт, если он сохранён для товара
+   * @param req - HTTP-запрос с `params.id` товара
+   * @param res - JSON `{ code, invoiceUrl, invoiceExpiresAt }` (поля могут быть `null`, если счёта нет)
+   */
+  public getItemYookassaInvoice = async (req: Request, res: Response) => {
+    try {
+      const user = this.getCurrentUser(req);
+      const params = await paramsIdSchema.validate(req.params);
+      const payload = await this.yookassaItemInvoiceService.getPendingItemInvoicePayload(params.id, user.lang, user);
+      res.json({
+        code: 1,
+        invoiceUrl: payload?.invoiceUrl ?? null,
+        invoiceExpiresAt: payload?.invoiceExpiresAt ?? null,
+      });
     } catch (e) {
       this.errorHandler(e, res);
     }

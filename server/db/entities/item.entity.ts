@@ -193,4 +193,12 @@ export class ItemEntity extends BaseEntity {
     nullable: true,
   })
   public publicationDate: Date | null;
+
+  /** Идентификатор последнего выставленного админом счёта ЮKassa (`in-...`) для QR-оплаты товара */
+  @Column('character varying', {
+    name: 'yookassa_invoice_id',
+    nullable: true,
+  })
+  public yookassaInvoiceId: string | null;
 }
+

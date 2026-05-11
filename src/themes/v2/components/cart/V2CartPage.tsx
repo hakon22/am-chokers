@@ -230,6 +230,22 @@ export const V2CartPage = () => {
   const filteredCart = useMemo(() => cart.filter(({ item }) => !(item.deleted || item.outStock)), [cart]);
 
   const [cartList, setCartList] = useState<CartItemInterface[]>(filteredCart);
+  const setCartListEffect = useEffectEvent(setCartList);
+
+  /**
+   * После обновления корзины в Redux (в т.ч. fetchCart после входа) строки — новые объекты; Checkbox.Group
+   * сравнивает value с Checkbox по ссылке. Пересобираем выбор по id товара, чтобы UI совпадал с выбранными позициями.
+   */
+  useEffect(() => {
+    setCartListEffect((previousCartList) => {
+      if (isEmpty(previousCartList)) {
+        return previousCartList;
+      }
+      const selectedItemIds = new Set(previousCartList.map((cartItem) => cartItem.item.id));
+      return filteredCart.filter((cartItem) => selectedItemIds.has(cartItem.item.id));
+    });
+  }, [filteredCart]);
+
   const [promotional, setPromotional] = useState<PromotionalInterface>();
   const [deliveryServices, setDeliveryServices] = useState<Pick<DeliveryCredentialsEntity, 'translations' | 'type'>[]>([]);
   const [deliveryType, setDeliveryType] = useState<DeliveryTypeEnum>();
