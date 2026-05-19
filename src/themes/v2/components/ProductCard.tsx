@@ -117,8 +117,10 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
           </div>
           <div className={styles.cardName}>{name}</div>
           <div className={styles.cardPrice}>
-            {item.price} ₽
-            {item.discountPrice ? <span className={styles.cardPriceOld}>{item.discountPrice} ₽</span> : null}
+            {t('price', { price: item.discountPrice ? item.price - item.discountPrice : item.price })}
+            {item.discountPrice ? (
+              <span className={styles.cardPriceOld}>{t('price', { price: item.price })}</span>
+            ) : null}
           </div>
         </div>
         <div className={styles.cardFooter}>
