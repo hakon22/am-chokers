@@ -430,7 +430,14 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         setInitialValues(params);
 
         if (!paginationParams) {
-          scrollTop();
+          if (showDrawer) {
+            setShowDrawer(false);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => scrollTop());
+            });
+          } else {
+            scrollTop();
+          }
         }
       }
       if (showDrawer) {

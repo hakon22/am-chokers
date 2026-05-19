@@ -65,20 +65,40 @@
 
 .sortSelect {
   width: 100%;
-  padding: 7px 10px;
-  border: 1px solid v2.$v2-border;
-  border-radius: 8px;
-  font-size: 13px;
-  color: v2.$v2-text-dark;
-  background: v2.$v2-white;
-  outline: none;
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
+}
 
-  &:focus {
-    border-color: v2.$v2-navy-secondary;
+.sortSelect:global(.ant-select.ant-select-outlined) {
+  align-items: center !important;
+
+  :global(.ant-select-content) {
+    display: flex !important;
+    align-items: center !important;
   }
+
+  :global(.ant-select-content-value),
+  :global(.ant-select-placeholder) {
+    display: flex !important;
+    align-items: center !important;
+  }
+}
+
+// Десктоп: переопределяем body.v2-theme .ant-select { --select-height: 44px } из general.scss
+.panel .sortSelect:global(.ant-select.ant-select-outlined:not(.ant-select-lg):not(.ant-select-sm)) {
+  --select-height: 34px !important;
+  border-width: 1px !important;
+  border-radius: 8px !important;
+
+  :global(.ant-select-content-value),
+  :global(.ant-select-placeholder) {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+  }
+}
+
+.sortOptionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 // ── Ant Design Collapse overrides ───────────────────────

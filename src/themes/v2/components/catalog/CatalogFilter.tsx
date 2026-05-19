@@ -2,8 +2,8 @@ import { useContext, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { isEmpty, isNil } from 'lodash';
 import axios from 'axios';
-import { Affix, Badge, Collapse, Drawer, FloatButton } from 'antd';
-import { FunnelFill } from 'react-bootstrap-icons';
+import { Affix, Badge, Collapse, Drawer, FloatButton, Select } from 'antd';
+import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
 import type { CollapseProps } from 'antd';
 import type { FormInstance } from 'antd/lib';
 
@@ -189,12 +189,45 @@ export const CatalogFilter = ({
     onFilters(updated);
   };
 
-  const handleSortChange = (value: string) => {
+  const handleSortChange = (value?: string) => {
     const updated = { ...initialValues, sort: value || undefined };
     setInitialValues(updated);
     form.setFieldValue('sort', value || undefined);
     onFilters(updated);
   };
+
+  const sortOptions = useMemo(
+    () => [
+      {
+        value: ItemSortEnum.BY_RATING,
+        label: (
+          <span className={styles.sortOptionLabel}>
+            <SortNumericDownAlt />
+            {t('sort.byRating')}
+          </span>
+        ),
+      },
+      {
+        value: ItemSortEnum.BY_OVER_PRICE,
+        label: (
+          <span className={styles.sortOptionLabel}>
+            <SortDown />
+            {t('sort.byOverPrice')}
+          </span>
+        ),
+      },
+      {
+        value: ItemSortEnum.BY_LOWER_PRICE,
+        label: (
+          <span className={styles.sortOptionLabel}>
+            <SortDownAlt />
+            {t('sort.byLowerPrice')}
+          </span>
+        ),
+      },
+    ],
+    [t],
+  );
 
   const handleCompositionSearch = (value: string) => {
     setCompositionSearch(value);
@@ -360,16 +393,14 @@ export const CatalogFilter = ({
 
   const sortSection = (
     <div className={styles.sortSection}>
-      <select
+      <Select
+        allowClear
         className={styles.sortSelect}
-        value={initialValues.sort ?? ''}
-        onChange={({ target: { value } }) => handleSortChange(value)}
-      >
-        <option value="">{t('sort.title')}</option>
-        <option value={ItemSortEnum.BY_RATING}>{t('sort.byRating')}</option>
-        <option value={ItemSortEnum.BY_OVER_PRICE}>{t('sort.byOverPrice')}</option>
-        <option value={ItemSortEnum.BY_LOWER_PRICE}>{t('sort.byLowerPrice')}</option>
-      </select>
+        onChange={handleSortChange}
+        options={sortOptions}
+        placeholder={t('sort.title')}
+        value={initialValues.sort ?? undefined}
+      />
     </div>
   );
 
