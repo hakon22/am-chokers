@@ -1,4 +1,4 @@
-import { useContext, useRef, useState, useEffect, type MouseEvent as ReactMouseEvent } from 'react';
+import { useContext, useMemo, useRef, useState, useEffect, type MouseEvent as ReactMouseEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
@@ -26,6 +26,11 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { changeLang } from '@/slices/userSlice';
 import styles from '@/themes/v2/components/NavBar.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
+import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
+
+interface NavBarProps {
+  itemGroups: ItemGroupEntity[];
+}
 
 type NavigationKeys = {
   key: 'catalog' | 'about-brand' | 'delivery' | 'jewelry-care' | 'contacts' | 'home' | 'lang';
@@ -47,7 +52,7 @@ const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; 
     </div>
   );
 
-export const NavBar = () => {
+export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const router = useRouter();
   const urlParams = useSearchParams();
@@ -63,8 +68,15 @@ export const NavBar = () => {
   const searchParams = urlParams.get('search');
 
   const { token, lang = UserLangEnum.RU, name, favorites } = useAppSelector((state) => state.user);
-  const { itemGroups } = useAppSelector((state) => state.app);
+  const { itemGroups: itemGroupsFromStore } = useAppSelector((state) => state.app);
   const { cart } = useAppSelector((state) => state.cart);
+
+  const navigationItemGroups = itemGroupsFromLayout.length ? itemGroupsFromLayout : itemGroupsFromStore;
+
+  const sortedNavigationGroups = useMemo(
+    () => [...navigationItemGroups].sort((a, b) => a.order - b.order),
+    [navigationItemGroups],
+  );
 
   const cartCount = cart.reduce((acc, { count }) => acc + count, 0);
   const favCount = favorites?.length ?? 0;
@@ -96,8 +108,8 @@ export const NavBar = () => {
   };
 
   const catalogChildren = [...(isMobile
-    ? [{ code: '', order: -1, translations: [{ name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.RU }, { name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.EN }] }, ...itemGroups]
-    : itemGroups),
+    ? [{ code: '', order: -1, translations: [{ name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.RU }, { name: <span className="fw-bold">{t('menu.allItems')}</span>, lang: UserLangEnum.EN }] }, ...navigationItemGroups]
+    : navigationItemGroups),
   ].sort((a, b) => a.order - b.order).flatMap((itemGroup) => [
     {
       label: <Link href={[catalogPath, itemGroup.code].join('/')}>{itemGroup.translations.find((translation) => translation.lang === lang)?.name}</Link>,
@@ -179,10 +191,10 @@ export const NavBar = () => {
   useEffect(() => {
     if (!isMobile) {
       setNavHeight(submenu === 'catalog'
-        ? `${(itemGroups.length > 6 ? 6 : itemGroups.length) * 43 + 100}px`
+        ? `${(sortedNavigationGroups.length > 6 ? 6 : sortedNavigationGroups.length) * 43 + 100}px`
         : '100px');
     }
-  }, [submenu, isMobile, itemGroups.length]);
+  }, [submenu, isMobile, sortedNavigationGroups.length]);
 
   useEffect(() => {
     if (isSearch?.value && searchRef.current) {
@@ -285,6 +297,20 @@ export const NavBar = () => {
           )}
         </div>
       </div>
+      {!isMobile && sortedNavigationGroups.length ? (
+        <nav className={styles.catalogSeoLinks} aria-hidden="true">
+          <ul>
+            {sortedNavigationGroups.map((itemGroup) => {
+              const groupName = itemGroup.translations.find((translation) => translation.lang === lang)?.name ?? itemGroup.code;
+              return (
+                <li key={itemGroup.code}>
+                  <Link href={[catalogPath, itemGroup.code].join('/')}>{groupName}</Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      ) : null}
     </nav>
   );
 

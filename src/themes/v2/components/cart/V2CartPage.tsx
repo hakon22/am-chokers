@@ -218,7 +218,8 @@ export const V2CartPage = () => {
 
   const { name, phone, key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { cart } = useAppSelector((state) => state.cart);
-  const { publicPickupSettings } = useAppSelector((state) => state.app);
+  const { siteSettings } = useAppSelector((state) => state.app);
+  const { pickup: pickupSettings } = siteSettings;
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
@@ -469,10 +470,10 @@ export const V2CartPage = () => {
   };
 
   const pickupAddressLine = useMemo(
-    () => (isEmpty(publicPickupSettings.locationLabel?.trim())
+    () => (isEmpty(pickupSettings.locationLabel?.trim())
       ? t('pickupAddress')
-      : publicPickupSettings.locationLabel.trim()),
-    [publicPickupSettings.locationLabel, t],
+      : pickupSettings.locationLabel.trim()),
+    [pickupSettings.locationLabel, t],
   );
 
   const pickupCalendarDisabledDate = useCallback((current: Moment | null) => {
@@ -482,8 +483,8 @@ export const V2CartPage = () => {
     if (current.isBefore(moment().startOf('day'), 'day')) {
       return true;
     }
-    return isCalendarDayBlockedByPickupRanges(current, publicPickupSettings.blockedDateRanges);
-  }, [publicPickupSettings.blockedDateRanges]);
+    return isCalendarDayBlockedByPickupRanges(current, pickupSettings.blockedDateRanges);
+  }, [pickupSettings.blockedDateRanges]);
 
   const onDeliveryTypeChange = (value: DeliveryTypeEnum) => {
     resetPVZ();

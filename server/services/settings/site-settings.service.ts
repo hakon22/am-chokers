@@ -6,9 +6,9 @@ import { SiteSettingsEntity } from '@server/db/entities/site.settings.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import { SiteSettingsKeyEnum } from '@server/types/site/site.settings.key.enum';
-import type { SiteSettingsJsonValue } from '@server/types/site/site.settings.json.value.type';
-import type { PickupBlockedDateRangeInterface } from '@server/types/site/pickup.blocked.date.range.interface';
+import { SiteSettingsKeyEnum } from '@server/types/site/site-settings-key.enum';
+import type { SiteSettingsJsonValue } from '@server/types/site/site-settings-json-value.type';
+import type { PickupBlockedDateRangeInterface } from '@server/types/site/pickup-blocked-date-range.interface';
 import type { SiteVersion } from '@/types/SiteVersion';
 
 const REDIS_SITE_VERSION_KEY = 'SITE_VERSION';
@@ -24,9 +24,20 @@ export type PublicPickupSettingsPayload = {
   blockedDateRanges: PickupBlockedDateRangeInterface[];
 };
 
-export type SavePickupSiteSettingsBody = {
-  locationLabel?: string;
-  blockedDateRanges?: PickupBlockedDateRangeInterface[];
+export type PublicHomeHeroSettingsPayload = {
+  eyebrowTitle: string;
+  eyebrowSubtitle: string;
+};
+
+export type SiteSettingsPayload = {
+  siteVersion: SiteVersion;
+  pickup: PublicPickupSettingsPayload;
+  homeHero: PublicHomeHeroSettingsPayload;
+};
+
+export type SiteSettingValueEntry = {
+  key: SiteSettingsKeyEnum;
+  value: SiteSettingsJsonValue;
 };
 
 @Singleton
@@ -130,6 +141,19 @@ export class SiteSettingsService extends BaseService {
   };
 
   /**
+   * Собирает все публичные настройки сайта для API и клиента
+   * @param siteVersion - актуальная версия интерфейса (v1, v2, v3)
+   * @returns версия сайта, самовывоз и eyebrow hero главной страницы
+   */
+  public getSiteSettingsPayload = async (siteVersion: SiteVersion): Promise<SiteSettingsPayload> => {
+    const [pickup, homeHero] = await Promise.all([
+      this.getPublicPickupPayload(),
+      this.getHomeHeroEyebrowFromDatabase(),
+    ]);
+    return { siteVersion, pickup, homeHero };
+  };
+
+  /**
    * Проверяет, что выбранная дата самовывоза не входит в закрытые периоды
    * @param deliveryDateTime - дата и время из формы заказа (ISO или Date)
    * @param ranges - нормализованные периоды из настроек
@@ -161,54 +185,42 @@ export class SiteSettingsService extends BaseService {
   };
 
   /**
-   * Строго проверяет и нормализует периоды из PATCH до записи в БД
-   * @param ranges - массив периодов из тела запроса
-   * @returns массив с датами в формате YYYY-MM-DD
+   * Читает строковое значение настройки `site_settings`
+   * @param key - ключ записи в таблице `site_settings`
+   * @returns обрезанная строка или пустая, если значение отсутствует или не строка
    */
-  private normalizeBlockedRangesStrict = (ranges: PickupBlockedDateRangeInterface[]): PickupBlockedDateRangeInterface[] => {
-    if (ranges.length > MAX_PICKUP_BLOCKED_RANGE_ROWS) {
-      throw new Error(`Too many blocked date ranges (max ${MAX_PICKUP_BLOCKED_RANGE_ROWS})`);
+  private getStringSettingFromDatabase = async (key: SiteSettingsKeyEnum): Promise<string> => {
+    const row = await SiteSettingsEntity.findOne({ where: { key } });
+    if (_.isNil(row?.value) || typeof row.value !== 'string') {
+      return '';
     }
-    return ranges.map((range, index) => {
-      const { startDate, endDate } = range;
-      if (typeof startDate !== 'string' || typeof endDate !== 'string') {
-        throw new Error(`Invalid pickup blocked date range at index ${index}`);
-      }
-      const start = moment(startDate, DateFormatEnum.YYYY_MM_DD, true).startOf('day');
-      const end = moment(endDate, DateFormatEnum.YYYY_MM_DD, true).startOf('day');
-      if (!start.isValid() || !end.isValid()) {
-        throw new Error(`Invalid pickup blocked date range at index ${index}`);
-      }
-      if (end.isBefore(start, 'day')) {
-        throw new Error(`pickupBlockedDateRanges[${index}]: endDate must be on or after startDate`);
-      }
-      return {
-        startDate: start.format(DateFormatEnum.YYYY_MM_DD),
-        endDate: end.format(DateFormatEnum.YYYY_MM_DD),
-      };
-    });
+    return row.value.trim();
   };
 
   /**
-   * Сохраняет настройки самовывоза (частичное обновление по переданным полям)
-   * @param body - опционально locationLabel и/или blockedDateRanges
-   * @returns Promise по завершении upsert в site_settings
+   * Возвращает настройки eyebrow hero главной страницы из БД
+   * @returns заголовок и подзаголовок eyebrow
    */
-  public savePickupSiteSettings = async (body: SavePickupSiteSettingsBody): Promise<void> => {
-    const { locationLabel, blockedDateRanges } = body;
-    if (!_.isNil(locationLabel)) {
-      const trimmed = locationLabel.trim();
+  public getHomeHeroEyebrowFromDatabase = async (): Promise<PublicHomeHeroSettingsPayload> => {
+    const [eyebrowTitle, eyebrowSubtitle] = await Promise.all([
+      this.getStringSettingFromDatabase(SiteSettingsKeyEnum.HOME_HERO_EYEBROW_TITLE),
+      this.getStringSettingFromDatabase(SiteSettingsKeyEnum.HOME_HERO_EYEBROW_SUBTITLE),
+    ]);
+    return { eyebrowTitle, eyebrowSubtitle };
+  };
+
+  /**
+   * Записывает одно или несколько значений в `site_settings`
+   * @param entries - пары ключ / значение для upsert
+   * @returns Promise по завершении upsert всех переданных записей
+   */
+  public persistSiteSettingValues = async (entries: SiteSettingValueEntry[]): Promise<void> => {
+    for (const { key, value } of entries) {
       await SiteSettingsEntity.upsert(
-        { key: SiteSettingsKeyEnum.PICKUP_LOCATION_LABEL, value: trimmed },
+        { key, value },
         { conflictPaths: ['key'] },
       );
-    }
-    if (!_.isNil(blockedDateRanges)) {
-      const normalized = this.normalizeBlockedRangesStrict(blockedDateRanges);
-      await SiteSettingsEntity.upsert(
-        { key: SiteSettingsKeyEnum.PICKUP_BLOCKED_DATE_RANGES, value: normalized },
-        { conflictPaths: ['key'] },
-      );
+      this.loggerService.info('SiteSettingsService', 'site_settings value persisted', { key, value });
     }
   };
 }

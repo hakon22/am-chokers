@@ -7,15 +7,19 @@ import { MobileContext } from '@/components/Context';
 import { catalogPath, routes } from '@/routes';
 import loginImage from '@/images/login.image.jpg';
 import { BannerSlider } from '@/themes/v2/components/home/BannerSlider';
+import { HeroEyebrow } from '@/themes/v2/components/home/HeroEyebrow';
 import styles from '@/themes/v2/components/home/HeroSection.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
 import type { BannerInterface } from '@/types/banner/BannerInterface';
+import type { PublicHomeHeroSettingsInterface } from '@/types/site/PublicHomeHeroSettings';
 
 interface HeroSectionProps {
   banners: BannerInterface[];
+  /** Hero eyebrow с SSR (getServerSideProps) */
+  homeHero: PublicHomeHeroSettingsInterface;
 }
 
-export const HeroSection = ({ banners }: HeroSectionProps) => {
+export const HeroSection = ({ banners, homeHero }: HeroSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home.hero' });
   const { isMobile } = useContext(MobileContext);
   const showBannerCarousel = !isMobile && banners.length > 0;
@@ -24,7 +28,7 @@ export const HeroSection = ({ banners }: HeroSectionProps) => {
     <div className={styles.hero}>
       <div className={styles.heroLeft}>
         <div className={styles.heroInner}>
-          <div className={styles.heroEyebrow}>{t('eyebrow')}</div>
+          <HeroEyebrow className={styles.heroEyebrow} serverHomeHero={homeHero} />
           <h1 className={styles.heroH1}>
             {t('title')} <em>{t('titleEm')}</em>
           </h1>

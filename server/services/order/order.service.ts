@@ -2,7 +2,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import moment from 'moment';
 import _ from 'lodash';
 
-import { SiteSettingsService } from '@server/services/settings/site.settings.service';
+import { SiteSettingsService } from '@server/services/settings/site-settings.service';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { DeliveryEntity } from '@server/db/entities/delivery.entity';

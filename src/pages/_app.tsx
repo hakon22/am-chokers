@@ -39,10 +39,10 @@ import { setAppData } from '@/slices/appSlice';
 import i18n from '@/locales';
 import '@/scss/app.scss';
 import '@/themes/v2/styles/v2-fonts.scss';
+import { emptySiteSettings, type SiteSettingsInterface } from '@/types/site/SiteSettings';
 import type { SiteVersion } from '@/types/SiteVersion';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
-import type { PublicPickupSettingsInterface } from '@/types/site/PublicPickupSettings';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
@@ -61,11 +61,11 @@ interface InitPropsInterface extends AppProps {
   isMobile: boolean;
   siteVersion: SiteVersion;
   itemGroups: ItemGroupInterface[];
-  publicPickupSettings: PublicPickupSettingsInterface;
+  siteSettings: SiteSettingsInterface;
 }
 
 const Init = (props: InitPropsInterface) => {
-  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion, publicPickupSettings } = props;
+  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion, siteSettings } = props;
 
   const isLoaded = useRouterHandler();
   const { dispatch } = store;
@@ -111,8 +111,8 @@ const Init = (props: InitPropsInterface) => {
   useEffect(() => {
     window.dataLayer = window.dataLayer || [];
     AOS.init();
-    dispatch(setAppData({ itemGroups, publicPickupSettings }));
-  }, []);
+    dispatch(setAppData({ itemGroups, siteSettings }));
+  }, [dispatch, itemGroups, siteSettings]);
 
   useEffect(() => {
     if (pathWithoutQuery !== routes.page.base.catalog) {
@@ -267,16 +267,16 @@ const Init = (props: InitPropsInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
-  const emptyPickup: PublicPickupSettingsInterface = { locationLabel: '', blockedDateRanges: [] };
-  const [{ data: { itemGroups } }, { data: settingsData }] = await Promise.all([
+  const [
+    { data: { itemGroups } },
+    { data: settingsData },
+  ] = await Promise.all([
     axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.findMany({ isServer: false })),
-    axios.get<{ code: number; siteVersion: SiteVersion; pickup?: PublicPickupSettingsInterface; }>(
-      routes.settings.getSiteVersionSsr({ isServer: false }),
-    ),
+    axios.get<{ code: number; siteSettings?: SiteSettingsInterface; }>(routes.settings.getSettings({ isServer: false })),
   ]);
 
-  const siteVersion = settingsData.siteVersion ?? 'v1';
-  const publicPickupSettings = settingsData.pickup ?? emptyPickup;
+  const siteSettings = settingsData.siteSettings ?? emptySiteSettings;
+  const siteVersion = siteSettings.siteVersion;
 
   const { req } = context.ctx;
   const userAgent = req ? req.headers['user-agent'] : navigator.userAgent;
@@ -284,7 +284,17 @@ Init.getInitialProps = async (context: AppContext) => {
 
   const props = await AppNext.getInitialProps(context);
 
-  return { ...props, isMobile, itemGroups, siteVersion, publicPickupSettings };
+  return {
+    ...props,
+    pageProps: {
+      ...props.pageProps,
+      itemGroups,
+    },
+    isMobile,
+    itemGroups,
+    siteVersion,
+    siteSettings,
+  };
 };
 
 export default Init;

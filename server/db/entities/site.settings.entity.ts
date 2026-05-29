@@ -5,7 +5,7 @@ import {
   Unique,
 } from 'typeorm';
 
-import type { SiteSettingsJsonValue } from '@server/types/site/site.settings.json.value.type';
+import type { SiteSettingsJsonValue } from '@server/types/site/site-settings-json-value.type';
 
 /** Настройки сайта */
 @Entity({

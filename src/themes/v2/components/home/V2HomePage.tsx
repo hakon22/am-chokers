@@ -21,7 +21,7 @@ type HomePageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
   itemCollections: ItemCollectionEntity[];
 };
 
-export const V2HomePage = ({ news, preparedBestsellers, preparedCoverImages, itemGroups, itemCollections, banners }: HomePageProps) => {
+export const V2HomePage = ({ news, preparedBestsellers, preparedCoverImages, itemGroups, itemCollections, banners, homeHero }: HomePageProps) => {
   const rawCoverImages = useAppSelector((state) => state.app.coverImages);
 
   const coverImages = useMemo<GeneralPageCoverImageInterface>(() => {
@@ -39,7 +39,7 @@ export const V2HomePage = ({ news, preparedBestsellers, preparedCoverImages, ite
 
   return (
     <>
-      <HeroSection banners={banners} />
+      <HeroSection banners={banners} homeHero={homeHero} />
       <div className={pageStyles.mobileBannersOnly}>
         <BannerSlider banners={banners} />
       </div>

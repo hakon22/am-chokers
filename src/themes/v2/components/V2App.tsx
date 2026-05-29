@@ -73,7 +73,7 @@ export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGro
       <div className="v2-app" style={{ position: 'relative', minHeight: '100vh' }}>
         {isSubmit && <Spin tip={t('loading')} spinning fullscreen size="large" />}
         <header style={{ paddingTop: isMobile ? 56 : 100 }}>
-          <NavBar />
+          <NavBar itemGroups={itemGroups} />
           <Breadcrumb />
         </header>
         <div style={{ paddingBottom: footerHeight + (isMobile ? 80 : 40) }}>

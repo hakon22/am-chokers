@@ -8,6 +8,7 @@ import { TokenService } from '@server/services/user/token.service';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { UserEntity } from '@server/db/entities/user.entity';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { buildValidationErrorResponse, isValidationErrorKey } from '@server/utilities/api-error-response.util';
 
 export abstract class BaseService {
   protected databaseService = Container.get(DatabaseService);
@@ -24,9 +25,16 @@ export abstract class BaseService {
     this.loggerService.error(e);
 
     let error = `${e?.name}: ${e?.message}`;
+    let responseStatusCode = statusCode;
+
+    if (e?.name === 'ValidationError' && typeof e.message === 'string' && isValidationErrorKey(e.message)) {
+      res.status(400).json(buildValidationErrorResponse(e.message, e.params));
+      return;
+    }
 
     if (e?.name === 'ValidationError') {
       error = `${e?.name}: "${e?.path}" ${e?.message}`;
+      responseStatusCode = 400;
     }
 
     if (e instanceof Error && e.stack && process.env.TELEGRAM_CHAT_ID && process.env.NODE_ENV === 'production') {
@@ -48,6 +56,6 @@ export abstract class BaseService {
         .catch(this.loggerService.error);
     }
 
-    res.status(statusCode).json({ error });
+    res.status(responseStatusCode).json({ error });
   };
 }

@@ -78,6 +78,25 @@
   display: block;
 }
 
+// Ссылки каталога для SSR/ботов — в DOM, не отображаются (видимое меню — ant grid-submenu)
+.catalogSeoLinks {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
 // ── Center: menu ──
 .navCenter {
   flex: 1;

@@ -9,7 +9,7 @@ export class SettingsRoute extends BaseRouter {
   private readonly settingsController = Container.get(SettingsController);
 
   public set = (router: Router) => {
-    router.get(this.routes.settings.getSiteVersion, this.settingsController.getSiteVersion);
+    router.get(this.routes.settings.getSettings({ isServer: true }), this.settingsController.getSettings);
     router.patch(
       this.routes.settings.updateSiteVersion,
       this.middlewareService.jwtToken,
@@ -21,6 +21,12 @@ export class SettingsRoute extends BaseRouter {
       this.middlewareService.jwtToken,
       this.middlewareService.checkAdminAccess,
       this.settingsController.updatePickupSiteSettings,
+    );
+    router.patch(
+      this.routes.settings.updateHomeHeroSettings,
+      this.middlewareService.jwtToken,
+      this.middlewareService.checkAdminAccess,
+      this.settingsController.updateHomeHeroSettings,
     );
   };
 }

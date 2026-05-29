@@ -6,4 +6,8 @@ export enum SiteSettingsKeyEnum {
   PICKUP_LOCATION_LABEL = 'pickupLocationLabel',
   /** Недоступные периоды в календаре */
   PICKUP_BLOCKED_DATE_RANGES = 'pickupBlockedDateRanges',
+  /** Левая часть eyebrow в hero главной (v2) */
+  HOME_HERO_EYEBROW_TITLE = 'homeHeroEyebrowTitle',
+  /** Правая часть eyebrow в hero главной (v2) */
+  HOME_HERO_EYEBROW_SUBTITLE = 'homeHeroEyebrowSubtitle',
 }

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Button, Card, Form, Input, Space } from 'antd';
@@ -16,8 +16,9 @@ import { setAppData } from '@/slices/appSlice';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { locale } from '@/locales/pickers.locale.ru';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import type { PublicPickupSettingsInterface } from '@/types/site/PublicPickupSettings';
 import v2AdminSettingsStyles from '@/themes/v2/components/profile/V2AdminSettings.module.scss';
+import type { PublicPickupSettingsInterface } from '@/types/site/PublicPickupSettings';
+import type { SiteSettingsInterface } from '@/types/site/SiteSettings';
 
 const MomentPicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 const MomentRangePicker = MomentPicker.RangePicker;
@@ -35,7 +36,7 @@ export const AdminPickupSiteSettingsSection = ({ variant }: AdminPickupSiteSetti
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { setIsSubmit } = useContext(SubmitContext);
-  const { axiosAuth } = useAppSelector((state) => state.app);
+  const { axiosAuth, siteSettings } = useAppSelector((state) => state.app);
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
 
@@ -43,7 +44,7 @@ export const AdminPickupSiteSettingsSection = ({ variant }: AdminPickupSiteSetti
 
   /**
    * Подставляет в форму текущие значения самовывоза с сервера
-   * @param pickup - объект pickup из GET /settings/site-version
+   * @param pickup - объект pickup из GET /settings
    */
   const applyPickupToForm = (pickup: PublicPickupSettingsInterface) => {
     const blockedRanges: BlockedRangeFormRow[] = pickup.blockedDateRanges.map((range) => ({
@@ -58,24 +59,11 @@ export const AdminPickupSiteSettingsSection = ({ variant }: AdminPickupSiteSetti
     });
   };
 
-  const loadPickupSettings = useCallback(async () => {
-    try {
-      const { data } = await axios.get<{ code: number; pickup?: PublicPickupSettingsInterface; }>(
-        routes.settings.getSiteVersion,
-      );
-      if (data.code === 1 && data.pickup) {
-        applyPickupToForm(data.pickup);
-      }
-    } catch (error) {
-      axiosErrorHandler(error, tToast, setIsSubmit);
-    }
-  }, [form, setIsSubmit, tToast]);
-
   useEffect(() => {
     if (axiosAuth) {
-      loadPickupSettings();
+      applyPickupToForm(siteSettings.pickup);
     }
-  }, [axiosAuth, loadPickupSettings]);
+  }, [axiosAuth, form, siteSettings.pickup]);
 
   /**
    * Сохраняет настройки самовывоза и обновляет Redux для корзины
@@ -91,7 +79,7 @@ export const AdminPickupSiteSettingsSection = ({ variant }: AdminPickupSiteSetti
           startDate: start.clone().startOf('day').format(DateFormatEnum.YYYY_MM_DD),
           endDate: end.clone().startOf('day').format(DateFormatEnum.YYYY_MM_DD),
         }));
-      const { data } = await axios.patch<{ code: number; pickup: PublicPickupSettingsInterface; }>(
+      const { data } = await axios.patch<{ code: number; siteSettings: SiteSettingsInterface; }>(
         routes.settings.updatePickupSiteSettings,
         {
           locationLabel: values.locationLabel ?? '',
@@ -99,7 +87,7 @@ export const AdminPickupSiteSettingsSection = ({ variant }: AdminPickupSiteSetti
         },
       );
       if (data.code === 1) {
-        dispatch(setAppData({ publicPickupSettings: data.pickup }));
+        dispatch(setAppData({ siteSettings: data.siteSettings }));
         toast(tToast('pickupSiteSettingsSaved'), 'success');
       }
     } catch (error) {

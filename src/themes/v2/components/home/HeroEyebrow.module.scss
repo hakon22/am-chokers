@@ -1,0 +1,123 @@
+.eyebrowWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  cursor: default;
+}
+
+.eyebrowWrapAdmin {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-within {
+    .eyebrowEditIcon {
+      opacity: 1;
+    }
+
+    .eyebrowDesktop,
+    .eyebrowMobile {
+      outline: 1px dashed rgba(255, 255, 255, 0.35);
+      outline-offset: 4px;
+      border-radius: 2px;
+    }
+  }
+}
+
+.eyebrowDesktop {
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.eyebrowMobile {
+  display: none;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+    row-gap: 10px;
+  }
+}
+
+.eyebrowLine {
+  min-width: 0;
+}
+
+.eyebrowMiddleSeparator {
+  display: inline-flex;
+  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.eyebrowLineSeparator {
+  display: none;
+  flex-shrink: 0;
+  width: 32px;
+  height: 1px;
+  margin: 0;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.eyebrowDotSeparator {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: inherit;
+  letter-spacing: 0;
+}
+
+@media (max-width: 768px) {
+  .eyebrowMiddleSeparator {
+    margin: 0;
+    min-height: 10px;
+  }
+
+  .eyebrowLineSeparator {
+    display: block;
+    align-self: center;
+  }
+
+  .eyebrowDotSeparator {
+    align-self: center;
+  }
+}
+
+.eyebrowEditIcon {
+  flex-shrink: 0;
+  margin-left: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.eyebrowPopover {
+  width: 280px;
+}
+
+.eyebrowPopoverTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.eyebrowPopoverActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

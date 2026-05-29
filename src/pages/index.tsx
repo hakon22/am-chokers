@@ -24,10 +24,10 @@ import { getWidth } from '@/utilities/screenExtension';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { setAppData } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
-import type { ItemInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
+import type { ItemInterface, ItemGroupInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { BannerInterface, BannerListResponseInterface } from '@/types/banner/BannerInterface';
-import type { SiteVersion } from '@/types/SiteVersion';
+import type { SiteSettingsInterface } from '@/types/site/SiteSettings';
 import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 
 const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterface =>
@@ -40,14 +40,14 @@ const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterf
   }, {} as GeneralPageCoverImageInterface);
 
 export const getServerSideProps = async () => {
-  const [{ data: { specialItems } }, { data: { siteVersion } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
+  const [{ data: { specialItems } }, { data: { siteSettings } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
     axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
-    axios.get<{ siteVersion: SiteVersion; }>(routes.settings.getSiteVersionSsr({ isServer: false })),
+    axios.get<{ siteSettings: SiteSettingsInterface; }>(routes.settings.getSettings({ isServer: false })),
     axios.get<BannerListResponseInterface>(routes.banner.findMany({ isServer: false })),
     axios.get<{ itemCollections: ItemCollectionEntity[]; }>(routes.itemCollection.findMany({ isServer: false })),
   ]);
 
-  const versionNumber = parseInt(siteVersion.slice(1));
+  const versionNumber = parseInt(siteSettings.siteVersion.slice(1));
   const { data: { coverImages } } = await axios.get<{ coverImages: ImageEntity[]; }>(
     routes.storage.image.getCoverImages({ isServer: false, siteVersion: versionNumber }),
   );
@@ -117,6 +117,7 @@ export const getServerSideProps = async () => {
       specialItems,
       coverImages,
       banners,
+      homeHero: siteSettings.homeHero,
     },
   };
 };
@@ -199,7 +200,11 @@ const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValu
   );
 };
 
-const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages, itemCollections, banners }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+type IndexPageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
+  itemGroups: ItemGroupInterface[];
+};
+
+const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages, itemCollections, banners, homeHero, itemGroups }: IndexPageProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tBanner } = useTranslation('translation', { keyPrefix: 'modules.banner' });
@@ -207,7 +212,6 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   const dispatch = useAppDispatch();
 
   const { version } = useContext(VersionContext);
-  const { itemGroups } = useAppSelector((state) => state.app);
 
   const { isMobile } = useContext(MobileContext);
 
@@ -398,6 +402,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
           banners={banners}
           itemGroups={itemGroups}
           itemCollections={itemCollections}
+          homeHero={homeHero}
         />
       </>
     );
