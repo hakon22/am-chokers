@@ -69,7 +69,7 @@ export const V1ItemHistoryModal = ({ itemId, open, onClose }: Props) => {
           {tHist('modalTitle')}
         </span>
       )}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ maxHeight: 'min(70vh, 560px)', overflowY: 'auto' }}>
         {loading && isEmpty(rows)

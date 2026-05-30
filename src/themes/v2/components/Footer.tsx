@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
 import { Button, Col, Row } from 'antd';
 import { InstagramOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
@@ -29,23 +30,26 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
             <V2Image src={logoImage} alt="AM Chokers" unoptimized className={styles.footerLogo} />
             <div className={styles.brandSub}>{tv2('brandTagline')}</div>
             <p className={styles.brandDesc}>{tv2('brandDesc')}</p>
-            <div className={styles.socialRow}>
-              <Button
-                className={styles.socialBtn}
-                href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage}
-                target="_blank"
-                title={t('telegram')}
-              >
-                <Telegram />
-              </Button>
-              <Button
-                className={styles.socialBtn}
-                href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.page.base.homePage}
-                target="_blank"
-                title={tv2('instagram')}
-              >
-                <InstagramOutlined />
-              </Button>
+            <div className={styles.socialBlock}>
+              <div className={styles.socialRow}>
+                <Button
+                  className={styles.socialBtn}
+                  href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage}
+                  target="_blank"
+                  title={t('telegram')}
+                >
+                  <Telegram />
+                </Button>
+                <Button
+                  className={cn(styles.socialBtn, styles.instagramSocialBtn)}
+                  href={process.env.NEXT_PUBLIC_URL_INST_ACCOUNT ?? routes.page.base.homePage}
+                  target="_blank"
+                  title={tv2('instagram')}
+                >
+                  <InstagramOutlined />
+                </Button>
+              </div>
+              <p className={styles.messengersVpnHint}>{tv2('messengersVpnHint')}</p>
             </div>
           </Col>
 

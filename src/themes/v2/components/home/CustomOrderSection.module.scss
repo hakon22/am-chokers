@@ -71,8 +71,36 @@
   }
 }
 
+.tgBtnWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    align-self: center;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+.tgVpnHint {
+  margin: 0;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: left;
+
+  @media (max-width: 768px) {
+    font-size: 10px;
+    text-align: center;
+  }
+}
+
 .tgBtn {
-  align-self: flex-start;
+  align-self: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -113,10 +141,6 @@
   &:focus-visible {
     outline: 2px solid rgba(255, 255, 255, 0.85);
     outline-offset: 3px;
-  }
-
-  @media (max-width: 768px) {
-    align-self: center;
   }
 }
 

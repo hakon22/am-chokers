@@ -49,17 +49,20 @@ export const SocialSection = () => {
               <div className={styles.tgSub}>{t('tgSub')}</div>
             </div>
           </div>
-          <a
-            href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage}
-            target="_blank"
-            rel="noreferrer"
-            className={styles.tgBtn}
-          >
-            <span className={styles.tgBtnIconWrap} aria-hidden>
-              <Telegram className={styles.tgBtnGlyph} />
-            </span>
-            <span className={styles.tgBtnLabel}>{t('tgBtn')}</span>
-          </a>
+          <div className={styles.tgBtnWrap}>
+            <a
+              href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.tgBtn}
+            >
+              <span className={styles.tgBtnIconWrap} aria-hidden>
+                <Telegram className={styles.tgBtnGlyph} />
+              </span>
+              <span className={styles.tgBtnLabel}>{t('tgBtn')}</span>
+            </a>
+            <p className={styles.tgVpnHint}>{t('tgVpnHint')}</p>
+          </div>
         </div>
       </Card>
     </HomeSectionWrapper>

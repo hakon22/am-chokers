@@ -17,14 +17,17 @@ export const CustomOrderSection = () => {
             {t('title')} <em>{t('titleEm')}</em>
           </h2>
           <p className={styles.text}>{t('text')}</p>
-          <a
-            href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.page.base.homePage}
-            target="_blank"
-            rel="noreferrer"
-            className={styles.tgBtn}
-          >
-            {t('tgBtn')}
-          </a>
+          <div className={styles.tgBtnWrap}>
+            <a
+              href={process.env.NEXT_PUBLIC_URL_PERSONAL_TG_ACCOUNT ?? routes.page.base.homePage}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.tgBtn}
+            >
+              {t('tgBtn')}
+            </a>
+            <p className={styles.tgVpnHint}>{t('tgVpnHint')}</p>
+          </div>
         </div>
         <div className={styles.right}>
           <ol className={styles.steps}>

@@ -159,8 +159,8 @@ export class TelegramService {
 
     await this.sendMessage(
       user.lang === UserLangEnum.RU
-        ? 'Вы успешно подписались на уведомления. Откройте мини-приложение «Заказы» через меню бота.'
-        : 'You have successfully subscribed to notifications. Open the «Orders» mini app from the bot menu.',
+        ? 'Вы успешно подписались на уведомления.\nОткройте мини-приложение <b>«Мои заказы»</b> через меню бота.'
+        : 'You have successfully subscribed to notifications.\nOpen the <b>«My orders»</b> mini app from the bot menu.',
       telegramChatId,
     );
   };
@@ -193,7 +193,7 @@ export class TelegramService {
         ? [
           'Your account is already linked to Telegram.',
           '',
-          'In the «My orders» mini app you can track order statuses, pay when needed, and rate items from completed purchases.',
+          'In the <b>«My orders»</b> mini app you can track order statuses, pay when needed, and rate items from completed purchases.',
           '',
           ...(miniAppUrl
             ? ['Open the mini app with the button below.']
@@ -202,11 +202,11 @@ export class TelegramService {
         : [
           'Ваш аккаунт уже привязан к Telegram.',
           '',
-          'В мини-приложении «Мои заказы» вы можете следить за статусами заказов, при необходимости оплачивать их и оценивать товары из завершённых покупок.',
+          'В мини-приложении <b>«Мои заказы»</b> вы можете следить за статусами заказов, при необходимости оплачивать их и оценивать товары из завершённых покупок.',
           '',
           ...(miniAppUrl
             ? ['Откройте мини-приложение кнопкой ниже.']
-            : ['Используйте кнопку «Меню» у бота, чтобы открыть мини-приложение, когда адрес приложения настроен на сервере.']),
+            : ['Используйте кнопку <b>«Меню»</b> у бота, чтобы открыть мини-приложение, когда адрес приложения настроен на сервере.']),
         ];
 
       const replyMarkup = replyMarkupForMiniApp(isEnglish ? 'My orders' : 'Мои заказы');
@@ -227,7 +227,7 @@ export class TelegramService {
       '',
       ...(miniAppUrl
         ? ['После привязки откройте мини-приложение кнопкой ниже.']
-        : ['После привязки используйте кнопку «Меню» у бота (Mini App), когда адрес приложения будет настроен на сервере.']),
+        : ['После привязки используйте кнопку <b>«Меню»</b> у бота (Mini App), когда адрес приложения будет настроен на сервере.']),
     ];
 
     const replyMarkup = replyMarkupForMiniApp('Мои заказы');
@@ -269,26 +269,26 @@ export class TelegramService {
     const buttonText = isEnglish ? 'Rate items' : 'Оценить товары';
     const textLines = isEnglish
       ? [
-        'Hello, this is Maria from AM-Chokers.',
+        'Hello, this is Maria from <b>AM-Chokers</b>.',
         '',
         'Thank you for your order! I hope you love your new jewelry and enjoy wearing it.',
         'If you have a moment, I would love to hear your impressions — I would really appreciate it! :)',
         '',
         ...(miniAppOrderUrl
           ? [orderOnWebsiteLineEn]
-          : ['For that, you can tap «My orders» in the bot (Mini App) once the app URL is configured on the server.']),
+          : ['For that, you can tap <b>«My orders»</b> in the bot (Mini App) once the app URL is configured on the server.']),
         '',
         'Thank you!',
       ]
       : [
-        'Здравствуйте, это Мария из AM-Chokers.',
+        'Здравствуйте, это Мария из <b>AM-Chokers</b>.',
         '',
         'Спасибо за заказ! Надеюсь, вам понравились новые украшения и вы с удовольствием их носите.',
         'Если найдётся минутка, расскажите о ваших впечатлениях — буду Вам признательна! :)',
         '',
         ...(miniAppOrderUrl
           ? [orderOnWebsiteLineRu]
-          : ['Для этого можно нажать кнопку «Мои заказы» у бота (Mini App), когда адрес приложения будет настроен на сервере.']),
+          : ['Для этого можно нажать кнопку <b>«Мои заказы»</b> у бота (Mini App), когда адрес приложения будет настроен на сервере.']),
         '',
         'Спасибо!',
       ];

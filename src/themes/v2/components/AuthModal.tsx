@@ -284,7 +284,7 @@ export const AuthModal = ({ open, initialView = 'login', onClose }: { open: bool
       footer={null}
       centered
       width={440}
-      destroyOnClose
+      destroyOnHidden
       zIndex={10000}
     >
       {view === 'login' && <LoginView onClose={onClose} onNavigate={setView} />}

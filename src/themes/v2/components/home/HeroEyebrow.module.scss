@@ -15,8 +15,7 @@
       opacity: 1;
     }
 
-    .eyebrowDesktop,
-    .eyebrowMobile {
+    .eyebrowText {
       outline: 1px dashed rgba(255, 255, 255, 0.35);
       outline-offset: 4px;
       border-radius: 2px;
@@ -24,75 +23,8 @@
   }
 }
 
-.eyebrowDesktop {
+.eyebrowText {
   min-width: 0;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-}
-
-.eyebrowMobile {
-  display: none;
-  min-width: 0;
-
-  @media (max-width: 768px) {
-    display: grid;
-    grid-template-columns: 1fr;
-    align-items: flex-start;
-    row-gap: 10px;
-  }
-}
-
-.eyebrowLine {
-  min-width: 0;
-}
-
-.eyebrowMiddleSeparator {
-  display: inline-flex;
-  flex-shrink: 0;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  letter-spacing: 0;
-  line-height: 1;
-}
-
-.eyebrowLineSeparator {
-  display: none;
-  flex-shrink: 0;
-  width: 32px;
-  height: 1px;
-  margin: 0;
-  background: currentColor;
-  opacity: 0.85;
-}
-
-.eyebrowDotSeparator {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  font-size: inherit;
-  letter-spacing: 0;
-}
-
-@media (max-width: 768px) {
-  .eyebrowMiddleSeparator {
-    margin: 0;
-    min-height: 10px;
-  }
-
-  .eyebrowLineSeparator {
-    display: block;
-    align-self: center;
-  }
-
-  .eyebrowDotSeparator {
-    align-self: center;
-  }
 }
 
 .eyebrowEditIcon {

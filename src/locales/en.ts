@@ -595,6 +595,7 @@ export default {
         telegram: 'Telegram channel',
         instagram: 'Instagram',
         1: 'I’m happy to answer your questions every day from 12 to 8 pm',
+        messengersVpnHint: 'You may need to turn on a VPN to open the messengers.',
         2: 'Phone: ',
       },
       privacyPolicy: {
@@ -962,6 +963,7 @@ export default {
           titleEm: 'dream jewelry',
           text: 'We will craft a piece to your sketch or idea. Tell us about the jewelry you want — and we will bring it to life.',
           tgBtn: 'Message on Telegram',
+          tgVpnHint: 'You may need to turn on a VPN to open the messenger.',
           step1: { title: 'Describe your idea', desc: 'Write on Telegram, attach a photo or sketch.' },
           step2: { title: 'Discuss details', desc: 'We reply within 24 hours, agree on materials.' },
           step3: { title: 'Crafting', desc: 'A ₽1 000 deposit is required to start.' },
@@ -974,6 +976,7 @@ export default {
           tgTitle: 'Join our Telegram channel',
           tgSub: 'Be the first to know about promotions, new arrivals and private sales',
           tgBtn: 'Open channel',
+          tgVpnHint: 'You may need to turn on a VPN to open the messenger.',
         },
       },
     },
@@ -1084,6 +1087,7 @@ export default {
         telegram: 'Telegram',
         instagramText1: '*Instagram — project of Meta Platforms Inc.,',
         instagramText2: 'which is prohibited in Russian Federation.',
+        messengersVpnHint: 'You may need to turn on a VPN to open the messengers.',
       },
       gradeList: {
         reviews: 'Reviews',

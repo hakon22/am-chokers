@@ -70,7 +70,7 @@ export const V2ItemHistoryModal = ({ itemId, open, onClose }: Props) => {
         </span>
       )}
       rootClassName={styles.modal}
-      destroyOnClose
+      destroyOnHidden
     >
       <div className={styles.body}>
         {loading && isEmpty(rows)

@@ -23,7 +23,7 @@ interface HeroEyebrowProps {
 }
 
 /**
- * Собирает однострочный текст eyebrow для десктопа
+ * Собирает однострочный текст eyebrow
  * @param eyebrowTitle - левая часть строки
  * @param eyebrowSubtitle - правая часть строки
  * @returns строка с разделителем « · » или одна из частей
@@ -104,10 +104,7 @@ export const HeroEyebrow = ({ className, serverHomeHero }: HeroEyebrowProps) => 
     [homeHeroSettings.eyebrowSubtitle, t],
   );
 
-  const hasEyebrowTitle = !isEmpty(resolvedTitle.trim());
-  const hasEyebrowSubtitle = !isEmpty(resolvedSubtitle.trim());
-
-  const desktopDisplayText = useMemo(
+  const eyebrowDisplayText = useMemo(
     () => buildEyebrowDisplayText(resolvedTitle, resolvedSubtitle),
     [resolvedTitle, resolvedSubtitle],
   );
@@ -180,17 +177,7 @@ export const HeroEyebrow = ({ className, serverHomeHero }: HeroEyebrowProps) => 
     <div
       className={cn(styles.eyebrowWrap, className, { [styles.eyebrowWrapAdmin]: isAdmin })}
     >
-      <span className={styles.eyebrowDesktop}>{desktopDisplayText}</span>
-      <div className={styles.eyebrowMobile}>
-        {hasEyebrowTitle ? <span className={styles.eyebrowLine}>{resolvedTitle}</span> : null}
-        {hasEyebrowTitle && hasEyebrowSubtitle ? (
-          <span className={styles.eyebrowMiddleSeparator} aria-hidden>
-            <span className={styles.eyebrowLineSeparator} />
-            <span className={styles.eyebrowDotSeparator}>·</span>
-          </span>
-        ) : null}
-        {hasEyebrowSubtitle ? <span className={styles.eyebrowLine}>{resolvedSubtitle}</span> : null}
-      </div>
+      <span className={styles.eyebrowText}>{eyebrowDisplayText}</span>
       {isAdmin ? <EditOutlined className={styles.eyebrowEditIcon} aria-hidden /> : null}
     </div>
   );

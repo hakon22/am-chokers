@@ -39,10 +39,24 @@
   max-width: 280px;
 }
 
+.socialBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
 .socialRow {
   display: flex;
   gap: 10px;
   margin-top: 4px;
+}
+
+.messengersVpnHint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .socialBtn {
@@ -63,6 +77,24 @@
   &:hover {
     background: rgba(255, 255, 255, 0.18) !important;
     color: #fff !important;
+  }
+}
+
+.instagramSocialBtn {
+  position: relative;
+
+  &::after {
+    content: '*';
+    position: absolute;
+    right: -3px;
+    top: -4px;
+    font-size: 12px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &:hover::after {
+    color: #fff;
   }
 }
 
