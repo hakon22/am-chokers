@@ -56,10 +56,10 @@ export const SocialSection = () => {
               rel="noreferrer"
               className={styles.tgBtn}
             >
+              <span className={styles.tgBtnLabel}>{t('tgBtn')}</span>
               <span className={styles.tgBtnIconWrap} aria-hidden>
                 <Telegram className={styles.tgBtnGlyph} />
               </span>
-              <span className={styles.tgBtnLabel}>{t('tgBtn')}</span>
             </a>
             <p className={styles.tgVpnHint}>{t('tgVpnHint')}</p>
           </div>
