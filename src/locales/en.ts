@@ -587,6 +587,7 @@ export default {
         4: '.  I started this project in 2024, not even realizing what it would become, and now I have y own a website!',
         5: 'I love creating things that bring joy to others, that can adorn, inspire, and uplift. This is my adrenaline, and satisfied customers are my personal endorphins!',
         6: 'Creating custom jewelry is my favorite form of art, so please write to me and I will be happy to make jewelry for your zodiac sign/for a special holiday/event or any other request you may have.',
+        messengersVpnHint: 'You may need to turn on a VPN to open the messengers.',
       },
       contacts: {
         title: 'Contacts',
