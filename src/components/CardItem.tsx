@@ -27,6 +27,7 @@ import { ItemContext, MobileContext } from '@/components/Context';
 import { getHeight } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import type { ItemInterface } from '@/types/item/Item';
@@ -79,6 +80,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
+  const imageAlt = buildItemImageAlt(item);
+
   const imageGalleryItems = useMemo(
     () =>
       [...images].sort((a, b) => a.order - b.order).map((image) => ({
@@ -94,6 +97,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
           />
         ) : undefined,
         thumbnail: image.src,
+        originalAlt: image.src.endsWith('.mp4') ? undefined : imageAlt,
         originalHeight: isMobile && originalHeight !== getHeight()
           ? undefined
           : String(originalHeight),
@@ -114,7 +118,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
           )
           : undefined,
       })),
-    [images, isMobile, originalHeight, isFullscreen],
+    [images, imageAlt, isMobile, originalHeight, isFullscreen],
   );
 
   const setItemEffect = useEffectEvent(setItem);
@@ -417,81 +421,78 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
       </div>
       <div className="d-flex justify-content-end mb-3 mb-xl-5">
         <div className="col-11 d-flex flex-column justify-content-end">
-          {tab === 'warranty' ? (
-            <div className="warranty-fade">
-              <p>{t('warranty.1')}</p>
-              <div>
-                {t('warranty.2')}
-                <br />
-                {t('warranty.3')}
-                <br />
-                {t('warranty.4')}
-                <br />
-              </div>
-              <p className="my-4 fs-5 fw-bold">{t('warranty.5')}</p>
-              <div>
-                {t('warranty.6')}
-                <br />
-                {t('warranty.7')}
-                <br />
-                {t('warranty.8')}
-                <br />
-                {t('warranty.9')}
-                <br />
-                {t('warranty.10')}
-                <br />
-              </div>
-              <p className="my-4">
-                {t('warranty.11')}
-                <b><Link href={routes.page.base.jewelryCarePage} title={t('warranty.12')}>{t('warranty.12')}</Link></b>
-                .
-              </p>
-              <div>
-                {t('warranty.13')}
-                {' '}
-                <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
-                {' '}
-                {t('warranty.14')}
-                {' '}
-                <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
-                .
-                <br />
-                {t('warranty.15')}
-                <br />
-                {t('warranty.16')}
-                <br />
-                {t('warranty.17')}
-                <br />
-              </div>
+          <div className="warranty-fade" hidden={tab !== 'warranty'}>
+            <p>{t('warranty.1')}</p>
+            <div>
+              {t('warranty.2')}
+              <br />
+              {t('warranty.3')}
+              <br />
+              {t('warranty.4')}
+              <br />
             </div>
-          ) : tab === 'delivery' && (
-            <div className="delivery-fade">
-              <p key={1} className="mb-4 fs-5 fw-bold">{tDelivery('delivery')}</p>
-              <p key={2}>{tDelivery('1')}</p>
-              <p key={3}>{tDelivery('2')}</p>
-              <div key={4} className="mb-4">
-                {tDelivery('3')}
-                <br />
-                {tDelivery('4')}
-              </div>
-              <div key={5}>
-                {tDelivery('5')}
-                <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
-                {tDelivery('6')}
-                <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
-                {tDelivery('7')}
-                <br />
-                {tDelivery('8')}
-              </div>
-              <p key={6} className="my-4">{tDelivery('9')}</p>
-              <p key={7} className="mb-4 fs-5 fw-bold">{tDelivery('10')}</p>
-              <div key={8}>
-                {tDelivery('11')}
-                <br />
-                {tDelivery('12')}
-              </div>
+            <p className="my-4 fs-5 fw-bold">{t('warranty.5')}</p>
+            <div>
+              {t('warranty.6')}
+              <br />
+              {t('warranty.7')}
+              <br />
+              {t('warranty.8')}
+              <br />
+              {t('warranty.9')}
+              <br />
+              {t('warranty.10')}
+              <br />
             </div>
-          )}
+            <p className="my-4">
+              {t('warranty.11')}
+              <b><Link href={routes.page.base.jewelryCarePage} title={t('warranty.12')}>{t('warranty.12')}</Link></b>
+              .
+            </p>
+            <div>
+              {t('warranty.13')}
+              {' '}
+              <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
+              {' '}
+              {t('warranty.14')}
+              {' '}
+              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
+              .
+              <br />
+              {t('warranty.15')}
+              <br />
+              {t('warranty.16')}
+              <br />
+              {t('warranty.17')}
+              <br />
+            </div>
+          </div>
+          <div className="delivery-fade" hidden={tab !== 'delivery'}>
+            <p key={1} className="mb-4 fs-5 fw-bold">{tDelivery('delivery')}</p>
+            <p key={2}>{tDelivery('1')}</p>
+            <p key={3}>{tDelivery('2')}</p>
+            <div key={4} className="mb-4">
+              {tDelivery('3')}
+              <br />
+              {tDelivery('4')}
+            </div>
+            <div key={5}>
+              {tDelivery('5')}
+              <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank" className="fw-bold">{process.env.NEXT_PUBLIC_CONTACT_MAIL}</Link>
+              {tDelivery('6')}
+              <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank" className="fw-bold">@KS_Mary</Link>
+              {tDelivery('7')}
+              <br />
+              {tDelivery('8')}
+            </div>
+            <p key={6} className="my-4">{tDelivery('9')}</p>
+            <p key={7} className="mb-4 fs-5 fw-bold">{tDelivery('10')}</p>
+            <div key={8}>
+              {tDelivery('11')}
+              <br />
+              {tDelivery('12')}
+            </div>
+          </div>
         </div>
       </div>
       <GradeList item={item} setItem={setItem} />
@@ -528,6 +529,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                 width={width}
                 images={collectionItem.images}
                 name={collectionItem.translations.find((translation) => translation.lang === lang)?.name}
+                imageAlt={buildItemImageAlt(collectionItem)}
                 rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
                 description={t('price', { price: collectionItem.price - collectionItem.discountPrice })}
               />

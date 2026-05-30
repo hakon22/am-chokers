@@ -14,6 +14,7 @@ import { V2Image } from '@/themes/v2/components/V2Image';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import styles from '@/themes/v2/components/home/ProductsSection.module.scss';
 import type { ItemInterface } from '@/types/item/Item';
@@ -57,6 +58,7 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
   const image = sortedImages[0];
   const image2 = sortedImages[1];
   const grade = rating?.rating?.rating ?? 0;
+  const imageAlt = buildItemImageAlt(item);
 
   const onFavoritesClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,9 +81,9 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
               {imgLoading && (
                 <Skeleton.Image active style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} classNames={{ content: 'w-100 h-100' }} />
               )}
-              <MediaItem src={image.src} alt={name ?? ''} className={styles.imgPrimary} onLoad={() => setImgLoading(false)} />
+              <MediaItem src={image.src} alt={imageAlt} className={styles.imgPrimary} onLoad={() => setImgLoading(false)} />
               {image2 && (
-                <MediaItem src={image2.src} alt={name ?? ''} className={styles.imgSecondary} />
+                <MediaItem src={image2.src} alt={imageAlt} className={styles.imgSecondary} />
               )}
             </>
           ) : (

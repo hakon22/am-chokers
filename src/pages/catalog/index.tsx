@@ -17,6 +17,7 @@ import { CatalogItemsFilter } from '@/components/filters/catalog/CatalogItemsFil
 import { CatalogFilter } from '@/themes/v2/components/catalog/CatalogFilter';
 import { setPaginationParams } from '@/slices/appSlice';
 import { ImageHover } from '@/components/ImageHover';
+import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { getHref } from '@/utilities/getHref';
 import { getCatalogServerSideProps as getServerSideProps } from '@/pages/catalog/[...path]';
 import { scrollTop } from '@/utilities/scrollTop';
@@ -87,6 +88,7 @@ const RenderCatalogItem = ({ width, height, className, item, lang }: { width: nu
       outStock={item.outStock}
       images={item.images}
       name={item?.translations.find((translation) => translation.lang === lang)?.name}
+      imageAlt={buildItemImageAlt(item)}
       rating={{ rating: item.rating, grades: item.grades }}
       description={tPrice('price', { price: item.price - item.discountPrice })}
     />

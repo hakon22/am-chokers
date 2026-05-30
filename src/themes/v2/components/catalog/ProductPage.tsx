@@ -25,6 +25,7 @@ import { AuthModalContext, ItemContext, MobileContext, SubmitContext } from '@/c
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { booleanSchema } from '@server/utilities/convertation.params';
@@ -209,6 +210,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const gradeCount = item.grades?.length ?? 0;
 
   const inFavorites = favorites?.find((fav) => fav.id === id);
+
+  const imageAlt = buildItemImageAlt(item);
 
   const discountPercent = price && discountPrice
     ? Math.round((discountPrice / price) * 100)
@@ -582,12 +585,12 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       return {
         original: image.src,
         thumbnail: image.src,
-        originalAlt: name,
+        originalAlt: imageAlt,
         originalHeight: String(slideHeight),
         ...(slideWidth != null ? { originalWidth: String(slideWidth) } : {}),
       };
     });
-  }, [images, name, slideHeight, slideWidth]);
+  }, [images, imageAlt, slideHeight, slideWidth]);
 
   // Stock status
   const stockState: 'in' | 'out' | 'del' = item.deleted ? 'del' : item.outStock ? 'out' : 'in';
@@ -825,172 +828,196 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
             {/* Описание */}
             {description && (
               <div className={styles.accItem}>
-                <button className={styles.accHeader} onClick={() => toggleSection('description')} type="button">
+                <button
+                  className={styles.accHeader}
+                  onClick={() => toggleSection('description')}
+                  type="button"
+                  aria-expanded={openSection === 'description'}
+                  aria-controls="product-section-description"
+                >
                   {t('descriptionSection')}
                   <span className={`${styles.accChevron}${openSection === 'description' ? ` ${styles.open}` : ''}`}>▾</span>
                 </button>
-                {openSection === 'description' && (
-                  <div className={styles.accBody}>
-                    <p>{description}</p>
-                  </div>
-                )}
+                <div className={styles.accBody} id="product-section-description" hidden={openSection !== 'description'}>
+                  <p>{description}</p>
+                </div>
               </div>
             )}
 
             {/* Материалы и состав */}
             {compositions?.length > 0 && (
               <div className={styles.accItem}>
-                <button className={styles.accHeader} onClick={() => toggleSection('materials')} type="button">
+                <button
+                  className={styles.accHeader}
+                  onClick={() => toggleSection('materials')}
+                  type="button"
+                  aria-expanded={openSection === 'materials'}
+                  aria-controls="product-section-materials"
+                >
                   {t('materialsSection')}
                   <span className={`${styles.accChevron}${openSection === 'materials' ? ` ${styles.open}` : ''}`}>▾</span>
                 </button>
-                {openSection === 'materials' && (
-                  <div className={styles.accBody}>
-                    <div className={styles.compositionBlock}>
-                      <ul>
-                        {compositions.map((comp) => (
-                          <li key={comp.id}>
-                            {comp.translations?.find((translation) => translation.lang === lang)?.name}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                <div className={styles.accBody} id="product-section-materials" hidden={openSection !== 'materials'}>
+                  <div className={styles.compositionBlock}>
+                    <ul>
+                      {compositions.map((comp) => (
+                        <li key={comp.id}>
+                          {comp.translations?.find((translation) => translation.lang === lang)?.name}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
             {/* Цвета */}
             {colors?.length > 0 && (
               <div className={styles.accItem}>
-                <button className={styles.accHeader} onClick={() => toggleSection('colors')} type="button">
+                <button
+                  className={styles.accHeader}
+                  onClick={() => toggleSection('colors')}
+                  type="button"
+                  aria-expanded={openSection === 'colors'}
+                  aria-controls="product-section-colors"
+                >
                   {t('colorsSection')}
                   <span className={`${styles.accChevron}${openSection === 'colors' ? ` ${styles.open}` : ''}`}>▾</span>
                 </button>
-                {openSection === 'colors' && (
-                  <div className={styles.accBody}>
-                    <div className={styles.colorRow}>
-                      {colors.map((color) => (
-                        <div key={color.id} className={styles.colorItem}>
-                          <span className={styles.colorDot} style={{ backgroundColor: color.hex }} />
-                          <span>{color.translations?.find((translation) => translation.lang === lang)?.name}</span>
-                        </div>
-                      ))}
-                    </div>
+                <div className={styles.accBody} id="product-section-colors" hidden={openSection !== 'colors'}>
+                  <div className={styles.colorRow}>
+                    {colors.map((color) => (
+                      <div key={color.id} className={styles.colorItem}>
+                        <span className={styles.colorDot} style={{ backgroundColor: color.hex }} />
+                        <span>{color.translations?.find((translation) => translation.lang === lang)?.name}</span>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
             {/* Другое */}
             {length && (
               <div className={styles.accItem}>
-                <button className={styles.accHeader} onClick={() => toggleSection('others')} type="button">
+                <button
+                  className={styles.accHeader}
+                  onClick={() => toggleSection('others')}
+                  type="button"
+                  aria-expanded={openSection === 'others'}
+                  aria-controls="product-section-others"
+                >
                   {t('othersSection')}
                   <span className={`${styles.accChevron}${openSection === 'others' ? ` ${styles.open}` : ''}`}>▾</span>
                 </button>
-                {openSection === 'others' && (
-                  <div className={styles.accBody}>
-                    <div className={styles.compositionBlock}>
-                      <div>
-                        <div className={styles.compositionLabel}>{t('length')}</div>
-                        <span>{length}</span>
-                      </div>
+                <div className={styles.accBody} id="product-section-others" hidden={openSection !== 'others'}>
+                  <div className={styles.compositionBlock}>
+                    <div>
+                      <div className={styles.compositionLabel}>{t('length')}</div>
+                      <span>{length}</span>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
             {/* Гарантия и уход */}
             <div className={styles.accItem}>
-              <button className={styles.accHeader} onClick={() => toggleSection('warranty')} type="button">
+              <button
+                className={styles.accHeader}
+                onClick={() => toggleSection('warranty')}
+                type="button"
+                aria-expanded={openSection === 'warranty'}
+                aria-controls="product-section-warranty"
+              >
                 {t('warrantyAndCare')}
                 <span className={`${styles.accChevron}${openSection === 'warranty' ? ` ${styles.open}` : ''}`}>▾</span>
               </button>
-              {openSection === 'warranty' && (
-                <div className={styles.accBody}>
-                  <div className={styles.warrantyText}>
-                    <p>{t('warranty.1')}</p>
-                    <p>
-                      {t('warranty.2')}<br />
-                      {t('warranty.3')}<br />
-                      {t('warranty.4')}
-                    </p>
-                    <p><b>{t('warranty.5')}</b></p>
-                    <p>
-                      {t('warranty.6')}<br />
-                      {t('warranty.7')}<br />
-                      {t('warranty.8')}<br />
-                      {t('warranty.9')}<br />
-                      {t('warranty.10')}
-                    </p>
-                    <p>
-                      {t('warranty.11')}
-                      <b>
-                        <Link href={routes.page.base.jewelryCarePage} title={t('warranty.12')}>
-                          {t('warranty.12')}
-                        </Link>
-                      </b>.
-                    </p>
-                    <p>
-                      {t('warranty.13')}
-                      {' '}
-                      <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank">
-                        <b>{process.env.NEXT_PUBLIC_CONTACT_MAIL}</b>
+              <div className={styles.accBody} id="product-section-warranty" hidden={openSection !== 'warranty'}>
+                <div className={styles.warrantyText}>
+                  <p>{t('warranty.1')}</p>
+                  <p>
+                    {t('warranty.2')}<br />
+                    {t('warranty.3')}<br />
+                    {t('warranty.4')}
+                  </p>
+                  <p><b>{t('warranty.5')}</b></p>
+                  <p>
+                    {t('warranty.6')}<br />
+                    {t('warranty.7')}<br />
+                    {t('warranty.8')}<br />
+                    {t('warranty.9')}<br />
+                    {t('warranty.10')}
+                  </p>
+                  <p>
+                    {t('warranty.11')}
+                    <b>
+                      <Link href={routes.page.base.jewelryCarePage} title={t('warranty.12')}>
+                        {t('warranty.12')}
                       </Link>
-                      {' '}
-                      {t('warranty.14')}
-                      {' '}
-                      <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank">
-                        <b>@KS_Mary</b>
-                      </Link>.
-                      <br />{t('warranty.15')}
-                      <br />{t('warranty.16')}
-                      <br />{t('warranty.17')}
-                    </p>
-                  </div>
+                    </b>.
+                  </p>
+                  <p>
+                    {t('warranty.13')}
+                    {' '}
+                    <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank">
+                      <b>{process.env.NEXT_PUBLIC_CONTACT_MAIL}</b>
+                    </Link>
+                    {' '}
+                    {t('warranty.14')}
+                    {' '}
+                    <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank">
+                      <b>@KS_Mary</b>
+                    </Link>.
+                    <br />{t('warranty.15')}
+                    <br />{t('warranty.16')}
+                    <br />{t('warranty.17')}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Доставка и оплата */}
             <div className={styles.accItem}>
-              <button className={styles.accHeader} onClick={() => toggleSection('delivery')} type="button">
+              <button
+                className={styles.accHeader}
+                onClick={() => toggleSection('delivery')}
+                type="button"
+                aria-expanded={openSection === 'delivery'}
+                aria-controls="product-section-delivery"
+              >
                 {t('deliveryAndPayment')}
                 <span className={`${styles.accChevron}${openSection === 'delivery' ? ` ${styles.open}` : ''}`}>▾</span>
               </button>
-              {openSection === 'delivery' && (
-                <div className={styles.accBody}>
-                  <div className={styles.deliveryText}>
-                    <p><b>{tDelivery('delivery')}</b></p>
-                    <p>{tDelivery('1')}</p>
-                    <p>{tDelivery('2')}</p>
-                    <p>
-                      {tDelivery('3')}<br />
-                      {tDelivery('4')}
-                    </p>
-                    <p>
-                      {tDelivery('5')}
-                      <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank">
-                        <b>{process.env.NEXT_PUBLIC_CONTACT_MAIL}</b>
-                      </Link>
-                      {tDelivery('6')}
-                      <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank">
-                        <b>@KS_Mary</b>
-                      </Link>
-                      {tDelivery('7')}<br />
-                      {tDelivery('8')}
-                    </p>
-                    <p>{tDelivery('9')}</p>
-                    <p><b>{tDelivery('10')}</b></p>
-                    <p>
-                      {tDelivery('11')}<br />
-                      {tDelivery('12')}
-                    </p>
-                  </div>
+              <div className={styles.accBody} id="product-section-delivery" hidden={openSection !== 'delivery'}>
+                <div className={styles.deliveryText}>
+                  <p><b>{tDelivery('delivery')}</b></p>
+                  <p>{tDelivery('1')}</p>
+                  <p>{tDelivery('2')}</p>
+                  <p>
+                    {tDelivery('3')}<br />
+                    {tDelivery('4')}
+                  </p>
+                  <p>
+                    {tDelivery('5')}
+                    <Link href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_MAIL}`} target="_blank">
+                      <b>{process.env.NEXT_PUBLIC_CONTACT_MAIL}</b>
+                    </Link>
+                    {tDelivery('6')}
+                    <Link href={process.env.NEXT_PUBLIC_URL_TG_ACCOUNT ?? routes.page.base.homePage} target="_blank">
+                      <b>@KS_Mary</b>
+                    </Link>
+                    {tDelivery('7')}<br />
+                    {tDelivery('8')}
+                  </p>
+                  <p>{tDelivery('9')}</p>
+                  <p><b>{tDelivery('10')}</b></p>
+                  <p>
+                    {tDelivery('11')}<br />
+                    {tDelivery('12')}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
 
           </div>{/* /accordion */}

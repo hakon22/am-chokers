@@ -16,6 +16,7 @@ interface ImageHoverType extends HTMLAttributes<HTMLDivElement>, Pick<ItemInterf
   width?: number | string;
   href?: string;
   name?: string;
+  imageAlt?: string;
   deleted?: boolean;
   outStock?: string | Date;
   description?: string;
@@ -30,6 +31,7 @@ export const ImageHover = ({
   href,
   width = undefined,
   name = '',
+  imageAlt = '',
   deleted = false,
   outStock,
   description = '',
@@ -118,7 +120,7 @@ export const ImageHover = ({
                       onLoad={handleLoad}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      alt={`Image ${index + 1}`}
+                      alt={imageAlt}
                       className={cn({ 'active': i === index, 'opacity-50': !!outStock && i === index })}
                     />
                   )
@@ -190,7 +192,7 @@ export const ImageHover = ({
                       onLoad={handleLoad}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      alt={`Image ${index + 1}`}
+                      alt={imageAlt}
                       className={cn({ 'active': i === index, 'opacity-50': !!(deleted || outStock) && i === index })}
                     />
                   )

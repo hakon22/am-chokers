@@ -14,6 +14,7 @@ import { VersionContext } from '@/components/Context';
 import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
+import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { routes } from '@/routes';
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -503,6 +504,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     width={isMobile ? 300 : width}
                     images={item.images}
                     name={item.translations.find((translation) => translation.lang === lang)?.name}
+                    imageAlt={buildItemImageAlt(item)}
                     rating={{ rating: item.rating, grades: item.grades }}
                     description={tPrice('price', { price: item.price - item.discountPrice })}
                   />
@@ -527,6 +529,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     href={getHref(preparedBestsellers?.bestseller1)}
                     images={preparedBestsellers?.bestseller1?.images ?? []}
                     name={preparedBestsellers?.bestseller1?.translations.find((translation) => translation.lang === lang)?.name}
+                    imageAlt={preparedBestsellers?.bestseller1 ? buildItemImageAlt(preparedBestsellers.bestseller1) : ''}
                     rating={preparedBestsellers?.bestseller1 ? { rating: preparedBestsellers?.bestseller1.rating, grades: preparedBestsellers?.bestseller1.grades } : undefined}
                     description={tPrice('price', { price: preparedBestsellers?.bestseller1 ? preparedBestsellers?.bestseller1.price - preparedBestsellers?.bestseller1?.discountPrice : 0 })}
                   />
@@ -540,6 +543,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     width={width}
                     images={preparedBestsellers?.bestseller2?.images ?? []}
                     name={preparedBestsellers?.bestseller2?.translations.find((translation) => translation.lang === lang)?.name}
+                    imageAlt={preparedBestsellers?.bestseller2 ? buildItemImageAlt(preparedBestsellers.bestseller2) : ''}
                     rating={preparedBestsellers?.bestseller2 ? { rating: preparedBestsellers?.bestseller2.rating, grades: preparedBestsellers?.bestseller2.grades } : undefined}
                     description={tPrice('price', { price: preparedBestsellers?.bestseller2 ? preparedBestsellers?.bestseller2.price - preparedBestsellers?.bestseller2.discountPrice : 0 })}
                   />
@@ -555,6 +559,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                     height={(isMobile ? 300 : 551) * coefficient}
                     images={preparedBestsellers?.bestseller3?.images ?? []}
                     name={preparedBestsellers?.bestseller3?.translations.find((translation) => translation.lang === lang)?.name}
+                    imageAlt={preparedBestsellers?.bestseller3 ? buildItemImageAlt(preparedBestsellers.bestseller3) : ''}
                     rating={preparedBestsellers?.bestseller3 ? { rating: preparedBestsellers?.bestseller3.rating, grades: preparedBestsellers?.bestseller3.grades } : undefined}
                     description={tPrice('price', { price: preparedBestsellers?.bestseller3 ? preparedBestsellers?.bestseller3.price - preparedBestsellers?.bestseller3.discountPrice : 0 })}
                   />
@@ -608,6 +613,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                       width={width}
                       images={preparedCollections?.collection5?.images ?? []}
                       name={preparedCollections?.collection5?.translations.find((translation) => translation.lang === lang)?.name}
+                      imageAlt={preparedCollections?.collection5 ? buildItemImageAlt(preparedCollections.collection5) : ''}
                       rating={preparedCollections?.collection5 ? { rating: preparedCollections?.collection5.rating, grades: preparedCollections?.collection5.grades } : undefined}
                       description={tPrice('price', { price: preparedCollections?.collection5 ? preparedCollections?.collection5.price - preparedCollections?.collection5.discountPrice : 0 })}
                     />
@@ -638,6 +644,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                       width={width}
                       images={preparedCollections?.collection1?.images ?? []}
                       name={preparedCollections?.collection1?.translations.find((translation) => translation.lang === lang)?.name}
+                      imageAlt={preparedCollections?.collection1 ? buildItemImageAlt(preparedCollections.collection1) : ''}
                       rating={preparedCollections?.collection1 ? { rating: preparedCollections?.collection1.rating, grades: preparedCollections?.collection1.grades } : undefined}
                       description={tPrice('price', { price: preparedCollections?.collection1 ? preparedCollections?.collection1.price - preparedCollections?.collection1.discountPrice : 0 })}
                     />
@@ -668,6 +675,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                       width={width}
                       images={preparedCollections?.collection2?.images ?? []}
                       name={preparedCollections?.collection2?.translations.find((translation) => translation.lang === lang)?.name}
+                      imageAlt={preparedCollections?.collection2 ? buildItemImageAlt(preparedCollections.collection2) : ''}
                       rating={preparedCollections?.collection2 ? { rating: preparedCollections?.collection2.rating, grades: preparedCollections?.collection2.grades } : undefined}
                       description={tPrice('price', { price: preparedCollections?.collection2 ? preparedCollections?.collection2.price - preparedCollections?.collection2.discountPrice : 0 })}
                     />
@@ -698,6 +706,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                       width={width}
                       images={preparedCollections?.collection3?.images ?? []}
                       name={preparedCollections?.collection3?.translations.find((translation) => translation.lang === lang)?.name}
+                      imageAlt={preparedCollections?.collection3 ? buildItemImageAlt(preparedCollections.collection3) : ''}
                       rating={preparedCollections?.collection3 ? { rating: preparedCollections?.collection3.rating, grades: preparedCollections?.collection3.grades } : undefined}
                       description={tPrice('price', { price: preparedCollections?.collection3 ? preparedCollections?.collection3.price - preparedCollections?.collection3.discountPrice : 0 })}
                     />
@@ -728,6 +737,7 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
                       width={width}
                       images={preparedCollections?.collection4?.images ?? []}
                       name={preparedCollections?.collection4?.translations.find((translation) => translation.lang === lang)?.name}
+                      imageAlt={preparedCollections?.collection4 ? buildItemImageAlt(preparedCollections.collection4) : ''}
                       rating={preparedCollections?.collection4 ? { rating: preparedCollections?.collection4.rating, grades: preparedCollections?.collection4.grades } : undefined}
                       description={tPrice('price', { price: preparedCollections?.collection4 ? preparedCollections?.collection4.price - preparedCollections?.collection4.discountPrice : 0 })}
                     />

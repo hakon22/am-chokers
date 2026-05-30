@@ -7,6 +7,7 @@ import { useEffect, useEffectEvent, useState } from 'react';
 import axios from 'axios';
 
 import { ImageHover } from '@/components/ImageHover';
+import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { Helmet } from '@/components/Helmet';
 import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -74,21 +75,24 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
     >
       <div className="d-grid col-12 row-gap-5" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center' }}>
         <Helmet title={translate?.name || tCatalog('title')} description={translate?.description || tCatalog('description')} />
-        {data.map(({
-          id, price, images, group, deleted, translateName, translations,
-        }) => (
-          <Link href={getHref({ group, translateName } as ItemInterface)} key={id} className="position-relative" style={{ width }}>
-            {deleted ? <Tag color="volcano" variant="outlined" className="m-0 py-1 px-2 z-1 top-0 end-0 position-absolute">{tCart('deleted')}</Tag> : null}
-            <ImageHover
-              className={cn('me-3', { 'opacity-50': deleted })}
-              width={width}
-              height={height}
-              images={images}
-              name={translations.find((translation) => translation.lang === lang)?.name}
-              description={t('price', { price })}
-            />
-          </Link>
-        ))}
+        {data.map((item) => {
+          const { id, images, deleted } = item;
+          const itemName = item.translations.find((translation) => translation.lang === lang)?.name;
+          return (
+            <Link href={getHref(item)} key={id} className="position-relative" style={{ width }}>
+              {deleted ? <Tag color="volcano" variant="outlined" className="m-0 py-1 px-2 z-1 top-0 end-0 position-absolute">{tCart('deleted')}</Tag> : null}
+              <ImageHover
+                className={cn('me-3', { 'opacity-50': deleted })}
+                width={width}
+                height={height}
+                images={images}
+                name={itemName}
+                imageAlt={buildItemImageAlt(item)}
+                description={t('price', { price: item.price - item.discountPrice })}
+              />
+            </Link>
+          );
+        })}
       </div>
     </InfiniteScroll>
   );
