@@ -10,6 +10,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { AdminPickupSiteSettingsSection } from '@/components/admin/AdminPickupSiteSettingsSection';
+import { AdminBestsellersModeSection } from '@/components/admin/AdminBestsellersModeSection';
 import { routes } from '@/routes';
 import styles from '@/themes/v2/components/profile/V2AdminSettings.module.scss';
 import type { SiteVersion } from '@/types/SiteVersion';
@@ -101,6 +102,7 @@ export const V2AdminSettings = () => {
         />
       </div>
 
+      <AdminBestsellersModeSection variant="v2" />
       <AdminPickupSiteSettingsSection variant="v2" />
 
       {/* ── Cache info ── */}

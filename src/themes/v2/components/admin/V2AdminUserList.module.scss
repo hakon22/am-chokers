@@ -1,4 +1,4 @@
-@use '../profile/_profile-shared' as *;
+@use '@/themes/v2/components/profile/_profile-shared' as *;
 @use '@/themes/v2/styles/variables' as v2;
 
 $navy:   v2.$v2-navy-primary;
@@ -147,6 +147,28 @@ $textM:  v2.$v2-text-muted;
 }
 
 // ── Cells ─────────────────────────────────────────────────────────
+.nameCellContent {
+  min-width: 0;
+}
+
+.cellPhoneMobile {
+  display: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: $textS;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activityTitleDesktop {
+  display: inline;
+}
+
+.activityTitleMobile {
+  display: none;
+}
+
 .cellName {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 18px;
@@ -199,16 +221,49 @@ $textM:  v2.$v2-text-muted;
     font-size: 30px;
   }
 
-  .table :global(.ant-table-thead) {
-    display: none;
+  .table :global(.ant-table-thead > tr > th) {
+    padding: 10px 12px !important;
   }
 
   .table :global(.ant-table-tbody > tr > td) {
-    padding: 14px 16px !important;
+    padding: 14px 12px !important;
   }
 
-  .colDate {
+  .nameCellContent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cellPhoneMobile {
+    display: block;
+    font-size: 12px;
+  }
+
+  .activityTitleDesktop {
     display: none;
+  }
+
+  .activityTitleMobile {
+    display: inline;
+  }
+
+  .colAvatar {
+    padding-right: 8px !important;
+  }
+
+  .colName {
+    padding-left: 0 !important;
+  }
+
+  .colActivity {
+    padding-left: 8px !important;
+    white-space: nowrap;
+  }
+
+  .colChevron {
+    padding-left: 0 !important;
+    width: 20px;
   }
 
   .avatar {
@@ -221,7 +276,7 @@ $textM:  v2.$v2-text-muted;
     font-size: 16px;
   }
 
-  .cellMono {
-    font-size: 12px;
+  .cellDate {
+    font-size: 11px;
   }
 }

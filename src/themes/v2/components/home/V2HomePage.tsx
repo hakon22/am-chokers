@@ -21,7 +21,18 @@ type HomePageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
   itemCollections: ItemCollectionEntity[];
 };
 
-export const V2HomePage = ({ news, preparedBestsellers, preparedCoverImages, itemGroups, itemCollections, banners, homeHero }: HomePageProps) => {
+export const V2HomePage = ({
+  news,
+  preparedBestsellers,
+  preparedCoverImages,
+  itemGroups,
+  itemCollections,
+  banners,
+  homeHero,
+  automaticSalesHits,
+  salesHits,
+  salesHitsLimit,
+}: HomePageProps) => {
   const rawCoverImages = useAppSelector((state) => state.app.coverImages);
 
   const coverImages = useMemo<GeneralPageCoverImageInterface>(() => {
@@ -45,7 +56,13 @@ export const V2HomePage = ({ news, preparedBestsellers, preparedCoverImages, ite
       </div>
       <FeaturesStrip />
       <CategoriesSection itemGroups={itemGroups} coverImages={coverImages} />
-      <ProductsSection news={news} bestsellers={preparedBestsellers} />
+      <ProductsSection
+        news={news}
+        bestsellers={preparedBestsellers}
+        automaticSalesHits={automaticSalesHits}
+        salesHits={salesHits}
+        salesHitsLimit={salesHitsLimit}
+      />
       <CollectionsMosaic collections={itemCollections} coverImages={coverImages} />
       <CustomOrderSection />
       <SocialSection />

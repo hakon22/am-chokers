@@ -6,7 +6,10 @@ import ExcelJS, { type Anchor } from 'exceljs';
 import moment from 'moment';
 import _ from 'lodash';
 
+import { OrderPositionEntity } from '@server/db/entities/order.position.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
+import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import { ItemGroupEntity } from '@server/db/entities/item.group.entity';
@@ -675,6 +678,46 @@ export class ItemService extends TranslationHelper {
     const ids = await builder.getMany();
 
     return this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, ids.map(({ id }) => id));
+  };
+
+  /**
+   * Возвращает топ товаров по продажам среди оплаченных заказов с обязательным рейтингом
+   * @param limit - максимальное число товаров (1–4)
+   * @returns массив товаров из кэша Redis в порядке популярности
+   */
+  public getTopSalesHits = async (limit = 4): Promise<ItemEntity[]> => {
+    const manager = this.databaseService.getManager();
+    const normalizedLimit = Math.min(4, Math.max(1, limit));
+
+    const rows = await manager.createQueryBuilder(OrderPositionEntity, 'position')
+      .setParameters({
+        paidStatus: TransactionStatusEnum.PAID,
+        canceledStatus: OrderStatusEnum.CANCELED,
+      })
+      .innerJoin('position.item', 'item')
+      .innerJoin('position.order', 'order')
+      .innerJoin('order.transactions', 'transaction', 'transaction.status = :paidStatus')
+      .innerJoin('item.rating', 'rating')
+      .where('order.deleted IS NULL')
+      .andWhere('order.status != :canceledStatus')
+      .andWhere('item.deleted IS NULL')
+      .andWhere('item.publicationDate IS NULL')
+      .andWhere('position.deleted IS NULL')
+      .select('item.id', 'itemId')
+      .groupBy('item.id')
+      .addGroupBy('rating.rating')
+      .orderBy('SUM(position.count)', 'DESC')
+      .addOrderBy('rating.rating', 'DESC')
+      .limit(normalizedLimit)
+      .getRawMany<{ itemId: number; }>();
+
+    const itemIds = rows.map(({ itemId }) => itemId);
+
+    if (_.isEmpty(itemIds)) {
+      return [];
+    }
+
+    return this.redisService.getItemsByIds<ItemEntity>(RedisKeyEnum.ITEM_BY_ID, itemIds);
   };
 
   public getByName = async (query: ItemQueryInterface, lang: UserLangEnum) => {

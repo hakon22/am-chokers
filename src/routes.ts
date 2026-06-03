@@ -52,6 +52,7 @@ export const routes = {
       deferredPublication: [adminPath, 'deferred-publications'].join('/'),
       adminSettings: [adminPath, 'settings'].join('/'),
       metricaReport: [adminPath, 'reports', 'metrica'].join('/'),
+      salesReport: [adminPath, 'reports', 'sales'].join('/'),
       banners: [adminPath, 'banners'].join('/'),
     },
     telegram: {
@@ -152,6 +153,7 @@ export const routes = {
     getLinks: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'links'].join('/'),
     getByName: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-by-name'].join('/'),
     getSpecials: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'get-special'].join('/'),
+    getTopSalesHits: ({ isServer }: ServerClientInterface) => [...(isServer ? [apiPath] : [serverHost, apiPath.slice(1)]), 'item', 'top-sales-hits'].join('/'),
     getListExcel: [apiPath, 'item', 'list', 'excel'].join('/'),
     bulkOutStock: [apiPath, 'item', 'bulk', 'out-stock'].join('/'),
     bulkOutStockClear: [apiPath, 'item', 'bulk', 'out-stock', 'clear'].join('/'),
@@ -254,6 +256,7 @@ export const routes = {
     updateSiteVersion: [apiPath, 'settings', 'site-version'].join('/'),
     updatePickupSiteSettings: [apiPath, 'settings', 'pickup'].join('/'),
     updateHomeHeroSettings: [apiPath, 'settings', 'home-hero'].join('/'),
+    updateBestsellersSiteSettings: [apiPath, 'settings', 'bestsellers'].join('/'),
   },
 
   // grade
@@ -276,5 +279,6 @@ export const routes = {
     message: [apiPath, 'reports', 'message'].join('/'),
     users: [apiPath, 'reports', 'user', 'list'].join('/'),
     metrica: [apiPath, 'reports', 'metrica'].join('/'),
+    sales: [apiPath, 'reports', 'sales'].join('/'),
   },
 } as const;

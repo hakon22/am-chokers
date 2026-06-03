@@ -12,6 +12,7 @@ import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { AdminPickupSiteSettingsSection } from '@/components/admin/AdminPickupSiteSettingsSection';
+import { AdminBestsellersModeSection } from '@/components/admin/AdminBestsellersModeSection';
 import { routes } from '@/routes';
 import type { SiteVersion } from '@/types/SiteVersion';
 import type { CacheInfoInterface, CacheItemInterface } from '@server/types/db/cache-info.interface';
@@ -88,6 +89,7 @@ export const V1AdminSettings = () => {
           ]}
         />
       </Card>
+      <AdminBestsellersModeSection variant="v1" />
       <AdminPickupSiteSettingsSection variant="v1" />
       {cacheInfo ? (
         <div className="d-flex flex-column">

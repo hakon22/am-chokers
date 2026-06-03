@@ -77,5 +77,30 @@ export const v2Theme: ThemeConfig = {
     FloatButton: {
       borderRadiusLG: 999,
     },
+    Segmented: {
+      trackBg: '#EAEEF6',
+      trackPadding: 4,
+      itemColor: '#69788E',
+      itemHoverColor: '#2B3C5F',
+      itemHoverBg: 'rgba(43, 60, 95, 0.06)',
+      itemSelectedBg: '#2B3C5F',
+      itemSelectedColor: '#FFFFFF',
+      borderRadius: 10,
+      controlHeight: 36,
+    },
+    Radio: {
+      buttonSolidCheckedBg: '#2B3C5F',
+      buttonSolidCheckedColor: '#FFFFFF',
+      buttonSolidCheckedHoverBg: '#3B5382',
+      buttonSolidCheckedActiveBg: '#1c273e',
+      buttonColor: '#69788E',
+      buttonPaddingInline: 16,
+    },
+    DatePicker: {
+      cellActiveWithRangeBg: '#EAEEF6',
+      cellHoverWithRangeBg: '#D8DFEB',
+      cellRangeBorderColor: '#CED3DD',
+      cellHoverBg: '#F9FAFC',
+    },
   },
 };

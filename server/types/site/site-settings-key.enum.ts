@@ -10,4 +10,6 @@ export enum SiteSettingsKeyEnum {
   HOME_HERO_EYEBROW_TITLE = 'homeHeroEyebrowTitle',
   /** Правая часть eyebrow в hero главной (v2) */
   HOME_HERO_EYEBROW_SUBTITLE = 'homeHeroEyebrowSubtitle',
+  /** Автоматический подбор бестселлеров на главной по продажам и рейтингу */
+  AUTOMATIC_SALES_HITS = 'automaticSalesHits',
 }

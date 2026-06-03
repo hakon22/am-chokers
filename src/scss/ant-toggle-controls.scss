@@ -1,0 +1,144 @@
+// Segmented & Radio button groups — pill-style toggle controls (global)
+
+$toggle-track-bg: #eaeef6;
+$toggle-track-border: #ced3dd;
+$toggle-navy: #fff;
+$toggle-navy-hover: #3b5382;
+$toggle-text: #69788e;
+$toggle-radius: 10px;
+$toggle-item-radius: 8px;
+$toggle-height: 36px;
+
+.ant-segmented {
+  padding: 4px;
+  background: $toggle-track-bg;
+  border: 1px solid $toggle-track-border;
+  border-radius: $toggle-radius;
+
+  .ant-segmented-group {
+    gap: 2px;
+  }
+
+  .ant-segmented-item {
+    border-radius: $toggle-item-radius;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    // Без transition color — иначе при смене вкладки текст «моргает» до приезда thumb
+    transition: none;
+  }
+
+  .ant-segmented-item-label {
+    min-height: $toggle-height - 8px;
+    line-height: $toggle-height - 8px;
+    padding-inline: 14px;
+    transition: none;
+  }
+
+  .ant-segmented-thumb {
+    border-radius: $toggle-item-radius;
+    box-shadow: 0 1px 4px rgba(43, 60, 95, 0.12);
+    background: #ffffff !important;
+  }
+
+  .ant-segmented-item-selected {
+    color: $toggle-navy !important;
+
+    .ant-segmented-item-label {
+      color: $toggle-navy !important;
+      font-weight: 600;
+    }
+  }
+}
+
+// Solid radio button groups (period pickers, chart toggles) — exclude compact nav lang switchers
+.ant-radio-group.ant-radio-group-solid:not(.nav-lang):not([class*='langGroup']) {
+  display: inline-flex;
+  padding: 4px;
+  background: $toggle-track-bg;
+  border: 1px solid $toggle-track-border;
+  border-radius: $toggle-radius;
+  gap: 2px;
+
+  .ant-radio-button-wrapper {
+    height: $toggle-height;
+    line-height: $toggle-height - 2px;
+    padding-inline: 16px;
+    border: none !important;
+    border-radius: $toggle-item-radius !important;
+    background: transparent;
+    color: $toggle-text;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    // Только фон/тень — цвет текста меняется мгновенно вместе с checked-состоянием
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+
+    &::before {
+      display: none !important;
+    }
+
+    &:not(:first-child)::before {
+      display: none !important;
+    }
+
+    &:hover {
+      color: $toggle-navy;
+      background: rgba(43, 60, 95, 0.06);
+    }
+
+    &.ant-radio-button-wrapper-checked {
+      background: $toggle-navy !important;
+      color: #ffffff !important;
+      box-shadow: 0 1px 4px rgba(43, 60, 95, 0.18);
+
+      &:hover {
+        background: $toggle-navy-hover !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+}
+
+// V1: Radio pill — белый thumb и тёмный текст (как Segmented в v1Theme)
+body:not(.v2-theme) {
+  .ant-radio-group.ant-radio-group-solid:not(.nav-lang):not([class*='langGroup']) {
+    .ant-radio-button-wrapper {
+      &:hover {
+        color: #2b3c5f;
+      }
+
+      &.ant-radio-button-wrapper-checked {
+        background: #ffffff !important;
+        color: #2b3c5f !important;
+        font-weight: 600;
+        box-shadow: 0 1px 4px rgba(43, 60, 95, 0.12);
+
+        &:hover {
+          background: #ffffff !important;
+          color: #2b3c5f !important;
+        }
+      }
+    }
+  }
+
+  .ant-segmented {
+    .ant-segmented-item-selected {
+      color: #2b3c5f !important;
+
+      .ant-segmented-item-label {
+        color: #2b3c5f !important;
+      }
+    }
+  }
+}
+
+body.v2-theme {
+  .ant-segmented {
+    .ant-segmented-item:hover:not(.ant-segmented-item-selected):not(.ant-segmented-item-disabled) {
+      color: #2b3c5f;
+    }
+  }
+}

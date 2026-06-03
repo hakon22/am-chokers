@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState, useContext, type WheelEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, useContext, type WheelEvent, type CSSProperties } from 'react';
 import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import cn from 'classnames';
 import axios from 'axios';
 import { Skeleton } from 'antd';
-import type { InferGetServerSidePropsType } from 'next';
+import type { InferGetServerSidePropsType, GetServerSidePropsContext } from 'next';
 
 import { VersionContext } from '@/components/Context';
 import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
@@ -22,6 +22,7 @@ import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
+import { isMobileDevice } from '@/utilities/isMobileDevice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { setAppData } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
@@ -40,13 +41,27 @@ const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterf
     return acc;
   }, {} as GeneralPageCoverImageInterface);
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
+  const userAgent = req?.headers['user-agent'];
+  const salesHitsLimit = isMobileDevice(userAgent) ? 4 : 3;
+
   const [{ data: { specialItems } }, { data: { siteSettings } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
     axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
     axios.get<{ siteSettings: SiteSettingsInterface; }>(routes.settings.getSettings({ isServer: false })),
     axios.get<BannerListResponseInterface>(routes.banner.findMany({ isServer: false })),
     axios.get<{ itemCollections: ItemCollectionEntity[]; }>(routes.itemCollection.findMany({ isServer: false })),
   ]);
+
+  const automaticSalesHits = siteSettings.automaticSalesHits ?? false;
+
+  let salesHits: ItemInterface[] = [];
+
+  if (automaticSalesHits) {
+    const { data: { items } } = await axios.get<{ items: ItemInterface[]; }>(
+      `${routes.item.getTopSalesHits({ isServer: false })}?limit=4`,
+    );
+    salesHits = items ?? [];
+  }
 
   const versionNumber = parseInt(siteSettings.siteVersion.slice(1));
   const { data: { coverImages } } = await axios.get<{ coverImages: ImageEntity[]; }>(
@@ -65,23 +80,25 @@ export const getServerSideProps = async () => {
     }
     return acc;
   }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
-    
-  const preparedBestsellers = bestsellers.reduce((acc, item) => {
-    if (!item.deleted) {
-      switch (item.order) {
-      case 1:
-        acc.bestseller1 = item;
-        break;
-      case 2:
-        acc.bestseller2 = item;
-        break;
-      case 3:
-        acc.bestseller3 = item;
-        break;
+
+  const preparedBestsellers = automaticSalesHits
+    ? { bestseller1: null, bestseller2: null, bestseller3: null } as GeneralPageBestsellerInterface
+    : bestsellers.reduce((acc, item) => {
+      if (!item.deleted) {
+        switch (item.order) {
+        case 1:
+          acc.bestseller1 = item;
+          break;
+        case 2:
+          acc.bestseller2 = item;
+          break;
+        case 3:
+          acc.bestseller3 = item;
+          break;
+        }
       }
-    }
-    return acc;
-  }, { bestseller1: undefined, bestseller2: undefined, bestseller3: undefined } as GeneralPageBestsellerInterface);
+      return acc;
+    }, { bestseller1: null, bestseller2: null, bestseller3: null } as GeneralPageBestsellerInterface);
     
   const preparedCollections = collections.reduce((acc, item) => {
     if (!item.deleted) {
@@ -104,7 +121,7 @@ export const getServerSideProps = async () => {
       }
     }
     return acc;
-  }, { collection1: undefined, collection2: undefined, collection3: undefined, collection4: undefined, collection5: undefined } as GeneralPageCollectionInterface);
+  }, { collection1: null, collection2: null, collection3: null, collection4: null, collection5: null } as GeneralPageCollectionInterface);
     
   const preparedCoverImages = buildCoverImagesMap(coverImages);
 
@@ -119,6 +136,9 @@ export const getServerSideProps = async () => {
       coverImages,
       banners,
       homeHero: siteSettings.homeHero,
+      automaticSalesHits,
+      salesHits,
+      salesHitsLimit,
     },
   };
 };
@@ -205,7 +225,21 @@ type IndexPageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
   itemGroups: ItemGroupInterface[];
 };
 
-const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedCollections, preparedCoverImages, itemCollections, banners, homeHero, itemGroups }: IndexPageProps) => {
+const Index = ({
+  news,
+  coverImages,
+  specialItems,
+  preparedBestsellers,
+  preparedCollections,
+  preparedCoverImages,
+  itemCollections,
+  banners,
+  homeHero,
+  itemGroups,
+  automaticSalesHits,
+  salesHits,
+  salesHitsLimit,
+}: IndexPageProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tBanner } = useTranslation('translation', { keyPrefix: 'modules.banner' });
@@ -237,6 +271,45 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
   const bannerMobileHeight = Math.round(bannerMobileWidth * coefficient);
   const bannerWidth = isMobile ? bannerMobileWidth : bannerDesktopWidth;
   const bannerHeight = isMobile ? bannerMobileHeight : bannerDesktopHeight;
+
+  const manualBestsellerItems = [
+    preparedBestsellers.bestseller1,
+    preparedBestsellers.bestseller2,
+    preparedBestsellers.bestseller3,
+  ].filter(Boolean) as ItemInterface[];
+
+  const autoBestsellerItems = salesHits.slice(0, salesHitsLimit);
+  const v1BestsellerItems = automaticSalesHits ? autoBestsellerItems : manualBestsellerItems;
+
+  /**
+   * Рендерит карточку товара в секции бестселлеров V1
+   * @param item - товар для отображения
+   * @param cardHeight - высота карточки в px
+   * @param cardWidth - ширина карточки в px
+   * @param className - дополнительный CSS-класс
+   * @param style - inline-стили контейнера
+   * @returns JSX карточки ImageHover
+   */
+  const renderV1BestsellerCard = (
+    item: ItemInterface,
+    cardHeight: number,
+    cardWidth: number,
+    className?: string,
+    style?: CSSProperties,
+  ) => (
+    <ImageHover
+      className={className}
+      style={style}
+      href={getHref(item)}
+      height={cardHeight}
+      width={cardWidth}
+      images={item.images ?? []}
+      name={item.translations.find((translation) => translation.lang === lang)?.name}
+      imageAlt={buildItemImageAlt(item)}
+      rating={{ rating: item.rating, grades: item.grades }}
+      description={tPrice('price', { price: item.price - item.discountPrice })}
+    />
+  );
 
   const carouselRef = useRef<Carousel>(null);
 
@@ -404,6 +477,9 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
           itemGroups={itemGroups}
           itemCollections={itemCollections}
           homeHero={homeHero}
+          automaticSalesHits={automaticSalesHits}
+          salesHits={salesHits}
+          salesHitsLimit={salesHitsLimit}
         />
       </>
     );
@@ -512,61 +588,70 @@ const Index = ({ news, coverImages, specialItems, preparedBestsellers, preparedC
               </Carousel>
             </div>
           </section>
-          <section className="d-flex flex-column position-relative col-12 col-xl-11" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })} style={{ gap: '4rem', marginBottom: isMobile ? '7rem' : '10rem' }}>
-            <div className="d-flex flex-column justify-content-center justify-content-xl-start">
-              <h2>{t('bestsellers')}</h2>
-              <Link href={`${routes.page.base.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button bottom-0">
-                <span>{t('seeAll')}</span>
-                <ArrowRight />
-              </Link>
-            </div>
-            <div className="d-flex flex-column flex-md-row justify-content-between gap-4 gap-xl-0">
-              <div className="d-flex flex-column col-12 col-md-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
-                <ContextMenu item={preparedBestsellers?.bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
-                  <ImageHover
-                    height={height}
-                    width={width}
-                    href={getHref(preparedBestsellers?.bestseller1)}
-                    images={preparedBestsellers?.bestseller1?.images ?? []}
-                    name={preparedBestsellers?.bestseller1?.translations.find((translation) => translation.lang === lang)?.name}
-                    imageAlt={preparedBestsellers?.bestseller1 ? buildItemImageAlt(preparedBestsellers.bestseller1) : ''}
-                    rating={preparedBestsellers?.bestseller1 ? { rating: preparedBestsellers?.bestseller1.rating, grades: preparedBestsellers?.bestseller1.grades } : undefined}
-                    description={tPrice('price', { price: preparedBestsellers?.bestseller1 ? preparedBestsellers?.bestseller1.price - preparedBestsellers?.bestseller1?.discountPrice : 0 })}
-                  />
-                </ContextMenu>
-                <ContextMenu item={preparedBestsellers?.bestseller2} order={2} className="col-12 col-xl-6 d-flex align-self-end">
-                  <ImageHover
-                    className="w-100"
-                    href={getHref(preparedBestsellers?.bestseller2)}
-                    style={{ alignSelf: 'end' }}
-                    height={height}
-                    width={width}
-                    images={preparedBestsellers?.bestseller2?.images ?? []}
-                    name={preparedBestsellers?.bestseller2?.translations.find((translation) => translation.lang === lang)?.name}
-                    imageAlt={preparedBestsellers?.bestseller2 ? buildItemImageAlt(preparedBestsellers.bestseller2) : ''}
-                    rating={preparedBestsellers?.bestseller2 ? { rating: preparedBestsellers?.bestseller2.rating, grades: preparedBestsellers?.bestseller2.grades } : undefined}
-                    description={tPrice('price', { price: preparedBestsellers?.bestseller2 ? preparedBestsellers?.bestseller2.price - preparedBestsellers?.bestseller2.discountPrice : 0 })}
-                  />
-                </ContextMenu>
+          {v1BestsellerItems.length > 0 && (
+            <section className="d-flex flex-column position-relative col-12 col-xl-11" {...(isMobile ? {} : { 'data-aos': 'fade-right', 'data-aos-duration': '1500' })} style={{ gap: '4rem', marginBottom: isMobile ? '7rem' : '10rem' }}>
+              <div className="d-flex flex-column justify-content-center justify-content-xl-start">
+                <h2>{t('bestsellers')}</h2>
+                <Link href={`${routes.page.base.catalog}?bestseller=true`} className="see-all color-dark-blue icon-button bottom-0">
+                  <span>{t('seeAll')}</span>
+                  <ArrowRight />
+                </Link>
               </div>
-              <div className="col-0 col-xl-1 col-xxl-2" />
-              <div className="d-flex">
-                <ContextMenu item={preparedBestsellers?.bestseller3} order={3} className="w-100">
-                  <ImageHover
-                    style={{ alignSelf: 'center' }}
-                    href={getHref(preparedBestsellers?.bestseller3)}
-                    width={isMobile ? 300 : 551}
-                    height={(isMobile ? 300 : 551) * coefficient}
-                    images={preparedBestsellers?.bestseller3?.images ?? []}
-                    name={preparedBestsellers?.bestseller3?.translations.find((translation) => translation.lang === lang)?.name}
-                    imageAlt={preparedBestsellers?.bestseller3 ? buildItemImageAlt(preparedBestsellers.bestseller3) : ''}
-                    rating={preparedBestsellers?.bestseller3 ? { rating: preparedBestsellers?.bestseller3.rating, grades: preparedBestsellers?.bestseller3.grades } : undefined}
-                    description={tPrice('price', { price: preparedBestsellers?.bestseller3 ? preparedBestsellers?.bestseller3.price - preparedBestsellers?.bestseller3.discountPrice : 0 })}
-                  />
-                </ContextMenu>
-              </div>
-            </div>
-          </section>
+              {automaticSalesHits && isMobile ? (
+                <div className="row row-cols-2 g-3">
+                  {v1BestsellerItems.map((item) => (
+                    <div key={item.id} className="col">
+                      {renderV1BestsellerCard(item, 300 * coefficient, 300, 'w-100')}
+                    </div>
+                  ))}
+                </div>
+              ) : automaticSalesHits ? (
+                <div className="d-flex flex-column flex-md-row justify-content-between gap-4 gap-xl-0">
+                  <div className="d-flex flex-column col-12 col-md-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
+                    {v1BestsellerItems[0] && (
+                      <div className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
+                        {renderV1BestsellerCard(v1BestsellerItems[0], height, width)}
+                      </div>
+                    )}
+                    {v1BestsellerItems[1] && (
+                      <div className="col-12 col-xl-6 d-flex align-self-end w-100">
+                        {renderV1BestsellerCard(v1BestsellerItems[1], height, width, 'w-100', { alignSelf: 'end' })}
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-0 col-xl-1 col-xxl-2" />
+                  {v1BestsellerItems[2] && (
+                    <div className="d-flex w-100">
+                      {renderV1BestsellerCard(v1BestsellerItems[2], 551 * coefficient, 551, undefined, { alignSelf: 'center' })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="d-flex flex-column flex-md-row justify-content-between gap-4 gap-xl-0">
+                  <div className="d-flex flex-column col-12 col-md-6 col-xxl-5 justify-content-between gap-5 gap-xl-0">
+                    <ContextMenu item={preparedBestsellers?.bestseller1} order={1} className="col-12 col-xl-6 align-self-start" style={{ width: '95%' }}>
+                      {preparedBestsellers?.bestseller1 && renderV1BestsellerCard(preparedBestsellers.bestseller1, height, width)}
+                    </ContextMenu>
+                    <ContextMenu item={preparedBestsellers?.bestseller2} order={2} className="col-12 col-xl-6 d-flex align-self-end">
+                      {preparedBestsellers?.bestseller2 && renderV1BestsellerCard(preparedBestsellers.bestseller2, height, width, 'w-100', { alignSelf: 'end' })}
+                    </ContextMenu>
+                  </div>
+                  <div className="col-0 col-xl-1 col-xxl-2" />
+                  <div className="d-flex">
+                    <ContextMenu item={preparedBestsellers?.bestseller3} order={3} className="w-100">
+                      {preparedBestsellers?.bestseller3 && renderV1BestsellerCard(
+                        preparedBestsellers.bestseller3,
+                        (isMobile ? 300 : 551) * coefficient,
+                        isMobile ? 300 : 551,
+                        undefined,
+                        { alignSelf: 'center' },
+                      )}
+                    </ContextMenu>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
           <section className="d-flex flex-column align-items-center col-12" {...(isMobile ? {} : { 'data-aos': 'fade-left', 'data-aos-duration': '1500' })} style={{ gap: '2rem', marginBottom: isMobile ? '7rem' : '10rem' }}>
             <h2 className="col-12 col-xxl-10 lh-base">
               {t('slogan.create')}

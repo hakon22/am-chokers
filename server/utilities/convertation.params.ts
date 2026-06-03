@@ -1,7 +1,9 @@
 import * as yup from 'yup';
 import _ from 'lodash';
 
+import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
+import { SalesReportPromoFilterEnum } from '@server/types/reports/sales/enums/sales-report-promo-filter.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -66,6 +68,12 @@ export const queryDatePeriodParams = yup.object().shape({
   from: yup.string().optional(),
   to: yup.string().optional(),
 });
+
+export const querySalesReportParams = queryDatePeriodParams.concat(yup.object().shape({
+  deliveryTypes: yup.array(yup.string().oneOf(Object.values(DeliveryTypeEnum)).defined()).optional(),
+  promoFilter: yup.string().oneOf(Object.values(SalesReportPromoFilterEnum)).optional(),
+  ignorePeriod: booleanSchema,
+}));
 
 export const queryPaginationWithParams = queryPaginationSchema
   .concat(queryDatePeriodParams.concat(
@@ -188,6 +196,16 @@ export const isFullParams = yup.object().shape({
 
 export const queryCodeParams = yup.object().shape({
   code: yup.string().required(),
+});
+
+export const queryTopSalesHitsParams = yup.object().shape({
+  limit: yup
+    .number()
+    .transform((value) => +value)
+    .min(1)
+    .max(4)
+    .default(4)
+    .optional(),
 });
 
 export const queryMessageReportParams = queryPaginationSchema.concat(

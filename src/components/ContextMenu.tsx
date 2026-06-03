@@ -28,7 +28,7 @@ interface CardContextMenuProps extends React.HTMLAttributes<HTMLElement> {
   cover?: number;
   isCoverCollection?: boolean;
   coverType?: CoverTypeEnum;
-  item?: ItemInterface;
+  item?: ItemInterface | null;
   image?: ImageEntity;
   siteVersion?: number;
 }

@@ -28,5 +28,11 @@ export class SettingsRoute extends BaseRouter {
       this.middlewareService.checkAdminAccess,
       this.settingsController.updateHomeHeroSettings,
     );
+    router.patch(
+      this.routes.settings.updateBestsellersSiteSettings,
+      this.middlewareService.jwtToken,
+      this.middlewareService.checkAdminAccess,
+      this.settingsController.updateBestsellersSiteSettings,
+    );
   };
 }

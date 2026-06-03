@@ -367,6 +367,7 @@ const appSlice = createSlice({
           siteVersion: payload.siteSettings.siteVersion ?? state.siteSettings.siteVersion,
           pickup: payload.siteSettings.pickup ?? state.siteSettings.pickup,
           homeHero: payload.siteSettings.homeHero ?? state.siteSettings.homeHero,
+          automaticSalesHits: payload.siteSettings.automaticSalesHits ?? state.siteSettings.automaticSalesHits,
         };
       }
     },

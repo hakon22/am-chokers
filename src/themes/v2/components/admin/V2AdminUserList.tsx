@@ -152,28 +152,40 @@ export const V2AdminUserList = () => {
                 title={t('table.username')}
                 dataIndex="name"
                 className={styles.colName}
-                render={(name: string) => <span className={styles.cellName}>{name}</span>}
+                render={(_, user) => (
+                  <div className={styles.nameCellContent}>
+                    <span className={styles.cellName}>{user.name}</span>
+                    <span className={styles.cellPhoneMobile}>{user.phone}</span>
+                  </div>
+                )}
               />
               <Table.Column<DataType>
                 title={t('table.phone')}
                 dataIndex="phone"
+                responsive={['md']}
                 className={styles.colPhone}
                 render={(phone: string) => <span className={styles.cellMono}>{phone}</span>}
               />
               <Table.Column<DataType>
                 title={t('table.signupDate')}
                 dataIndex="created"
+                responsive={['md']}
                 sorter
                 sortOrder={getAntTableColumnSortOrder('created', sortField, sortOrder)}
-                className={styles.colDate}
+                className={styles.colSignupDate}
                 render={(date: Date) => <span className={styles.cellDate}>{moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>}
               />
               <Table.Column<DataType>
-                title={t('table.lastActivity')}
+                title={(
+                  <span className={styles.activityTitle}>
+                    <span className={styles.activityTitleDesktop}>{t('table.lastActivity')}</span>
+                    <span className={styles.activityTitleMobile}>{t('table.activity')}</span>
+                  </span>
+                )}
                 dataIndex="updated"
                 sorter
                 sortOrder={getAntTableColumnSortOrder('updated', sortField, sortOrder, USER_LIST_SORT_FIELD_MAPPING)}
-                className={styles.colDate}
+                className={styles.colActivity}
                 render={(date: Date) => <span className={styles.cellDate}>{moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}</span>}
               />
               <Table.Column<DataType>

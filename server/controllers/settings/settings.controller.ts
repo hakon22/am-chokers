@@ -5,7 +5,7 @@ import type { Request, Response } from 'express';
 import { BaseService } from '@server/services/app/base.service';
 import { SiteSettingsService, type SiteSettingValueEntry } from '@server/services/settings/site-settings.service';
 import { SiteSettingsKeyEnum } from '@server/types/site/site-settings-key.enum';
-import { bodyHomeHeroSettingsSchema, bodyPickupSiteSettingsSchema } from '@server/utilities/site-settings.params';
+import { bodyHomeHeroSettingsSchema, bodyPickupSiteSettingsSchema, bodyBestsellersSiteSettingsSchema } from '@server/utilities/site-settings.params';
 import type { SiteVersion } from '@/types/SiteVersion';
 
 const SITE_VERSION_KEY = 'SITE_VERSION';
@@ -112,6 +112,26 @@ export class SettingsController extends BaseService {
           value: body.eyebrowSubtitle,
         });
       }
+
+      await this.siteSettingsService.persistSiteSettingValues(entries);
+      const siteVersion = await this.resolveSiteVersion();
+      const siteSettings = await this.siteSettingsService.getSiteSettingsPayload(siteVersion);
+      res.json({ code: 1, siteSettings });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Обновляет режим бестселлеров на главной (ручной / автоматический)
+   */
+  public updateBestsellersSiteSettings = async (req: Request, res: Response) => {
+    try {
+      const body = await bodyBestsellersSiteSettingsSchema.validate(req.body);
+      const entries: SiteSettingValueEntry[] = [{
+        key: SiteSettingsKeyEnum.AUTOMATIC_SALES_HITS,
+        value: body.automaticSalesHits,
+      }];
 
       await this.siteSettingsService.persistSiteSettingValues(entries);
       const siteVersion = await this.resolveSiteVersion();

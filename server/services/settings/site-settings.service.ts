@@ -33,6 +33,7 @@ export type SiteSettingsPayload = {
   siteVersion: SiteVersion;
   pickup: PublicPickupSettingsPayload;
   homeHero: PublicHomeHeroSettingsPayload;
+  automaticSalesHits: boolean;
 };
 
 export type SiteSettingValueEntry = {
@@ -146,11 +147,12 @@ export class SiteSettingsService extends BaseService {
    * @returns версия сайта, самовывоз и eyebrow hero главной страницы
    */
   public getSiteSettingsPayload = async (siteVersion: SiteVersion): Promise<SiteSettingsPayload> => {
-    const [pickup, homeHero] = await Promise.all([
+    const [pickup, homeHero, automaticSalesHits] = await Promise.all([
       this.getPublicPickupPayload(),
       this.getHomeHeroEyebrowFromDatabase(),
+      this.getAutomaticSalesHitsFromDatabase(),
     ]);
-    return { siteVersion, pickup, homeHero };
+    return { siteVersion, pickup, homeHero, automaticSalesHits };
   };
 
   /**
@@ -182,6 +184,27 @@ export class SiteSettingsService extends BaseService {
         ? 'Выбранная дата самовывоза недоступна. Выберите другую дату.'
         : 'The selected pickup date is not available. Please choose another date.');
     }
+  };
+
+  /**
+   * Читает boolean-значение настройки `site_settings`
+   * @param key - ключ записи в таблице `site_settings`
+   * @returns true или false; если значение отсутствует или не boolean — false
+   */
+  private getBooleanSettingFromDatabase = async (key: SiteSettingsKeyEnum): Promise<boolean> => {
+    const row = await SiteSettingsEntity.findOne({ where: { key } });
+    if (_.isNil(row?.value) || typeof row.value !== 'boolean') {
+      return false;
+    }
+    return row.value;
+  };
+
+  /**
+   * Возвращает флаг автоматического подбора бестселлеров на главной
+   * @returns true — по продажам и рейтингу; false — ручные слоты
+   */
+  public getAutomaticSalesHitsFromDatabase = async (): Promise<boolean> => {
+    return this.getBooleanSettingFromDatabase(SiteSettingsKeyEnum.AUTOMATIC_SALES_HITS);
   };
 
   /**

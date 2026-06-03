@@ -6,6 +6,7 @@ export interface SiteSettingsInterface {
   siteVersion: SiteVersion;
   pickup: PublicPickupSettingsInterface;
   homeHero: PublicHomeHeroSettingsInterface;
+  automaticSalesHits: boolean;
 }
 
 export const emptySiteSettings: SiteSettingsInterface = {
@@ -18,4 +19,5 @@ export const emptySiteSettings: SiteSettingsInterface = {
     eyebrowTitle: '',
     eyebrowSubtitle: '',
   },
+  automaticSalesHits: false,
 };

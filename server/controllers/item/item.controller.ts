@@ -6,7 +6,7 @@ import { publishTelegramValidation, newItemValidation, partialUpdateItemValidati
 import { YookassaItemInvoiceService } from '@server/services/acquiring/yookassa-item-invoice.service';
 import { ItemService } from '@server/services/item/item.service';
 import { ItemHistoryService } from '@server/services/item/item.history.service';
-import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams, bodyItemBulkOutStockSchema, bodyItemBulkOutStockClearSchema, bodyItemBulkPriceAdjustSchema } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryOptionalSchema, queryPaginationSchema, queryItemsParams, querySearchParams, queryTranslateNameParams, isFullParams, queryTopSalesHitsParams, bodyItemBulkOutStockSchema, bodyItemBulkOutStockClearSchema, bodyItemBulkPriceAdjustSchema } from '@server/utilities/convertation.params';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { PublishTelegramInterface } from '@/slices/appSlice';
 
@@ -120,6 +120,23 @@ export class ItemController extends BaseService {
       const specialItems = await this.itemService.getSpecials(!!user?.isAdmin, query?.isFull);
 
       res.json({ code: 1, specialItems });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * Возвращает топ товаров по продажам с обязательным рейтингом для блока бестселлеров
+   * @param req - HTTP-запрос с query.limit (1–4)
+   * @param res - HTTP-ответ JSON `{ code, items }`
+   * @returns Promise после отправки JSON
+   */
+  public getTopSalesHits = async (req: Request, res: Response) => {
+    try {
+      const query = await queryTopSalesHitsParams.validate(req.query);
+      const items = await this.itemService.getTopSalesHits(query.limit);
+
+      res.json({ code: 1, items });
     } catch (e) {
       this.errorHandler(e, res);
     }

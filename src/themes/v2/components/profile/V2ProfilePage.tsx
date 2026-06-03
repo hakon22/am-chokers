@@ -101,6 +101,7 @@ const AdminBottomSheet = ({ t, open, onClose }: { t: (key: string) => string; op
     { label: t('menu.admin.reports.cart'),    href: routes.page.admin.cartReport },
     { label: t('menu.admin.reports.message'), href: routes.page.admin.messageReport },
     { label: t('menu.admin.reports.metrica'), href: routes.page.admin.metricaReport },
+    { label: t('menu.admin.reports.sales'), href: routes.page.admin.salesReport },
   ];
 
   const otherLinks = [
@@ -178,6 +179,7 @@ const AdminSection = ({ t }: { t: (key: string) => string; }) => {
     { label: t('menu.admin.reports.cart'),    href: routes.page.admin.cartReport },
     { label: t('menu.admin.reports.message'), href: routes.page.admin.messageReport },
     { label: t('menu.admin.reports.metrica'), href: routes.page.admin.metricaReport },
+    { label: t('menu.admin.reports.sales'), href: routes.page.admin.salesReport },
   ];
 
   const otherLinks = [

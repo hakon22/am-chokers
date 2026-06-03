@@ -73,5 +73,11 @@ export const bodyHomeHeroSettingsSchema = yup.object({
   (value) => !_.isNil(value?.eyebrowTitle) || !_.isNil(value?.eyebrowSubtitle),
 );
 
+/** Схема PATCH режима бестселлеров на главной */
+export const bodyBestsellersSiteSettingsSchema = yup.object({
+  automaticSalesHits: yup.boolean().required(SiteSettingsValidationKeyEnum.FIELD_REQUIRED),
+});
+
 export type BodyPickupSiteSettingsInterface = yup.InferType<typeof bodyPickupSiteSettingsSchema>;
 export type BodyHomeHeroSettingsInterface = yup.InferType<typeof bodyHomeHeroSettingsSchema>;
+export type BodyBestsellersSiteSettingsInterface = yup.InferType<typeof bodyBestsellersSiteSettingsSchema>;

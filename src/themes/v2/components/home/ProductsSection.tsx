@@ -5,14 +5,17 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
 import { catalogPath } from '@/routes';
-import type { ItemInterface, GeneralPageBestsellerInterface } from '@/types/item/Item';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ProductCard } from '@/themes/v2/components/ProductCard';
 import styles from '@/themes/v2/components/home/ProductsSection.module.scss';
+import type { ItemInterface, GeneralPageBestsellerInterface } from '@/types/item/Item';
 
 interface ProductsSectionProps {
   news: ItemInterface[];
   bestsellers: GeneralPageBestsellerInterface;
+  automaticSalesHits: boolean;
+  salesHits: ItemInterface[];
+  salesHitsLimit: number;
 }
 
 const newsCarouselResponsive = {
@@ -21,7 +24,13 @@ const newsCarouselResponsive = {
   mobile: { breakpoint: { max: 767, min: 0 }, items: 2 },
 };
 
-export const ProductsSection = ({ news, bestsellers }: ProductsSectionProps) => {
+export const ProductsSection = ({
+  news,
+  bestsellers,
+  automaticSalesHits,
+  salesHits,
+  salesHitsLimit,
+}: ProductsSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home' });
   const [autoPlay, setAutoPlay] = useState(false);
 
@@ -30,11 +39,15 @@ export const ProductsSection = ({ news, bestsellers }: ProductsSectionProps) => 
     return () => clearTimeout(timer);
   });
 
-  const bestsellerList = [
+  const manualBestsellerList = [
     bestsellers.bestseller1,
     bestsellers.bestseller2,
     bestsellers.bestseller3,
   ].filter(Boolean) as ItemInterface[];
+
+  const bestsellerList = automaticSalesHits
+    ? salesHits.slice(0, salesHitsLimit)
+    : manualBestsellerList;
 
   return (
     <>

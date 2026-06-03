@@ -10,17 +10,17 @@ export type ItemGroupInterface = ItemInterface['group'];
 export type ItemCollectionInterface = Required<ItemInterface>['collection'];
 
 export interface GeneralPageBestsellerInterface {
-  bestseller1?: ItemInterface;
-  bestseller2?: ItemInterface;
-  bestseller3?: ItemInterface;
+  bestseller1?: ItemInterface | null;
+  bestseller2?: ItemInterface | null;
+  bestseller3?: ItemInterface | null;
 }
 
 export interface GeneralPageCollectionInterface {
-  collection1?: ItemInterface;
-  collection2?: ItemInterface;
-  collection3?: ItemInterface;
-  collection4?: ItemInterface;
-  collection5?: ItemInterface;
+  collection1?: ItemInterface | null;
+  collection2?: ItemInterface | null;
+  collection3?: ItemInterface | null;
+  collection4?: ItemInterface | null;
+  collection5?: ItemInterface | null;
 }
 
 export type GeneralPageCoverImageInterface = {
