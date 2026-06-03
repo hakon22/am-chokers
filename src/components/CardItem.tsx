@@ -72,7 +72,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const { isMobile } = useContext(MobileContext);
 
   const [item, setItem] = useState(fetchedItem);
-  const [collectionItems, setCollectionItems] = useState<ItemInterface[]>([]);
+  const [relatedGroupItems, setRelatedGroupItems] = useState<ItemInterface[]>([]);
   const [tab, setTab] = useState<'delivery' | 'warranty'>();
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [originalHeight, setOriginalHeight] = useState(416);
@@ -179,16 +179,19 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
     setContextItem(value);
   };
 
-  const fetchAdditionalItems = useEffectEvent(async () => {
+  const fetchRelatedGroupItems = useEffectEvent(async () => {
+    if (!item.group?.id) {
+      return;
+    }
     try {
       const { data } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
         params: {
-          collectionIds: [item.collection?.id],
+          groupIds: [item.group.id],
           excludeIds: [item.id],
         },
       });
       if (data.code === 1) {
-        setCollectionItems(data.items);
+        setRelatedGroupItems(data.items);
       }
     } catch (e) {
       axiosErrorHandler(e, tToast);
@@ -228,8 +231,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   }, [item.publicationDate]);
 
   useEffect(() => {
-    fetchAdditionalItems();
-  }, []);
+    fetchRelatedGroupItems();
+  }, [id, item.group?.id]);
 
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} />: !isAdmin && item.publicationDate ? null : (
     <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>
@@ -496,7 +499,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
         </div>
       </div>
       <GradeList item={item} setItem={setItem} />
-      {collectionItems.length ? (
+      {relatedGroupItems.length ? (
         <div className="d-flex flex-column align-items-start align-items-xl-end mt-5">
           <h4 className="col-11 mb-5 text-uppercase">{t('otherItem')}</h4>
           <Carousel
@@ -521,17 +524,17 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             autoPlay
             pauseOnHover
           >
-            {collectionItems.map((collectionItem) => (
+            {relatedGroupItems.map((relatedItem) => (
               <ImageHover
-                key={collectionItem.id}
-                href={getHref(collectionItem)}
+                key={relatedItem.id}
+                href={getHref(relatedItem)}
                 height={height}
                 width={width}
-                images={collectionItem.images}
-                name={collectionItem.translations.find((translation) => translation.lang === lang)?.name}
-                imageAlt={buildItemImageAlt(collectionItem)}
-                rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
-                description={t('price', { price: collectionItem.price - collectionItem.discountPrice })}
+                images={relatedItem.images}
+                name={relatedItem.translations.find((translation) => translation.lang === lang)?.name}
+                imageAlt={buildItemImageAlt(relatedItem)}
+                rating={{ rating: relatedItem.rating, grades: relatedItem.grades }}
+                description={t('price', { price: relatedItem.price - relatedItem.discountPrice })}
               />
             ))}
           </Carousel>

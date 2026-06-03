@@ -127,7 +127,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   } | null>(null);
   const [item, setItem] = useState(fetchedItem);
   const [isEdit, setEdit] = useState<boolean | undefined>();
-  const [collectionItems, setCollectionItems] = useState<ItemInterface[]>([]);
+  const [relatedGroupItems, setRelatedGroupItems] = useState<ItemInterface[]>([]);
   const [openSection, setOpenSection] = useState<string | null>('description');
   const [qty, setQty] = useState(1);
   /** Как в v1 (`CardItem`): для полноэкрана и :root --gallery* */
@@ -217,16 +217,16 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     ? Math.round((discountPrice / price) * 100)
     : null;
 
-  const fetchAdditionalItems = useEffectEvent(async () => {
-    if (!collection?.id) {
+  const fetchRelatedGroupItems = useEffectEvent(async () => {
+    if (!item.group?.id) {
       return;
     }
     try {
       const { data } = await axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: true }), {
-        params: { collectionIds: [collection.id], excludeIds: [id] },
+        params: { groupIds: [item.group.id], excludeIds: [id] },
       });
       if (data.code === 1) {
-        setCollectionItems(data.items);
+        setRelatedGroupItems(data.items);
       }
     } catch (e) {
       axiosErrorHandler(e, tToast);
@@ -234,8 +234,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   });
 
   useEffect(() => {
-    fetchAdditionalItems();
-  }, []);
+    fetchRelatedGroupItems();
+  }, [fetchedItem.id, item.group?.id]);
 
   useEffect(() => {
     if (item.id !== fetchedItem.id) {
@@ -1034,7 +1034,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       </div>
 
       {/* ── Related items ── */}
-      {collectionItems.length > 0 && (
+      {relatedGroupItems.length > 0 && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionEyebrow}>{t('relatedEyebrow')}</div>
@@ -1059,12 +1059,12 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
               mobile:  { breakpoint: { max: 767,  min: 0 },    items: 2, partialVisibilityGutter: 20 },
             }}
           >
-            {collectionItems.map((collectionItem) => (
+            {relatedGroupItems.map((relatedItem) => (
               <ProductCard
-                key={collectionItem.id}
-                item={collectionItem}
-                rating={{ rating: collectionItem.rating, grades: collectionItem.grades }}
-                outStock={collectionItem.outStock ?? undefined}
+                key={relatedItem.id}
+                item={relatedItem}
+                rating={{ rating: relatedItem.rating, grades: relatedItem.grades }}
+                outStock={relatedItem.outStock ?? undefined}
               />
             ))}
           </Carousel>

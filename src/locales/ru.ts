@@ -1142,7 +1142,7 @@ export default {
         askQuestion: 'Задать вопрос',
         quantity: 'Количество',
         reviewsEyebrow: 'Отзывы',
-        relatedEyebrow: 'Другие товары этой коллекции',
+        relatedEyebrow: 'Другие товары этой категории',
         add: 'Добавить',
         remove: 'Удалить',
         restore: 'Восстановить',
@@ -1178,7 +1178,7 @@ export default {
         publish: 'Опубликовано {{ date }}',
         planned: 'Запланировано {{ date }}',
         collection: '{{ name }}',
-        otherItem: 'Другие товары этой коллекции',
+        otherItem: 'Другие товары этой категории',
         notice: 'Все украшения изготавливаются вручную, поэтому итоговое изделие может незначительно отличаться от того, что на фото',
         grades: {
           gradeCount_zero: 'Отзывов нет',

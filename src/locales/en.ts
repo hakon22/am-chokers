@@ -1142,7 +1142,7 @@ export default {
         askQuestion: 'Ask a question',
         quantity: 'Quantity',
         reviewsEyebrow: 'Reviews',
-        relatedEyebrow: 'Other items in this collection',
+        relatedEyebrow: 'Other products in this category',
         add: 'Add',
         remove: 'Delete',
         restore: 'Restore',
@@ -1178,7 +1178,7 @@ export default {
         publish: 'Published {{ date }}',
         planned: 'Planned {{ date }}',
         collection: '{{ name }}',
-        otherItem: 'Other items in this collection',
+        otherItem: 'Other products in this category',
         notice: 'All jewelry is handcrafted, so the final product may differ slightly from the one in the photo',
         grades: {
           gradeCount_zero: 'No reviews',
