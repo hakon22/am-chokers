@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useContext, useEffect, useEffectEvent, useState } from 'react';
-import { Divider, Table } from 'antd';
+import { Divider, Table, type TableProps } from 'antd';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,8 @@ import { BackButton } from '@/components/BackButton';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
+import { getAntTableColumnSortOrder, parseAntTableSorter } from '@/utilities/parse-ant-table-sorter';
+import { buildAntTableLocale } from '@/utilities/build-ant-table-locale';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchUserInterface, UserInterface } from '@/types/user/User';
 
@@ -22,8 +24,15 @@ interface DataType extends Omit<Partial<UserInterface>, 'key'> {
   key: React.Key;
 }
 
+const USER_LIST_SORT_FIELD_MAPPING = {
+  updated: 'lastActivity',
+};
+
+const PAGE_LIMIT = 10;
+
 export const V1AdminUserList = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.users' });
+  const { t: tRoot } = useTranslation('translation');
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const dispatch = useAppDispatch();
@@ -36,8 +45,10 @@ export const V1AdminUserList = () => {
   const { isMobile } = useContext(MobileContext);
 
   const [data, setData] = useState<DataType[]>([]);
+  const [sortField, setSortField] = useState<FetchUserInterface['sortField']>();
+  const [sortOrder, setSortOrder] = useState<FetchUserInterface['sortOrder']>();
 
-  const fetchUsers = async (params: FetchUserInterface) => {
+  const fetchUsers = async (params: FetchUserInterface, replace = false) => {
     try {
       if (isSubmit) {
         return;
@@ -48,11 +59,12 @@ export const V1AdminUserList = () => {
       });
       if (code === 1) {
         dispatch(setPaginationParams(paginationParams));
-        setData((state) => [...state, ...items.map((item) => ({ ...item, key: item.id }))]);
+        const nextItems = items.map((item) => ({ ...item, key: item.id }));
+        setData((state) => (replace ? nextItems : [...state, ...nextItems]));
       }
       setIsSubmit(false);
-    } catch (e) {
-      axiosErrorHandler(e, tToast, setIsSubmit);
+    } catch (error) {
+      axiosErrorHandler(error, tToast, setIsSubmit);
     }
   };
 
@@ -60,13 +72,28 @@ export const V1AdminUserList = () => {
 
   useEffect(() => {
     if (axiosAuth) {
-      const params: FetchUserInterface = {
-        limit: 10,
-        offset: 0,
-      };
-      fetchUsersEffect(params);
+      fetchUsersEffect({ limit: PAGE_LIMIT, offset: 0 }, true);
     }
   }, [axiosAuth]);
+
+  const handleTableChange: TableProps<DataType>['onChange'] = (_pagination, _filters, sorter) => {
+    const nextSort = parseAntTableSorter(sorter, USER_LIST_SORT_FIELD_MAPPING) as Pick<FetchUserInterface, 'sortField' | 'sortOrder'>;
+    setSortField(nextSort.sortField);
+    setSortOrder(nextSort.sortOrder);
+    fetchUsers({
+      limit: PAGE_LIMIT,
+      offset: 0,
+      ...nextSort,
+    }, true);
+  };
+
+  const loadMoreUsers = () => {
+    fetchUsers({
+      limit: pagination.limit || PAGE_LIMIT,
+      offset: (pagination.offset || 0) + PAGE_LIMIT,
+      ...(sortField ? { sortField, sortOrder } : {}),
+    });
+  };
 
   return isAdmin ? (
     <div className="d-flex flex-column mb-5 justify-content-center" style={isMobile ? { marginTop: '50px' } : {}}>
@@ -79,7 +106,7 @@ export const V1AdminUserList = () => {
       </div>
       <InfiniteScroll
         dataLength={data.length}
-        next={() => fetchUsers({ limit: pagination.limit, offset: (pagination.offset || 0) + 10 })}
+        next={loadMoreUsers}
         hasMore={data.length < pagination.count}
         loader
         endMessage={data.length ? <Divider plain className="font-oswald fs-6 mt-5">{t('finish')}</Divider> : null}
@@ -90,18 +117,31 @@ export const V1AdminUserList = () => {
           pagination={false}
           bordered
           className="td-padding-unset"
+          onChange={handleTableChange}
           onRow={(record) => ({
             onClick: () => router.push(`${routes.page.admin.userCard}/${record.id}`),
             style: { cursor: 'pointer' },
           })}
-          locale={{
+          locale={buildAntTableLocale(tRoot, {
             emptyText: <NotFoundContent />,
-          }}
+          })}
         >
           <Table.Column<DataType> title={t('table.username')} dataIndex="name" />
           <Table.Column<DataType> title={t('table.phone')} dataIndex="phone" />
-          <Table.Column<DataType> title={t('table.signupDate')} dataIndex="created" render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />
-          <Table.Column<DataType> title={t('table.lastActivity')} dataIndex="updated" render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)} />
+          <Table.Column<DataType>
+            title={t('table.signupDate')}
+            dataIndex="created"
+            sorter
+            sortOrder={getAntTableColumnSortOrder('created', sortField, sortOrder)}
+            render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}
+          />
+          <Table.Column<DataType>
+            title={t('table.lastActivity')}
+            dataIndex="updated"
+            sorter
+            sortOrder={getAntTableColumnSortOrder('updated', sortField, sortOrder, USER_LIST_SORT_FIELD_MAPPING)}
+            render={(date: Date) => moment(date).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}
+          />
         </Table>
       </InfiniteScroll>
     </div>

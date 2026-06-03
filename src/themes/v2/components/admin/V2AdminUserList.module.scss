@@ -42,46 +42,88 @@ $textM:  v2.$v2-text-muted;
   overflow: hidden;
 }
 
-// ── Table head ────────────────────────────────────────────────────
-.tableHead {
-  display: grid;
-  grid-template-columns: 48px 1fr 1fr 1fr 1fr 24px;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  background: $bgAlt;
-  border-bottom: 1px solid $border;
+// ── Ant Design Table overrides ───────────────────────────────────
+.table {
+  :global(.ant-table) {
+    background: transparent;
+  }
+
+  :global(.ant-table-container),
+  :global(.ant-table-content) {
+    border-radius: 0;
+  }
+
+  :global(.ant-table-thead > tr > th) {
+    background: $bgAlt !important;
+    border-bottom: 1px solid $border !important;
+    border-inline-end: none !important;
+    padding: 12px 24px !important;
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: $textM;
+    line-height: 1.2;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  :global(.ant-table-thead > tr > th.ant-table-column-has-sorters:hover) {
+    background: $bgAlt !important;
+  }
+
+  :global(.ant-table-column-sorters) {
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+  }
+
+  :global(.ant-table-column-title) {
+    flex: none;
+  }
+
+  :global(.ant-table-column-sorter) {
+    color: $textM;
+    margin-inline-start: 0;
+  }
+
+  :global(.ant-table-column-sorter-full) {
+    margin-inline-start: 0;
+  }
+
+  :global(.ant-table-tbody > tr > td) {
+    border-bottom: 1px solid $border !important;
+    border-inline-end: none !important;
+    padding: 14px 24px !important;
+    background: transparent;
+  }
+
+  :global(.ant-table-tbody > tr:last-child > td) {
+    border-bottom: none !important;
+  }
+
+  :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+    background: $bgMain !important;
+  }
 }
 
-.thCell {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-  color: $textM;
-}
-
-// ── Table row ─────────────────────────────────────────────────────
 .tableRow {
-  display: grid;
-  grid-template-columns: 48px 1fr 1fr 1fr 1fr 24px;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 24px;
-  border-bottom: 1px solid $border;
   cursor: pointer;
   transition: background 0.15s;
-  text-decoration: none;
-  color: inherit;
-
-  &:last-child { border-bottom: none; }
 
   &:hover {
-    background: $bgMain;
+    .chevron {
+      color: $navy2;
+    }
 
-    .chevron { color: $navy2; }
-    .avatar  { background: $navy2; }
+    .avatar {
+      background: $navy2;
+    }
   }
 }
 
@@ -135,8 +177,9 @@ $textM:  v2.$v2-text-muted;
   font-size: 14px;
   color: $textM;
   transition: color 0.15s;
-  justify-self: end;
   line-height: 1;
+  display: block;
+  text-align: right;
 }
 
 // ── End line ──────────────────────────────────────────────────────
@@ -152,19 +195,23 @@ $textM:  v2.$v2-text-muted;
 
 // ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 768px) {
-  .pageTitle { font-size: 30px; }
+  .pageTitle {
+    font-size: 30px;
+  }
 
-  .tableHead { display: none; }
+  .table :global(.ant-table-thead) {
+    display: none;
+  }
 
-  .tableRow {
-    grid-template-columns: 40px 1fr 24px;
-    grid-template-rows: auto auto;
-    padding: 14px 16px;
-    row-gap: 4px;
+  .table :global(.ant-table-tbody > tr > td) {
+    padding: 14px 16px !important;
+  }
+
+  .colDate {
+    display: none;
   }
 
   .avatar {
-    grid-row: 1 / 3;
     width: 34px;
     height: 34px;
     font-size: 12px;
@@ -172,22 +219,9 @@ $textM:  v2.$v2-text-muted;
 
   .cellName {
     font-size: 16px;
-    grid-column: 2;
-    grid-row: 1;
   }
 
   .cellMono {
     font-size: 12px;
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-  .cellDate {
-    display: none;
-  }
-
-  .chevron {
-    grid-column: 3;
-    grid-row: 1 / 3;
   }
 }

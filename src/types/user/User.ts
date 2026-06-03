@@ -2,6 +2,7 @@ import type { UserEntity } from '@server/db/entities/user.entity';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { OmitBase } from '@/types/OmitBase';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';
+import type { TableSortQueryInterface } from '@/types/table/table-sort.interface';
 
 export interface UserInterface extends OmitBase<UserEntity> {
   /** Токен пользователя */
@@ -30,8 +31,9 @@ export interface UserSignupInterface extends UserFormInterface {
   confirmPassword: string;
 }
 
-export interface FetchUserInterface extends PaginationQueryInterface {
+export interface FetchUserInterface extends PaginationQueryInterface, TableSortQueryInterface {
   withDeleted?: boolean;
+  sortField?: 'created' | 'lastActivity';
 }
 
 export interface UserCardInterface extends Omit<OmitBase<UserEntity>, 'password' | 'deleted' | 'refreshTokens' | 'setAccessLevel'> {

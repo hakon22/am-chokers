@@ -6,7 +6,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import type { Request, Response } from 'express';
-import { Brackets, type EntityManager } from 'typeorm';
+import { Brackets, type EntityManager, type SelectQueryBuilder } from 'typeorm';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { UserRefreshTokenEntity } from '@server/db/entities/user.refresh.token.entity';
@@ -25,7 +25,10 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { codeGen } from '@server/utilities/code-generator';
 import { passwordGen } from '@server/utilities/password-generator';
-import { paramsIdSchema, queryLanguageParams, queryPaginationWithParams } from '@server/utilities/convertation.params';
+import { paramsIdSchema, queryLanguageParams, queryPaginationWithParams, queryUsersListParams } from '@server/utilities/convertation.params';
+import { getSqlSortDirection } from '@server/utilities/table-sort.utility';
+import { UserListSortFieldEnum } from '@server/types/user/enums/user-list-sort-field.enum';
+import type { UserListQueryInterface } from '@server/types/user/user-list-query.interface';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
 import type { UserOptionsInterface } from '@server/types/user/user.options.interface';
 import type { UserFormInterface, UserProfileType, UserCardInterface } from '@/types/user/User';
@@ -617,12 +620,12 @@ export class UserService extends BaseService {
 
   public getList = async (req: Request, res: Response) => {
     try {
-      const query = await queryPaginationWithParams.validate(req.query);
+      const query = await queryUsersListParams.validate(req.query) as UserListQueryInterface;
 
       const idsBuilder = UserEntity.createQueryBuilder('user')
-        .select('user.id')
-        .distinct(true)
-        .orderBy('user.id', 'DESC');
+        .select('user.id');
+
+      this.applyUserListSortOrder(idsBuilder, query.sortField, query.sortOrder);
 
       if (!_.isNil(query?.limit) && !_.isNil(query?.offset)) {
         idsBuilder
@@ -647,10 +650,12 @@ export class UserService extends BaseService {
       const [ids, count] = await idsBuilder.getManyAndCount();
 
       let items: UserEntity[] = [];
-      
+
       if (ids.length) {
-        items = await UserEntity.createQueryBuilder('user')
-          .setParameter('ids', ids.map(({ id }) => id))
+        const idList = ids.map(({ id }) => id);
+
+        const itemsBuilder = UserEntity.createQueryBuilder('user')
+          .setParameter('ids', idList)
           .select([
             'user.id',
             'user.name',
@@ -662,9 +667,11 @@ export class UserService extends BaseService {
           .addSelect([
             'refreshTokens.created',
           ])
-          .where('user.id IN(:...ids)')
-          .orderBy('user.created', 'DESC')
-          .getMany();
+          .where('user.id IN(:...ids)');
+
+        this.applyUserListSortOrder(itemsBuilder, query.sortField, query.sortOrder);
+
+        items = await itemsBuilder.getMany();
       }
 
       items.forEach((user) => {
@@ -794,5 +801,42 @@ export class UserService extends BaseService {
     } catch (e) {
       this.errorHandler(e, res);
     }
+  };
+
+  /**
+   * Применяет ORDER BY для запроса реестра пользователей
+   * @param builder - query builder выборки пользователей
+   * @param sortField - поле сортировки из query
+   * @param sortOrder - направление сортировки из query
+   */
+  private applyUserListSortOrder = (
+    builder: SelectQueryBuilder<UserEntity>,
+    sortField?: UserListSortFieldEnum,
+    sortOrder?: UserListQueryInterface['sortOrder'],
+  ): void => {
+    if (sortField === UserListSortFieldEnum.CREATED && !_.isNil(sortOrder)) {
+      const direction = getSqlSortDirection(sortOrder);
+      builder
+        .orderBy('user.created', direction)
+        .addOrderBy('user.id', 'DESC');
+      return;
+    }
+
+    if (sortField === UserListSortFieldEnum.LAST_ACTIVITY && !_.isNil(sortOrder)) {
+      const direction = getSqlSortDirection(sortOrder);
+      const lastActivitySubQuery = builder
+        .subQuery()
+        .select('MAX(refreshTokenForSort.created)')
+        .from(UserRefreshTokenEntity, 'refreshTokenForSort')
+        .where('"refreshTokenForSort"."user_id" = "user"."id"')
+        .getQuery();
+
+      builder
+        .orderBy(`COALESCE(${lastActivitySubQuery}, user.created)`, direction)
+        .addOrderBy('user.id', 'DESC');
+      return;
+    }
+
+    builder.orderBy('user.id', 'DESC');
   };
 }

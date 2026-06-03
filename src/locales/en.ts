@@ -1025,6 +1025,13 @@ export default {
       },
     },
     modules: {
+      antTable: {
+        sort: {
+          triggerAsc: 'Click to sort ascending',
+          triggerDesc: 'Click to sort descending',
+          cancelSort: 'Click to cancel sorting',
+        },
+      },
       imageCrop: {
         modalCancel: 'Close',
         modalTitle: 'Edit image',

@@ -1025,6 +1025,13 @@ export default {
       },
     },
     modules: {
+      antTable: {
+        sort: {
+          triggerAsc: 'Нажмите для сортировки по возрастанию',
+          triggerDesc: 'Нажмите для сортировки по убыванию',
+          cancelSort: 'Нажмите, чтобы сбросить сортировку',
+        },
+      },
       imageCrop: {
         modalCancel: 'Закрыть',
         modalTitle: 'Редактирование изображения',

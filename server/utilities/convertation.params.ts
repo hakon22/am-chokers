@@ -1,10 +1,13 @@
 import * as yup from 'yup';
+import _ from 'lodash';
 
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { BannerMediaTypeEnum } from '@server/types/banner/enums/banner.media.type.enum';
+import { TableSortOrderEnum } from '@server/types/table/table-sort-order.enum';
+import { UserListSortFieldEnum } from '@server/types/user/enums/user-list-sort-field.enum';
 
 export const userOptionalParamsSchema = yup.object().shape({
   userId: yup
@@ -72,6 +75,26 @@ export const queryPaginationWithParams = queryPaginationSchema
       search: yup.string().optional(),
     }))),
   );
+
+/**
+ * Схема query-параметров сортировки Ant Design Table для конкретного endpoint
+ * @param allowedSortFields - whitelist полей sortField
+ * @returns yup-схема с проверкой пары sortField + sortOrder
+ */
+export const createTableSortParamsSchema = (allowedSortFields: readonly string[]) => yup.object({
+  sortField: yup.string().oneOf([...allowedSortFields]).optional(),
+  sortOrder: yup.string().oneOf(Object.values(TableSortOrderEnum)).optional(),
+}).test(
+  'table-sort-pair',
+  'sortField and sortOrder must be provided together',
+  ({ sortField, sortOrder }) =>
+    (_.isNil(sortField) && _.isNil(sortOrder))
+    || (!_.isNil(sortField) && !_.isNil(sortOrder)),
+);
+
+export const queryUsersListParams = queryPaginationWithParams.concat(
+  createTableSortParamsSchema(Object.values(UserListSortFieldEnum)),
+);
 
 export const queryOrderParams = queryPaginationSchema.concat(
   userOptionalParamsSchema.concat(yup.object().shape({
