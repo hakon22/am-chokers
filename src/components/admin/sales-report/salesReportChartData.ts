@@ -1,6 +1,8 @@
 import type { TFunction } from 'i18next';
+import moment from 'moment';
 
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
+import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { SalesReportDistributionMetricEnum } from '@server/types/reports/sales/enums/sales-report-distribution-metric.enum';
@@ -8,6 +10,13 @@ import { getDeliveryTypeTranslate } from '@/utilities/order/getDeliveryTypeTrans
 import { SALES_REPORT_PIE_COLORS } from '@/components/admin/sales-report/salesReportConstants';
 import type { SalesReportInterface } from '@server/types/reports/sales/sales-report.interface';
 import type { SalesChartDataPointInterface } from '@server/types/reports/sales/sales-chart-data-point.interface';
+import type { SalesReportSummaryChangesPercentInterface } from '@server/types/reports/sales/sales-report-comparison.interface';
+
+export type ComparisonChangeTone = 'positive' | 'negative' | 'neutral';
+
+export const INVERSE_COMPARISON_METRIC_KEYS = ['canceledOrdersCount'] as const;
+
+type InverseComparisonMetricKey = typeof INVERSE_COMPARISON_METRIC_KEYS[number];
 
 type ChartPointTotals = {
   revenue: number;
@@ -103,4 +112,55 @@ export const formatChangePercentLabel = (
       ? t('comparison.decrease', { value: Math.abs(changePercent) })
       : t('comparison.unchanged');
   return prefix;
+};
+
+/**
+ * Возвращает диапазон предыдущего периода той же длины, что и текущий
+ * @param from - начало текущего периода в формате YYYY-MM-DD
+ * @param to - конец текущего периода в формате YYYY-MM-DD
+ * @returns даты предыдущего периода
+ */
+export const getPreviousPeriodRange = (from: string, to: string) => {
+  const periodDays = moment(to).diff(moment(from), 'days') + 1;
+  const previousTo = moment(from).subtract(1, 'day');
+  const previousFrom = moment(previousTo).subtract(periodDays - 1, 'days');
+
+  return {
+    previousFrom: previousFrom.format(DateFormatEnum.YYYY_MM_DD),
+    previousTo: previousTo.format(DateFormatEnum.YYYY_MM_DD),
+  };
+};
+
+/**
+ * Форматирует подпись диапазона предыдущего периода для UI
+ * @param from - начало текущего периода в формате YYYY-MM-DD
+ * @param to - конец текущего периода в формате YYYY-MM-DD
+ * @returns строка вида DD.MM.YYYY - DD.MM.YYYY
+ */
+export const formatPreviousPeriodRangeLabel = (from: string, to: string): string => {
+  const { previousFrom, previousTo } = getPreviousPeriodRange(from, to);
+  const formattedFrom = moment(previousFrom).format(DateFormatEnum.DD_MM_YYYY);
+  const formattedTo = moment(previousTo).format(DateFormatEnum.DD_MM_YYYY);
+  return `${formattedFrom} - ${formattedTo}`;
+};
+
+/**
+ * Определяет цветовой тон процента изменения KPI с учётом смысла метрики
+ * @param metricKey - ключ KPI
+ * @param changePercent - процент изменения или null
+ * @returns positive, negative или neutral
+ */
+export const getComparisonChangeTone = (
+  metricKey: keyof SalesReportSummaryChangesPercentInterface,
+  changePercent: number | null | undefined,
+): ComparisonChangeTone => {
+  if (changePercent === null || changePercent === undefined || changePercent === 0) {
+    return 'neutral';
+  }
+
+  const isIncrease = changePercent > 0;
+  const isInverseMetric = INVERSE_COMPARISON_METRIC_KEYS.includes(metricKey as InverseComparisonMetricKey);
+  const isPositiveOutcome = isInverseMetric ? !isIncrease : isIncrease;
+
+  return isPositiveOutcome ? 'positive' : 'negative';
 };

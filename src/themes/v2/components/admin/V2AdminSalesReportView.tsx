@@ -9,10 +9,10 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { SalesReportPromoFilterEnum } from '@server/types/reports/sales/enums/sales-report-promo-filter.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { locale } from '@/locales/pickers.locale.ru';
-import { buildDeliveryTypeFilterOptions, formatChangePercentLabel, getChartPeriodTotals } from '@/components/admin/sales-report/salesReportChartData';
+import { buildDeliveryTypeFilterOptions, formatChangePercentLabel, formatPreviousPeriodRangeLabel, getChartPeriodTotals, getComparisonChangeTone } from '@/components/admin/sales-report/salesReportChartData';
 import { SalesReportDetailsTables } from '@/components/admin/sales-report/SalesReportDetailsTables';
 import { SalesReportDistributionCharts } from '@/components/admin/sales-report/SalesReportDistributionCharts';
-import { SalesReportChartPeriodControl } from '@/components/admin/sales-report/SalesReportChartPeriodControl';
+import { AdminChartPeriodControl } from '@/components/admin/AdminChartPeriodControl';
 import {
   SALES_REPORT_ORDERS_COLOR,
   SALES_REPORT_REVENUE_COLOR,
@@ -80,6 +80,15 @@ export const V2AdminSalesReportView = ({ reportState, lang }: V2AdminSalesReport
 
   const showComparison = !ignorePeriod && !!data?.comparison;
   const chartPeriodTotals = useMemo(() => getChartPeriodTotals(chartData), [chartData]);
+  const previousPeriodRangeLabel = showComparison && from && to
+    ? formatPreviousPeriodRangeLabel(from, to)
+    : null;
+
+  const changeToneClassNames = {
+    positive: styles.changeValuePositive,
+    negative: styles.changeValueNegative,
+    neutral: styles.changeValueNeutral,
+  } as const;
 
   const dateRangeValue: [Moment, Moment] | null = from && to && !ignorePeriod
     ? [moment(fromParams || from), moment(toParams || to)]
@@ -157,11 +166,20 @@ export const V2AdminSalesReportView = ({ reportState, lang }: V2AdminSalesReport
 
       {data && (
         <>
+          {previousPeriodRangeLabel && (
+            <p className={styles.comparisonPeriodHint}>
+              {t('comparison.previousPeriodLabel', { range: previousPeriodRangeLabel })}
+            </p>
+          )}
           <Row gutter={[16, 16]} className={styles.kpiRow}>
             {SUMMARY_METRIC_KEYS.map((key) => {
+              const changePercent = showComparison && data.comparison
+                ? data.comparison.changesPercent[key]
+                : undefined;
               const changeLabel = showComparison && data.comparison
-                ? formatChangePercentLabel(data.comparison.changesPercent[key], t)
+                ? formatChangePercentLabel(changePercent, t)
                 : null;
+              const changeTone = getComparisonChangeTone(key, changePercent);
 
               return (
                 <Col key={key} xs={24} sm={12} md={8} lg={6}>
@@ -173,7 +191,9 @@ export const V2AdminSalesReportView = ({ reportState, lang }: V2AdminSalesReport
                     />
                     {changeLabel && (
                       <span className={styles.changeLabel}>
-                        {changeLabel} {t('comparison.vsPreviousPeriod')}
+                        <span className={changeToneClassNames[changeTone]}>{changeLabel}</span>
+                        {' '}
+                        {t('comparison.vsPreviousPeriod')}
                       </span>
                     )}
                   </Card>
@@ -184,7 +204,7 @@ export const V2AdminSalesReportView = ({ reportState, lang }: V2AdminSalesReport
 
           <Card className={styles.chartCard} title={t('chart.statistics.title')}>
             <div className={styles.chartControls}>
-              <SalesReportChartPeriodControl
+              <AdminChartPeriodControl
                 period={period}
                 setPeriod={setPeriod}
                 t={t}

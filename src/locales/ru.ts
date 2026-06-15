@@ -943,6 +943,7 @@ export default {
             unchanged: '0%',
             noData: '—',
             vsPreviousPeriod: 'к пред. периоду',
+            previousPeriodLabel: 'Предыдущий период: {{ range }}',
           },
           charts: {
             distributionTitle: 'Распределение',

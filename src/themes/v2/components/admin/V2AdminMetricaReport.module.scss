@@ -1,0 +1,130 @@
+@use '@/themes/v2/components/profile/_profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$textM:  v2.$v2-text-muted;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 48px;
+}
+
+.pageTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 40px;
+  font-weight: 300;
+  color: $navy;
+  text-align: center;
+  margin: 0 0 32px;
+  line-height: 1.1;
+}
+
+.controls {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filtersCard {
+  @include card;
+  border: 1px solid $border;
+}
+
+.filtersRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.dateRange {
+  min-width: 260px;
+}
+
+.chartCard {
+  @include card;
+  border: 1px solid $border;
+
+  :global(.ant-card-head-title) {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    color: $navy;
+  }
+}
+
+.chartControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.campaignButton {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+}
+
+.kpiRow {
+  margin-bottom: 0;
+}
+
+.kpiCard {
+  @include card;
+  height: 100%;
+  border: 1px solid $border;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: v2.$v2-sh-md;
+  }
+}
+
+.kpiCardTotal {
+  border-color: $navy;
+}
+
+.kpiTitle {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 12px;
+  color: $navy;
+}
+
+.kpiMetric {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: $textM;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.legendHidden {
+  text-decoration: line-through;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 30px;
+  }
+
+  .dateRange {
+    width: 100%;
+    min-width: 0;
+  }
+}

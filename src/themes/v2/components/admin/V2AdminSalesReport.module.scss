@@ -115,6 +115,26 @@ $textM:  v2.$v2-text-muted;
   color: $textM;
 }
 
+.changeValuePositive {
+  color: v2.$v2-success;
+  font-weight: 600;
+}
+
+.changeValueNegative {
+  color: v2.$v2-error;
+  font-weight: 600;
+}
+
+.changeValueNeutral {
+  color: $textM;
+}
+
+.comparisonPeriodHint {
+  margin: 0;
+  font-size: 13px;
+  color: $textM;
+}
+
 .chartCard {
   @include card;
   border: 1px solid $border;

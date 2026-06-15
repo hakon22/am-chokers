@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { ChartPeriodEnum } from '@server/types/reports/enums/chart-period.enum';
-import { SalesReportChartPeriodControl } from '@/components/admin/sales-report/SalesReportChartPeriodControl';
+import { AdminChartPeriodControl } from '@/components/admin/AdminChartPeriodControl';
 import { getChartPeriodTotals } from '@/components/admin/sales-report/salesReportChartData';
 import {
   SALES_REPORT_ORDERS_COLOR,
@@ -53,7 +53,7 @@ export const SalesReportAreaChart = ({
   return (
     <div className="metric-report">
       <div className={`d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2 mb-3 ${variant === 'v2' ? 'justify-content-between' : ''}`}>
-        <SalesReportChartPeriodControl
+        <AdminChartPeriodControl
           period={period}
           setPeriod={setPeriod}
           t={t}
