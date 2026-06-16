@@ -92,7 +92,7 @@ class UpdateFidsCron {
 
   private static readonly VENDOR_NAME = 'AM Chokers';
 
-  private static readonly ROOT_CATEGORY_ID = 0;
+  private static readonly ROOT_FEED_CATEGORY_ID = 1000;
 
   private static readonly ROOT_CATEGORY_NAME = 'Украшения';
 
@@ -455,11 +455,11 @@ class UpdateFidsCron {
       <option cost="${UpdateFidsCron.DELIVERY_COST}" days="${UpdateFidsCron.DELIVERY_DAYS}" order-before="${UpdateFidsCron.DELIVERY_ORDER_BEFORE}"/>
     </delivery-options>
     <categories>
-      <category id="${UpdateFidsCron.ROOT_CATEGORY_ID}">${this.escapeXml(UpdateFidsCron.ROOT_CATEGORY_NAME)}</category>
+      <category id="${UpdateFidsCron.ROOT_FEED_CATEGORY_ID}">${this.escapeXml(UpdateFidsCron.ROOT_CATEGORY_NAME)}</category>
 `;
 
     categories.forEach(({ id, name }) => {
-      yml += `      <category id="${id}" parentId="${UpdateFidsCron.ROOT_CATEGORY_ID}">${this.escapeXml(name)}</category>
+      yml += `      <category id="${id}" parentId="${UpdateFidsCron.ROOT_FEED_CATEGORY_ID}">${this.escapeXml(name)}</category>
 `;
     });
 
