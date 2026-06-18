@@ -1,6 +1,6 @@
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import type { LanguageCode } from '@shared/language-config';
 import { useUserLang } from '@/hooks/useUserLang';
+import type { LanguageCode } from '@shared/language-config';
 
 /**
  * Преобразует код i18n в UserLangEnum для выбора translation в SEO

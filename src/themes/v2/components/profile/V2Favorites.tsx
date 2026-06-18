@@ -8,7 +8,6 @@ import { useUserLang } from '@/hooks/useUserLang';
 import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { getHref } from '@/utilities/getHref';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/profile/V2Favorites.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';

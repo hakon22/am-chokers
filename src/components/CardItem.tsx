@@ -27,7 +27,6 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
 import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemContext, MobileContext } from '@/components/Context';
 import { getHeight } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';

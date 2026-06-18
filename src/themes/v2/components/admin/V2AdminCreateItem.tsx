@@ -1,5 +1,3 @@
-import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
-import 'react-image-gallery/styles/image-gallery.css';
 import cn from 'classnames';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +6,7 @@ import { InboxOutlined, UploadOutlined, ArrowLeftOutlined } from '@ant-design/ic
 import { DndContext, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Button, Checkbox, DatePicker, Divider, Form, Input, InputNumber, Modal, Select, Switch, Upload, type UploadFile, type UploadProps } from 'antd';
 import { cloneDeep, isEmpty, isEqual, isNil, omit, some } from 'lodash';
 import moment, { type Moment } from 'moment';
@@ -27,8 +25,8 @@ import { SortableItem } from '@/components/SortableItem';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { CropImage } from '@/components/CropImage';
 import { TimePicker } from '@/components/TimePicker';
+import { V2ProductGallery } from '@/themes/v2/components/catalog/V2ProductGallery';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { getHeight } from '@/utilities/screenExtension';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -104,7 +102,6 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const { isMobile } = useContext(MobileContext);
 
   const sortableImageDndSensors = useSortableImageDndSensors();
-  const galleryRef = useRef<ImageGalleryRef>(null);
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(() => sortItemImagesByOrder(oldItem?.images));
@@ -120,27 +117,6 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const [itemPublicationTime, setItemPublicationTime] = useState<string | null>(null);
   const [telegramPublicationTime, setTelegramPublicationTime] = useState<string | null>(null);
 
-  const [originalHeight, setOriginalHeight] = useState(416);
-  const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
-
-  const imageGalleryItems = useMemo(
-    () =>
-      images.map((image) => ({
-        original: image.src,
-        renderThumbInner: image.src.endsWith('.mp4') ? () => (
-          <video className="w-100" autoPlay loop muted playsInline src={image.src} />
-        ) : undefined,
-        thumbnail: image.src,
-        originalHeight: isMobile && originalHeight !== getHeight() ? undefined : String(originalHeight),
-        originalWidth: isMobile && originalHeight === getHeight() ? String(originalHeight / 1.3) : undefined,
-        renderItem: image.src.endsWith('.mp4')
-          ? () => (
-            <video style={{ maxHeight: originalHeight, width: '100%' }} autoPlay loop muted playsInline src={image.src} />
-          )
-          : undefined,
-      })),
-    [images, isMobile, originalHeight],
-  );
   const [form] = Form.useForm<ItemFormInterface>();
   const imagesRef = useRef(images);
   imagesRef.current = images;
@@ -473,47 +449,10 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
                   </SortableContext>
                 </DndContext>
               ) : (
-                <ImageGallery
-                  ref={galleryRef}
-                  additionalClass={styles.gallery}
-                  showIndex
-                  items={imageGalleryItems}
-                  infinite
-                  showBullets={isMobile}
-                  showNav={!isMobile}
-                  onScreenChange={(fullscreen) => {
-                    if (fullscreen) {
-                      setOriginalHeight(getHeight());
-                      document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
-                      document.documentElement.style.setProperty('--galleryHeight', '100vh');
-                      if (isMobile) {
-                        const galleryDiv = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
-                        if (galleryDiv) {
-                          galleryDiv.style.transition = '0.25s all';
-                          galleryDiv.style.width = 'calc(100% - 30px)';
-                        }
-                        document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
-                        setShowThumbnails(false);
-                      }
-                    } else {
-                      setOriginalHeight(416);
-                      document.documentElement.style.setProperty('--galleryWidth', '320px');
-                      document.documentElement.style.setProperty('--galleryHeight', '416px');
-                      if (isMobile) {
-                        const galleryDiv = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
-                        if (galleryDiv) {
-                          galleryDiv.style.width = '';
-                          galleryDiv.style.transition = '';
-                        }
-                        document.documentElement.style.setProperty('--galleryWidth', '320px');
-                        setShowThumbnails(true);
-                      }
-                    }
-                  }}
-                  showThumbnails={showThumbnails}
-                  showPlayButton={false}
-                  thumbnailPosition={isMobile ? 'right' : 'left'}
-                  onClick={() => galleryRef.current?.fullScreen()}
+                <V2ProductGallery
+                  images={images}
+                  layoutKey={images.length}
+                  className={styles.gallery}
                 />
               )
             )}

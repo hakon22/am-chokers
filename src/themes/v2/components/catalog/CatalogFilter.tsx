@@ -14,7 +14,6 @@ import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext } from '@/components/Context';
 import { useCatalogFilterAffix } from '@/hooks/useCatalogFilterAffix';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/catalog/CatalogFilter.module.scss';
 import type { ItemCollectionInterface, ItemGroupInterface } from '@/types/item/Item';
 import type { CompositionInterface } from '@/types/composition/CompositionInterface';

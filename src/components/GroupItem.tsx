@@ -15,7 +15,6 @@ import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { setPaginationParams } from '@/slices/appSlice';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { FetchItemInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 

@@ -13,7 +13,6 @@ import { SubmitContext, AuthModalContext } from '@/components/Context';
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { V2Image } from '@/themes/v2/components/V2Image';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';

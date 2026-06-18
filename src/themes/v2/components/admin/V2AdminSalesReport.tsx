@@ -2,11 +2,9 @@ import { useTranslation } from 'react-i18next';
 
 import { Helmet } from '@/components/Helmet';
 import { BackButton } from '@/components/BackButton';
-import { useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { useSalesReport } from '@/hooks/useSalesReport';
 import { V2AdminSalesReportView } from '@/themes/v2/components/admin/V2AdminSalesReportView';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 import styles from './V2AdminSalesReport.module.scss';
 

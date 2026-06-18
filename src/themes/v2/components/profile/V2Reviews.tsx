@@ -17,7 +17,6 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { PreviewImage } from '@/components/PreviewImage';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/profile/V2Reviews.module.scss';
 import { V2Image } from '@/themes/v2/components/V2Image';
 import type { PaginationQueryInterface } from '@server/types/pagination.query.interface';

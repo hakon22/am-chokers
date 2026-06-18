@@ -17,7 +17,6 @@ import { ImageEntity } from '@server/db/entities/image.entity';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemInterface } from '@/types/item/Item';
 
 export type Context = { action: string, id: number } | undefined;

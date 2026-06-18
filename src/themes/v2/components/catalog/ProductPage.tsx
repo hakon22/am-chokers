@@ -1,5 +1,4 @@
-import { useCallback, useContext, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEventHandler } from 'react';
-import { createPortal, flushSync } from 'react-dom';
+import { useCallback, useContext, useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
@@ -9,11 +8,8 @@ import { HeartFilled, HeartOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
 import moment from 'moment';
 import axios from 'axios';
-import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
-import 'react-image-gallery/styles/image-gallery.css';
 import Carousel from 'react-multi-carousel';
 import cn from 'classnames';
-import { isNil } from 'lodash';
 
 import { JsonLd } from '@/components/seo/JsonLd';
 import { GradeList } from '@/components/GradeList';
@@ -21,9 +17,7 @@ import { V2AdminCreateItem } from '@/themes/v2/components/admin/V2AdminCreateIte
 import { ProductCard } from '@/themes/v2/components/ProductCard';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { V2ProductAdminToolbar } from '@/themes/v2/components/catalog/V2ProductAdminToolbar';
-import { ProductGalleryVideo } from '@/themes/v2/components/catalog/ProductGalleryVideo';
-import { ProductGallerySlideImage } from '@/themes/v2/components/catalog/ProductGallerySlideImage';
-import { ProductGalleryThumbnailImage } from '@/themes/v2/components/catalog/ProductGalleryThumbnailImage';
+import { V2ProductGallery } from '@/themes/v2/components/catalog/V2ProductGallery';
 import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -37,107 +31,13 @@ import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProduct
 import { getHref } from '@/utilities/getHref';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
-import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import styles from '@/themes/v2/components/catalog/ProductPage.module.scss';
 import productsSectionStyles from '@/themes/v2/components/home/ProductsSection.module.scss';
 import { booleanSchema } from '@server/utilities/convertation.params';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
-
-const GALLERY_MAX_MAIN_WIDTH = 560;
-const GALLERY_MAX_HEIGHT_CAP = 520;
-const GALLERY_VIEWPORT_HEIGHT_RESERVE = 200;
-/** Thumbnails rail (~96px) + margins from react-image-gallery */
-const GALLERY_THUMB_RAIL = 112;
-const GALLERY_THUMB_GAP = 12;
-/** Как в v1 (`CardItem`): height / width для области главного слайда */
-const GALLERY_ASPECT_RATIO = 1.3;
-/** Длительность смены слайда в галерее (мс); на время прыжка в fullscreen сбрасывается в 0 */
-const GALLERY_SLIDE_DURATION_MS = 550;
-
-const setGalleryFullscreenCssVariablesOnDocumentRoot = (isMobile: boolean) => {
-  document.documentElement.style.setProperty(
-    '--galleryWidth',
-    isMobile ? 'calc(100% - 30px)' : 'calc(100% - 110px)',
-  );
-  document.documentElement.style.setProperty('--galleryHeight', '100vh');
-};
-
-const applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen = () => {
-  const thumbnailsRightSlideWrapper = document.querySelector(
-    '.image-gallery-slide-wrapper.image-gallery-thumbnails-right',
-  ) as HTMLElement | null;
-  if (thumbnailsRightSlideWrapper) {
-    thumbnailsRightSlideWrapper.style.transition = 'none';
-    thumbnailsRightSlideWrapper.style.width = '100%';
-  }
-};
-
-const restoreThumbnailsRightSlideWrapperStylesAfterMobileFullscreen = () => {
-  const thumbnailsRightSlideWrapper = document.querySelector(
-    '.image-gallery-slide-wrapper.image-gallery-thumbnails-right',
-  ) as HTMLElement | null;
-  if (thumbnailsRightSlideWrapper) {
-    thumbnailsRightSlideWrapper.style.width = '';
-    thumbnailsRightSlideWrapper.style.transition = '';
-  }
-};
-
-const readFullscreenElementFromDocument = (): Element | null => {
-  const documentWithLegacyFullscreenApi = document as Document & {
-    webkitFullscreenElement?: Element | null;
-    mozFullScreenElement?: Element | null;
-    msFullscreenElement?: Element | null;
-  };
-  return (
-    document.fullscreenElement
-    ?? documentWithLegacyFullscreenApi.webkitFullscreenElement
-    ?? documentWithLegacyFullscreenApi.mozFullScreenElement
-    ?? documentWithLegacyFullscreenApi.msFullscreenElement
-    ?? null
-  );
-};
-
-/** Шеврон навигации как в `react-image-gallery` (left / right). */
-const GalleryNavSvg = ({ direction }: { direction: 'left' | 'right' }) => (
-  <svg
-    className="image-gallery-svg"
-    viewBox="6 0 12 24"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="square"
-    strokeLinejoin="miter"
-    strokeWidth={1}
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden
-  >
-    <polyline points={direction === 'left' ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} />
-  </svg>
-);
-
-/** Иконки как в `react-image-gallery` (для кастомной кнопки fullscreen). */
-const GalleryFullscreenSvg = ({ exit }: { exit: boolean }) => (
-  <svg
-    className="image-gallery-svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeLinecap="square"
-    strokeLinejoin="miter"
-    strokeWidth={2}
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden
-  >
-    {exit ? (
-      <path d="M8 3v5H3m18 0h-5V3m0 18v-5h5M3 16h5v5" />
-    ) : (
-      <path d="M8 3H3v5m18 0V3h-5m0 18h5v-5M3 16v5h5" />
-    )}
-  </svg>
-);
 
 export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
@@ -160,32 +60,11 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const seoUserLang = useSeoUserLang();
   const languageCode = useSeoLanguage();
 
-  const galleryRef = useRef<ImageGalleryRef>(null);
-  const galleryWrapRef = useRef<HTMLDivElement>(null);
-  const [galleryBox, setGalleryBox] = useState<{
-    w: number;
-    h: number;
-    thumbOffset: number;
-    /** Ширина основного слайда (getBoundingClientRect относительно обёртки). */
-    mainSlideW: number;
-  } | null>(null);
   const [item, setItem] = useState(fetchedItem);
   const [isEdit, setEdit] = useState<boolean | undefined>();
   const [relatedGroupItems, setRelatedGroupItems] = useState<ItemInterface[]>([]);
   const [openSection, setOpenSection] = useState<string | null>('description');
   const [qty, setQty] = useState(1);
-  /** Как в v1 (`CardItem`): для полноэкрана и :root --gallery* */
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const isFullscreenRef = useRef(false);
-  /** Чёрный слой + скрытие контента до `fullscreenchange`, чтобы не мелькала промежуточная вёрстка. */
-  const [galleryFsCurtain, setGalleryFsCurtain] = useState(false);
-  const [showThumbnails, setShowThumbnails] = useState(true);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const currentSlideIndexRef = useRef(0);
-  const [gallerySlideDuration, setGallerySlideDuration] = useState(GALLERY_SLIDE_DURATION_MS);
-  const fsTargetIndexRef = useRef(0);
-  const fsCurtainFallbackRef = useRef<number | null>(null);
-  const restoreGallerySlideDurationRef = useRef<number | null>(null);
   const cartRowRef = useRef<HTMLDivElement>(null);
   const [cartRowVisible, setCartRowVisible] = useState(true);
   const infoRef = useRef<HTMLDivElement>(null);
@@ -198,52 +77,6 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     setItem(value);
     setContextItem(value);
   }, [setContextItem]);
-
-  const recomputeGalleryBox = useEffectEvent(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const wrap = galleryWrapRef.current;
-    if (!wrap || wrap.clientWidth < 8) {
-      return;
-    }
-
-    const fs = document.fullscreenElement;
-    if (fs && wrap.contains(fs)) {
-      return;
-    }
-
-    const maxH = Math.min(GALLERY_MAX_HEIGHT_CAP, window.innerHeight - GALLERY_VIEWPORT_HEIGHT_RESERVE);
-    let maxMainW = Math.min(GALLERY_MAX_MAIN_WIDTH, wrap.clientWidth - GALLERY_THUMB_RAIL - GALLERY_THUMB_GAP);
-    if (maxMainW < 160) {
-      maxMainW = Math.max(120, wrap.clientWidth - 88);
-    }
-
-    let w = maxMainW;
-    let h = w * GALLERY_ASPECT_RATIO;
-    if (h > maxH) {
-      h = maxH;
-      w = h / GALLERY_ASPECT_RATIO;
-    }
-
-    const slideWrapper = wrap.querySelector('.image-gallery-slide-wrapper') as HTMLElement | null;
-    let thumbOffset = GALLERY_THUMB_RAIL + GALLERY_THUMB_GAP;
-    let mainSlideW = Math.round(w);
-
-    if (slideWrapper) {
-      const wr = wrap.getBoundingClientRect();
-      const sr = slideWrapper.getBoundingClientRect();
-      thumbOffset = Math.max(0, Math.round(sr.left - wr.left));
-      mainSlideW = Math.max(0, Math.round(sr.width));
-    }
-
-    setGalleryBox({
-      w: Math.round(w),
-      h: Math.round(h),
-      thumbOffset,
-      mainSlideW,
-    });
-  });
 
   const { id, collection, images, colors, price, discountPrice, compositions, rating } = item;
 
@@ -315,183 +148,6 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       setItemEffect(fetchedItem);
     }
   }, [fetchedItem.id]);
-
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      galleryRef.current?.slideToIndex?.(0);
-    });
-  }, [fetchedItem.id]);
-
-  useLayoutEffect(() => {
-    recomputeGalleryBox();
-  }, [fetchedItem.id]);
-
-  useEffect(() => {
-    const wrap = galleryWrapRef.current;
-    if (!wrap) {
-      return;
-    }
-
-    let slideRo: ResizeObserver | null = null;
-    const disconnectSlideRo = () => {
-      slideRo?.disconnect();
-      slideRo = null;
-    };
-
-    const attachSlideObserver = () => {
-      disconnectSlideRo();
-      const slide = wrap.querySelector('.image-gallery-slide-wrapper') as HTMLElement | null;
-      if (!slide) {
-        return;
-      }
-      slideRo = new ResizeObserver(() => {
-        recomputeGalleryBox();
-      });
-      slideRo.observe(slide);
-    };
-
-    let moRaf = 0;
-    const onGalleryDomChange = () => {
-      cancelAnimationFrame(moRaf);
-      moRaf = requestAnimationFrame(() => {
-        attachSlideObserver();
-        recomputeGalleryBox();
-      });
-    };
-
-    // react-image-gallery сдвигает слайд/превью после mount без смены размеров внешней обёртки — RO на wrap не срабатывает
-    const mo = new MutationObserver(onGalleryDomChange);
-    mo.observe(wrap, { childList: true, subtree: true });
-
-    const roWrap = new ResizeObserver(() => {
-      recomputeGalleryBox();
-    });
-    roWrap.observe(wrap);
-
-    onGalleryDomChange();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        recomputeGalleryBox();
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(moRaf);
-      mo.disconnect();
-      roWrap.disconnect();
-      disconnectSlideRo();
-    };
-  }, [fetchedItem.id]);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => {
-      recomputeGalleryBox();
-    });
-    return () => cancelAnimationFrame(id);
-  }, [currentSlideIndex]);
-
-  const clearFsCurtainFallback = useCallback(() => {
-    if (fsCurtainFallbackRef.current != null) {
-      clearTimeout(fsCurtainFallbackRef.current);
-      fsCurtainFallbackRef.current = null;
-    }
-  }, []);
-
-  const clearRestoreGallerySlideDuration = useCallback(() => {
-    if (!isNil(restoreGallerySlideDurationRef.current)) {
-      clearTimeout(restoreGallerySlideDurationRef.current);
-      restoreGallerySlideDurationRef.current = null;
-    }
-  }, []);
-
-  /**
-   * Переходит к слайду без анимации (вход в fullscreen после смены вёрстки)
-   * @param index - индекс слайда в галерее
-   */
-  const jumpGalleryToIndex = useCallback((index: number) => {
-    clearRestoreGallerySlideDuration();
-    flushSync(() => {
-      setGallerySlideDuration(0);
-    });
-    galleryRef.current?.slideToIndex?.(index);
-    restoreGallerySlideDurationRef.current = window.setTimeout(() => {
-      setGallerySlideDuration(GALLERY_SLIDE_DURATION_MS);
-      restoreGallerySlideDurationRef.current = null;
-    }, 50);
-  }, [clearRestoreGallerySlideDuration]);
-
-  /**
-   * После выхода из fullscreen: миниатюры и размеры слайда, затем синхронизация индекса (без jump — иначе ломается last slide + infinite)
-   * @param indexToRestore - индекс слайда для восстановления
-   */
-  const restoreGalleryAfterFullscreenExit = useCallback((indexToRestore: number) => {
-    clearRestoreGallerySlideDuration();
-    setGallerySlideDuration(GALLERY_SLIDE_DURATION_MS);
-    document.documentElement.style.setProperty('--galleryWidth', '320px');
-    document.documentElement.style.setProperty('--galleryHeight', '416px');
-    if (isMobile) {
-      restoreThumbnailsRightSlideWrapperStylesAfterMobileFullscreen();
-      flushSync(() => {
-        setIsFullscreen(false);
-        setShowThumbnails(true);
-      });
-    } else {
-      setIsFullscreen(false);
-    }
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        galleryRef.current?.slideToIndex?.(indexToRestore);
-      });
-    });
-  }, [clearRestoreGallerySlideDuration, isMobile]);
-
-  useEffect(() => () => {
-    clearFsCurtainFallback();
-    clearRestoreGallerySlideDuration();
-  }, [clearFsCurtainFallback, clearRestoreGallerySlideDuration]);
-
-  const armFsCurtainFallback = useCallback(() => {
-    clearFsCurtainFallback();
-    fsCurtainFallbackRef.current = window.setTimeout(() => {
-      setGalleryFsCurtain(false);
-      fsCurtainFallbackRef.current = null;
-    }, 750);
-  }, [clearFsCurtainFallback]);
-
-  useEffect(() => {
-    const onFsChange = () => {
-      clearFsCurtainFallback();
-      requestAnimationFrame(() => {
-        setGalleryFsCurtain(false);
-      });
-    };
-    document.addEventListener('fullscreenchange', onFsChange);
-    document.addEventListener('webkitfullscreenchange', onFsChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', onFsChange);
-      document.removeEventListener('webkitfullscreenchange', onFsChange);
-    };
-  }, [clearFsCurtainFallback]);
-
-  /** Escape выходит из fullscreen без нашей кнопки — занавес как при выходе по UI. */
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') {
-        return;
-      }
-      const wrap = galleryWrapRef.current;
-      const fullscreenElement = readFullscreenElementFromDocument();
-      if (!wrap || !fullscreenElement || !wrap.contains(fullscreenElement)) {
-        return;
-      }
-      flushSync(() => {
-        setGalleryFsCurtain(true);
-      });
-      armFsCurtainFallback();
-    };
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, [armFsCurtainFallback]);
 
   useEffect(() => {
     if (paginationParams) {
@@ -581,186 +237,6 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     setOpenSection((prev) => (prev === key ? null : key));
   };
 
-  const slideHeight = galleryBox?.h ?? 416;
-  const slideWidth = galleryBox?.w;
-
-  const galleryCssVars = useMemo((): CSSProperties | undefined => {
-    if (!galleryBox) {
-      return undefined;
-    }
-    return {
-      '--galleryWidth': `${galleryBox.w}px`,
-      '--galleryHeight': `${galleryBox.h}px`,
-    } as CSSProperties;
-  }, [galleryBox]);
-
-  /**
-   * Отдельные переменные для fullscreen-стилей: иначе при `isFullscreen` перезаписывается `--galleryHeight`
-   * и встроенная галерея на странице расползается до входа в browser fullscreen.
-   */
-  const gallerySurfaceStyle = useMemo((): CSSProperties | undefined => {
-    if (isFullscreen) {
-      return {
-        '--galleryFsHeight': isMobile ? '100svh' : '100dvh',
-      } as CSSProperties;
-    }
-    return galleryCssVars;
-  }, [isFullscreen, isMobile, galleryCssVars]);
-
-  /** Десктоп: под слайдом (px). Мобильная: только CSS (.noticeShell + !important), иначе глобальные стили съедают padding. */
-  const noticeLayoutStyle = useMemo((): CSSProperties | undefined => {
-    if (isMobile) {
-      return undefined;
-    }
-    if (!galleryBox) {
-      return undefined;
-    }
-    return {
-      marginLeft: `${galleryBox.thumbOffset}px`,
-      width: `${galleryBox.mainSlideW}px`,
-      maxWidth: 'none',
-      boxSizing: 'border-box',
-    };
-  }, [galleryBox, isMobile]);
-
-  /** Синхронно до `requestFullscreen`: стили слайда + items; иначе один кадр «ломаной» вёрстки. */
-  const prepareGalleryFullscreenLayout = useCallback((): number => {
-    const indexToShow = currentSlideIndex;
-    fsTargetIndexRef.current = indexToShow;
-    isFullscreenRef.current = true;
-    flushSync(() => {
-      setGallerySlideDuration(0);
-      setIsFullscreen(true);
-      if (isMobile) {
-        setShowThumbnails(false);
-      } else {
-        setGalleryFsCurtain(true);
-      }
-    });
-    if (!isMobile) {
-      armFsCurtainFallback();
-    }
-    setGalleryFullscreenCssVariablesOnDocumentRoot(isMobile);
-    if (isMobile) {
-      applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen();
-    }
-    return indexToShow;
-  }, [armFsCurtainFallback, currentSlideIndex, isMobile]);
-
-  const openGalleryFullscreen = useCallback(() => {
-    if (isFullscreenRef.current) {
-      return;
-    }
-    prepareGalleryFullscreenLayout();
-    galleryRef.current?.fullScreen();
-  }, [prepareGalleryFullscreenLayout]);
-
-  const renderGalleryFullscreenButton = useCallback(
-    (onClick: () => void, fs: boolean) => (
-      <button
-        type="button"
-        className="image-gallery-icon image-gallery-fullscreen-button"
-        aria-label={fs ? t('closeFullscreen') : t('openFullscreen')}
-        onClick={() => {
-          if (!fs) {
-            prepareGalleryFullscreenLayout();
-            onClick();
-          } else {
-            flushSync(() => {
-              setGalleryFsCurtain(true);
-            });
-            armFsCurtainFallback();
-            onClick();
-          }
-        }}
-      >
-        <GalleryFullscreenSvg exit={fs} />
-      </button>
-    ),
-    [armFsCurtainFallback, prepareGalleryFullscreenLayout, t],
-  );
-
-  const renderGalleryLeftNav = useCallback(
-    (onClick: MouseEventHandler<HTMLElement>, disabled: boolean) => (
-      <button
-        type="button"
-        className="image-gallery-icon image-gallery-left-nav"
-        disabled={disabled}
-        onClick={onClick}
-        aria-label={tNavbar('galleryPrev')}
-      >
-        <GalleryNavSvg direction="left" />
-      </button>
-    ),
-    [tNavbar],
-  );
-
-  const renderGalleryRightNav = useCallback(
-    (onClick: MouseEventHandler<HTMLElement>, disabled: boolean) => (
-      <button
-        type="button"
-        className="image-gallery-icon image-gallery-right-nav"
-        disabled={disabled}
-        onClick={onClick}
-        aria-label={tNavbar('galleryNext')}
-      >
-        <GalleryNavSvg direction="right" />
-      </button>
-    ),
-    [tNavbar],
-  );
-
-  const imageGalleryItems = useMemo(() => {
-    return sortItemImagesByOrder(images).map((image, slideIndex) => {
-      if (image.src.endsWith('.mp4')) {
-        return {
-          original: image.src,
-          thumbnail: image.src,
-          renderThumbInner: () => (
-            <span className="image-gallery-thumbnail-inner">
-              <ProductGalleryVideo key={image.src} src={image.src} variant="thumbnail" />
-            </span>
-          ),
-          renderItem: () => (
-            <span className="image-gallery-image-wrap">
-              <ProductGalleryVideo
-                key={image.src}
-                src={image.src}
-                variant="slide"
-                skeletonBorderRadius={isFullscreen ? 0 : 16}
-                slideStyle={
-                  isFullscreenRef.current
-                    ? { maxHeight: '100dvh', width: 'auto', maxWidth: '100%', objectFit: 'contain' }
-                    : { maxHeight: slideHeight, width: '100%', objectFit: 'cover' }
-                }
-              />
-            </span>
-          ),
-        };
-      }
-
-      return {
-        original: image.src,
-        thumbnail: image.src,
-        originalAlt: imageAlt,
-        renderThumbInner: () => (
-          <ProductGalleryThumbnailImage src={image.src} alt={imageAlt} />
-        ),
-        renderItem: () => (
-          <ProductGallerySlideImage
-            src={image.src}
-            alt={imageAlt}
-            slideIndex={slideIndex}
-            slideHeight={slideHeight}
-            slideWidth={slideWidth ?? null}
-            isFullscreen={isFullscreen}
-            isMobile={isMobile}
-          />
-        ),
-      };
-    });
-  }, [images, imageAlt, slideHeight, slideWidth, isFullscreen, isMobile]);
-
   // Stock status
   const stockState: 'in' | 'out' | 'del' = item.deleted ? 'del' : item.outStock ? 'out' : 'in';
   const stockText = (() => {
@@ -793,10 +269,6 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
         jsonLd={[productSeoBundle.productJsonLd, productSeoBundle.productBreadcrumbJsonLd]}
       />
 
-      {typeof document !== 'undefined' && galleryFsCurtain
-        ? createPortal(<div className={styles.fsCurtain} aria-hidden />, document.body)
-        : null}
-
       <div className={styles.product}>
 
         {/* ── Mobile title (shown before gallery on mobile only) ── */}
@@ -814,71 +286,16 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
         {/* ── Gallery ── */}
         <div className={styles.galleryCol}>
-          <div
-            ref={galleryWrapRef}
-            className={cn(styles.gallery, galleryFsCurtain && styles.galleryFsCurtain)}
-            style={gallerySurfaceStyle}
-            data-gallery-adaptive={galleryBox ? '' : undefined}
-          >
-            <div
-              className={cn(
-                styles.galleryMedia,
-                imageGalleryItems.length === 0 && styles.galleryMediaPlaceholder,
-              )}
-            >
-              {imageGalleryItems.length === 0 ? (
-                <div className={styles.galleryPlaceholder} />
-              ) : (
-                <ImageGallery
-                  ref={galleryRef}
-                  additionalClass={cn(styles.galleryInner, 'w-100', { 'd-flex align-items-center justify-content-center': isMobile })}
-                  showIndex
-                  items={imageGalleryItems}
-                  infinite
-                  showBullets={isMobile}
-                  showNav={!isMobile}
-                  showPlayButton={false}
-                  thumbnailPosition={isMobile ? 'right' : 'left'}
-                  showThumbnails={showThumbnails}
-                  slideDuration={gallerySlideDuration}
-                  useBrowserFullscreen
-                  renderFullscreenButton={renderGalleryFullscreenButton}
-                  renderLeftNav={renderGalleryLeftNav}
-                  renderRightNav={renderGalleryRightNav}
-                  onSlide={(index) => {
-                    currentSlideIndexRef.current = index;
-                    setCurrentSlideIndex(index);
-                  }}
-                  onScreenChange={(fullscreen) => {
-                    if (fullscreen) {
-                      const indexToShow = fsTargetIndexRef.current;
-                      clearFsCurtainFallback();
-                      setGalleryFsCurtain(false);
-                      setIsFullscreen(true);
-                      setGalleryFullscreenCssVariablesOnDocumentRoot(isMobile);
-                      if (isMobile) {
-                        setShowThumbnails(false);
-                        applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen();
-                      }
-                      jumpGalleryToIndex(indexToShow);
-                    } else {
-                      const indexToRestore = currentSlideIndexRef.current;
-                      isFullscreenRef.current = false;
-                      clearFsCurtainFallback();
-                      setGalleryFsCurtain(false);
-                      restoreGalleryAfterFullscreenExit(indexToRestore);
-                    }
-                  }}
-                  onClick={isFullscreen ? undefined : openGalleryFullscreen}
-                />
-              )}
-            </div>
-            <div className={styles.noticeShell}>
-              <div className={styles.notice} role="note" style={noticeLayoutStyle}>
-                {t('notice')}
-              </div>
-            </div>
-          </div>
+          <V2ProductGallery
+            images={images}
+            imageAlt={imageAlt}
+            layoutKey={fetchedItem.id}
+            sticky
+            fullBleedOnMobile
+            showNotice
+            noticeShellClassName={styles.noticeShell}
+            noticeClassName={styles.notice}
+          />
         </div>{/* /galleryCol */}
 
         {/* ── Info panel ── */}

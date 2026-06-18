@@ -6,7 +6,6 @@ import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Helmet } from '@/components/Helmet';
-import { useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { useMetricaReport } from '@/hooks/useMetricaReport';
 import { BackButton } from '@/components/BackButton';
