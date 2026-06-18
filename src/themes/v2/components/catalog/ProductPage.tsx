@@ -643,6 +643,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
             slidesToSlide={1}
             swipeable
             draggable={false}
+            minimumTouchDrag={80}
+            deviceType={isMobile ? 'mobile' : 'desktop'}
             itemClass={productsSectionStyles.carouselItem}
             containerClass={productsSectionStyles.carouselContainer}
             partialVisible

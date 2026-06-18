@@ -24,12 +24,10 @@ const isVideo = (src: string) => src.endsWith('.mp4');
 const MediaItem = ({
   src,
   alt,
-  className,
   showLoadingSkeleton,
 }: {
   src: string;
   alt: string;
-  className: string;
   showLoadingSkeleton?: boolean;
 }) => isVideo(src)
   ? (
@@ -39,7 +37,6 @@ const MediaItem = ({
       loop
       muted
       playsInline
-      className={className}
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
     />
   )
@@ -50,7 +47,6 @@ const MediaItem = ({
       fill
       sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
       style={{ objectFit: 'cover' }}
-      className={className}
       showLoadingSkeleton={showLoadingSkeleton}
     />
   );
@@ -97,9 +93,13 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
         <div className={cn(styles.cardImg, { [styles.cardImgOutStock]: outStock })}>
           {image ? (
             <>
-              <MediaItem src={image.src} alt={imageAlt} className={styles.imgPrimary} showLoadingSkeleton />
+              <div className={styles.imgPrimary}>
+                <MediaItem src={image.src} alt={imageAlt} showLoadingSkeleton />
+              </div>
               {image2 && (
-                <MediaItem src={image2.src} alt={imageAlt} className={styles.imgSecondary} />
+                <div className={styles.imgSecondary}>
+                  <MediaItem src={image2.src} alt={imageAlt} />
+                </div>
               )}
             </>
           ) : (

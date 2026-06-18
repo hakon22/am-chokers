@@ -20,3 +20,18 @@
     }
   }
 }
+
+/**
+ * Снижает конфликт горизонтального свайпа react-multi-carousel с вертикальным скроллом страницы на touch.
+ */
+@mixin v2-carousel-touch-optimize {
+  :global(.react-multi-carousel-list) {
+    touch-action: pan-y pinch-zoom;
+    overscroll-behavior-x: contain;
+  }
+
+  :global(.react-multi-carousel-track) {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+}

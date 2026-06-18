@@ -1,9 +1,10 @@
 import Link from 'next/link';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
+import { MobileContext } from '@/components/Context';
 import { catalogPath } from '@/routes';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ProductCard } from '@/themes/v2/components/ProductCard';
@@ -32,12 +33,13 @@ export const ProductsSection = ({
   salesHitsLimit,
 }: ProductsSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home' });
+  const { isMobile } = useContext(MobileContext);
   const [autoPlay, setAutoPlay] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     const timer = setTimeout(() => setAutoPlay(true), 2000);
     return () => clearTimeout(timer);
-  });
+  }, []);
 
   const manualBestsellerList = [
     bestsellers.bestseller1,
@@ -75,6 +77,8 @@ export const ProductsSection = ({
             slidesToSlide={1}
             swipeable
             draggable={false}
+            minimumTouchDrag={80}
+            deviceType={isMobile ? 'mobile' : 'desktop'}
             itemClass={styles.carouselItem}
             containerClass={styles.carouselContainer}
           >

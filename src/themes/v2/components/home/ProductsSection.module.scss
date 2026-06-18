@@ -104,6 +104,7 @@
 
 .carouselContainer {
   padding-bottom: 4px;
+  @include v2mixins.v2-carousel-touch-optimize;
 }
 
 .carouselItem {
@@ -115,20 +116,28 @@
 .cardImg {
   aspect-ratio: 4 / 4;
   background: #F7F9FC;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
   position: relative;
   overflow: hidden;
 }
 
-.imgPrimary {
+.imgPrimary,
+.imgSecondary {
+  grid-area: 1 / 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   transition: opacity 0.4s ease;
 }
 
 .imgSecondary {
   opacity: 0;
-  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -138,6 +147,7 @@
 
   .card:hover .imgSecondary {
     opacity: 1;
+    pointer-events: auto;
   }
 }
 
@@ -150,6 +160,7 @@
 }
 
 .cardImgBg {
+  grid-area: 1 / 1;
   width: 100%;
   height: 100%;
   display: flex;

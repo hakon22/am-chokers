@@ -799,6 +799,8 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
       arrows={false}
       swipeable
       draggable={false}
+      minimumTouchDrag={80}
+      deviceType={isMobile ? 'mobile' : 'desktop'}
       partialVisible={!isHero}
       itemClass={cn(styles.carouselItem, isHero && styles.carouselItemHero)}
       containerClass={cn(styles.carouselContainer, isHero && styles.carouselContainerHero)}

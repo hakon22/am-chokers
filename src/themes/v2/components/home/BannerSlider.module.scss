@@ -1,4 +1,5 @@
 @use '@/themes/v2/styles/variables' as v2;
+@use '@/themes/v2/styles/mixins' as v2mixins;
 
 .section {
   width: 100%;
@@ -20,6 +21,7 @@
 
 .carouselContainer {
   padding: 0 32px;
+  @include v2mixins.v2-carousel-touch-optimize;
 
   @media (max-width: 768px) {
     padding: 0 16px;
