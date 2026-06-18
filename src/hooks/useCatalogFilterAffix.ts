@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react';
 
-const FOOTER_OFFSET_GAP = 16;
+import { getV2FooterTop, V2_FOOTER_OFFSET_GAP } from '@/utilities/getV2FooterTop';
 
 interface CatalogFilterAffixResult {
   placeholderRef: RefObject<HTMLDivElement | null>;
@@ -61,12 +61,9 @@ export const useCatalogFilterAffix = (offsetTop: number): CatalogFilterAffixResu
         ? productsColumn.getBoundingClientRect().bottom
         : placeholderRect.bottom;
 
-      const footerElement = document.querySelector('.v2-app footer');
-      const footerTop = footerElement
-        ? footerElement.getBoundingClientRect().top
-        : window.innerHeight;
+      const footerTop = getV2FooterTop();
 
-      const footerCapTop = footerTop - panelHeight - FOOTER_OFFSET_GAP;
+      const footerCapTop = footerTop - panelHeight - V2_FOOTER_OFFSET_GAP;
       const columnEndTop = columnBottom - panelHeight;
       const top = Math.min(offsetTop, footerCapTop, columnEndTop);
 

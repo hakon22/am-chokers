@@ -1,4 +1,4 @@
-import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+import type { Types } from 'telegraf';
 
 import type { ItemEntity } from '@server/db/entities/item.entity';
 
@@ -7,7 +7,7 @@ export interface TelegramJobInterface {
   telegramId: string;
   images?: string[];
   item?: ItemEntity;
-  options?: ExtraReplyMessage;
+  options?: Types.ExtraReplyMessage;
 }
 
 export interface TelegramAdminJobInterface extends Pick<TelegramJobInterface, 'options'> {

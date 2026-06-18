@@ -16,7 +16,7 @@
     "noEmit": false,
     "esModuleInterop": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "strictPropertyInitialization": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -46,6 +46,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "types/**/*.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

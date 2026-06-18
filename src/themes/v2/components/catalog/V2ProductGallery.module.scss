@@ -1,6 +1,8 @@
 // ── Gallery (react-image-gallery) ───────────────────────────────
 // Встроенная сетка v2; в fullscreen высота слайда — `--galleryFsHeight` (не смешивать с --galleryHeight встроенной галереи).
 
+@use '@/themes/v2/styles/mixins' as v2mixins;
+
 $navy-secondary: #3B5382;
 $navy-medium:    #5A6E96;
 $border:         #CED3DD;
@@ -470,11 +472,32 @@ $bg-alt:         #EAEEF6;
 }
 
 .galleryMedia {
+  position: relative;
   width: 100%;
   max-width: 560px;
 
   @media (max-width: 1100px) {
     max-width: none;
+  }
+}
+
+.galleryDiscountBadge {
+  display: none;
+  position: absolute;
+  top: 0;
+  z-index: 4;
+  background: #e84749;
+  color: #fff;
+  @include v2mixins.v2-readable-font-size(10px);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-top-left-radius: 16px;
+  font-weight: 500;
+  pointer-events: none;
+
+  @media (max-width: 1100px) {
+    display: block;
   }
 }
 

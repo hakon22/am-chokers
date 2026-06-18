@@ -19,6 +19,8 @@ import 'react-multi-carousel/lib/styles.css';
 import type { ButtonGroupProps, CarouselInternalState } from 'react-multi-carousel/lib/types';
 
 import { MobileContext } from '@/components/Context';
+import { useCarouselInteractionAutoplayPause } from '@/hooks/useCarouselInteractionAutoplayPause';
+import { CAROUSEL_MINIMUM_TOUCH_DRAG_PX } from '@/utilities/carouselMinimumTouchDrag';
 import { getWidth } from '@/utilities/screenExtension';
 import { toast } from '@/utilities/toast';
 import styles from '@/themes/v2/components/home/BannerSlider.module.scss';
@@ -128,6 +130,7 @@ interface BannerSlideProps {
   autoplayLogicEnabled: boolean;
   banner: BannerInterface;
   imagePriority: boolean;
+  isAutoplaySuspended: boolean;
   isMobile: boolean;
   isMultiSlide: boolean;
   onCopy: (value: string) => void;
@@ -327,7 +330,9 @@ const BannerVideo = ({
   staticPosterUrl,
   objectFit = 'cover',
   posterSizes,
+  posterPriority,
   isActive,
+  isAutoplaySuspended,
   shouldLoopVideo,
   onPlaybackComplete,
 }: {
@@ -335,7 +340,9 @@ const BannerVideo = ({
   staticPosterUrl: string;
   objectFit?: 'cover' | 'contain';
   posterSizes?: V2ImageProps['sizes'];
+  posterPriority?: boolean;
   isActive: boolean;
+  isAutoplaySuspended: boolean;
   shouldLoopVideo: boolean;
   onPlaybackComplete?: () => void;
 }) => {
@@ -346,11 +353,16 @@ const BannerVideo = ({
   const [videoCanPlay, setVideoCanPlay] = useState(false);
   const staticPosterImgRef = useRef<HTMLImageElement>(null);
   const isActiveRef = useRef(isActive);
+  const isAutoplaySuspendedRef = useRef(isAutoplaySuspended);
   const wasActiveRef = useRef(false);
 
   useLayoutEffect(() => {
     isActiveRef.current = isActive;
   }, [isActive]);
+
+  useLayoutEffect(() => {
+    isAutoplaySuspendedRef.current = isAutoplaySuspended;
+  }, [isAutoplaySuspended]);
 
   useLayoutEffect(() => {
     const video = videoRef.current;
@@ -395,7 +407,7 @@ const BannerVideo = ({
     if (!video || !videoCanPlay) {
       return undefined;
     }
-    if (!isActive) {
+    if (!isActive || isAutoplaySuspended) {
       wasActiveRef.current = false;
       video.pause();
       return undefined;
@@ -406,7 +418,7 @@ const BannerVideo = ({
     }
     video.play().catch(() => {});
     return undefined;
-  }, [videoCanPlay, src, isActive]);
+  }, [videoCanPlay, src, isActive, isAutoplaySuspended]);
 
   useLayoutEffect(() => {
     const el = staticPosterImgRef.current;
@@ -534,13 +546,13 @@ const BannerVideo = ({
   };
 
   const handleVideoPlaybackEnded = () => {
-    if (isActiveRef.current) {
+    if (isActiveRef.current && !isAutoplaySuspendedRef.current) {
       onPlaybackComplete?.();
     }
   };
 
   const handleVideoPlaybackError = () => {
-    if (isActiveRef.current) {
+    if (isActiveRef.current && !isAutoplaySuspendedRef.current) {
       onPlaybackComplete?.();
     }
   };
@@ -574,6 +586,7 @@ const BannerVideo = ({
         alt=""
         fill
         sizes={posterSizes ?? '100vw'}
+        priority={posterPriority}
         className={cn(
           styles.videoPoster,
           styles.videoPosterLayer,
@@ -663,6 +676,7 @@ const BannerSlide = ({
   autoplayLogicEnabled,
   banner,
   imagePriority,
+  isAutoplaySuspended,
   isMobile,
   isMultiSlide,
   onCopy,
@@ -718,7 +732,9 @@ const BannerSlide = ({
           staticPosterUrl={staticPosterUrl}
           objectFit={videoFit}
           posterSizes={imageSizes}
+          posterPriority={imagePriority}
           isActive={isMediaActive}
+          isAutoplaySuspended={isAutoplaySuspended}
           shouldLoopVideo={false}
           onPlaybackComplete={onRequestAdvance}
         />
@@ -783,9 +799,11 @@ export type BannerSliderVariant = 'strip' | 'hero';
 export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.banner' });
   const { isMobile } = useContext(MobileContext);
+  const { isAutoplayPausedByInteraction, interactionPauseProps } = useCarouselInteractionAutoplayPause();
   const [viewportWidth, setViewportWidth] = useState(1200);
   const [autoplayLogicEnabled, setAutoplayLogicEnabled] = useState(false);
   const isHero = variant === 'hero';
+  const effectiveAutoplayLogicEnabled = autoplayLogicEnabled && !isAutoplayPausedByInteraction;
 
   const carouselAdvanceRef = useRef<(() => void) | null>(null);
 
@@ -827,11 +845,11 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
   );
 
   const handleRequestAdvance = useCallback(() => {
-    if (!autoplayLogicEnabled || sorted.length <= 1) {
+    if (!effectiveAutoplayLogicEnabled || sorted.length <= 1) {
       return;
     }
     carouselAdvanceRef.current?.();
-  }, [autoplayLogicEnabled, sorted.length]);
+  }, [effectiveAutoplayLogicEnabled, sorted.length]);
 
   const carouselButtonGroup = useMemo(
     () => (
@@ -860,41 +878,44 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
   const isMultiSlide = sorted.length > 1;
 
   const carousel = (
-    <Carousel
-      responsive={isHero ? responsiveHero : bannerStripResponsive}
-      autoPlay={false}
-      infinite
-      pauseOnHover={false}
-      shouldResetAutoplay={false}
-      showDots={isMultiSlide}
-      arrows={false}
-      swipeable
-      draggable={false}
-      minimumTouchDrag={80}
-      deviceType={isHero ? (isMobile ? 'mobile' : 'desktop') : bannerCarouselDeviceType}
-      partialVisible={!isHero}
-      itemClass={cn(styles.carouselItem, isHero && styles.carouselItemHero)}
-      containerClass={cn(styles.carouselContainer, isHero && styles.carouselContainerHero)}
-      dotListClass={cn(styles.dotList, isHero && styles.dotListHero)}
-      customDot={<BannerCarouselDot />}
-      customButtonGroup={carouselButtonGroup}
-    >
-      {sorted.map((banner, index) => (
-        <BannerSlide
-          key={banner.id}
-          activeSlideStore={activeSlideStore}
-          autoplayLogicEnabled={autoplayLogicEnabled}
-          banner={banner}
-          imagePriority={isHero && index === 0}
-          isMultiSlide={isMultiSlide}
-          isMobile={isMobile}
-          onCopy={handleCopy}
-          onRequestAdvance={handleRequestAdvance}
-          slideIndex={index}
-          variant={variant}
-        />
-      ))}
-    </Carousel>
+    <div className={styles.carouselInteractionWrap} {...interactionPauseProps}>
+      <Carousel
+        responsive={isHero ? responsiveHero : bannerStripResponsive}
+        autoPlay={false}
+        infinite
+        pauseOnHover={false}
+        shouldResetAutoplay={false}
+        showDots={isMultiSlide}
+        arrows={false}
+        swipeable
+        draggable={false}
+        minimumTouchDrag={CAROUSEL_MINIMUM_TOUCH_DRAG_PX}
+        deviceType={isHero ? (isMobile ? 'mobile' : 'desktop') : bannerCarouselDeviceType}
+        partialVisible={!isHero}
+        itemClass={cn(styles.carouselItem, isHero && styles.carouselItemHero)}
+        containerClass={cn(styles.carouselContainer, isHero && styles.carouselContainerHero)}
+        dotListClass={cn(styles.dotList, isHero && styles.dotListHero)}
+        customDot={<BannerCarouselDot />}
+        customButtonGroup={carouselButtonGroup}
+      >
+        {sorted.map((banner, index) => (
+          <BannerSlide
+            key={banner.id}
+            activeSlideStore={activeSlideStore}
+            autoplayLogicEnabled={effectiveAutoplayLogicEnabled}
+            banner={banner}
+            imagePriority={isHero && index === 0}
+            isAutoplaySuspended={isAutoplayPausedByInteraction}
+            isMultiSlide={isMultiSlide}
+            isMobile={isMobile}
+            onCopy={handleCopy}
+            onRequestAdvance={handleRequestAdvance}
+            slideIndex={index}
+            variant={variant}
+          />
+        ))}
+      </Carousel>
+    </div>
   );
 
   if (isHero) {

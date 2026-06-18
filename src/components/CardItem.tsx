@@ -25,6 +25,7 @@ import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
+import { CAROUSEL_MINIMUM_TOUCH_DRAG_PX } from '@/utilities/carouselMinimumTouchDrag';
 import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ItemContext, MobileContext } from '@/components/Context';
@@ -593,7 +594,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             focusOnSelect={true}
             infinite
             arrows={true}
-            minimumTouchDrag={80}
+            minimumTouchDrag={CAROUSEL_MINIMUM_TOUCH_DRAG_PX}
             renderArrowsWhenDisabled={false}
             renderButtonGroupOutside={false}
             renderDotsOutside={false}

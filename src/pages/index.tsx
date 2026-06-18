@@ -14,6 +14,7 @@ import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
 import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
+import { CAROUSEL_MINIMUM_TOUCH_DRAG_PX } from '@/utilities/carouselMinimumTouchDrag';
 import { routes } from '@/routes';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/utilities/structuredData';
@@ -508,7 +509,7 @@ const Index = ({
                 itemClass="index-banner-carousel__item"
                 focusOnSelect={false}
                 arrows={false}
-                minimumTouchDrag={80}
+                minimumTouchDrag={CAROUSEL_MINIMUM_TOUCH_DRAG_PX}
                 renderArrowsWhenDisabled={false}
                 renderButtonGroupOutside={false}
                 renderDotsOutside={false}
@@ -564,7 +565,7 @@ const Index = ({
                 focusOnSelect={true}
                 ref={carouselRef}
                 arrows={isMobile}
-                minimumTouchDrag={80}
+                minimumTouchDrag={CAROUSEL_MINIMUM_TOUCH_DRAG_PX}
                 renderArrowsWhenDisabled={false}
                 renderButtonGroupOutside={false}
                 renderDotsOutside={false}

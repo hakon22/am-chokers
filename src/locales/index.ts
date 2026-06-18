@@ -8,10 +8,10 @@ import {
   parseLanguageCode,
   type LanguageCode,
 } from '@shared/language-config';
+import { ensureLanguageCookieFromStorage, resolveBootstrapLanguageCode } from '@/utilities/bootstrapLanguage';
 
 import ru from './ru';
 import en from './en';
-import { ensureLanguageCookieFromStorage, resolveBootstrapLanguageCode } from '@/utilities/bootstrapLanguage';
 
 const i18nInitOptions = {
   returnNull: false,

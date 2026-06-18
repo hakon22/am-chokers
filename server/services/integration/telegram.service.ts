@@ -1,8 +1,7 @@
 import _ from 'lodash';
 import { Container, Singleton } from 'typescript-ioc';
-import type { Context, Telegraf } from 'telegraf';
+import type { Context, Telegraf, Types } from 'telegraf';
 import type { Message } from 'typegram/message';
-import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 import type { InputMediaPhoto, InputMediaVideo } from 'telegraf/types';
 
 import { UserEntity } from '@server/db/entities/user.entity';
@@ -304,7 +303,7 @@ export class TelegramService {
     return this.sendMessage(textLines, telegramChatId, replyMarkup ? { reply_markup: replyMarkup } : undefined);
   };
 
-  public sendMessage = async (message: string | string[], telegramId: string, options?: ExtraReplyMessage) => {
+  public sendMessage = async (message: string | string[], telegramId: string, options?: Types.ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
     const { message: messageHistory } = await this.messageService.createOne({ text, type: MessageTypeEnum.TELEGRAM, telegramId });
@@ -319,7 +318,7 @@ export class TelegramService {
     }
   };
 
-  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: ExtraReplyMessage) => {
+  public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: Types.ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
     const media: (InputMediaPhoto | InputMediaVideo)[] = images.map((image, index) => ({
@@ -356,7 +355,7 @@ export class TelegramService {
     }
   };
 
-  public sendAdminMessages = async (messageRu: string | string[], messageEn: string | string[], options?: ExtraReplyMessage) => {
+  public sendAdminMessages = async (messageRu: string | string[], messageEn: string | string[], options?: Types.ExtraReplyMessage) => {
     for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
       const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
 

@@ -14,7 +14,7 @@ interface DocumentPropsInterface extends DocumentInitialProps {
 }
 
 /**
- * Кастомный Document: lang на html и preload критичных шрифтов v2
+ * Кастомный Document: lang и data-scroll-behavior на html, preload критичных шрифтов v2
  */
 export default class CustomDocument extends Document<DocumentPropsInterface> {
   /**
@@ -37,7 +37,7 @@ export default class CustomDocument extends Document<DocumentPropsInterface> {
     const { languageCode } = this.props;
 
     return (
-      <Html lang={languageCode}>
+      <Html lang={languageCode} data-scroll-behavior="smooth">
         <Head>
           <link
             rel="preload"

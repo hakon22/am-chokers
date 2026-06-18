@@ -19,6 +19,9 @@ const GROUP_ICONS: Record<string, string> = {
   chains: '👓',
 };
 
+/** sizes для карточек категорий (catGrid: 5 / 3 / 2 колонки) */
+const CATEGORY_COVER_SIZES = '(max-width: 768px) 50vw, (max-width: 1199px) 33vw, 20vw';
+
 const getIcon = (code: string) => GROUP_ICONS[code] ?? '✦';
 
 interface CategoriesSectionProps {
@@ -53,7 +56,7 @@ export const CategoriesSection = ({ itemGroups, coverImages }: CategoriesSection
               <Link href={`${catalogPath}/${group.code}`} className={styles.catCard}>
                 <div className={styles.catCardImg}>
                   {img ? (
-                    <V2Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
+                    <V2Image src={img.src} alt={name} fill sizes={CATEGORY_COVER_SIZES} style={{ objectFit: 'cover' }} />
                   ) : (
                     getIcon(group.code)
                   )}

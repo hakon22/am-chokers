@@ -222,7 +222,7 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
         {/* Left — logo */}
         <div className={styles.navLeft}>
           <Link href={routes.page.base.homePage} className={styles.navLogo}>
-            <V2Image src={logoImage} priority unoptimized className={styles.logoImg} alt={t('logo')} />
+            <V2Image src={logoImage} priority unoptimized loading="eager" className={styles.logoImg} alt={t('logo')} />
           </Link>
         </div>
 
@@ -327,7 +327,7 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
     <div className={styles.mobileHeader} ref={mobileContainer}>
       <div className={styles.mobileHeaderRow}>
         <Link href={routes.page.base.homePage} className={styles.mobileLogo}>
-          <V2Image src={logoImage} priority unoptimized className={styles.mobileLogoImg} alt={t('logo')} />
+          <V2Image src={logoImage} priority unoptimized loading="eager" className={styles.mobileLogoImg} alt={t('logo')} />
         </Link>
         <div className={styles.mobileRight}>
           {isSearch?.value
@@ -366,13 +366,14 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
         <Drawer
           title={
             <Link href={routes.page.base.homePage} onClick={onChangeHandler}>
-              <V2Image src={logoImage} priority unoptimized className={styles.drawerLogo} alt={t('logo')} />
+              <V2Image src={logoImage} unoptimized loading="lazy" className={styles.drawerLogo} alt={t('logo')} />
             </Link>
           }
           getContainer={() => mobileDrawerContainer}
           closeIcon={null}
           defaultSize="100%"
           open={isActive}
+          destroyOnHidden
           zIndex={1500}
           styles={{ body: { padding: 0 } }}
         >

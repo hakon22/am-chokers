@@ -38,6 +38,11 @@ const GALLERY_THUMB_GAP = 12;
 const GALLERY_ASPECT_RATIO = 1.3;
 /** Длительность смены слайда в галерее (мс); на время прыжка в fullscreen сбрасывается в 0 */
 const GALLERY_SLIDE_DURATION_MS = 550;
+/** Ширина viewport для SSR/hydration (совпадает с типичным телефоном) */
+const SSR_MOBILE_VIEWPORT_WIDTH = 390;
+/** Ширина viewport для SSR/hydration на desktop */
+const SSR_DESKTOP_VIEWPORT_WIDTH = 1200;
+const PHONE_VIEWPORT_MAX_WIDTH = 768;
 
 export type V2ProductGalleryBox = {
   w: number;
@@ -59,6 +64,8 @@ export type V2ProductGalleryProps = {
   noticeShellClassName?: string;
   noticeClassName?: string;
   className?: string;
+  /** Процент скидки для бейджа на главном слайде (мобильная вёрстка) */
+  discountPercent?: number | null;
   /** Колбэк при изменении геометрии галереи */
   onGalleryBoxChange?: (galleryBox: V2ProductGalleryBox | null) => void;
 };
@@ -171,6 +178,7 @@ export const V2ProductGallery = ({
   noticeShellClassName,
   noticeClassName,
   className,
+  discountPercent,
   onGalleryBoxChange,
 }: V2ProductGalleryProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
@@ -456,15 +464,10 @@ export const V2ProductGallery = ({
     return galleryCssVars;
   }, [isFullscreen, isMobile, galleryCssVars]);
 
-  const [isPhoneViewport, setIsPhoneViewport] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return getWidth() <= 768;
-  });
-  const [viewportWidth, setViewportWidth] = useState(() => (
-    typeof window === 'undefined' ? 1200 : getWidth()
-  ));
+  const [isPhoneViewport, setIsPhoneViewport] = useState(isMobile);
+  const [viewportWidth, setViewportWidth] = useState(
+    isMobile ? SSR_MOBILE_VIEWPORT_WIDTH : SSR_DESKTOP_VIEWPORT_WIDTH,
+  );
 
   useEffect(() => {
     /**
@@ -473,7 +476,7 @@ export const V2ProductGallery = ({
     const handleResize = () => {
       const width = getWidth();
       setViewportWidth(width);
-      setIsPhoneViewport(width <= 768);
+      setIsPhoneViewport(width <= PHONE_VIEWPORT_MAX_WIDTH);
     };
 
     handleResize();
@@ -681,6 +684,15 @@ export const V2ProductGallery = ({
             imageGalleryItems.length === 0 && styles.galleryMediaPlaceholder,
           )}
         >
+          {discountPercent && !isFullscreen ? (
+            <span
+              className={styles.galleryDiscountBadge}
+              style={{ left: galleryBox ? galleryBox.thumbOffset : 12 }}
+              aria-label={`−${discountPercent}%`}
+            >
+              −{discountPercent}%
+            </span>
+          ) : null}
           {imageGalleryItems.length === 0 ? (
             <div className={styles.galleryPlaceholder} />
           ) : (

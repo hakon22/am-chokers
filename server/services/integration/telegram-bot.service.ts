@@ -3,8 +3,7 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Telegraf } from 'telegraf';
 import { Container, Singleton } from 'typescript-ioc';
 import type { Request, Response } from 'express';
-import type { ExtraReplyMessage, MediaGroup } from 'telegraf/typings/telegram-types';
-import type { Context } from 'telegraf';
+import type { Context, Types } from 'telegraf';
 
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
@@ -179,7 +178,7 @@ export class TelegramBotService {
    * @param options - дополнительные опции Telegraf
    * @returns результат sendMessage
    */
-  public sendMessage = async (text: string, telegramId: string, options?: ExtraReplyMessage) => {
+  public sendMessage = async (text: string, telegramId: string, options?: Types.ExtraReplyMessage) => {
     if (isUserOutboundMessagingSkipped() && !isTelegramDevOutboundAllowlistedChatId(telegramId)) {
       this.loggerService.info(
         this.TAG,
@@ -206,7 +205,7 @@ export class TelegramBotService {
    * @param options - дополнительные опции
    * @returns результат sendMediaGroup
    */
-  public sendMediaGroup = async (media: MediaGroup, telegramId: string, options?: ExtraReplyMessage) => {
+  public sendMediaGroup = async (media: Types.MediaGroup, telegramId: string, options?: Types.ExtraReplyMessage) => {
     if (isUserOutboundMessagingSkipped() && !isTelegramDevOutboundAllowlistedChatId(telegramId)) {
       this.loggerService.info(
         this.TAG,

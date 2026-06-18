@@ -14,6 +14,7 @@ import {
 
 import { getMediaSourceKey, isMediaSourceLoaded, markMediaSourceLoaded } from '@/themes/v2/components/mediaLoadCache';
 import styles from '@/themes/v2/components/V2Image.module.scss';
+import { resolveImageLoading } from '@/utilities/resolveImageLoading';
 
 export type V2ImageLoadingPlaceholder = 'skeleton' | 'solid';
 
@@ -76,8 +77,11 @@ const V2ImageSkeletonWrap = forwardRef<HTMLImageElement, V2ImageSkeletonWrapProp
     className,
     style,
     src,
+    priority,
+    loading,
     ...rest
   }, ref) => {
+    const resolvedLoading = resolveImageLoading(priority, loading);
     const sourceKey = getMediaSourceKey(src);
     const imageElementRef = useRef<HTMLImageElement | null>(null);
     const [optimizerFailed, setOptimizerFailed] = useState(false);
@@ -250,6 +254,8 @@ const V2ImageSkeletonWrap = forwardRef<HTMLImageElement, V2ImageSkeletonWrapProp
           ref={assignImageRef}
           alt={alt ?? ''}
           fill={fill}
+          priority={priority}
+          loading={resolvedLoading}
           unoptimized={useDirect}
           className={cn(className, styles.imageLayer)}
           style={imageStyle}
@@ -279,8 +285,11 @@ export const V2Image = forwardRef<HTMLImageElement, V2ImageProps>(
     className,
     style,
     src,
+    priority,
+    loading,
     ...rest
   }, ref) => {
+    const resolvedLoading = resolveImageLoading(priority, loading);
     const [optimizerFailed, setOptimizerFailed] = useState(false);
     const useDirect = Boolean(unoptimized || optimizerFailed);
 
@@ -318,6 +327,8 @@ export const V2Image = forwardRef<HTMLImageElement, V2ImageProps>(
           className={className}
           style={style}
           src={src}
+          priority={priority}
+          loading={loading}
           {...rest}
         />
       );
@@ -331,6 +342,8 @@ export const V2Image = forwardRef<HTMLImageElement, V2ImageProps>(
         ref={ref}
         alt={alt ?? ''}
         fill={fill}
+        priority={priority}
+        loading={resolvedLoading}
         unoptimized={useDirect}
         className={className}
         style={style}

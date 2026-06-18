@@ -8,6 +8,7 @@ import { AutoComplete, Badge, Button, Drawer, Input, Menu, Avatar, type MenuProp
 import { useSearchParams } from 'next/navigation';
 import cn from 'classnames';
 
+import { AppImage } from '@/components/AppImage';
 import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
@@ -111,7 +112,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, isMobile, it
       </div>
       {drawerContainer && (
         <Drawer
-          title={<div className="text-center"><Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} /></div>}
+          title={<div className="text-center"><AppImage src={logoImage} unoptimized loading="lazy" className="nav-logo" alt={t('logo')} /></div>}
           getContainer={() => drawerContainer}
           closeIcon={null}
           defaultSize="100%"
@@ -313,7 +314,7 @@ export const NavBar = () => {
             </Radio.Group>
             <div className="nav-logo-container" {...(isMobile ? {} : { 'data-aos': 'fade-down' })}>
               <Link href={routes.page.base.homePage}>
-                <Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
+                <AppImage src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} />
               </Link>
             </div>
             {isSearch?.value

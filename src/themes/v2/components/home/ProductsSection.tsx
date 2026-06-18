@@ -5,7 +5,9 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
 import { MobileContext } from '@/components/Context';
+import { useCarouselInteractionAutoplayPause } from '@/hooks/useCarouselInteractionAutoplayPause';
 import { catalogPath } from '@/routes';
+import { CAROUSEL_MINIMUM_TOUCH_DRAG_PX } from '@/utilities/carouselMinimumTouchDrag';
 import { getWidth } from '@/utilities/screenExtension';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ProductCard } from '@/themes/v2/components/ProductCard';
@@ -50,6 +52,7 @@ export const ProductsSection = ({
 }: ProductsSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home' });
   const { isMobile } = useContext(MobileContext);
+  const { isAutoplayPausedByInteraction, interactionPauseProps } = useCarouselInteractionAutoplayPause();
   const [autoPlay, setAutoPlay] = useState(false);
   const [bestsellerVisibleCount, setBestsellerVisibleCount] = useState(salesHitsLimit);
 
@@ -94,27 +97,29 @@ export const ProductsSection = ({
               {t('seeAll')} →
             </Link>
           </div>
-          <Carousel
-            responsive={newsCarouselResponsive}
-            autoPlay={autoPlay}
-            autoPlaySpeed={2500}
-            infinite
-            pauseOnHover
-            shouldResetAutoplay
-            showDots={false}
-            arrows={false}
-            slidesToSlide={1}
-            swipeable
-            draggable={false}
-            minimumTouchDrag={80}
-            deviceType={isMobile ? 'mobile' : 'desktop'}
-            itemClass={styles.carouselItem}
-            containerClass={styles.carouselContainer}
-          >
-            {news.map((item) => (
-              <ProductCard key={item.id} item={item} badge="new" rating={{ rating: item.rating, grades: item.grades }} />
-            ))}
-          </Carousel>
+          <div {...interactionPauseProps}>
+            <Carousel
+              responsive={newsCarouselResponsive}
+              autoPlay={autoPlay && !isAutoplayPausedByInteraction}
+              autoPlaySpeed={2500}
+              infinite
+              pauseOnHover={false}
+              shouldResetAutoplay
+              showDots={false}
+              arrows={false}
+              slidesToSlide={1}
+              swipeable
+              draggable={false}
+              minimumTouchDrag={CAROUSEL_MINIMUM_TOUCH_DRAG_PX}
+              deviceType={isMobile ? 'mobile' : 'desktop'}
+              itemClass={styles.carouselItem}
+              containerClass={styles.carouselContainer}
+            >
+              {news.map((item) => (
+                <ProductCard key={item.id} item={item} badge="new" rating={{ rating: item.rating, grades: item.grades }} />
+              ))}
+            </Carousel>
+          </div>
         </HomeSectionWrapper>
       )}
 
@@ -126,7 +131,7 @@ export const ProductsSection = ({
               <div className={styles.eyebrow}>{t('bestsellers.eyebrow')}</div>
               <h2 className={styles.title}>{t('bestsellers.title')}</h2>
             </div>
-            <Link href={catalogPath} className={styles.seeAllLink}>
+            <Link href={`${catalogPath}?bestseller=true`} className={styles.seeAllLink}>
               {t('seeAll')} →
             </Link>
           </div>

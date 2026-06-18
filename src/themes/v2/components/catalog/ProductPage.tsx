@@ -18,8 +18,10 @@ import { ProductCard } from '@/themes/v2/components/ProductCard';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { V2ProductAdminToolbar } from '@/themes/v2/components/catalog/V2ProductAdminToolbar';
 import { V2ProductGallery } from '@/themes/v2/components/catalog/V2ProductGallery';
+import { CAROUSEL_MINIMUM_TOUCH_DRAG_PX } from '@/utilities/carouselMinimumTouchDrag';
 import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
 import { routes } from '@/routes';
+import { useCarouselInteractionAutoplayPause } from '@/hooks/useCarouselInteractionAutoplayPause';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { AuthModalContext, ItemContext, MobileContext, SubmitContext } from '@/components/Context';
@@ -34,10 +36,17 @@ import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import styles from '@/themes/v2/components/catalog/ProductPage.module.scss';
 import productsSectionStyles from '@/themes/v2/components/home/ProductsSection.module.scss';
 import { booleanSchema } from '@server/utilities/convertation.params';
+import { useV2FooterNearViewport } from '@/hooks/useV2FooterNearViewport';
 import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
+
+/** cartRow ушёл вверх за viewport — показываем fixed bar */
+const CART_ROW_STICKY_BAR_OFFSET = 0;
+/** Зона у низа экрана: bar + отступ (mobile — с BottomNav) */
+const STICKY_BAR_FOOTER_ZONE_MOBILE = 128;
+const STICKY_BAR_FOOTER_ZONE_DESKTOP = 88;
 
 export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
@@ -57,6 +66,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const { openAuthModal } = useContext(AuthModalContext);
   const { setItem: setContextItem } = useContext(ItemContext);
   const { isMobile } = useContext(MobileContext);
+  const { isAutoplayPausedByInteraction, interactionPauseProps } = useCarouselInteractionAutoplayPause();
   const seoUserLang = useSeoUserLang();
   const languageCode = useSeoLanguage();
 
@@ -66,6 +76,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const [openSection, setOpenSection] = useState<string | null>('description');
   const [qty, setQty] = useState(1);
   const cartRowRef = useRef<HTMLDivElement>(null);
+  const cartRowVisibleRef = useRef(true);
   const [cartRowVisible, setCartRowVisible] = useState(true);
   const infoRef = useRef<HTMLDivElement>(null);
   const [infoRect, setInfoRect] = useState<{ left: number; width: number } | null>(null);
@@ -180,6 +191,11 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     return () => document.body.classList.remove('v2-product-mobile');
   }, [isMobile]);
 
+  const footerNearViewport = useV2FooterNearViewport(
+    isMobile ? STICKY_BAR_FOOTER_ZONE_MOBILE : STICKY_BAR_FOOTER_ZONE_DESKTOP,
+  );
+  const isStickyBarVisible = !cartRowVisible && !footerNearViewport;
+
   useEffect(() => {
     const el = cartRowRef.current;
     if (!el) {
@@ -188,12 +204,17 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setCartRowVisible(true);
-        } else if (entry.boundingClientRect.top < 0) {
-          // элемент ушёл вверх — пользователь прокрутил ниже кнопки
+          if (!cartRowVisibleRef.current) {
+            cartRowVisibleRef.current = true;
+            setCartRowVisible(true);
+          }
+          return;
+        }
+
+        if (entry.boundingClientRect.top < -CART_ROW_STICKY_BAR_OFFSET && cartRowVisibleRef.current) {
+          cartRowVisibleRef.current = false;
           setCartRowVisible(false);
         }
-        // если элемент ниже viewport — ничего не меняем (страница ещё не дошла до кнопки)
       },
       { threshold: 0 },
     );
@@ -295,6 +316,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
             showNotice
             noticeShellClassName={styles.noticeShell}
             noticeClassName={styles.notice}
+            discountPercent={discountPercent}
           />
         </div>{/* /galleryCol */}
 
@@ -333,26 +355,28 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
           {/* Price */}
           <div className={styles.priceRow}>
-            <span className={styles.priceMain}>
-              {t('price', { price: discountPrice ? price - discountPrice : price })}
-            </span>
-            {discountPrice ? (
-              <>
+            <span className={styles.priceGroup}>
+              <span className={styles.priceMain}>
+                {t('price', { price: discountPrice ? price - discountPrice : price })}
+              </span>
+              {discountPrice ? (
                 <span className={styles.priceOld}>{t('price', { price })}</span>
-                {discountPercent && <span className={styles.priceBadge}>−{discountPercent}%</span>}
-              </>
+              ) : null}
+            </span>
+            {discountPrice && discountPercent ? (
+              <span className={styles.priceBadge}>−{discountPercent}%</span>
             ) : null}
             {/* Mobile: rating inline next to price */}
             <div className={styles.mobileRatingInline}>
-              <Rate disabled allowHalf value={grade} style={{ fontSize: 11 }} />
-              <strong style={{ fontSize: 12, color: '#2B3C5F' }}>{grade}</strong>
+              <Rate disabled allowHalf count={isMobile && discountPrice ? 1 : undefined} value={grade} />
+              <strong>{grade}</strong>
               <span className={styles.ratingDot}>·</span>
               {gradeCount > 0 ? (
                 <button className={styles.ratingLink} onClick={() => scrollToElement('grades', 120)} type="button">
                   {t('grades.gradeCount', { count: gradeCount })}
                 </button>
               ) : (
-                <span style={{ color: '#A1B3CD', fontSize: 12 }}>{t('grades.gradeCount', { count: 0 })}</span>
+                <span className={styles.ratingEmpty}>{t('grades.gradeCount', { count: 0 })}</span>
               )}
             </div>
           </div>
@@ -632,44 +656,47 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
           <div className={styles.sectionHeader}>
             <div className={styles.sectionEyebrow}>{t('relatedEyebrow')}</div>
           </div>
-          <Carousel
-            autoPlaySpeed={2500}
-            infinite
-            autoPlay
-            pauseOnHover
-            shouldResetAutoplay
-            showDots={false}
-            arrows={false}
-            slidesToSlide={1}
-            swipeable
-            draggable={false}
-            minimumTouchDrag={80}
-            deviceType={isMobile ? 'mobile' : 'desktop'}
-            itemClass={productsSectionStyles.carouselItem}
-            containerClass={productsSectionStyles.carouselContainer}
-            partialVisible
-            responsive={{
-              desktop: { breakpoint: { max: 5000, min: 1200 }, items: 4, partialVisibilityGutter: 40 },
-              tablet:  { breakpoint: { max: 1199, min: 768 },  items: 3, partialVisibilityGutter: 30 },
-              mobile:  { breakpoint: { max: 767,  min: 0 },    items: 2, partialVisibilityGutter: 20 },
-            }}
-          >
-            {relatedGroupItems.map((relatedItem) => (
-              <ProductCard
-                key={relatedItem.id}
-                item={relatedItem}
-                rating={{ rating: relatedItem.rating, grades: relatedItem.grades }}
-                outStock={relatedItem.outStock ?? undefined}
-              />
-            ))}
-          </Carousel>
+          <div {...interactionPauseProps}>
+            <Carousel
+              autoPlaySpeed={2500}
+              infinite
+              autoPlay={!isAutoplayPausedByInteraction}
+              pauseOnHover={false}
+              shouldResetAutoplay
+              showDots={false}
+              arrows={false}
+              slidesToSlide={1}
+              swipeable
+              draggable={false}
+              minimumTouchDrag={CAROUSEL_MINIMUM_TOUCH_DRAG_PX}
+              deviceType={isMobile ? 'mobile' : 'desktop'}
+              itemClass={productsSectionStyles.carouselItem}
+              containerClass={productsSectionStyles.carouselContainer}
+              partialVisible
+              responsive={{
+                desktop: { breakpoint: { max: 5000, min: 1200 }, items: 4, partialVisibilityGutter: 40 },
+                tablet:  { breakpoint: { max: 1199, min: 768 },  items: 3, partialVisibilityGutter: 30 },
+                mobile:  { breakpoint: { max: 767,  min: 0 },    items: 2, partialVisibilityGutter: 20 },
+              }}
+            >
+              {relatedGroupItems.map((relatedItem) => (
+                <ProductCard
+                  key={relatedItem.id}
+                  item={relatedItem}
+                  rating={{ rating: relatedItem.rating, grades: relatedItem.grades }}
+                  outStock={relatedItem.outStock ?? undefined}
+                />
+              ))}
+            </Carousel>
+          </div>
         </div>
       )}
       {/* ── Sticky cart bar ── */}
-      {!item.deleted && !cartRowVisible && (
+      {!item.deleted && (
         <div
-          className={styles.stickyBar}
+          className={cn(styles.stickyBar, !isStickyBarVisible && styles.stickyBarHidden)}
           style={!isMobile && infoRect ? { left: infoRect.left, width: infoRect.width } as CSSProperties : undefined}
+          aria-hidden={!isStickyBarVisible}
         >
           <V2CartControl
             variant="page"

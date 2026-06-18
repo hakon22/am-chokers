@@ -14,9 +14,7 @@ const nextConfig = {
     '@ant-design/icons-svg',
   ],
   reactStrictMode: false,
-  experimental: {
-    turbopackFileSystemCacheForDev: true,
-  },
+  allowedDevOrigins: ['192.168.0.103'],
   images: {
     qualities: [100, 75],
     /** Кэш ответов /_next/image на сервере (сек.); фото товаров с uuid в имени редко меняются */

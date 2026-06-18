@@ -27,7 +27,7 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
         <Row gutter={[40, 32]}>
           {/* Brand */}
           <Col lg={8} xs={24}>
-            <V2Image src={logoImage} alt="AM Chokers" unoptimized className={styles.footerLogo} />
+            <V2Image src={logoImage} alt="AM Chokers" unoptimized loading="lazy" className={styles.footerLogo} />
             <div className={styles.brandSub}>{tv2('brandTagline')}</div>
             <p className={styles.brandDesc}>{tv2('brandDesc')}</p>
             <div className={styles.socialBlock}>

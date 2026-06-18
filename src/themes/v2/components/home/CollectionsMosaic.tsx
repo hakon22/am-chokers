@@ -11,6 +11,9 @@ import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import type { GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
 
+/** sizes для плиток коллекций (colGrid: 4 / 3 / 2 колонки) */
+const COLLECTION_COVER_SIZES = '(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw';
+
 interface CollectionsMosaicProps {
   collections: ItemCollectionEntity[];
   coverImages?: GeneralPageCoverImageInterface;
@@ -42,7 +45,7 @@ export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosai
             <ContextMenu key={collection.id} cover={collection.id} isCoverCollection image={img} siteVersion={2} style={{ height: '100%' }}>
               <Link href={`${catalogPath}?collectionIds=${collection.id}`} className={styles.tile}>
                 {img && (
-                  <V2Image src={img.src} alt={name} fill style={{ objectFit: 'cover' }} />
+                  <V2Image src={img.src} alt={name} fill sizes={COLLECTION_COVER_SIZES} style={{ objectFit: 'cover' }} />
                 )}
                 <div className={styles.tileOverlay} />
                 <div className={styles.tileBody}>

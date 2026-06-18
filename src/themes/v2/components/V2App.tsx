@@ -19,6 +19,18 @@ import { AuthModal } from '@/themes/v2/components/AuthModal';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import type { AuthModalView } from '@/components/Context';
 
+const FOOTER_CONTENT_GAP = 40;
+
+/**
+ * Откладывает измерение до следующего кадра после применения CSS body.v2-mobile
+ * @param measureFooterHeight - callback измерения высоты footer
+ */
+const scheduleFooterHeightMeasure = (measureFooterHeight: () => void): void => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(measureFooterHeight);
+  });
+};
+
 export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'spinner' });
   const router = useRouter();
@@ -45,24 +57,43 @@ export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGro
   useMobileContext();
 
   useEffect(() => {
-    const handleResize = () => {
-      if (footerRef.current) {
-        const height = footerRef.current.getBoundingClientRect().height;
-        setFooterHeight(Math.round(height));
+    /**
+     * Сохраняет высоту footer для paddingBottom контентной области
+     */
+    const measureFooterHeight = (): void => {
+      const { current: footerElement } = footerRef;
+
+      if (!footerElement) {
+        return;
       }
+
+      const { height } = footerElement.getBoundingClientRect();
+      setFooterHeight(Math.round(height));
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [footerRef]);
-
-  useEffect(() => {
-    if (!isMobile) {
-      return;
+    if (isMobile) {
+      document.body.classList.add('v2-mobile');
+    } else {
+      document.body.classList.remove('v2-mobile');
     }
-    document.body.classList.add('v2-mobile');
-    return () => document.body.classList.remove('v2-mobile');
+
+    scheduleFooterHeightMeasure(measureFooterHeight);
+
+    const { current: footerElement } = footerRef;
+    let resizeObserver: ResizeObserver | undefined;
+
+    if (footerElement && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(measureFooterHeight);
+      resizeObserver.observe(footerElement);
+    }
+
+    window.addEventListener('resize', measureFooterHeight);
+
+    return () => {
+      document.body.classList.remove('v2-mobile');
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', measureFooterHeight);
+    };
   }, [isMobile]);
 
   const isHomePage = router.pathname === routes.page.base.homePage;
@@ -76,7 +107,7 @@ export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGro
           <NavBar itemGroups={itemGroups} />
           <Breadcrumb />
         </header>
-        <div style={{ paddingBottom: footerHeight + 40 }}>
+        <div style={{ paddingBottom: footerHeight + FOOTER_CONTENT_GAP }}>
           <FloatButton.BackTop />
           {isHomePage ? (
             children
