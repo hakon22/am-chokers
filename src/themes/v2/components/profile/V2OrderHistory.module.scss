@@ -27,7 +27,7 @@ $success: v2.$v2-success;
   padding: 60px 0;
   color: $textM;
   font-size: 15px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 // ── Order card ────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ $success: v2.$v2-success;
 }
 
 .cardId {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 20px;
   font-weight: 400;
   color: $navy;
@@ -112,7 +112,7 @@ $success: v2.$v2-success;
   color: $textS;
   cursor: pointer;
   transition: all 0.15s;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 
   &:hover { border-color: $navy3; color: $navy2; }
 }
@@ -333,7 +333,7 @@ $success: v2.$v2-success;
   border: 1px solid $border;
   border-radius: 10px;
   background: transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   color: $textS;
   cursor: pointer;

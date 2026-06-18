@@ -17,7 +17,7 @@ $navy2:  v2.$v2-navy-secondary;
 }
 
 .label {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -41,7 +41,7 @@ $navy2:  v2.$v2-navy-secondary;
   height: 30px;
   padding: 0 12px;
   border-radius: 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.2px;
@@ -86,7 +86,7 @@ $navy2:  v2.$v2-navy-secondary;
   border-radius: 20px;
   border: 1.5px solid $border;
   background: transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1px;

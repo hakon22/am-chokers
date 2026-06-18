@@ -27,7 +27,7 @@ $success: v2.$v2-success;
   font-size: 13px;
   color: $textS;
   text-decoration: none;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   transition: color 0.15s;
 
   &:hover { color: $navy2; }
@@ -47,7 +47,7 @@ $success: v2.$v2-success;
 .headerMeta { display: flex; flex-direction: column; gap: 6px; }
 
 .orderTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 26px;
   font-weight: 300;
   color: $navy;
@@ -127,7 +127,7 @@ $success: v2.$v2-success;
   color: $textS;
   cursor: pointer;
   transition: all 0.15s;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 
   &:hover { border-color: $navy3; color: $navy2; }
 }
@@ -157,7 +157,7 @@ $success: v2.$v2-success;
 }
 
 .sectionTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 20px;
   font-weight: 400;
   color: $navy;
@@ -197,7 +197,7 @@ $success: v2.$v2-success;
 .itemEyebrow { @include eyebrow; }
 
 .itemName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 17px;
   font-weight: 400;
   color: $navy;
@@ -330,7 +330,7 @@ $success: v2.$v2-success;
 .infoLabel {
   color: $textS;
   font-size: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   flex-shrink: 0;
 }
 
@@ -338,7 +338,7 @@ $success: v2.$v2-success;
   font-size: 13px;
   font-weight: 600;
   color: $textD;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   text-align: right;
 }
 
@@ -359,7 +359,7 @@ $success: v2.$v2-success;
   text-transform: uppercase;
   font-weight: 600;
   color: $textS;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 .totalValue {

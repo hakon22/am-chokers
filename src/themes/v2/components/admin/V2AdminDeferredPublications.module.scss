@@ -19,7 +19,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 40px;
   font-weight: 300;
   color: $navy;
@@ -65,7 +65,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .sectionTitle {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -96,7 +96,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .thCell {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.8px;
@@ -139,7 +139,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .itemName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 16px;
   font-weight: 400;
   color: $textD;
@@ -151,7 +151,7 @@ $textM:  v2.$v2-text-muted;
 
 // ── Date cell ─────────────────────────────────────────────────────
 .dateCell {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   color: $textM;
   white-space: nowrap;

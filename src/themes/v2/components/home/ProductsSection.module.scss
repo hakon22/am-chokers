@@ -24,7 +24,7 @@
 }
 
 .title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 36px;
   font-weight: 400;
   color: v2.$v2-navy-primary;
@@ -254,7 +254,7 @@
 }
 
 .cardName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 17px;
   color: v2.$v2-navy-primary;
   margin-bottom: 8px;
@@ -308,7 +308,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 
   &:hover {
     background: v2.$v2-bg-alt;
@@ -408,7 +408,7 @@
 }
 
 .outStockLabel {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: v2.$v2-font-sans;
   @include v2mixins.v2-readable-font-size(10.5px);
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -423,7 +423,7 @@
 }
 
 .outStockDate {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: v2.$v2-font-sans;
   @include v2mixins.v2-readable-font-size(10px);
   font-weight: 600;
   letter-spacing: 0.06em;

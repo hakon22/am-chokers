@@ -9,7 +9,7 @@
 }
 
 .title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 400;
   color: v2.$v2-navy-primary;
@@ -40,7 +40,7 @@
   border-radius: 10px !important;
   border: 1px solid v2.$v2-navy-primary !important;
   background: v2.$v2-bg-alt !important;
-  font-family: 'Inter', sans-serif !important;
+  font-family: v2.$v2-font-sans !important;
   font-size: 20px !important;
   font-weight: 500 !important;
   color: v2.$v2-text-dark !important;
@@ -79,7 +79,7 @@
   bottom: -28px;
   transform: translateX(-50%);
   color: v2.$v2-error;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   text-align: center;
   white-space: nowrap;
@@ -88,7 +88,7 @@
 
 .hint {
   margin: 0 0 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   font-weight: 400;
   color: v2.$v2-text-muted;
@@ -97,7 +97,7 @@
 
 .timer {
   margin: 0 0 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   color: v2.$v2-text-secondary;
   text-align: center;
@@ -110,7 +110,7 @@
   padding: 0;
   border: none;
   background: none;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   font-weight: 500;
   color: v2.$v2-navy-secondary;

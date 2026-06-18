@@ -13,7 +13,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 40px;
   font-weight: 300;
   color: $navy;
@@ -57,7 +57,7 @@ $textM:  v2.$v2-text-muted;
   border: 1px solid $border;
 
   :global(.ant-card-head-title) {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: v2.$v2-font-serif;
     font-size: 22px;
     color: $navy;
   }
@@ -72,7 +72,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .campaignButton {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
 }
 
@@ -96,7 +96,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .kpiTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 20px;
   font-weight: 500;
   margin: 0 0 12px;

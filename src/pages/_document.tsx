@@ -14,7 +14,7 @@ interface DocumentPropsInterface extends DocumentInitialProps {
 }
 
 /**
- * Кастомный Document: lang на html и preload критичных шрифтов v2 (D6)
+ * Кастомный Document: lang на html и preload критичных шрифтов v2
  */
 export default class CustomDocument extends Document<DocumentPropsInterface> {
   /**

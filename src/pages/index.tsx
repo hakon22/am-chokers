@@ -31,6 +31,7 @@ import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
 import { setAppData } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
+import { getCachedSiteSettings } from '@/lib/server/app-bootstrap-cache';
 import type { ItemInterface, ItemGroupInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { BannerInterface, BannerListResponseInterface } from '@/types/banner/BannerInterface';
@@ -49,9 +50,16 @@ const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterf
 export const getServerSideProps = async () => {
   const salesHitsLimit = 4;
 
-  const [{ data: { specialItems } }, { data: { siteSettings } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
+  const siteSettings = await getCachedSiteSettings(async () => {
+    const { data: { siteSettings: fetchedSiteSettings } } = await axios.get<{ siteSettings: SiteSettingsInterface; }>(
+      routes.settings.getSettings({ isServer: false }),
+    );
+
+    return fetchedSiteSettings;
+  });
+
+  const [{ data: { specialItems } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
     axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
-    axios.get<{ siteSettings: SiteSettingsInterface; }>(routes.settings.getSettings({ isServer: false })),
     axios.get<BannerListResponseInterface>(routes.banner.findMany({ isServer: false })),
     axios.get<{ itemCollections: ItemCollectionEntity[]; }>(routes.itemCollection.findMany({ isServer: false })),
   ]);

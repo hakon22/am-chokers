@@ -29,7 +29,7 @@ $error:   v2.$v2-error;
 }
 
 .cardTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 20px;
   font-weight: 400;
   color: $navy;
@@ -48,7 +48,7 @@ $error:   v2.$v2-error;
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 .cacheRow {

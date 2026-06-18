@@ -24,7 +24,7 @@ $success: v2.$v2-success;
 
 // ── Page title ────────────────────────────────────────────────────
 @mixin page-title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 300;
   color: $navy;
@@ -34,7 +34,7 @@ $success: v2.$v2-success;
 
 // ── Section label ─────────────────────────────────────────────────
 @mixin label {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -44,7 +44,7 @@ $success: v2.$v2-success;
 
 // ── Eyebrow ───────────────────────────────────────────────────────
 @mixin eyebrow {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -59,7 +59,7 @@ $success: v2.$v2-success;
   color: $white;
   border: 2px solid $navy2;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -85,7 +85,7 @@ $success: v2.$v2-success;
   color: $navy2;
   border: 1.5px solid $navy2;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -108,7 +108,7 @@ $success: v2.$v2-success;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   padding: 10px 0;
   border-bottom: 1px solid $border;

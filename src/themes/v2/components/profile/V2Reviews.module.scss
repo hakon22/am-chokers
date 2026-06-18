@@ -49,7 +49,7 @@ $textM:  v2.$v2-text-muted;
 .cardEyebrow { @include eyebrow; }
 
 .cardName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 17px;
   font-weight: 400;
   color: $navy;
@@ -131,7 +131,7 @@ $textM:  v2.$v2-text-muted;
   padding: 60px 0;
   color: $textM;
   font-size: 15px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 .endLine {

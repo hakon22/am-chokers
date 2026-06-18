@@ -104,7 +104,7 @@
 }
 
 .colTitle {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   @include v2mixins.v2-readable-font-size(11px);
   letter-spacing: 2px;
   text-transform: uppercase;

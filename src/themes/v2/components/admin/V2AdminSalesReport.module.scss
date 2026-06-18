@@ -14,7 +14,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 40px;
   font-weight: 300;
   color: $navy;
@@ -98,7 +98,7 @@ $textM:  v2.$v2-text-muted;
   :global(.ant-statistic-content-value-decimal),
   :global(.ant-statistic-content-suffix) {
     color: $navy;
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: v2.$v2-font-serif;
     font-size: 36px;
     line-height: 1;
   }
@@ -140,7 +140,7 @@ $textM:  v2.$v2-text-muted;
   border: 1px solid $border;
 
   :global(.ant-card-head-title) {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: v2.$v2-font-serif;
     font-size: 22px;
     color: $navy;
   }
@@ -173,7 +173,7 @@ $textM:  v2.$v2-text-muted;
   border: 1px solid $border;
 
   :global(.ant-card-head-title) {
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: v2.$v2-font-serif;
     font-size: 22px;
     color: $navy;
   }
@@ -183,7 +183,7 @@ $textM:  v2.$v2-text-muted;
   }
 
   :global(.ant-tabs-tab) {
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     font-size: 12px;
     letter-spacing: 0.6px;
     text-transform: uppercase;
@@ -204,7 +204,7 @@ $textM:  v2.$v2-text-muted;
     background: $bgAlt !important;
     border-bottom: 1px solid $border !important;
     padding: 12px 24px !important;
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1.8px;

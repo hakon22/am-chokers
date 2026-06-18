@@ -28,7 +28,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 32px;
   font-weight: 300;
   color: $navy;
@@ -61,7 +61,7 @@ $textM:  v2.$v2-text-muted;
   gap: 10px;
 
   :global(.ant-checkbox-wrapper) {
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     font-size: 13px;
     color: $textD;
     line-height: 1.4;
@@ -191,7 +191,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .bulkMeta {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 500;
   color: $textS;
@@ -251,7 +251,7 @@ $textM:  v2.$v2-text-muted;
 
 // V2-style Ant buttons in bulk bar (compact primary / outline like profile-shared)
 .bulkBtn:global(.ant-btn) {
-  font-family: 'Inter', sans-serif !important;
+  font-family: v2.$v2-font-sans !important;
   font-weight: 600 !important;
   font-size: 12px !important;
   line-height: 1.25 !important;
@@ -419,13 +419,13 @@ $admin-item-preview-w: 200px;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   color: $textS;
 }
 
 .itemGroup {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.4px;
@@ -434,7 +434,7 @@ $admin-item-preview-w: 200px;
 }
 
 .itemName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 20px;
   font-weight: 400;
   color: $textD;
@@ -442,14 +442,14 @@ $admin-item-preview-w: 200px;
 }
 
 .itemOutStock {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   color: #5a9db8;
   line-height: 1.3;
 }
 
 .itemPrice {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 15px;
   font-weight: 600;
   color: $navy;
@@ -465,7 +465,7 @@ $admin-item-preview-w: 200px;
 }
 
 .cardLink {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   color: $textM;
   cursor: pointer;
@@ -484,7 +484,7 @@ $admin-item-preview-w: 200px;
   color: $textM;
   padding: 24px 0 0;
   letter-spacing: 1px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 // ── Responsive ────────────────────────────────────────────────────

@@ -59,7 +59,7 @@ $error:  v2.$v2-error;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 300;
   color: $white;
@@ -69,7 +69,7 @@ $error:  v2.$v2-error;
 }
 
 .userName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 20px;
   font-weight: 400;
   color: $navy;
@@ -91,7 +91,7 @@ $error:  v2.$v2-error;
   gap: 12px;
   padding: 11px 14px;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   font-weight: 400;
   color: $textS;
@@ -229,7 +229,7 @@ $error:  v2.$v2-error;
   border-radius: 12px;
   background: transparent;
   border: 1px solid transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   color: $textS;
   cursor: pointer;
@@ -266,7 +266,7 @@ $error:  v2.$v2-error;
 }
 
 .noAuthTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 32px;
   font-weight: 300;
   color: $navy;
@@ -293,7 +293,7 @@ $error:  v2.$v2-error;
   color: $white;
   border: 2px solid $navy2;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -318,7 +318,7 @@ $error:  v2.$v2-error;
   color: $navy2;
   border: 2px solid $navy2;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -352,14 +352,14 @@ $error:  v2.$v2-error;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 18px;
   color: $white;
   flex-shrink: 0;
 }
 
 .mobileUserName {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 15px;
   font-weight: 500;
   color: $navy;
@@ -376,7 +376,7 @@ $error:  v2.$v2-error;
   text-transform: uppercase;
   color: $textS;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   transition: all 0.18s;
   white-space: nowrap;
 
@@ -416,7 +416,7 @@ $error:  v2.$v2-error;
   align-items: center;
   gap: 6px;
   padding: 14px 14px 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 500;
   color: $textS;
@@ -442,7 +442,7 @@ $error:  v2.$v2-error;
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 // ── Admin bottom sheet ────────────────────────────────────────────
@@ -517,7 +517,7 @@ $error:  v2.$v2-error;
 .sheetLink {
   display: block;
   padding: 13px 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   color: $textS;
   text-decoration: none;

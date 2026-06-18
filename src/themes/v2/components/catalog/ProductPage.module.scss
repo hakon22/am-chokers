@@ -1,4 +1,5 @@
 @use '@/themes/v2/styles/mixins' as v2mixins;
+@use '@/themes/v2/styles/variables' as v2;
 // ── Tokens ─────────────────────────────────────────────────────
 $navy-primary:   #2B3C5F;
 $navy-secondary: #3B5382;
@@ -124,7 +125,7 @@ $error:          #e05c5c;
 }
 
 .infoName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 42px;
   font-weight: 300;
   line-height: 1.15;
@@ -320,7 +321,7 @@ $error:          #e05c5c;
   letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -443,7 +444,7 @@ $error:          #e05c5c;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 1.2px;
@@ -568,7 +569,7 @@ $error:          #e05c5c;
 }
 
 .sectionTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 32px;
   font-weight: 300;
   color: $navy-primary;

@@ -20,7 +20,7 @@ $textM:  v2.$v2-text-muted;
 
 // ── Page title ────────────────────────────────────────────────────
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 40px;
   font-weight: 300;
   color: $navy;
@@ -50,7 +50,7 @@ $textM:  v2.$v2-text-muted;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -86,7 +86,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .infoSectionTitle {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -103,7 +103,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .infoLabel {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -112,7 +112,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .infoValue {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   font-weight: 500;
   color: $textD;
@@ -120,7 +120,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .infoLink {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   font-weight: 600;
   color: $navy2;
@@ -136,7 +136,7 @@ $textM:  v2.$v2-text-muted;
   align-self: flex-start;
   align-items: center;
   gap: 5px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 600;
   color: #0088cc;
@@ -147,7 +147,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .telegramOff {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   color: $textM;
 }
@@ -178,7 +178,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .statLabel {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -187,7 +187,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .statValue {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 400;
   color: $navy;
@@ -195,7 +195,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .statLink {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 400;
   color: $navy2;
@@ -217,7 +217,7 @@ $favorite-thumb-h: 104px;
 }
 
 .sectionTitle {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
@@ -281,7 +281,7 @@ $favorite-thumb-h: 104px;
 }
 
 .favoriteName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 15px;
   font-weight: 400;
   color: $textD;
@@ -294,7 +294,7 @@ $favorite-thumb-h: 104px;
 }
 
 .favoritePrice {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -306,7 +306,7 @@ $favorite-thumb-h: 104px;
 }
 
 .emptyFavorites {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   color: $textM;
   font-style: italic;

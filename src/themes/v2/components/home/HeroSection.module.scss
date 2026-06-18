@@ -121,7 +121,7 @@ $hero-mock-gold-soft: rgba(201, 169, 98, 0.35);
 }
 
 .heroH1 {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 52px;
   font-weight: 300;
   line-height: 1.15;
@@ -314,7 +314,7 @@ $hero-mock-gold-soft: rgba(201, 169, 98, 0.35);
 }
 
 .heroImgLabel {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 15px;
   font-style: italic;
   color: v2.$v2-text-muted;

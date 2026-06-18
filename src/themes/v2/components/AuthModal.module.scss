@@ -3,7 +3,7 @@
 // Full-width primary actions: navy, white label, Inter, flat (matches v2 screenshots)
 .primaryAction {
   margin-top: 4px;
-  font-family: 'Inter', sans-serif !important;
+  font-family: v2.$v2-font-sans !important;
   font-weight: 500;
   font-size: 15px;
   line-height: 1.35;
@@ -24,7 +24,7 @@
 }
 
 .title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 400;
   color: v2.$v2-navy-primary;
@@ -46,7 +46,7 @@
   font-size: 13px;
   cursor: pointer;
   text-decoration: underline;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 
   &:hover {
     color: v2.$v2-navy-primary;
@@ -62,7 +62,7 @@
 }
 
 .successTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 24px;
   font-weight: 400;
   color: v2.$v2-navy-primary;

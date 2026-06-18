@@ -18,7 +18,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 32px;
   font-weight: 300;
   color: $navy;
@@ -103,7 +103,7 @@ $textM:  v2.$v2-text-muted;
 }
 
 .cardLink {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   color: $textM;
   cursor: pointer;
@@ -131,7 +131,7 @@ $textM:  v2.$v2-text-muted;
   color: $textM;
   padding: 24px 0 0;
   letter-spacing: 1px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 }
 
 // ── Responsive ────────────────────────────────────────────────────

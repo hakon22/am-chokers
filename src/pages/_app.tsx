@@ -33,6 +33,7 @@ import { TelegramMiniAppPageShell } from '@/components/telegram/TelegramMiniAppP
 import { TelegramOrderAppRoutesContext, telegramOrderAppRoutesMiniApp } from '@/contexts/TelegramOrderAppRoutesContext';
 import { setAppData } from '@/slices/appSlice';
 import i18n, { getSeoI18n, resolveClientLanguage } from '@/locales';
+import { getCachedItemGroups, getCachedSiteSettings } from '@/lib/server/app-bootstrap-cache';
 import { getRequestLanguageFromCookieHeader } from '@/lib/server/get-request-language';
 import { HtmlLangSync } from '@/components/HtmlLangSync';
 import { CookieConsentBanner } from '@/components/cookie-consent/CookieConsentBanner';
@@ -205,15 +206,22 @@ const Init = (props: InitPropsInterface) => {
 };
 
 Init.getInitialProps = async (context: AppContext) => {
-  const [
-    { data: { itemGroups } },
-    { data: settingsData },
-  ] = await Promise.all([
-    axios.get<{ itemGroups: ItemGroupInterface[]; }>(routes.itemGroup.findMany({ isServer: false })),
-    axios.get<{ code: number; siteSettings?: SiteSettingsInterface; }>(routes.settings.getSettings({ isServer: false })),
-  ]);
+  const [itemGroups, siteSettings] = await Promise.all([
+    getCachedItemGroups(async () => {
+      const { data: { itemGroups: fetchedItemGroups } } = await axios.get<{ itemGroups: ItemGroupInterface[]; }>(
+        routes.itemGroup.findMany({ isServer: false }),
+      );
 
-  const siteSettings = settingsData.siteSettings ?? emptySiteSettings;
+      return fetchedItemGroups;
+    }),
+    getCachedSiteSettings(async () => {
+      const { data: settingsData } = await axios.get<{ code: number; siteSettings?: SiteSettingsInterface; }>(
+        routes.settings.getSettings({ isServer: false }),
+      );
+
+      return settingsData.siteSettings ?? emptySiteSettings;
+    }),
+  ]);
   const siteVersion = siteSettings.siteVersion;
 
   const { req } = context.ctx;

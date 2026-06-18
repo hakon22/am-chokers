@@ -24,7 +24,7 @@
 }
 
 .title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 36px;
   font-weight: 400;
   color: v2.$v2-navy-primary;
@@ -81,7 +81,7 @@
 }
 
 .socialItemPh {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-style: italic;
   font-size: 28px;
   color: v2.$v2-text-muted;

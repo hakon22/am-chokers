@@ -34,7 +34,7 @@
     :global(.ant-breadcrumb-link) {
       font-size: 15px;
       color: v2.$v2-text-secondary;
-      font-family: 'Inter', sans-serif;
+      font-family: v2.$v2-font-sans;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

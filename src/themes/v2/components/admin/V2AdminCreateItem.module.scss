@@ -28,7 +28,7 @@ $error:   v2.$v2-error;
 }
 
 .pageTitle {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 32px;
   font-weight: 300;
   color: $navy;
@@ -44,7 +44,7 @@ $error:   v2.$v2-error;
   border: 1.5px solid $border;
   border-radius: 10px;
   padding: 8px 16px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -110,13 +110,13 @@ $error:   v2.$v2-error;
   }
 
   :global(.ant-upload-text) {
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     font-size: 14px;
     color: $textD !important;
   }
 
   :global(.ant-upload-hint) {
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     font-size: 12px;
     color: $textM !important;
   }
@@ -131,7 +131,7 @@ $error:   v2.$v2-error;
   height: 48px;
   border-radius: 12px;
   border: 1.5px solid $border;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   letter-spacing: 0.5px;
   color: $textD;
@@ -179,7 +179,7 @@ $error:   v2.$v2-error;
 }
 
 .nameInput {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 22px !important;
   font-weight: 400;
   color: $textD;
@@ -208,7 +208,7 @@ $error:   v2.$v2-error;
 
 .select {
   min-width: 160px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
 }
 
@@ -224,7 +224,7 @@ $error:   v2.$v2-error;
 }
 
 .badge {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   font-weight: 600;
   color: $textD;
@@ -251,14 +251,14 @@ $error:   v2.$v2-error;
 .priceInput {
   min-width: 140px;
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 15px;
   font-weight: 600;
 }
 
 .datePicker {
   min-width: 160px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
 }
 
@@ -284,7 +284,7 @@ $error:   v2.$v2-error;
 }
 
 .textarea {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   line-height: 1.7;
   letter-spacing: 0.3px;
@@ -311,7 +311,7 @@ $error:   v2.$v2-error;
   border: none;
   border-radius: 10px;
   padding: 8px 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -338,7 +338,7 @@ $error:   v2.$v2-error;
 }
 
 .attributeLabel {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.8px;
@@ -348,7 +348,7 @@ $error:   v2.$v2-error;
 
 .selectMulti {
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
 }
 
@@ -368,7 +368,7 @@ $error:   v2.$v2-error;
 }
 
 .attributeInput {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 14px;
   padding-left: 0 !important;
 }

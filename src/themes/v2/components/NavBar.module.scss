@@ -12,7 +12,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   overflow: visible;
 }
 
@@ -43,7 +43,7 @@
     @include v2mixins.v2-readable-font-size(10px);
     letter-spacing: 1px;
     text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     color: v2.$v2-text-secondary;
     border-color: v2.$v2-border;
     background: transparent;
@@ -328,7 +328,7 @@
     font-weight: 600;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
+    font-family: v2.$v2-font-sans;
     color: v2.$v2-text-secondary;
     border-color: v2.$v2-border;
     background: transparent;

@@ -25,7 +25,7 @@ $error:  v2.$v2-error;
   padding: 60px 0;
   color: $textM;
   font-size: 15px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
 
   svg { font-size: 40px; }
 }
@@ -76,7 +76,7 @@ $error:  v2.$v2-error;
 }
 
 .itemName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 18px;
   font-weight: 400;
   color: $navy;

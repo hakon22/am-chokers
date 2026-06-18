@@ -23,7 +23,7 @@ $success: v2.$v2-success;
 
 // ── Title ─────────────────────────────────────────────────────────
 .title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 42px;
   font-weight: 300;
   color: $navy;
@@ -184,7 +184,7 @@ $success: v2.$v2-success;
 }
 
 .itemName {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 19px;
   font-weight: 400;
   color: $navy;
@@ -478,7 +478,7 @@ $success: v2.$v2-success;
   color: $white;
   cursor: pointer;
   transition: all 0.2s;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   margin-bottom: 16px;
 
   &:hover {
@@ -614,7 +614,7 @@ $success: v2.$v2-success;
   letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 12px;

@@ -25,7 +25,7 @@ $success: v2.$v2-success;
 
 // ── Section title ─────────────────────────────────────────────────
 .title {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: v2.$v2-font-serif;
   font-size: 28px;
   font-weight: 300;
   color: $navy;
@@ -48,7 +48,7 @@ $success: v2.$v2-success;
 }
 
 .label {
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -84,7 +84,7 @@ $success: v2.$v2-success;
   height: 44px;
   padding: 0 24px;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -129,7 +129,7 @@ $success: v2.$v2-success;
   color: $white;
   border: 2px solid $navy2;
   border-radius: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;

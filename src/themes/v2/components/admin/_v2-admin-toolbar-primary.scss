@@ -3,7 +3,7 @@
 // Тот же визуал, что у primary в тулбаре списка товаров (Excel и т.п.): Inter, navy2 → navy при hover.
 @mixin toolbar-primary-ant-btn {
   flex-shrink: 0;
-  font-family: 'Inter', sans-serif !important;
+  font-family: v2.$v2-font-sans !important;
   font-weight: 600 !important;
   font-size: 13px !important;
   line-height: 1.2 !important;

@@ -3,7 +3,7 @@
 .v2Root {
   background-color: v2.$v2-bg-main;
   color: v2.$v2-text-dark;
-  font-family: 'Inter', sans-serif;
+  font-family: v2.$v2-font-sans;
   min-height: 100vh;
 
   // Fix purple ant-menu active indicator (from general.scss)
