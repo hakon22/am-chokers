@@ -20,6 +20,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist/cron ./cron
 COPY --from=builder /app/dist/server ./server
+COPY --from=builder /app/dist/shared ./shared
 COPY --from=builder /app/dist/microservices/sender ./microservices/sender
 COPY --from=builder /app/dist/src ./src
 COPY --from=builder /app/package.json ./
