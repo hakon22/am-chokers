@@ -19,16 +19,66 @@ import 'react-multi-carousel/lib/styles.css';
 import type { ButtonGroupProps, CarouselInternalState } from 'react-multi-carousel/lib/types';
 
 import { MobileContext } from '@/components/Context';
+import { getWidth } from '@/utilities/screenExtension';
 import { toast } from '@/utilities/toast';
 import styles from '@/themes/v2/components/home/BannerSlider.module.scss';
 import { V2Image, type V2ImageProps } from '@/themes/v2/components/V2Image';
 import type { BannerInterface } from '@/types/banner/BannerInterface';
 
-const responsiveStrip = {
-  desktop: { breakpoint: { max: 5000, min: 1200 }, items: 3, partialVisibilityGutter: 0 },
-  tablet: { breakpoint: { max: 1199, min: 768 }, items: 2, partialVisibilityGutter: 40 },
-  mobile: { breakpoint: { max: 767, min: 0 }, items: 1, partialVisibilityGutter: 48 },
+type BannerCarouselDeviceType = 'desktop' | 'tablet' | 'mobile';
+
+const BANNER_STRIP_CAROUSEL_PADDING_DESKTOP_TABLET = 64;
+const BANNER_STRIP_CAROUSEL_PADDING_MOBILE = 32;
+const BANNER_STRIP_MOBILE_PARTIAL_VISIBILITY_GUTTER = 48;
+const BANNER_STRIP_VISIBLE_SLIDES_ON_TABLET = 1.5;
+
+/**
+ * Возвращает тип устройства для react-multi-carousel по ширине viewport
+ * @param viewportWidth - ширина окна в px
+ * @returns desktop, tablet или mobile
+ */
+const getBannerCarouselDeviceTypeByViewportWidth = (viewportWidth: number): BannerCarouselDeviceType => {
+  if (viewportWidth <= 767) {
+    return 'mobile';
+  }
+  if (viewportWidth <= 1199) {
+    return 'tablet';
+  }
+  return 'desktop';
 };
+
+/**
+ * Считает partialVisibilityGutter для полосы баннеров на планшете (~1.5 слайда в кадре)
+ * @param viewportWidth - ширина окна в px
+ * @returns отступ в px для видимой части следующего слайда
+ */
+const getBannerStripTabletPartialVisibilityGutterByViewportWidth = (viewportWidth: number): number => {
+  const carouselHorizontalPadding = viewportWidth <= 768
+    ? BANNER_STRIP_CAROUSEL_PADDING_MOBILE
+    : BANNER_STRIP_CAROUSEL_PADDING_DESKTOP_TABLET;
+  const carouselInnerWidth = Math.max(viewportWidth - carouselHorizontalPadding, 0);
+  const fullSlideWidth = carouselInnerWidth / BANNER_STRIP_VISIBLE_SLIDES_ON_TABLET;
+  return Math.round(carouselInnerWidth - fullSlideWidth);
+};
+
+/**
+ * Собирает responsive-конфиг полосы баннеров с учётом ширины viewport
+ * @param viewportWidth - ширина окна в px
+ * @returns объект responsive для react-multi-carousel
+ */
+const buildBannerStripResponsiveByViewportWidth = (viewportWidth: number) => ({
+  desktop: { breakpoint: { max: 5000, min: 1200 }, items: 3, partialVisibilityGutter: 0 },
+  tablet: {
+    breakpoint: { max: 1199, min: 768 },
+    items: 1,
+    partialVisibilityGutter: getBannerStripTabletPartialVisibilityGutterByViewportWidth(viewportWidth),
+  },
+  mobile: {
+    breakpoint: { max: 767, min: 0 },
+    items: 1,
+    partialVisibilityGutter: BANNER_STRIP_MOBILE_PARTIAL_VISIBILITY_GUTTER,
+  },
+});
 
 const responsiveHero = {
   hero: { breakpoint: { max: 10000, min: 0 }, items: 1, partialVisibilityGutter: 0 },
@@ -733,10 +783,31 @@ export type BannerSliderVariant = 'strip' | 'hero';
 export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.banner' });
   const { isMobile } = useContext(MobileContext);
+  const [viewportWidth, setViewportWidth] = useState(1200);
   const [autoplayLogicEnabled, setAutoplayLogicEnabled] = useState(false);
   const isHero = variant === 'hero';
 
   const carouselAdvanceRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    const updateViewportWidth = () => {
+      setViewportWidth(getWidth());
+    };
+
+    updateViewportWidth();
+    window.addEventListener('resize', updateViewportWidth);
+    return () => window.removeEventListener('resize', updateViewportWidth);
+  }, []);
+
+  const bannerCarouselDeviceType = useMemo(
+    () => getBannerCarouselDeviceTypeByViewportWidth(viewportWidth),
+    [viewportWidth],
+  );
+
+  const bannerStripResponsive = useMemo(
+    () => buildBannerStripResponsiveByViewportWidth(viewportWidth),
+    [viewportWidth],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -790,7 +861,7 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
 
   const carousel = (
     <Carousel
-      responsive={isHero ? responsiveHero : responsiveStrip}
+      responsive={isHero ? responsiveHero : bannerStripResponsive}
       autoPlay={false}
       infinite
       pauseOnHover={false}
@@ -800,7 +871,7 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
       swipeable
       draggable={false}
       minimumTouchDrag={80}
-      deviceType={isMobile ? 'mobile' : 'desktop'}
+      deviceType={isHero ? (isMobile ? 'mobile' : 'desktop') : bannerCarouselDeviceType}
       partialVisible={!isHero}
       itemClass={cn(styles.carouselItem, isHero && styles.carouselItemHero)}
       containerClass={cn(styles.carouselContainer, isHero && styles.carouselContainerHero)}

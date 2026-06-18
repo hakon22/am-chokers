@@ -7,7 +7,7 @@ import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import cn from 'classnames';
 import axios from 'axios';
-import type { InferGetServerSidePropsType, GetServerSidePropsContext } from 'next';
+import type { InferGetServerSidePropsType } from 'next';
 
 import { VersionContext } from '@/components/Context';
 import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
@@ -23,14 +23,12 @@ import {
   DEFAULT_OG_IMAGE_TYPE,
   DEFAULT_OG_IMAGE_WIDTH,
 } from '@/utilities/defaultOgImage';
-import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
-import { isMobileDevice } from '@/utilities/isMobileDevice';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { setAppData } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import type { ItemInterface, ItemGroupInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
@@ -48,9 +46,8 @@ const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterf
     return acc;
   }, {} as GeneralPageCoverImageInterface);
 
-export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
-  const userAgent = req?.headers['user-agent'];
-  const salesHitsLimit = isMobileDevice(userAgent) ? 4 : 3;
+export const getServerSideProps = async () => {
+  const salesHitsLimit = 4;
 
   const [{ data: { specialItems } }, { data: { siteSettings } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
     axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),

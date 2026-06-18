@@ -6,6 +6,7 @@ import 'react-multi-carousel/lib/styles.css';
 
 import { MobileContext } from '@/components/Context';
 import { catalogPath } from '@/routes';
+import { getWidth } from '@/utilities/screenExtension';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ProductCard } from '@/themes/v2/components/ProductCard';
 import styles from '@/themes/v2/components/home/ProductsSection.module.scss';
@@ -25,6 +26,21 @@ const newsCarouselResponsive = {
   mobile: { breakpoint: { max: 767, min: 0 }, items: 2 },
 };
 
+/**
+ * Возвращает число карточек «Хиты продаж» по ширине viewport
+ * @param viewportWidth - ширина окна в px
+ * @returns 4 на десктопе, 3 на планшете, 2 на телефоне
+ */
+const getBestsellerVisibleCountByViewportWidth = (viewportWidth: number): number => {
+  if (viewportWidth <= 768) {
+    return 2;
+  }
+  if (viewportWidth <= 1199) {
+    return 3;
+  }
+  return 4;
+};
+
 export const ProductsSection = ({
   news,
   bestsellers,
@@ -35,6 +51,20 @@ export const ProductsSection = ({
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home' });
   const { isMobile } = useContext(MobileContext);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [bestsellerVisibleCount, setBestsellerVisibleCount] = useState(salesHitsLimit);
+
+  useEffect(() => {
+    /**
+     * Синхронизирует число карточек хитов продаж с текущей шириной окна
+     */
+    const handleResize = () => {
+      setBestsellerVisibleCount(getBestsellerVisibleCountByViewportWidth(getWidth()));
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setAutoPlay(true), 2000);
@@ -47,9 +77,8 @@ export const ProductsSection = ({
     bestsellers.bestseller3,
   ].filter(Boolean) as ItemInterface[];
 
-  const bestsellerList = automaticSalesHits
-    ? salesHits.slice(0, salesHitsLimit)
-    : manualBestsellerList;
+  const bestsellerSourceList = automaticSalesHits ? salesHits : manualBestsellerList;
+  const bestsellerList = bestsellerSourceList.slice(0, bestsellerVisibleCount);
 
   return (
     <>

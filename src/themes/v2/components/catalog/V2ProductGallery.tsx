@@ -22,6 +22,7 @@ import { ProductGalleryVideo } from '@/themes/v2/components/catalog/ProductGalle
 import { ProductGallerySlideImage } from '@/themes/v2/components/catalog/ProductGallerySlideImage';
 import { ProductGalleryThumbnailImage } from '@/themes/v2/components/catalog/ProductGalleryThumbnailImage';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
+import { getWidth } from '@/utilities/screenExtension';
 import styles from '@/themes/v2/components/catalog/V2ProductGallery.module.scss';
 import type { ItemInterface } from '@/types/item/Item';
 
@@ -453,9 +454,32 @@ export const V2ProductGallery = ({
     return galleryCssVars;
   }, [isFullscreen, isMobile, galleryCssVars]);
 
-  /** Десктоп: под слайдом (px). Мобильная: только CSS (.noticeShell + !important). */
+  const [isPhoneViewport, setIsPhoneViewport] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return getWidth() <= 768;
+  });
+
+  useEffect(() => {
+    /**
+     * Переключает геометрию подписи: телефон — полная ширина (CSS), планшет/десктоп — под слайд
+     */
+    const handleResize = () => {
+      setIsPhoneViewport(getWidth() <= 768);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  /**
+   * Под слайдом: ширина и отступ по геометрии главного изображения (планшет и десктоп).
+   * На телефоне (≤768px) — полная ширина через CSS в ProductPage.module.scss.
+   */
   const noticeLayoutStyle = useMemo((): CSSProperties | undefined => {
-    if (isMobile || !galleryBox) {
+    if (!galleryBox || isPhoneViewport) {
       return undefined;
     }
     return {
@@ -464,7 +488,7 @@ export const V2ProductGallery = ({
       maxWidth: 'none',
       boxSizing: 'border-box',
     };
-  }, [galleryBox, isMobile]);
+  }, [galleryBox, isPhoneViewport]);
 
   /**
    * Синхронно до `requestFullscreen`: стили слайда + items

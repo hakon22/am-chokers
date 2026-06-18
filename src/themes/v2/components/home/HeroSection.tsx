@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { useContext } from 'react';
 import { Button } from 'antd';
+import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { MobileContext } from '@/components/Context';
@@ -22,7 +22,7 @@ interface HeroSectionProps {
 export const HeroSection = ({ banners, homeHero }: HeroSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home.hero' });
   const { isMobile } = useContext(MobileContext);
-  const showBannerCarousel = !isMobile && banners.length > 0;
+  const showBannerCarousel = banners.length > 0;
 
   return (
     <div className={styles.hero}>
@@ -45,33 +45,47 @@ export const HeroSection = ({ banners, homeHero }: HeroSectionProps) => {
               </Button>
             </Link>
           </div>
+          <div className={styles.heroTabletFoot}>
+            <div className={styles.heroTabletCard}>
+              <div>
+                <div className={styles.heroCardNum}>200+</div>
+                <div className={styles.heroCardLbl}>{t('heroCardLabel')}</div>
+              </div>
+              <div className={styles.heroCardDot} />
+            </div>
+            <Link href={`${catalogPath}?new=true`} className={styles.heroTabletTag}>
+              {t('heroTag')}
+            </Link>
+          </div>
         </div>
       </div>
-      <div className={styles.heroRight}>
-        {showBannerCarousel ? (
-          <div className={styles.heroCarousel}>
-            <BannerSlider variant="hero" banners={banners} />
+      {!isMobile ? (
+        <div className={styles.heroRight}>
+          {showBannerCarousel ? (
+            <div className={styles.heroCarousel}>
+              <BannerSlider variant="hero" banners={banners} />
+            </div>
+          ) : (
+            <V2Image
+              src={loginImage}
+              alt={t('heroImageAlt')}
+              fill
+              style={{ objectFit: 'cover' }}
+              priority
+            />
+          )}
+          <div className={styles.heroCard}>
+            <div>
+              <div className={styles.heroCardNum}>200+</div>
+              <div className={styles.heroCardLbl}>{t('heroCardLabel')}</div>
+            </div>
+            <div className={styles.heroCardDot} />
           </div>
-        ) : (
-          <V2Image
-            src={loginImage}
-            alt={t('heroImageAlt')}
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
-          />
-        )}
-        <div className={styles.heroCard}>
-          <div>
-            <div className={styles.heroCardNum}>200+</div>
-            <div className={styles.heroCardLbl}>{t('heroCardLabel')}</div>
-          </div>
-          <div className={styles.heroCardDot} />
+          <Link href={`${catalogPath}?new=true`} className={styles.heroTag}>
+            {t('heroTag')}
+          </Link>
         </div>
-        <Link href={`${catalogPath}?new=true`} className={styles.heroTag}>
-          {t('heroTag')}
-        </Link>
-      </div>
+      ) : null}
     </div>
   );
 };

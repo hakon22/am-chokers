@@ -555,6 +555,13 @@ $error:  v2.$v2-error;
 
 // ── Responsive ────────────────────────────────────────────────────
 
+// Tablet: narrower sidebar + корректный sticky offset под мобильный NavBar (56px)
+@media (max-width: 1199px) {
+  .sidebar {
+    top: calc(56px + 16px);
+  }
+}
+
 // Tablet: narrower sidebar
 @media (max-width: 1100px) {
   .page {

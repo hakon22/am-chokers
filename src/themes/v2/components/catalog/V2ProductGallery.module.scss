@@ -8,6 +8,7 @@ $bg-alt:         #EAEEF6;
 
 .gallery {
   --galleryWidth: min(100%, 560px);
+  --gallery-thumb-rail: 112px;
   --ig-primary-color: #{$navy-secondary};
   --galleryHeight: min(520px, calc(100vh - 200px));
   width: 100%;
@@ -278,7 +279,7 @@ $bg-alt:         #EAEEF6;
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     :global(.image-gallery-thumbnail) {
       width: var(--ig-thumbnail-size-small, 80px);
       height: var(--ig-thumbnail-size-small, 80px);
@@ -356,6 +357,10 @@ $bg-alt:         #EAEEF6;
 }
 
 .galleryFullBleed {
+  @media (max-width: 1199px) {
+    overflow-x: hidden;
+  }
+
   @media (max-width: 1100px) {
     position: static;
     width: 100vw;
@@ -365,12 +370,12 @@ $bg-alt:         #EAEEF6;
     :global(.image-gallery .image-gallery-content:not(.fullscreen)) {
       :global(.image-gallery-slide-wrapper.image-gallery-thumbnails-left),
       :global(.image-gallery-slide-wrapper.image-gallery-thumbnails-right) {
-        min-width: calc(100% - 88px);
+        min-width: calc(100% - var(--gallery-thumb-rail));
       }
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     --galleryWidth: min(100%, calc(100vw - 32px));
     --galleryHeight: min(420px, calc(100vh - 220px));
     max-height: calc(100vh - 88px);
@@ -379,7 +384,9 @@ $bg-alt:         #EAEEF6;
       --galleryHeight: min(420px, calc(100dvh - 220px));
       max-height: calc(100dvh - 88px);
     }
+  }
 
+  @media (max-width: 768px) {
     :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide-wrapper.image-gallery-thumbnails-right) {
       width: 100% !important;
     }
