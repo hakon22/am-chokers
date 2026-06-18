@@ -28,7 +28,9 @@ import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription }
 import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ItemContext, MobileContext } from '@/components/Context';
+import { useMobileGalleryThumbnailScrollGuard } from '@/hooks/useMobileGalleryThumbnailScrollGuard';
 import { getHeight } from '@/utilities/screenExtension';
+import { shouldDisableMobileThumbnailSwipe } from '@/utilities/galleryMobileThumbnails';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
@@ -50,6 +52,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const galleryRef = useRef<ImageGalleryRef>(null);
+  const galleryWrapRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
@@ -87,6 +90,37 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [viewportWidth, setViewportWidth] = useState(() => (
+    typeof window === 'undefined' ? 1200 : window.innerWidth
+  ));
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const disableThumbnailSwipe = useMemo(
+    () => shouldDisableMobileThumbnailSwipe({
+      isMobile,
+      imageCount: images.length,
+      galleryHeightPx: originalHeight,
+      viewportWidth,
+    }),
+    [isMobile, images.length, originalHeight, viewportWidth],
+  );
+
+  useMobileGalleryThumbnailScrollGuard({
+    galleryRootRef: galleryWrapRef,
+    isMobile,
+    isFullscreen,
+    showThumbnails,
+    layoutKey: images.length,
+  });
 
   const imageAlt = buildItemImageAlt(item);
 
@@ -309,7 +343,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             </div>
           )
           : null}
-        <div className="d-flex flex-column align-items-center gap-2">
+        <div ref={galleryWrapRef} className="d-flex flex-column align-items-center gap-2">
           <ImageGallery
             ref={galleryRef}
             additionalClass={cn('w-100 mb-2 mb-xl-0 mt-xl-2-5', { 'd-flex align-items-center justify-content-center': isMobile })}
@@ -361,6 +395,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             showThumbnails={showThumbnails}
             showPlayButton={false}
             thumbnailPosition={isMobile ? 'right' : 'left'}
+            disableThumbnailSwipe={disableThumbnailSwipe}
             onClick={() => galleryRef.current?.fullScreen()}
           />
           {!isMobile

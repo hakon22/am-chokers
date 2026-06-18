@@ -340,6 +340,25 @@ a {
   min-height: var(--galleryHeight);
 }
 
+// Мобильная колонка миниатюр справа: синхронизация высоты и корректный scrollHeight
+@media (max-width: 1199px) {
+  .image-gallery-content.image-gallery-thumbnails-right:not(.fullscreen) {
+    .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-right {
+      height: var(--galleryHeight) !important;
+      max-height: var(--galleryHeight);
+      overflow: hidden;
+      overscroll-behavior: contain;
+      vertical-align: top;
+    }
+
+    .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-right .image-gallery-thumbnails-container {
+      display: flex;
+      flex-direction: column;
+      white-space: normal;
+    }
+  }
+}
+
 .font-good-vibes-pro {
   font-family: GoodVibesPro;
   letter-spacing: 3px;

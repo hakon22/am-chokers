@@ -18,10 +18,12 @@ import cn from 'classnames';
 import { isNil } from 'lodash';
 
 import { MobileContext } from '@/components/Context';
+import { useMobileGalleryThumbnailScrollGuard } from '@/hooks/useMobileGalleryThumbnailScrollGuard';
 import { ProductGalleryVideo } from '@/themes/v2/components/catalog/ProductGalleryVideo';
 import { ProductGallerySlideImage } from '@/themes/v2/components/catalog/ProductGallerySlideImage';
 import { ProductGalleryThumbnailImage } from '@/themes/v2/components/catalog/ProductGalleryThumbnailImage';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
+import { shouldDisableMobileThumbnailSwipe } from '@/utilities/galleryMobileThumbnails';
 import { getWidth } from '@/utilities/screenExtension';
 import styles from '@/themes/v2/components/catalog/V2ProductGallery.module.scss';
 import type { ItemInterface } from '@/types/item/Item';
@@ -460,19 +462,34 @@ export const V2ProductGallery = ({
     }
     return getWidth() <= 768;
   });
+  const [viewportWidth, setViewportWidth] = useState(() => (
+    typeof window === 'undefined' ? 1200 : getWidth()
+  ));
 
   useEffect(() => {
     /**
      * Переключает геометрию подписи: телефон — полная ширина (CSS), планшет/десктоп — под слайд
      */
     const handleResize = () => {
-      setIsPhoneViewport(getWidth() <= 768);
+      const width = getWidth();
+      setViewportWidth(width);
+      setIsPhoneViewport(width <= 768);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const disableThumbnailSwipe = useMemo(
+    () => shouldDisableMobileThumbnailSwipe({
+      isMobile,
+      imageCount: sortedImages.length,
+      galleryHeightPx: galleryBox?.h ?? 416,
+      viewportWidth,
+    }),
+    [isMobile, sortedImages.length, galleryBox?.h, viewportWidth],
+  );
 
   /**
    * Под слайдом: ширина и отступ по геометрии главного изображения (планшет и десктоп).
@@ -632,6 +649,14 @@ export const V2ProductGallery = ({
     });
   }, [sortedImages, imageAlt, slideHeight, slideWidth, isMobile]);
 
+  useMobileGalleryThumbnailScrollGuard({
+    galleryRootRef: galleryWrapRef,
+    isMobile,
+    isFullscreen,
+    showThumbnails: sortedImages.length > 0,
+    layoutKey: galleryLayoutDependency,
+  });
+
   return (
     <>
       {typeof document !== 'undefined' && galleryFsCurtain
@@ -670,6 +695,7 @@ export const V2ProductGallery = ({
               showPlayButton={false}
               thumbnailPosition={isMobile ? 'right' : 'left'}
               showThumbnails
+              disableThumbnailSwipe={disableThumbnailSwipe}
               slideDuration={gallerySlideDuration}
               useBrowserFullscreen
               renderFullscreenButton={renderGalleryFullscreenButton}

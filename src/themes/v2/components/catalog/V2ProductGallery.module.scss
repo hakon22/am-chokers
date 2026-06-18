@@ -319,6 +319,22 @@ $bg-alt:         #EAEEF6;
     cursor: pointer;
   }
 
+  @media (max-width: 1199px) {
+    :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-right) {
+      height: var(--galleryHeight) !important;
+      max-height: var(--galleryHeight);
+      overflow: hidden;
+      overscroll-behavior: contain;
+      vertical-align: top;
+    }
+
+    :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-right .image-gallery-thumbnails-container) {
+      display: flex;
+      flex-direction: column;
+      white-space: normal;
+    }
+  }
+
   :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-left-nav .image-gallery-svg),
   :global(.image-gallery .image-gallery-content:not(.fullscreen) .image-gallery-right-nav .image-gallery-svg) {
     filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.9));

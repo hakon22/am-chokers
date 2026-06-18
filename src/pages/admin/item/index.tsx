@@ -16,6 +16,7 @@ import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 
 import { Helmet } from '@/components/Helmet';
 import { useSortableImageDndSensors } from '@/hooks/useSortableImageDndSensors';
+import { useMobileGalleryThumbnailScrollGuard } from '@/hooks/useMobileGalleryThumbnailScrollGuard';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext, VersionContext } from '@/components/Context';
@@ -30,7 +31,8 @@ import { BackButton } from '@/components/BackButton';
 import { CropImage } from '@/components/CropImage';
 import { TimePicker } from '@/components/TimePicker';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
-import { getHeight } from '@/utilities/screenExtension';
+import { getHeight, getWidth } from '@/utilities/screenExtension';
+import { shouldDisableMobileThumbnailSwipe } from '@/utilities/galleryMobileThumbnails';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -113,6 +115,7 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   const sortableImageDndSensors = useSortableImageDndSensors();
   const galleryRef = useRef<ImageGalleryRef>(null);
+  const galleryWrapRef = useRef<HTMLDivElement>(null);
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
@@ -130,6 +133,36 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
 
   const [originalHeight, setOriginalHeight] = useState(416);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(isMobile ? isMobile : true);
+  const [viewportWidth, setViewportWidth] = useState(() => (
+    typeof window === 'undefined' ? 1200 : getWidth()
+  ));
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(getWidth());
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const disableThumbnailSwipe = useMemo(
+    () => shouldDisableMobileThumbnailSwipe({
+      isMobile,
+      imageCount: images.length,
+      galleryHeightPx: originalHeight,
+      viewportWidth,
+    }),
+    [isMobile, images.length, originalHeight, viewportWidth],
+  );
+
+  useMobileGalleryThumbnailScrollGuard({
+    galleryRootRef: galleryWrapRef,
+    isMobile,
+    showThumbnails,
+    layoutKey: images.length,
+  });
 
   const imageGalleryItems = useMemo(
     () =>
@@ -487,48 +520,51 @@ const CreateItem = ({ itemCollections: fetchedItemCollections, oldItem, updateIt
                 </SortableContext>
               </DndContext>
             ) : (
-              <ImageGallery
-                ref={galleryRef}
-                additionalClass="w-100 mb-5 mb-xl-0"
-                showIndex
-                items={imageGalleryItems}
-                infinite
-                showBullets={isMobile}
-                showNav={!isMobile}
-                onScreenChange={(fullscreen) => {
-                  if (fullscreen) {
-                    setOriginalHeight(getHeight());
-                    document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
-                    document.documentElement.style.setProperty('--galleryHeight', '100vh');
-                    if (isMobile) {
-                      const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
-                      if (div) {
-                        div.style.transition = '0.25s all';
-                        div.style.width = 'calc(100% - 30px)';
+              <div ref={galleryWrapRef} className="w-100">
+                <ImageGallery
+                  ref={galleryRef}
+                  additionalClass="w-100 mb-5 mb-xl-0"
+                  showIndex
+                  items={imageGalleryItems}
+                  infinite
+                  showBullets={isMobile}
+                  showNav={!isMobile}
+                  onScreenChange={(fullscreen) => {
+                    if (fullscreen) {
+                      setOriginalHeight(getHeight());
+                      document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 110px)');
+                      document.documentElement.style.setProperty('--galleryHeight', '100vh');
+                      if (isMobile) {
+                        const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                        if (div) {
+                          div.style.transition = '0.25s all';
+                          div.style.width = 'calc(100% - 30px)';
+                        }
+                        document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
+                        setShowThumbnails(false);
                       }
-                      document.documentElement.style.setProperty('--galleryWidth', 'calc(100% - 30px)');
-                      setShowThumbnails(false);
-                    }
-                  } else {
-                    setOriginalHeight(416);
-                    document.documentElement.style.setProperty('--galleryWidth', '320px');
-                    document.documentElement.style.setProperty('--galleryHeight', '416px');
-                    if (isMobile) {
-                      const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
-                      if (div) {
-                        div.style.width = '';
-                        div.style.transition = '';
-                      }
+                    } else {
+                      setOriginalHeight(416);
                       document.documentElement.style.setProperty('--galleryWidth', '320px');
-                      setShowThumbnails(true);
+                      document.documentElement.style.setProperty('--galleryHeight', '416px');
+                      if (isMobile) {
+                        const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
+                        if (div) {
+                          div.style.width = '';
+                          div.style.transition = '';
+                        }
+                        document.documentElement.style.setProperty('--galleryWidth', '320px');
+                        setShowThumbnails(true);
+                      }
                     }
-                  }
-                }}
-                showThumbnails={showThumbnails}
-                showPlayButton={false}
-                thumbnailPosition={isMobile ? 'right' : 'left'}
-                onClick={() => galleryRef.current?.fullScreen()}
-              />
+                  }}
+                  showThumbnails={showThumbnails}
+                  showPlayButton={false}
+                  thumbnailPosition={isMobile ? 'right' : 'left'}
+                  disableThumbnailSwipe={disableThumbnailSwipe}
+                  onClick={() => galleryRef.current?.fullScreen()}
+                />
+              </div>
             )
             : null}
           <CropImage>
