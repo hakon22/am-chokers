@@ -410,7 +410,7 @@ export const CatalogFilter = ({
     return (
       <>
         <FloatButton
-          style={{ right: '6.5%', top: '69px', zIndex: 5 }}
+          style={{ right: '6.5%', top: '64px', zIndex: 5 }}
           badge={{ count: filtersCount, offset: [5, 2] }}
           icon={<FunnelFill aria-hidden />}
           tooltip={t('title')}
