@@ -9,7 +9,7 @@ import cn from 'classnames';
 import { chunk, isEmpty, isNil } from 'lodash';
 
 import { routes, catalogPath } from '@/routes';
-import { Helmet } from '@/components/Helmet';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SearchContext, SubmitContext, VersionContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -26,6 +26,13 @@ import { getWidth } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ProductCard } from '@/themes/v2/components/ProductCard';
+import { CatalogPagination } from '@/themes/v2/components/catalog/CatalogPagination';
+import { buildCatalogPageAbsoluteUrl, buildCatalogRouteHref } from '@/utilities/buildCatalogRouteHref';
+import { buildCatalogBreadcrumbJsonLdItems } from '@/utilities/buildCatalogBreadcrumbJsonLdItems';
+import { getProductionHost } from '@/utilities/getProductionHost';
+import { isCatalogNumericPageQuery, shouldCatalogFiltersNoindex } from '@/utilities/shouldCatalogFiltersNoindex';
+import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
+import { buildBreadcrumbJsonLd, buildItemListJsonLd } from '@/utilities/structuredData';
 import type { PagePropsInterface } from '@/pages/catalog/[...path]';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
@@ -309,6 +316,8 @@ const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInt
 
 const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, itemGroup, uuid, statistics: propsStatistics }: Omit<PagePropsInterface, 'item'>) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog' });
+  const { t: tPagination } = useTranslation('translation', { keyPrefix: 'pages.catalog.pagination' });
+  const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const chunkNumber = 8;
@@ -325,7 +334,17 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   
   const router = useRouter();
   const dispatch = useAppDispatch();
-  
+  const productionHost = getProductionHost();
+
+  const rawPageQuery = router.query.page;
+  const pageQueryString = rawPageQuery === undefined ? '1' : Array.isArray(rawPageQuery) ? rawPageQuery[0] : rawPageQuery;
+  const currentPageNumber = isCatalogNumericPageQuery(rawPageQuery)
+    ? Math.max(1, parseInt(pageQueryString, 10))
+    : 1;
+  const seoUserLang = useSeoUserLang();
+  const languageCode = useSeoLanguage();
+  const catalogTotalCount = propsPaginationParams?.count ?? pagination.count;
+
   const urlParams = useSearchParams();
   
   const groupParams = urlParams.getAll('groupIds');
@@ -597,44 +616,100 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     resetFilters,
   };
 
+  const groupTranslation = itemGroup?.translations.find((translation) => translation.lang === seoUserLang);
+  const catalogTitle = groupTranslation?.name ?? t('title');
+  const catalogDescription = groupTranslation?.description || (itemGroup ? t('description') : t('intro'));
+  const catalogSeoTitle = currentPageNumber > 1
+    ? `${catalogTitle}${tPagination('titleSuffix', { page: currentPageNumber })}`
+    : catalogTitle;
+  const catalogSeoDescription = currentPageNumber > 1
+    ? `${catalogDescription}${tPagination('descriptionSuffix', { page: currentPageNumber })}`
+    : catalogDescription;
+  const totalPages = Math.max(1, Math.ceil(catalogTotalCount / chunkNumber));
+  const catalogPathname = router.asPath.split('?')[0];
+  const hasActiveCatalogFilters = shouldCatalogFiltersNoindex(router.query);
+  const catalogCanonicalPath = hasActiveCatalogFilters
+    ? catalogPathname
+    : buildCatalogRouteHref(router, {}, { pageNumber: currentPageNumber });
+
+  const buildCatalogPageUrl = (pageNumber: number) => (
+    buildCatalogPageAbsoluteUrl(router, productionHost, pageNumber)
+  );
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(
+    buildCatalogBreadcrumbJsonLdItems({
+      homeLabel: tNavbar('menu.home'),
+      catalogLabel: tNavbar('menu.catalog'),
+      catalogTitle,
+      catalogPathname,
+      itemGroup,
+    }),
+  );
+
   return (
-    <div
-      className={isV2 ? undefined : 'd-flex col-12 justify-content-between'}
-      style={{
-        ...(isV2 && !isMobile ? { display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24 } : {}),
-        ...(!isV2 && isMobile ? { marginTop: '140px' } : {}),
-      }}
-    >
-      <Helmet title={itemGroup ? itemGroup.translations.find(({ lang: translationLang }) => translationLang === lang)?.name as string : t('title')} description={itemGroup ? itemGroup.translations.find(({ lang: translationLang }) => translationLang === lang)?.description as string : t('description')} />
-      {isV2
-        ? <CatalogFilter {...filterProps} />
-        : <CatalogItemsFilter {...filterProps} />
-      }
-      <div className={isV2 ? undefined : 'd-flex col-12 col-xl-9'}>
-        <div className="w-100">
-          <InfiniteScroll
-            dataLength={items.length}
-            next={handleLoadMore}
-            hasMore={hasInitialized && items.length < pagination.count}
-            loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton lang={lang as UserLangEnum} />}
-            style={{ overflow: 'unset' }}
-            className="w-100"
-          >
-            <div className="d-flex flex-column gap-5">
-              {items.length
-                ? chunk(items, chunkNumber).map((chunkItems, i) => <CatalogItems chunkItems={chunkItems} i={i} key={i} lang={lang as UserLangEnum} />)
-                : (
-                  <>
-                    <NotFoundContent text={t('notFound')} />
-                    <Button className="button fs-6 mx-auto" onClick={resetFilters}>
-                      {t('resetFilters')}
-                    </Button>
-                  </>)}
-            </div>
-          </InfiniteScroll>
+    <>
+      <JsonLd
+        title={catalogSeoTitle}
+        description={catalogSeoDescription}
+        noindex={hasActiveCatalogFilters}
+        canonicalPath={catalogCanonicalPath}
+        jsonLd={[
+          buildItemListJsonLd(items, languageCode),
+          breadcrumbJsonLd,
+        ]}
+        relPrev={!hasActiveCatalogFilters && currentPageNumber > 1
+          ? buildCatalogPageUrl(currentPageNumber - 1)
+          : undefined}
+        relNext={!hasActiveCatalogFilters && currentPageNumber < totalPages
+          ? buildCatalogPageUrl(currentPageNumber + 1)
+          : undefined}
+      />
+      <div
+        className={isV2 ? undefined : 'd-flex col-12 justify-content-between'}
+        style={{
+          ...(isV2 && !isMobile ? { display: 'grid', gridTemplateColumns: '240px 1fr', gap: 24, alignItems: 'start' } : {}),
+          ...(!isV2 && isMobile ? { marginTop: '140px' } : {}),
+        }}
+      >
+        {isV2
+          ? <CatalogFilter {...filterProps} />
+          : <CatalogItemsFilter {...filterProps} />
+        }
+        <div className={isV2 ? undefined : 'd-flex col-12 col-xl-9'}>
+          <div className="w-100">
+            <header className="visually-hidden">
+              <h1>{catalogTitle}</h1>
+              {catalogDescription ? <p>{catalogDescription}</p> : null}
+            </header>
+            <InfiniteScroll
+              dataLength={items.length}
+              next={handleLoadMore}
+              hasMore={hasInitialized && items.length < pagination.count}
+              loader={isSubmit && <CatalogItems chunkItems={[]} i={0} isSkeleton lang={lang as UserLangEnum} />}
+              style={{ overflow: 'unset' }}
+              className="w-100"
+            >
+              <div className="d-flex flex-column gap-5">
+                {items.length
+                  ? chunk(items, chunkNumber).map((chunkItems, i) => <CatalogItems chunkItems={chunkItems} i={i} key={i} lang={lang as UserLangEnum} />)
+                  : (
+                    <>
+                      <NotFoundContent text={t('notFound')} />
+                      <Button className="button fs-6 mx-auto" onClick={resetFilters}>
+                        {t('resetFilters')}
+                      </Button>
+                    </>)}
+              </div>
+            </InfiniteScroll>
+            <CatalogPagination
+              currentPage={currentPageNumber}
+              totalCount={catalogTotalCount}
+              pageSize={chunkNumber}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

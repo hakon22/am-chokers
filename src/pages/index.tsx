@@ -7,7 +7,6 @@ import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import cn from 'classnames';
 import axios from 'axios';
-import { Skeleton } from 'antd';
 import type { InferGetServerSidePropsType, GetServerSidePropsContext } from 'next';
 
 import { VersionContext } from '@/components/Context';
@@ -16,7 +15,14 @@ import uniqueDecoration from '@/images/unique-decoration.jpg';
 import { ImageHover } from '@/components/ImageHover';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { routes } from '@/routes';
-import { Helmet } from '@/components/Helmet';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from '@/utilities/structuredData';
+import {
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_PATH,
+  DEFAULT_OG_IMAGE_TYPE,
+  DEFAULT_OG_IMAGE_WIDTH,
+} from '@/utilities/defaultOgImage';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
@@ -153,30 +159,6 @@ interface BannerSlideProps {
 }
 
 const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValue }: BannerSlideProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const node = containerRef.current;
-    if (!node) {
-      return undefined;
-    }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      });
-    },
-    { rootMargin: '200px' },
-    );
-
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, []);
-
   const video = isMobile ? banner.mobileVideo : banner.desktopVideo;
   const bannerVideo = video ? { ...video, order: video.order ?? 0 } : undefined;
 
@@ -203,8 +185,11 @@ const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValu
     : {};
 
   return (
-    <div ref={containerRef}>
-      {isVisible && bannerVideo ? (
+    <div>
+      {banner.name ? (
+        <span className="visually-hidden">{banner.name}</span>
+      ) : null}
+      {bannerVideo ? (
         <ImageHover
           className={cn('index-banner-carousel__card', { 'align-items-center': countBanners === 1 })}
           height={height}
@@ -214,9 +199,7 @@ const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValu
           style={banner.link || banner.copyValue ? { cursor: 'pointer' } : {}}
           {...clickableProps}
         />
-      ) : (
-        <Skeleton.Image active style={{ width, height }} />
-      )}
+      ) : null}
     </div>
   );
 };
@@ -241,6 +224,7 @@ const Index = ({
   salesHitsLimit,
 }: IndexPageProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.index' });
+  const { t: tSeo } = useTranslation('translation', { keyPrefix: 'seo' });
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tBanner } = useTranslation('translation', { keyPrefix: 'modules.banner' });
 
@@ -465,7 +449,17 @@ const Index = ({
   if (version === 'v2') {
     return (
       <>
-        <Helmet title={t('title')} description={t('description')} />
+        <JsonLd
+          title={t('title')}
+          description={t('description')}
+          keywords={tSeo('defaultKeywords')}
+          image={DEFAULT_OG_IMAGE_PATH}
+          imageAlt={tSeo('defaultOgImageAlt')}
+          imageType={DEFAULT_OG_IMAGE_TYPE}
+          imageWidth={DEFAULT_OG_IMAGE_WIDTH}
+          imageHeight={DEFAULT_OG_IMAGE_HEIGHT}
+          jsonLd={[buildOrganizationJsonLd(), buildWebSiteJsonLd()]}
+        />
         <V2HomePage
           news={news}
           preparedBestsellers={preparedBestsellers}
@@ -487,7 +481,17 @@ const Index = ({
 
   return (
     <div className="d-flex justify-content-center" onWheel={handleCarouselWheel}>
-      <Helmet title={t('title')} description={t('description')} />
+      <JsonLd
+        title={t('title')}
+        description={t('description')}
+        keywords={tSeo('defaultKeywords')}
+        image={DEFAULT_OG_IMAGE_PATH}
+        imageAlt={tSeo('defaultOgImageAlt')}
+        imageType={DEFAULT_OG_IMAGE_TYPE}
+        imageWidth={DEFAULT_OG_IMAGE_WIDTH}
+        imageHeight={DEFAULT_OG_IMAGE_HEIGHT}
+        jsonLd={[buildOrganizationJsonLd(), buildWebSiteJsonLd()]}
+      />
       <div className="mb-5 col-12 d-flex flex-column align-items-center gap-3">
         <div className="index-block-container">
           <section className="position-relative mt-4 mt-xl-5 mb-xl-5">

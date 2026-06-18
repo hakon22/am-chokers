@@ -2,7 +2,7 @@ import { useContext, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { isEmpty, isNil } from 'lodash';
 import axios from 'axios';
-import { Affix, Badge, Collapse, Drawer, FloatButton, Select } from 'antd';
+import { Badge, Collapse, Drawer, FloatButton, Select } from 'antd';
 import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
 import type { CollapseProps } from 'antd';
 import type { FormInstance } from 'antd/lib';
@@ -11,6 +11,7 @@ import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext } from '@/components/Context';
+import { useCatalogFilterAffix } from '@/hooks/useCatalogFilterAffix';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import styles from '@/themes/v2/components/catalog/CatalogFilter.module.scss';
@@ -69,6 +70,7 @@ export const CatalogFilter = ({
   const { itemGroups } = useAppSelector((state) => state.app);
   const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
   const { isMobile } = useContext(MobileContext);
+  const { placeholderRef, panelRef } = useCatalogFilterAffix(160);
 
   const [itemCollections, setItemCollections] = useState<ItemCollectionInterface[]>([]);
   const [allCompositions, setAllCompositions] = useState<CompositionInterface[]>([]);
@@ -410,7 +412,9 @@ export const CatalogFilter = ({
         <FloatButton
           style={{ right: '6.5%', top: '69px', zIndex: 5 }}
           badge={{ count: filtersCount, offset: [5, 2] }}
-          icon={<FunnelFill />}
+          icon={<FunnelFill aria-hidden />}
+          tooltip={t('title')}
+          aria-label={t('title')}
           onClick={() => setShowDrawer(true)}
         />
         <Drawer
@@ -442,8 +446,8 @@ export const CatalogFilter = ({
   }
 
   return (
-    <Affix offsetTop={160}>
-      <div className={styles.panel}>
+    <div ref={placeholderRef} className={styles.affixPlaceholder}>
+      <div ref={panelRef} className={styles.panel}>
         <div className={styles.header}>
           <span className={styles.title}>{t('title')}</span>
           {filtersCount > 0 && (
@@ -461,6 +465,6 @@ export const CatalogFilter = ({
           className={styles.collapse}
         />
       </div>
-    </Affix>
+    </div>
   );
 };

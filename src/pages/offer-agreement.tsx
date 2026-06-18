@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useContext } from 'react';
 import Link from 'next/link';
 
-import { Helmet } from '@/components/Helmet';
+import { StaticPageJsonLd } from '@/components/seo/StaticPageJsonLd';
 import { MobileContext } from '@/components/Context';
 import { routes } from '@/routes';
 
@@ -13,7 +13,7 @@ const OfferAgreement = () => {
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
-      <Helmet title={t('title')} description={t('description')} />
+      <StaticPageJsonLd title={t('title')} description={t('description')} path={routes.page.base.offerAgreement} />
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div className="d-flex flex-column">
         <p>{t('1')}</p>

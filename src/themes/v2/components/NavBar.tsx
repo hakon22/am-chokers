@@ -229,9 +229,12 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
           {isSearch?.value
             ? (
               <div className={styles.searchBar}>
-                <CloseOutlined
-                  style={{ color: '#69788E', cursor: 'pointer', fontSize: 16 }}
+                <Button
+                  htmlType="button"
+                  className={styles.iconBtn}
+                  aria-label={t('closeSearch')}
                   onClick={() => setIsSearch({ value: false, needFetch: false })}
+                  icon={<CloseOutlined aria-hidden style={{ color: '#69788E', fontSize: 16 }} />}
                 />
                 <AutoComplete
                   ref={searchRef}
@@ -261,38 +264,32 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
 
         {/* Right — icons */}
         <div className={styles.navRight}>
-          <Button className={styles.iconBtn} title={t('search')} onClick={searchClick}>
-            <SearchOutlined />
+          <Button className={styles.iconBtn} aria-label={t('search')} onClick={searchClick}>
+            <SearchOutlined aria-hidden />
           </Button>
           {token ? (
-            <Link href={routes.page.profile.favorites} title={t('favorites')}>
-              <Button className={styles.iconBtn}>
-                <Badge count={favCount} offset={[4, -3]} size="small">
-                  <HeartOutlined />
-                </Badge>
-              </Button>
+            <Link href={routes.page.profile.favorites} className={styles.iconBtn} aria-label={t('favorites')}>
+              <Badge count={favCount} offset={[4, -3]} size="small">
+                <HeartOutlined aria-hidden />
+              </Badge>
             </Link>
           ) : (
-            <Button className={styles.iconBtn} title={t('favorites')} onClick={() => openAuthModal?.('login')}>
-              <HeartOutlined />
+            <Button className={styles.iconBtn} aria-label={t('favorites')} onClick={() => openAuthModal?.('login')}>
+              <HeartOutlined aria-hidden />
             </Button>
           )}
-          <Link href={routes.page.base.cartPage} title={t('cart')}>
-            <Button className={styles.iconBtn}>
-              <Badge count={cartCount} offset={[4, -3]} size="small">
-                <ShoppingCartOutlined />
-              </Badge>
-            </Button>
+          <Link href={routes.page.base.cartPage} className={styles.iconBtn} aria-label={t('cart')}>
+            <Badge count={cartCount} offset={[4, -3]} size="small">
+              <ShoppingCartOutlined aria-hidden />
+            </Badge>
           </Link>
           {token ? (
-            <Link href={routes.page.profile.personalData} title={t('profile')}>
-              <Button className={styles.iconBtn}>
-                <Avatar style={{ backgroundColor: '#2B3C5F', width: 26, height: 26 }}>{name![0]}</Avatar>
-              </Button>
+            <Link href={routes.page.profile.personalData} className={styles.iconBtn} aria-label={t('profile')}>
+              <Avatar style={{ backgroundColor: '#2B3C5F', width: 26, height: 26 }} aria-hidden>{name![0]}</Avatar>
             </Link>
           ) : (
-            <Button className={styles.iconBtn} title={t('profile')} onClick={() => openAuthModal?.('login')}>
-              <UserOutlined />
+            <Button className={styles.iconBtn} aria-label={t('profile')} onClick={() => openAuthModal?.('login')}>
+              <UserOutlined aria-hidden />
             </Button>
           )}
         </div>
@@ -333,13 +330,13 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
         <div className={styles.mobileRight}>
           {isSearch?.value
             ? (
-              <Button className={styles.iconBtn} onClick={() => setIsSearch({ value: false, needFetch: false })}>
-                <CloseOutlined />
+              <Button className={styles.iconBtn} aria-label={t('closeSearch')} onClick={() => setIsSearch({ value: false, needFetch: false })}>
+                <CloseOutlined aria-hidden />
               </Button>
             )
             : (
-              <Button className={styles.iconBtn} onClick={searchClick}>
-                <SearchOutlined />
+              <Button className={styles.iconBtn} aria-label={t('search')} onClick={searchClick}>
+                <SearchOutlined aria-hidden />
               </Button>
             )}
           <div className={cn('menu-btn', { active: isActive })} onClick={onChangeHandler} role="button" tabIndex={0} aria-label={t('title')} onKeyDown={() => undefined}>
@@ -372,7 +369,7 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
           }
           getContainer={() => mobileDrawerContainer}
           closeIcon={null}
-          width="100%"
+          defaultSize="100%"
           open={isActive}
           zIndex={1500}
           styles={{ body: { padding: 0 } }}

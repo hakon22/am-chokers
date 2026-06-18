@@ -742,6 +742,7 @@ export default {
       catalog: {
         title: 'Catalog',
         description: 'Choose jewelry to your taste',
+        intro: 'Handmade chokers, necklaces and jewelry by AM Chokers — browse categories or use filters.',
         filters: {
           title: 'Filters',
           type: 'Type of jewelry',
@@ -772,6 +773,13 @@ export default {
         },
         notFound: 'No items found :(',
         resetFilters: 'Reset filters',
+        pagination: {
+          ariaLabel: 'Catalog pagination',
+          prev: 'Previous',
+          next: 'Next',
+          titleSuffix: ' — page {{page}}',
+          descriptionSuffix: ' Page {{page}}.',
+        },
       },
       itemList: {
         title: 'List of items ({{ count }})',
@@ -1140,9 +1148,12 @@ export default {
         title: 'Menu',
         logo: 'AM-CHOKERS',
         search: 'Search',
+        closeSearch: 'Close search',
         favorites: 'Favorites',
         cart: 'Cart',
         profile: 'Account',
+        galleryPrev: 'Previous photo',
+        galleryNext: 'Next photo',
         menu: {
           home: 'Main page',
           catalog: 'Catalog',
@@ -1210,6 +1221,7 @@ export default {
       banner: {
         copySuccess: 'Value copied',
         copyError: 'Failed to copy',
+        bannerDot: 'Banner {{ number }}',
       },
       cardItem: {
         edit: 'Edit',
@@ -1416,10 +1428,17 @@ export default {
       itemBulkSuccess: 'Updated items: {{ count }}',
       itemBulkPriceSkipped: 'Skipped (price below 1): {{ count }}',
     },
+    seo: {
+      defaultKeywords: 'jewelry, chokers, necklaces, AM Chokers, handmade',
+      defaultOgImageAlt: 'AM Chokers — handmade jewelry',
+      productDescriptionFallback: '{{ name }} — {{ price }} RUB. AM Chokers jewelry.',
+      breadcrumbLabel: 'Breadcrumb',
+    },
     cookieConsent: {
-      contentText: 'We use cookies to give you the best possible experience when using our website. By clicking ‘Accept All’ we can bring you relevant advertising and personalised content – and generally give you a more enhanced visit.',
+      contentText: 'We use cookies to run the site and, with your consent, for analytics (Google Analytics, Yandex Metrika). Choose «Agree» to allow analytics cookies, or «Essential only» to decline. ',
       contentLink: 'Privacy Policy',
       buttonText: 'Agree',
+      decline: 'Essential only',
     },
     spinner: {
       loading: 'Loading...',

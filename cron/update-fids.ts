@@ -9,6 +9,7 @@ import type { EntityManager } from 'typeorm';
 import { LoggerService } from '@server/services/app/logger.service';
 import { DatabaseService } from '@server/db/database.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
+import { SitemapImageService } from '@server/services/storage/sitemap-image.service';
 
 const TAG = 'UpdateFids';
 
@@ -108,6 +109,8 @@ class UpdateFidsCron {
 
   private readonly uploadPathService = Container.get(UploadPathService);
 
+  private readonly sitemapImageService = Container.get(SitemapImageService);
+
   public start = async () => {
 
     await this.databaseService.init();
@@ -138,12 +141,18 @@ class UpdateFidsCron {
       FROM "chokers"."item"
         LEFT JOIN "chokers"."item_translate" AS "translate" ON "item"."id" = "translate"."item_id"
         LEFT JOIN "chokers"."item_group" AS "group" ON "group"."id" = "group_id"
-        LEFT JOIN "chokers"."image" AS "image" ON "image"."item_id" = "item"."id"
+        LEFT JOIN LATERAL (
+          SELECT "path", "name"
+          FROM "chokers"."image"
+          WHERE "item_id" = "item"."id"
+            AND "deleted" IS NULL
+            AND "name" NOT ILIKE '%.mp4'
+          ORDER BY "order" ASC
+          LIMIT 1
+        ) AS "image" ON TRUE
       WHERE
         "item"."deleted" IS NULL
         AND "item"."publication_date" IS NULL
-        AND "image"."deleted" IS NULL
-        AND "image"."order" = 0
         AND "translate"."lang" = 'RU'
       ORDER BY
         "item"."id" ASC
@@ -205,6 +214,8 @@ class UpdateFidsCron {
     const yandexProductsData = await this.fetchYandexProductsData(manager);
     const yandexProductsContent = this.generateYandexProductsYmlContent(yandexProductsData);
     writeFileSync(`${this.uploadPathService.uploadFilesPath}/yandex_products.xml`, yandexProductsContent, { encoding: 'utf8' });
+
+    await this.sitemapImageService.rebuildImageSitemap();
 
     this.loggerService.info(TAG, 'Процесс завершён');
 
@@ -271,6 +282,7 @@ class UpdateFidsCron {
           INNER JOIN "chokers"."item" ON "item"."id" = "image"."item_id"
         WHERE
           "image"."deleted" IS NULL
+          AND "image"."name" NOT ILIKE '%.mp4'
           AND "item"."deleted" IS NULL
           AND "item"."publication_date" IS NULL
         ORDER BY

@@ -19,6 +19,13 @@ const nextConfig = {
   },
   images: {
     qualities: [100, 75],
+    localPatterns: [
+      { pathname: '/items/**' },
+      { pathname: '/covers/**' },
+      { pathname: '/promotionals/**' },
+      { pathname: '/comments/**' },
+      { pathname: '/temp/**' },
+    ],
   },
 };
 

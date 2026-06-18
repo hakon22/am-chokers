@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Form, Input, Modal, Tag } from 'antd';
+import { Checkbox, Form, Input, Modal, Spin, Tag } from 'antd';
 import { CloseOutlined, DeleteOutlined, HeartFilled, HeartOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
 import moment, { type Moment } from 'moment';
@@ -13,6 +13,8 @@ import type { CheckboxProps } from 'antd/lib';
 
 import { locale } from '@/locales/pickers.locale.ru';
 import { Helmet } from '@/components/Helmet';
+import { isDeliveryWidgetScriptReady, useDeliveryWidgetScripts } from '@/components/delivery/DeliveryWidgetScripts';
+import { pushEcommercePurchase } from '@/utilities/analytics/ecommerce';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
@@ -258,6 +260,11 @@ export const V2CartPage = () => {
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
+  const deliveryWidgetScripts = useDeliveryWidgetScripts();
+  const isDeliveryWidgetLoading = isOpenDeliveryWidget
+    && Boolean(deliveryType)
+    && !isDeliveryWidgetScriptReady(deliveryType, deliveryWidgetScripts);
+
   const setUserEffect = useEffectEvent(setUser);
   const setDeliveryEffect = useEffectEvent(setDelivery);
   const setPromotionalEffect = useEffectEvent(setPromotional);
@@ -406,27 +413,6 @@ export const V2CartPage = () => {
     form.setFieldsValue({ deliveryDateTime: undefined, telegramNickname: '' });
   };
 
-  const sendOrderToYandex = (order: OrderInterface) => {
-    if (typeof window !== 'undefined' && window.dataLayer) {
-      window.dataLayer.push({
-        ecommerce: {
-          currencyCode: 'RUB',
-          purchase: {
-            actionField: { id: order.id.toString(), coupon: order.promotional?.name, goal_id: 511960192, revenue: getOrderPrice(order) - order.deliveryPrice },
-            products: cartList.map(({ item, count: c }, index) => ({
-              id: item.id.toString(),
-              name: item.translations.find((translation) => translation.lang === lang)?.name as string,
-              price: item.price - item.discountPrice,
-              discount: item.discountPrice,
-              quantity: c,
-              position: index + 1,
-            })),
-          },
-        },
-      });
-    }
-  };
-
   const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone' | 'lang'> & { comment: string; telegramNickname?: string; delivery?: { deliveryDateTime?: Moment }; }) => {
     setIsSubmit(true);
     if (!delivery.address) {
@@ -454,7 +440,7 @@ export const V2CartPage = () => {
     } else {
       const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang } })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string } };
       if (code === 1) {
-        sendOrderToYandex(order);
+        pushEcommercePurchase({ order, cartList, userLanguage: lang as UserLangEnum });
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));
@@ -526,13 +512,26 @@ export const V2CartPage = () => {
   }, [deliveryType]);
 
   useEffect(() => {
-    if (!isOpenDeliveryWidget) return;
-    switch (deliveryType) {
-    case DeliveryTypeEnum.YANDEX_DELIVERY: openYandexDeliveryWidget(cartList); break;
-    case DeliveryTypeEnum.RUSSIAN_POST:    openRussianPostDeliveryWidget(cartList); break;
-    case DeliveryTypeEnum.CDEK:            openCDEKDeliveryWidget(cartList); break;
+    if (!isOpenDeliveryWidget || !deliveryType) {
+      return;
     }
-  }, [isOpenDeliveryWidget, deliveryType]);
+
+    if (!isDeliveryWidgetScriptReady(deliveryType, deliveryWidgetScripts)) {
+      return;
+    }
+
+    switch (deliveryType) {
+    case DeliveryTypeEnum.YANDEX_DELIVERY:
+      openYandexDeliveryWidget(cartList);
+      break;
+    case DeliveryTypeEnum.RUSSIAN_POST:
+      openRussianPostDeliveryWidget(cartList);
+      break;
+    case DeliveryTypeEnum.CDEK:
+      openCDEKDeliveryWidget(cartList);
+      break;
+    }
+  }, [isOpenDeliveryWidget, deliveryType, deliveryWidgetScripts]);
 
   useEffect(() => {
     if (isConfirmed && tempUser.phone) {
@@ -571,11 +570,17 @@ export const V2CartPage = () => {
         footer={null}
         onCancel={() => { resetPVZ(); setIsOpenDeliveryWidget(false); }}
       >
-        <>
-          <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
-          <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
-          <div id="cdek-map" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
-        </>
+        {isDeliveryWidgetLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 500 }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <>
+            <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
+            <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+            <div id="cdek-map" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
+          </>
+        )}
       </Modal>
 
       <h1 className={styles.title}>{t('title', { count: countCart })}</h1>

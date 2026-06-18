@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import type { MutableRefObject } from 'react';
 import {
   useCallback,
   useContext,
@@ -9,17 +8,15 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type RefObject,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import Carousel, { type DotProps } from 'react-multi-carousel';
-import type {
-  ButtonGroupProps,
-  CarouselInternalState,
-} from 'react-multi-carousel/lib/types';
 import { Skeleton } from 'antd';
 import cn from 'classnames';
 import { isEmpty, isNil } from 'lodash';
 import 'react-multi-carousel/lib/styles.css';
+import type { ButtonGroupProps, CarouselInternalState } from 'react-multi-carousel/lib/types';
 
 import { MobileContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
@@ -57,6 +54,37 @@ const schedulePosterPaint = (video: HTMLVideoElement, fn: () => void) => {
 };
 
 type StaticPosterLoad = 'checking' | 'ok' | 'bad';
+
+interface BannerSliderProps {
+  banners: BannerInterface[];
+  variant?: BannerSliderVariant;
+}
+
+interface BannerStaticBannerImageProps {
+  autoplayLogicEnabled: boolean;
+  bannerName: string;
+  imagePriority: boolean;
+  imageSizes: string;
+  isActive: boolean;
+  isHero: boolean;
+  isMobile: boolean;
+  isMultiSlide: boolean;
+  mediaSrc: string;
+  onRequestAdvance: () => void;
+}
+
+interface BannerSlideProps {
+  activeSlideStore: BannerActiveSlideStore;
+  autoplayLogicEnabled: boolean;
+  banner: BannerInterface;
+  imagePriority: boolean;
+  isMobile: boolean;
+  isMultiSlide: boolean;
+  onCopy: (value: string) => void;
+  onRequestAdvance: () => void;
+  slideIndex: number;
+  variant: 'strip' | 'hero';
+}
 
 /**
  * Таблица соответствия индекса в треке с клонами (infinite) и индекса оригинального слайда.
@@ -162,7 +190,7 @@ const createBannerActiveSlideStore = (): BannerActiveSlideStore => {
 };
 
 type BannerCarouselStateBridgeProps = ButtonGroupProps & {
-  advanceRef: MutableRefObject<(() => void) | null>;
+  advanceRef: RefObject<(() => void) | null>;
   activeSlideStore: BannerActiveSlideStore;
   sortedLength: number;
 };
@@ -206,6 +234,38 @@ const BannerCarouselStateBridge = ({
     carouselState?.containerWidth,
   ]);
   return <div className={styles.carouselStateBridge} aria-hidden />;
+};
+
+/**
+ * Определяет, виден ли слайд в треке карусели (по aria-hidden на li от react-multi-carousel).
+ * @returns ref обёртки слайда и флаг видимости для загрузки медиа
+ */
+const useCarouselSlideVisible = () => {
+  const slideWrapperRef = useRef<HTMLDivElement>(null);
+  const [isCarouselSlideVisible, setIsCarouselSlideVisible] = useState(false);
+
+  useEffect(() => {
+    const listItem = slideWrapperRef.current?.closest('li.react-multi-carousel-item');
+    if (!listItem) {
+      return undefined;
+    }
+
+    const syncVisibility = () => {
+      setIsCarouselSlideVisible(listItem.getAttribute('aria-hidden') !== 'true');
+    };
+
+    syncVisibility();
+    const observer = new MutationObserver(syncVisibility);
+    observer.observe(listItem, {
+      attributes: true,
+      attributeFilter: ['aria-hidden', 'class'],
+    });
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  return { slideWrapperRef, isCarouselSlideVisible };
 };
 
 /**
@@ -278,7 +338,7 @@ const BannerVideo = ({
       video.removeEventListener('playing', onReady);
       video.removeEventListener('error', onError);
     };
-  }, [src]);
+  }, [src, isActive]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -294,7 +354,7 @@ const BannerVideo = ({
       video.currentTime = 0;
       wasActiveRef.current = true;
     }
-    void video.play().catch(() => {});
+    video.play().catch(() => {});
     return undefined;
   }, [videoCanPlay, src, isActive]);
 
@@ -387,7 +447,7 @@ const BannerVideo = ({
         tryCapture();
         video.currentTime = 0;
         if (isActiveRef.current) {
-          void video.play().catch(() => {});
+          video.play().catch(() => {});
         } else {
           video.pause();
         }
@@ -449,12 +509,12 @@ const BannerVideo = ({
           videoCanPlay && styles.mediaVideoReady,
           videoCanPlay && styles.mediaVideoAbovePoster,
         )}
-        src={src}
+        src={isActive ? src : undefined}
         autoPlay
         loop={shouldLoopVideo}
         muted
         playsInline
-        preload="auto"
+        preload={isActive ? 'auto' : 'none'}
         onEnded={handleVideoPlaybackEnded}
         onError={handleVideoPlaybackError}
       />
@@ -483,7 +543,7 @@ const BannerVideo = ({
       {showBlobPosterImg ? (
         // eslint-disable-next-line @next/next/no-img-element -- краткоживущий blob: превью из canvas
         <img
-          src={blobPosterUrl!}
+          src={blobPosterUrl}
           alt=""
           className={cn(styles.videoPoster, styles.videoPosterLayer)}
           draggable={false}
@@ -499,19 +559,6 @@ const BannerVideo = ({
     </div>
   );
 };
-
-interface BannerStaticBannerImageProps {
-  autoplayLogicEnabled: boolean;
-  bannerName: string;
-  imagePriority: boolean;
-  imageSizes: string;
-  isActive: boolean;
-  isHero: boolean;
-  isMobile: boolean;
-  isMultiSlide: boolean;
-  mediaSrc: string;
-  onRequestAdvance: () => void;
-}
 
 const BannerStaticBannerImage = ({
   autoplayLogicEnabled,
@@ -561,19 +608,6 @@ const BannerStaticBannerImage = ({
   );
 };
 
-interface BannerSlideProps {
-  activeSlideStore: BannerActiveSlideStore;
-  autoplayLogicEnabled: boolean;
-  banner: BannerInterface;
-  imagePriority: boolean;
-  isMobile: boolean;
-  isMultiSlide: boolean;
-  onCopy: (value: string) => void;
-  onRequestAdvance: () => void;
-  slideIndex: number;
-  variant: 'strip' | 'hero';
-}
-
 const BannerSlide = ({
   activeSlideStore,
   autoplayLogicEnabled,
@@ -587,12 +621,14 @@ const BannerSlide = ({
   variant,
 }: BannerSlideProps) => {
   const isHero = variant === 'hero';
+  const { slideWrapperRef, isCarouselSlideVisible } = useCarouselSlideVisible();
   const activeOriginalIndex = useSyncExternalStore(
     activeSlideStore.subscribe,
     activeSlideStore.getSnapshot,
     () => 0,
   );
-  const isActive = slideIndex === activeOriginalIndex;
+  const isAutoplayActive = slideIndex === activeOriginalIndex && isCarouselSlideVisible;
+  const isMediaActive = isCarouselSlideVisible;
 
   const media = banner.desktopVideo;
 
@@ -632,7 +668,7 @@ const BannerSlide = ({
           staticPosterUrl={staticPosterUrl}
           objectFit={videoFit}
           posterSizes={imageSizes}
-          isActive={isActive}
+          isActive={isMediaActive}
           shouldLoopVideo={false}
           onPlaybackComplete={onRequestAdvance}
         />
@@ -645,7 +681,7 @@ const BannerSlide = ({
         bannerName={banner.name}
         imagePriority={imagePriority}
         imageSizes={imageSizes}
-        isActive={isActive}
+        isActive={isAutoplayActive}
         isHero={isHero}
         isMobile={isMobile}
         isMultiSlide={isMultiSlide}
@@ -665,7 +701,10 @@ const BannerSlide = ({
   const skeletonClass = isHero ? styles.skeletonHero : styles.skeleton;
 
   return (
-    <div className={cn(styles.slideWrapper, isHero && styles.slideWrapperHero)}>
+    <div
+      ref={slideWrapperRef}
+      className={cn(styles.slideWrapper, isHero && styles.slideWrapperHero)}
+    >
       {mediaContent ? (
         banner.link ? (
           <Link href={banner.link} className={slideClass}>
@@ -690,11 +729,6 @@ const BannerSlide = ({
 };
 
 export type BannerSliderVariant = 'strip' | 'hero';
-
-interface BannerSliderProps {
-  banners: BannerInterface[];
-  variant?: BannerSliderVariant;
-}
 
 export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.banner' });
@@ -797,11 +831,15 @@ export const BannerSlider = ({ banners, variant = 'strip' }: BannerSliderProps) 
   return <section className={styles.section}>{carousel}</section>;
 };
 
-const BannerCarouselDot = ({ onClick, active }: DotProps) => (
-  <button
-    type="button"
-    className={cn(styles.dot, active && styles.dotActive)}
-    onClick={onClick}
-    aria-label="Go to banner"
-  />
-);
+const BannerCarouselDot = ({ onClick, active, index }: DotProps) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'modules.banner' });
+
+  return (
+    <button
+      type="button"
+      className={cn(styles.dot, active && styles.dotActive)}
+      onClick={onClick}
+      aria-label={t('bannerDot', { number: (index ?? 0) + 1 })}
+    />
+  );
+};

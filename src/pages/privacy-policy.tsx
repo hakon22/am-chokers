@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useContext } from 'react';
 
-import { Helmet } from '@/components/Helmet';
+import { StaticPageJsonLd } from '@/components/seo/StaticPageJsonLd';
 import { MobileContext } from '@/components/Context';
+import { routes } from '@/routes';
 
 const PrivacyPolicy = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.privacyPolicy' });
@@ -11,7 +12,7 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
-      <Helmet title={t('title')} description={t('description')} />
+      <StaticPageJsonLd title={t('title')} description={t('description')} path={routes.page.base.privacyPolicy} />
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div className="d-flex flex-column">
         <p className="fs-5 fw-bold text-uppercase">{t('1')}</p>

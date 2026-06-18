@@ -36,6 +36,9 @@
       "@server/*": [
         "server/*"
       ],
+      "@shared/*": [
+        "shared/*"
+      ],
       "@microservices/sender/*": [
         "microservices/sender/src/*"
       ]

@@ -742,6 +742,7 @@ export default {
       catalog: {
         title: 'Каталог украшений',
         description: 'Тут вы можете подобрать себе украшения на любой вкус',
+        intro: 'Авторские чокеры, колье и украшения ручной работы AM Chokers — выберите категорию или воспользуйтесь фильтрами.',
         filters: {
           title: 'Фильтры',
           type: 'Тип аксессуара',
@@ -772,6 +773,13 @@ export default {
         },
         notFound: 'Товары не найдены',
         resetFilters: 'Сбросить фильтры',
+        pagination: {
+          ariaLabel: 'Пагинация каталога',
+          prev: 'Назад',
+          next: 'Вперёд',
+          titleSuffix: ' — страница {{page}}',
+          descriptionSuffix: ' Страница {{page}}.',
+        },
       },
       itemList: {
         title: 'Реестр товаров ({{ count }})',
@@ -1140,9 +1148,12 @@ export default {
         title: 'Меню',
         logo: 'AM-CHOKERS',
         search: 'Поиск',
+        closeSearch: 'Закрыть поиск',
         favorites: 'Избранное',
         cart: 'Корзина',
         profile: 'Профиль',
+        galleryPrev: 'Предыдущее фото',
+        galleryNext: 'Следующее фото',
         menu: {
           home: 'Главная',
           catalog: 'Каталог',
@@ -1210,6 +1221,7 @@ export default {
       banner: {
         copySuccess: 'Значение скопировано',
         copyError: 'Не удалось скопировать',
+        bannerDot: 'Баннер {{ number }}',
       },
       cardItem: {
         edit: 'Редактировать',
@@ -1416,10 +1428,17 @@ export default {
       itemBulkSuccess: 'Изменено позиций: {{ count }}',
       itemBulkPriceSkipped: 'Пропущено (цена меньше 1 ₽): {{ count }}',
     },
+    seo: {
+      defaultKeywords: 'украшения, чокеры, колье, AM Chokers, handmade',
+      defaultOgImageAlt: 'AM Chokers — украшения ручной работы',
+      productDescriptionFallback: '{{ name }} — {{ price }} ₽. Украшения AM Chokers.',
+      breadcrumbLabel: 'Навигация',
+    },
     cookieConsent: {
-      contentText: 'Этот сайт использует cookie для улучшения вашего опыта. Если вы продолжите использовать этот сайт, вы соглашаетесь с этим. ',
+      contentText: 'Мы используем cookie для работы сайта и, с вашего согласия, для аналитики (Google Analytics, Яндекс.Метрика). Нажмите «Согласен», чтобы разрешить аналитические cookie, или «Только необходимые», чтобы отказаться. ',
       contentLink: 'Политика конфиденциальности',
       buttonText: 'Согласен',
+      decline: 'Только необходимые',
     },
     spinner: {
       loading: 'Загрузка...',

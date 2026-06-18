@@ -1,0 +1,22 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+/**
+ * Текстовый размер: на desktop — как задано, на mobile (≤768px) — не меньше 12px (D12)
+ * @param $size - размер шрифта на desktop
+ * @param $important - добавить !important к font-size
+ */
+@mixin v2-readable-font-size($size, $important: false) {
+  @if $important {
+    font-size: $size !important;
+
+    @media (max-width: 768px) {
+      font-size: max(#{$size}, v2.$v2-mobile-min-font-size) !important;
+    }
+  } @else {
+    font-size: $size;
+
+    @media (max-width: 768px) {
+      font-size: max(#{$size}, v2.$v2-mobile-min-font-size);
+    }
+  }
+}

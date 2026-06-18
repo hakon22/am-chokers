@@ -1,4 +1,5 @@
 @use '@/themes/v2/styles/variables' as v2;
+@use '@/themes/v2/styles/mixins' as v2mixins;
 
 // ── Tokens (local aliases) ────────────────────────────────────────
 $navy:    v2.$v2-navy-primary;
@@ -72,7 +73,7 @@ $success: v2.$v2-success;
 }
 
 .selectAllCount {
-  font-size: 11px;
+  @include v2mixins.v2-readable-font-size(11px);
   letter-spacing: 1px;
   text-transform: uppercase;
   color: $textM;
@@ -175,7 +176,7 @@ $success: v2.$v2-success;
 }
 
 .itemEyebrow {
-  font-size: 9px;
+  @include v2mixins.v2-readable-font-size(9px);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: $textM;
@@ -215,7 +216,7 @@ $success: v2.$v2-success;
 }
 
 .itemPriceUnit {
-  font-size: 11px;
+  @include v2mixins.v2-readable-font-size(11px);
   color: $textM;
   white-space: nowrap;
 }
@@ -309,7 +310,7 @@ $success: v2.$v2-success;
 .badge {
   display: inline-block;
   white-space: nowrap;
-  font-size: 9px;
+  @include v2mixins.v2-readable-font-size(9px);
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -361,7 +362,7 @@ $success: v2.$v2-success;
 }
 
 .summaryTitle {
-  font-size: 10px;
+  @include v2mixins.v2-readable-font-size(10px);
   letter-spacing: 2.5px;
   text-transform: uppercase;
   font-weight: 600;
@@ -394,7 +395,7 @@ $success: v2.$v2-success;
 }
 
 .deliveryLabel {
-  font-size: 11px;
+  @include v2mixins.v2-readable-font-size(11px);
   letter-spacing: 1.5px;
   text-transform: uppercase;
   font-weight: 600;
@@ -498,7 +499,7 @@ $success: v2.$v2-success;
 
   strong {
     display: block;
-    font-size: 11px;
+    @include v2mixins.v2-readable-font-size(11px);
     letter-spacing: 1px;
     text-transform: uppercase;
     color: $textD;
@@ -528,7 +529,7 @@ $success: v2.$v2-success;
 }
 
 .pickupFields :global(.ant-form-item-label > label) {
-  font-size: 11px;
+  @include v2mixins.v2-readable-font-size(11px);
   letter-spacing: 1px;
   text-transform: uppercase;
   font-weight: 600;
@@ -545,7 +546,7 @@ $success: v2.$v2-success;
   margin-bottom: 6px;
 
   .promoLabel {
-    font-size: 11px;
+    @include v2mixins.v2-readable-font-size(11px);
     letter-spacing: 1px;
     text-transform: uppercase;
     font-weight: 500;
@@ -593,7 +594,7 @@ $success: v2.$v2-success;
   margin-bottom: 20px;
 
   span:first-child {
-    font-size: 11px;
+    @include v2mixins.v2-readable-font-size(11px);
     letter-spacing: 2px;
     text-transform: uppercase;
     font-weight: 600;
@@ -609,7 +610,7 @@ $success: v2.$v2-success;
   color: $white;
   border: 2px solid $navy2;
   border-radius: 12px;
-  font-size: 11px;
+  @include v2mixins.v2-readable-font-size(11px);
   letter-spacing: 2px;
   text-transform: uppercase;
   font-weight: 700;

@@ -46,6 +46,10 @@ export const ItemContext = createContext<{ item?: ItemInterface; setItem: React.
   setItem: () => undefined,
 });
 
+export const CatalogPageContext = createContext<{ itemGroup?: ItemInterface['group']; }>({
+  itemGroup: undefined,
+});
+
 export const SearchContext = createContext<{ isSearch?: { value: boolean; needFetch: boolean; }; setIsSearch: React.Dispatch<React.SetStateAction<{ value: boolean; needFetch: boolean; }>>; }>({
   isSearch: undefined,
   setIsSearch: () => undefined,

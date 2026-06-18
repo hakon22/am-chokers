@@ -97,6 +97,14 @@ const eslint = [
       'no-extra-semi': 'error',
       'import/order': ['error', {
         'groups': ['builtin', 'external', 'internal'],
+        'pathGroups': [
+          { pattern: '@/**', group: 'internal' },
+          { pattern: '@shared/**', group: 'internal' },
+          { pattern: '@server/**', group: 'internal' },
+          { pattern: '@microservices/**', group: 'internal' },
+        ],
+        'pathGroupsExcludedImportTypes': ['builtin'],
+        'distinctGroup': false,
         'newlines-between': 'always',
       }],
       'quotes': ['error', 'single'],

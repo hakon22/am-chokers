@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useEffectEvent, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useContext, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type MouseEventHandler } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
@@ -10,15 +10,21 @@ import { Telegram } from 'react-bootstrap-icons';
 import moment from 'moment';
 import axios from 'axios';
 import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
+import 'react-image-gallery/styles/image-gallery.css';
 import Carousel from 'react-multi-carousel';
 import cn from 'classnames';
+import { isNil } from 'lodash';
 
-import { Helmet } from '@/components/Helmet';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { GradeList } from '@/components/GradeList';
 import { V2AdminCreateItem } from '@/themes/v2/components/admin/V2AdminCreateItem';
 import { ProductCard } from '@/themes/v2/components/ProductCard';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { V2ProductAdminToolbar } from '@/themes/v2/components/catalog/V2ProductAdminToolbar';
+import { ProductGalleryVideo } from '@/themes/v2/components/catalog/ProductGalleryVideo';
+import { ProductGallerySlideImage } from '@/themes/v2/components/catalog/ProductGallerySlideImage';
+import { ProductGalleryThumbnailImage } from '@/themes/v2/components/catalog/ProductGalleryThumbnailImage';
+import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { AuthModalContext, ItemContext, MobileContext, SubmitContext } from '@/components/Context';
@@ -26,16 +32,19 @@ import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
+import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
+import { getHref } from '@/utilities/getHref';
 import { scrollToElement } from '@/utilities/scrollToElement';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import { booleanSchema } from '@server/utilities/convertation.params';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
+import styles from '@/themes/v2/components/catalog/ProductPage.module.scss';
+import productsSectionStyles from '@/themes/v2/components/home/ProductsSection.module.scss';
+import { booleanSchema } from '@server/utilities/convertation.params';
+import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
-import styles from '@/themes/v2/components/catalog/ProductPage.module.scss';
-import productsSectionStyles from '@/themes/v2/components/home/ProductsSection.module.scss';
 
 const GALLERY_MAX_MAIN_WIDTH = 560;
 const GALLERY_MAX_HEIGHT_CAP = 520;
@@ -45,6 +54,8 @@ const GALLERY_THUMB_RAIL = 112;
 const GALLERY_THUMB_GAP = 12;
 /** Как в v1 (`CardItem`): height / width для области главного слайда */
 const GALLERY_ASPECT_RATIO = 1.3;
+/** Длительность смены слайда в галерее (мс); на время прыжка в fullscreen сбрасывается в 0 */
+const GALLERY_SLIDE_DURATION_MS = 550;
 
 const setGalleryFullscreenCssVariablesOnDocumentRoot = (isMobile: boolean) => {
   document.documentElement.style.setProperty(
@@ -59,8 +70,18 @@ const applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen = () => {
     '.image-gallery-slide-wrapper.image-gallery-thumbnails-right',
   ) as HTMLElement | null;
   if (thumbnailsRightSlideWrapper) {
-    thumbnailsRightSlideWrapper.style.transition = '0.25s all';
-    thumbnailsRightSlideWrapper.style.width = 'calc(100% - 30px)';
+    thumbnailsRightSlideWrapper.style.transition = 'none';
+    thumbnailsRightSlideWrapper.style.width = '100%';
+  }
+};
+
+const restoreThumbnailsRightSlideWrapperStylesAfterMobileFullscreen = () => {
+  const thumbnailsRightSlideWrapper = document.querySelector(
+    '.image-gallery-slide-wrapper.image-gallery-thumbnails-right',
+  ) as HTMLElement | null;
+  if (thumbnailsRightSlideWrapper) {
+    thumbnailsRightSlideWrapper.style.width = '';
+    thumbnailsRightSlideWrapper.style.transition = '';
   }
 };
 
@@ -78,6 +99,23 @@ const readFullscreenElementFromDocument = (): Element | null => {
     ?? null
   );
 };
+
+/** Шеврон навигации как в `react-image-gallery` (left / right). */
+const GalleryNavSvg = ({ direction }: { direction: 'left' | 'right' }) => (
+  <svg
+    className="image-gallery-svg"
+    viewBox="6 0 12 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="square"
+    strokeLinejoin="miter"
+    strokeWidth={1}
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden
+  >
+    <polyline points={direction === 'left' ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} />
+  </svg>
+);
 
 /** Иконки как в `react-image-gallery` (для кастомной кнопки fullscreen). */
 const GalleryFullscreenSvg = ({ exit }: { exit: boolean }) => (
@@ -102,6 +140,8 @@ const GalleryFullscreenSvg = ({ exit }: { exit: boolean }) => (
 
 export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tSeo } = useTranslation('translation', { keyPrefix: 'seo' });
+  const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -115,6 +155,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const { openAuthModal } = useContext(AuthModalContext);
   const { setItem: setContextItem } = useContext(ItemContext);
   const { isMobile } = useContext(MobileContext);
+  const seoUserLang = useSeoUserLang();
+  const languageCode = useSeoLanguage();
 
   const galleryRef = useRef<ImageGalleryRef>(null);
   const galleryWrapRef = useRef<HTMLDivElement>(null);
@@ -137,8 +179,11 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const [galleryFsCurtain, setGalleryFsCurtain] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const currentSlideIndexRef = useRef(0);
+  const [gallerySlideDuration, setGallerySlideDuration] = useState(GALLERY_SLIDE_DURATION_MS);
   const fsTargetIndexRef = useRef(0);
   const fsCurtainFallbackRef = useRef<number | null>(null);
+  const restoreGallerySlideDurationRef = useRef<number | null>(null);
   const cartRowRef = useRef<HTMLDivElement>(null);
   const [cartRowVisible, setCartRowVisible] = useState(true);
   const infoRef = useRef<HTMLDivElement>(null);
@@ -213,6 +258,32 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
   const imageAlt = buildItemImageAlt(item);
 
+  const productSeoBundle = useMemo(() => {
+    const seoProductTranslation = item.translations?.find(({ lang }) => lang === seoUserLang) as ItemTranslateEntity | undefined;
+    const seoProductName = seoProductTranslation?.name ?? name ?? '';
+    const seoGroupName = item.group?.translations?.find(({ lang }) => lang === seoUserLang)?.name ?? '';
+    const productFallbackDescription = tSeo('productDescriptionFallback', {
+      name: seoProductName,
+      price: price - discountPrice,
+    });
+    const productSeoDescription = buildProductSeoDescription(item, languageCode, productFallbackDescription);
+    const firstProductImage = getFirstRasterProductImageSrc(images);
+
+    return {
+      seoProductName,
+      productFallbackDescription,
+      productSeoDescription,
+      firstProductImage,
+      productJsonLd: buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count),
+      productBreadcrumbJsonLd: buildBreadcrumbJsonLd([
+        { name: tNavbar('menu.home'), url: routes.page.base.homePage },
+        { name: tNavbar('menu.catalog'), url: routes.page.base.catalog },
+        { name: seoGroupName, url: `${routes.page.base.catalog}/${item.group?.code ?? ''}` },
+        { name: seoProductName, url: getHref(item) },
+      ]),
+    };
+  }, [seoUserLang, languageCode, item, name, price, discountPrice, images, paginationParams?.count, tSeo, tNavbar]);
+
   const discountPercent = price && discountPrice
     ? Math.round((discountPrice / price) * 100)
     : null;
@@ -249,10 +320,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     });
   }, [fetchedItem.id]);
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      setGalleryBox(null);
-    });
+  useLayoutEffect(() => {
+    recomputeGalleryBox();
   }, [fetchedItem.id]);
 
   useEffect(() => {
@@ -325,6 +394,59 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       fsCurtainFallbackRef.current = null;
     }
   }, []);
+
+  const clearRestoreGallerySlideDuration = useCallback(() => {
+    if (!isNil(restoreGallerySlideDurationRef.current)) {
+      clearTimeout(restoreGallerySlideDurationRef.current);
+      restoreGallerySlideDurationRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Переходит к слайду без анимации (вход в fullscreen после смены вёрстки)
+   * @param index - индекс слайда в галерее
+   */
+  const jumpGalleryToIndex = useCallback((index: number) => {
+    clearRestoreGallerySlideDuration();
+    flushSync(() => {
+      setGallerySlideDuration(0);
+    });
+    galleryRef.current?.slideToIndex?.(index);
+    restoreGallerySlideDurationRef.current = window.setTimeout(() => {
+      setGallerySlideDuration(GALLERY_SLIDE_DURATION_MS);
+      restoreGallerySlideDurationRef.current = null;
+    }, 50);
+  }, [clearRestoreGallerySlideDuration]);
+
+  /**
+   * После выхода из fullscreen: миниатюры и размеры слайда, затем синхронизация индекса (без jump — иначе ломается last slide + infinite)
+   * @param indexToRestore - индекс слайда для восстановления
+   */
+  const restoreGalleryAfterFullscreenExit = useCallback((indexToRestore: number) => {
+    clearRestoreGallerySlideDuration();
+    setGallerySlideDuration(GALLERY_SLIDE_DURATION_MS);
+    document.documentElement.style.setProperty('--galleryWidth', '320px');
+    document.documentElement.style.setProperty('--galleryHeight', '416px');
+    if (isMobile) {
+      restoreThumbnailsRightSlideWrapperStylesAfterMobileFullscreen();
+      flushSync(() => {
+        setIsFullscreen(false);
+        setShowThumbnails(true);
+      });
+    } else {
+      setIsFullscreen(false);
+    }
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        galleryRef.current?.slideToIndex?.(indexToRestore);
+      });
+    });
+  }, [clearRestoreGallerySlideDuration, isMobile]);
+
+  useEffect(() => () => {
+    clearFsCurtainFallback();
+    clearRestoreGallerySlideDuration();
+  }, [clearFsCurtainFallback, clearRestoreGallerySlideDuration]);
 
   const armFsCurtainFallback = useCallback(() => {
     clearFsCurtainFallback();
@@ -477,8 +599,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const gallerySurfaceStyle = useMemo((): CSSProperties | undefined => {
     if (isFullscreen) {
       return {
-        '--galleryFsHeight': '100dvh',
-        '--galleryFsWidth': isMobile ? 'calc(100% - 30px)' : 'calc(100% - 110px)',
+        '--galleryFsHeight': isMobile ? '100svh' : '100dvh',
       } as CSSProperties;
     }
     return galleryCssVars;
@@ -506,13 +627,17 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     fsTargetIndexRef.current = indexToShow;
     isFullscreenRef.current = true;
     flushSync(() => {
+      setGallerySlideDuration(0);
       setIsFullscreen(true);
       if (isMobile) {
         setShowThumbnails(false);
+      } else {
+        setGalleryFsCurtain(true);
       }
-      setGalleryFsCurtain(true);
     });
-    armFsCurtainFallback();
+    if (!isMobile) {
+      armFsCurtainFallback();
+    }
     setGalleryFullscreenCssVariablesOnDocumentRoot(isMobile);
     if (isMobile) {
       applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen();
@@ -521,11 +646,11 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   }, [armFsCurtainFallback, currentSlideIndex, isMobile]);
 
   const openGalleryFullscreen = useCallback(() => {
-    const indexToShow = prepareGalleryFullscreenLayout();
+    if (isFullscreenRef.current) {
+      return;
+    }
+    prepareGalleryFullscreenLayout();
     galleryRef.current?.fullScreen();
-    requestAnimationFrame(() => {
-      galleryRef.current?.slideToIndex?.(indexToShow);
-    });
   }, [prepareGalleryFullscreenLayout]);
 
   const renderGalleryFullscreenButton = useCallback(
@@ -536,11 +661,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
         aria-label={fs ? t('closeFullscreen') : t('openFullscreen')}
         onClick={() => {
           if (!fs) {
-            const i = prepareGalleryFullscreenLayout();
+            prepareGalleryFullscreenLayout();
             onClick();
-            requestAnimationFrame(() => {
-              galleryRef.current?.slideToIndex?.(i);
-            });
           } else {
             flushSync(() => {
               setGalleryFsCurtain(true);
@@ -556,41 +678,86 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     [armFsCurtainFallback, prepareGalleryFullscreenLayout, t],
   );
 
+  const renderGalleryLeftNav = useCallback(
+    (onClick: MouseEventHandler<HTMLElement>, disabled: boolean) => (
+      <button
+        type="button"
+        className="image-gallery-icon image-gallery-left-nav"
+        disabled={disabled}
+        onClick={onClick}
+        aria-label={tNavbar('galleryPrev')}
+      >
+        <GalleryNavSvg direction="left" />
+      </button>
+    ),
+    [tNavbar],
+  );
+
+  const renderGalleryRightNav = useCallback(
+    (onClick: MouseEventHandler<HTMLElement>, disabled: boolean) => (
+      <button
+        type="button"
+        className="image-gallery-icon image-gallery-right-nav"
+        disabled={disabled}
+        onClick={onClick}
+        aria-label={tNavbar('galleryNext')}
+      >
+        <GalleryNavSvg direction="right" />
+      </button>
+    ),
+    [tNavbar],
+  );
+
   const imageGalleryItems = useMemo(() => {
-    return sortItemImagesByOrder(images).map((image) => {
+    return sortItemImagesByOrder(images).map((image, slideIndex) => {
       if (image.src.endsWith('.mp4')) {
         return {
           original: image.src,
           thumbnail: image.src,
           renderThumbInner: () => (
-            <video className="w-100" autoPlay loop muted playsInline src={image.src} />
+            <span className="image-gallery-thumbnail-inner">
+              <ProductGalleryVideo key={image.src} src={image.src} variant="thumbnail" />
+            </span>
           ),
           renderItem: () => (
-            <video
-              className="image-gallery-image"
-              style={
-                isFullscreenRef.current
-                  ? { maxHeight: '100dvh', width: 'auto', maxWidth: '100%', objectFit: 'contain' }
-                  : { maxHeight: slideHeight, width: '100%', objectFit: 'cover' }
-              }
-              autoPlay
-              loop
-              muted
-              playsInline
-              src={image.src}
-            />
+            <span className="image-gallery-image-wrap">
+              <ProductGalleryVideo
+                key={image.src}
+                src={image.src}
+                variant="slide"
+                skeletonBorderRadius={isFullscreen ? 0 : 16}
+                slideStyle={
+                  isFullscreenRef.current
+                    ? { maxHeight: '100dvh', width: 'auto', maxWidth: '100%', objectFit: 'contain' }
+                    : { maxHeight: slideHeight, width: '100%', objectFit: 'cover' }
+                }
+              />
+            </span>
           ),
         };
       }
+
       return {
         original: image.src,
         thumbnail: image.src,
         originalAlt: imageAlt,
-        originalHeight: String(slideHeight),
-        ...(slideWidth != null ? { originalWidth: String(slideWidth) } : {}),
+        renderThumbInner: () => (
+          <ProductGalleryThumbnailImage src={image.src} alt={imageAlt} />
+        ),
+        renderItem: () => (
+          <ProductGallerySlideImage
+            src={image.src}
+            alt={imageAlt}
+            slideIndex={slideIndex}
+            slideHeight={slideHeight}
+            slideWidth={slideWidth ?? null}
+            isFullscreen={isFullscreen}
+            isMobile={isMobile}
+          />
+        ),
       };
     });
-  }, [images, imageAlt, slideHeight, slideWidth]);
+  }, [images, imageAlt, slideHeight, slideWidth, isFullscreen, isMobile]);
 
   // Stock status
   const stockState: 'in' | 'out' | 'del' = item.deleted ? 'del' : item.outStock ? 'out' : 'in';
@@ -614,7 +781,15 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
   return (
     <>
-      <Helmet title={name ?? ''} description={description ?? ''} image={sortItemImagesByOrder(images)[0]?.src} />
+      <JsonLd
+        title={productSeoBundle.seoProductName}
+        description={productSeoBundle.productSeoDescription || productSeoBundle.productFallbackDescription}
+        image={productSeoBundle.firstProductImage}
+        imageAlt={imageAlt}
+        type="product"
+        preloadImage={productSeoBundle.firstProductImage}
+        jsonLd={[productSeoBundle.productJsonLd, productSeoBundle.productBreadcrumbJsonLd]}
+      />
 
       {typeof document !== 'undefined' && galleryFsCurtain
         ? createPortal(<div className={styles.fsCurtain} aria-hidden />, document.body)
@@ -624,7 +799,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
         {/* ── Mobile title (shown before gallery on mobile only) ── */}
         <div className={styles.mobileTitle}>
-          <h1 className={styles.infoName}>{name}</h1>
+          <h1 className={styles.infoName} aria-hidden={!isMobile}>{name}</h1>
           {collection && (
             <Link
               href={`${routes.page.base.catalog}?collectionIds=${collection.id}`}
@@ -643,60 +818,59 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
             style={gallerySurfaceStyle}
             data-gallery-adaptive={galleryBox ? '' : undefined}
           >
-            {imageGalleryItems.length === 0 ? (
-              <div className={styles.galleryPlaceholder} />
-            ) : (
-              <ImageGallery
-                ref={galleryRef}
-                additionalClass={cn(styles.galleryInner, 'w-100', { 'd-flex align-items-center justify-content-center': isMobile })}
-                showIndex
-                items={imageGalleryItems}
-                infinite
-                showBullets={isMobile}
-                showNav={!isMobile}
-                showPlayButton={false}
-                thumbnailPosition={isMobile ? 'right' : 'left'}
-                showThumbnails={showThumbnails}
-                useBrowserFullscreen
-                renderFullscreenButton={renderGalleryFullscreenButton}
-                onSlide={(index) => setCurrentSlideIndex(index)}
-                onScreenChange={(fullscreen) => {
-                  if (fullscreen) {
-                    const indexToShow = fsTargetIndexRef.current;
-                    setIsFullscreen(true);
-                    setGalleryFullscreenCssVariablesOnDocumentRoot(isMobile);
-                    if (isMobile) {
-                      setShowThumbnails(false);
-                      applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen();
-                    }
-                    requestAnimationFrame(() => {
-                      galleryRef.current?.slideToIndex?.(indexToShow);
-                    });
-                  } else {
-                    const indexToRestore = currentSlideIndex;
-                    isFullscreenRef.current = false;
-                    clearFsCurtainFallback();
-                    setGalleryFsCurtain(false);
-                    setIsFullscreen(false);
-                    document.documentElement.style.setProperty('--galleryWidth', '320px');
-                    document.documentElement.style.setProperty('--galleryHeight', '416px');
-                    if (isMobile) {
-                      const div = document.querySelector('.image-gallery-slide-wrapper.image-gallery-thumbnails-right') as HTMLElement;
-                      if (div) {
-                        div.style.width = '';
-                        div.style.transition = '';
+            <div
+              className={cn(
+                styles.galleryMedia,
+                imageGalleryItems.length === 0 && styles.galleryMediaPlaceholder,
+              )}
+            >
+              {imageGalleryItems.length === 0 ? (
+                <div className={styles.galleryPlaceholder} />
+              ) : (
+                <ImageGallery
+                  ref={galleryRef}
+                  additionalClass={cn(styles.galleryInner, 'w-100', { 'd-flex align-items-center justify-content-center': isMobile })}
+                  showIndex
+                  items={imageGalleryItems}
+                  infinite
+                  showBullets={isMobile}
+                  showNav={!isMobile}
+                  showPlayButton={false}
+                  thumbnailPosition={isMobile ? 'right' : 'left'}
+                  showThumbnails={showThumbnails}
+                  slideDuration={gallerySlideDuration}
+                  useBrowserFullscreen
+                  renderFullscreenButton={renderGalleryFullscreenButton}
+                  renderLeftNav={renderGalleryLeftNav}
+                  renderRightNav={renderGalleryRightNav}
+                  onSlide={(index) => {
+                    currentSlideIndexRef.current = index;
+                    setCurrentSlideIndex(index);
+                  }}
+                  onScreenChange={(fullscreen) => {
+                    if (fullscreen) {
+                      const indexToShow = fsTargetIndexRef.current;
+                      clearFsCurtainFallback();
+                      setGalleryFsCurtain(false);
+                      setIsFullscreen(true);
+                      setGalleryFullscreenCssVariablesOnDocumentRoot(isMobile);
+                      if (isMobile) {
+                        setShowThumbnails(false);
+                        applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen();
                       }
-                      document.documentElement.style.setProperty('--galleryWidth', '320px');
-                      setShowThumbnails(true);
+                      jumpGalleryToIndex(indexToShow);
+                    } else {
+                      const indexToRestore = currentSlideIndexRef.current;
+                      isFullscreenRef.current = false;
+                      clearFsCurtainFallback();
+                      setGalleryFsCurtain(false);
+                      restoreGalleryAfterFullscreenExit(indexToRestore);
                     }
-                    requestAnimationFrame(() => {
-                      galleryRef.current?.slideToIndex?.(indexToRestore);
-                    });
-                  }
-                }}
-                onClick={openGalleryFullscreen}
-              />
-            )}
+                  }}
+                  onClick={isFullscreen ? undefined : openGalleryFullscreen}
+                />
+              )}
+            </div>
             <div className={styles.noticeShell}>
               <div className={styles.notice} role="note" style={noticeLayoutStyle}>
                 {t('notice')}
@@ -722,7 +896,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
           )}
 
           {/* Name */}
-          <h1 className={styles.infoName}>{name}</h1>
+          <h1 className={styles.infoName} aria-hidden={isMobile}>{name}</h1>
 
           {/* Rating */}
           <div className={styles.ratingRow}>
@@ -827,7 +1001,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
 
             {/* Описание */}
             {description && (
-              <div className={styles.accItem}>
+              <section className={styles.accItem} aria-label={t('descriptionSection')}>
                 <button
                   className={styles.accHeader}
                   onClick={() => toggleSection('description')}
@@ -841,7 +1015,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
                 <div className={styles.accBody} id="product-section-description" hidden={openSection !== 'description'}>
                   <p>{description}</p>
                 </div>
-              </div>
+              </section>
             )}
 
             {/* Материалы и состав */}
@@ -1026,12 +1200,12 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       </div>{/* /product */}
 
       {/* ── Reviews ── */}
-      <div className={cn(styles.section, styles.gradesSection)}>
+      <section id="grades" className={cn(styles.section, styles.gradesSection)}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionEyebrow}>{t('reviewsEyebrow')}</div>
         </div>
         <GradeList item={item} setItem={setItem} />
-      </div>
+      </section>
 
       {/* ── Related items ── */}
       {relatedGroupItems.length > 0 && (

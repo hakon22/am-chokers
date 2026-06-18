@@ -2,21 +2,17 @@ import 'dayjs/locale/ru';
 import type { AppProps, AppContext } from 'next/app';
 import AppNext from 'next/app';
 import Head from 'next/head';
-import Script from 'next/script';
 import {
   useCallback, useEffect, useMemo, useState, type JSX,
 } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { ToastContainer } from 'react-toastify';
 import axios from 'axios';
-import AOS from 'aos';
-import CookieConsent from 'react-cookie-consent';
 import moment from 'moment';
 
-import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext, MobileContext, VersionContext } from '@/components/Context';
+import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext, MobileContext, VersionContext, CatalogPageContext } from '@/components/Context';
 import { Spinner } from '@/components/Spinner';
 import { useRouterHandler } from '@/hooks/useRouterHandler';
 import { routes } from '@/routes';
@@ -36,7 +32,15 @@ import { TelegramMiniAppBootstrap } from '@/components/telegram/TelegramMiniAppB
 import { TelegramMiniAppPageShell } from '@/components/telegram/TelegramMiniAppPageShell';
 import { TelegramOrderAppRoutesContext, telegramOrderAppRoutesMiniApp } from '@/contexts/TelegramOrderAppRoutesContext';
 import { setAppData } from '@/slices/appSlice';
-import i18n from '@/locales';
+import i18n, { getLanguageFromDocumentCookie, getSeoI18n, resolveClientLanguage } from '@/locales';
+import { getRequestLanguageFromCookieHeader } from '@/lib/server/get-request-language';
+import { HtmlLangSync } from '@/components/HtmlLangSync';
+import { CookieConsentBanner } from '@/components/cookie-consent/CookieConsentBanner';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
+import { YandexMetrika } from '@/components/analytics/YandexMetrika';
+import { setLanguageCookie } from '@/utilities/setLanguageCookie';
+import { getLanguageStorageKey, parseLanguageCode } from '@shared/language-config';
+import { InitialLanguageContext, parseInitialLanguageCode } from '@/contexts/InitialLanguageContext';
 import '@/scss/app.scss';
 import '@/themes/v2/styles/v2-fonts.scss';
 import { emptySiteSettings, type SiteSettingsInterface } from '@/types/site/SiteSettings';
@@ -62,10 +66,15 @@ interface InitPropsInterface extends AppProps {
   siteVersion: SiteVersion;
   itemGroups: ItemGroupInterface[];
   siteSettings: SiteSettingsInterface;
+  initialLanguage: string;
 }
 
 const Init = (props: InitPropsInterface) => {
-  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion, siteSettings } = props;
+  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion, siteSettings, initialLanguage } = props;
+
+  if (itemGroups.length > 0 && store.getState().app.itemGroups.length === 0) {
+    store.dispatch(setAppData({ itemGroups, siteSettings }));
+  }
 
   const isLoaded = useRouterHandler();
   const { dispatch } = store;
@@ -75,7 +84,10 @@ const Init = (props: InitPropsInterface) => {
   const [isSubmit, setIsSubmit] = useState(false); // submit spinner
   const [isActive, setIsActive] = useState(false); // navbar
   const [loggedIn, setLoggedIn] = useState(false); // auth service
-  const [item, setItem] = useState<ItemInterface | undefined>(undefined); // item service
+  const pageItem = pageProps?.item as ItemInterface | undefined;
+  const pageItemGroup = pageProps?.itemGroup as ItemGroupInterface | undefined;
+  const [internalItem, setItem] = useState<ItemInterface | undefined>();
+  const item = pageItem ?? internalItem;
   const [isSearch, setIsSearch] = useState({ value: false, needFetch: false }); // global search service
   const [isMobile, setIsMobile] = useState(isMobileProps); // is mobile device
 
@@ -107,12 +119,36 @@ const Init = (props: InitPropsInterface) => {
   const searchService = useMemo(() => ({ isSearch, setIsSearch }), [isSearch]);
   const mobileService = useMemo(() => ({ isMobile, setIsMobile }), [isMobile]);
   const versionService = useMemo(() => ({ version: siteVersion }), [siteVersion]);
+  const catalogPageService = useMemo(() => ({ itemGroup: pageItemGroup }), [pageItemGroup]);
+
+  const initialLanguageCode = parseInitialLanguageCode(initialLanguage);
+  const seoI18nForProvider = typeof window === 'undefined'
+    ? getSeoI18n(initialLanguageCode)
+    : i18n;
 
   useEffect(() => {
-    window.dataLayer = window.dataLayer || [];
-    AOS.init();
+    if (siteVersion === 'v1') {
+      import('aos').then(({ default: aosLibrary }) => {
+        aosLibrary.init();
+      });
+    }
     dispatch(setAppData({ itemGroups, siteSettings }));
-  }, [dispatch, itemGroups, siteSettings]);
+
+    const cookieLanguage = getLanguageFromDocumentCookie();
+    if (!cookieLanguage) {
+      const storedLanguage = window.localStorage.getItem(getLanguageStorageKey());
+      const parsedLanguage = parseLanguageCode(storedLanguage);
+      if (parsedLanguage) {
+        setLanguageCookie(parsedLanguage);
+      }
+    }
+  }, [dispatch, itemGroups, siteSettings, siteVersion]);
+
+  useEffect(() => {
+    if (i18n.language !== initialLanguage) {
+      i18n.changeLanguage(initialLanguage);
+    }
+  }, [initialLanguage]);
 
   useEffect(() => {
     if (pathWithoutQuery !== routes.page.base.catalog) {
@@ -121,148 +157,61 @@ const Init = (props: InitPropsInterface) => {
   }, [pathWithoutQuery]);
 
   return (
-    <I18nextProvider i18n={i18n}>
-      <VersionContext.Provider value={versionService}>
-        <AuthContext.Provider value={authService}>
-          <SubmitContext.Provider value={submitService}>
-            <MobileContext.Provider value={mobileService}>
-              <SearchContext.Provider value={searchService}>
-                <ItemContext.Provider value={itemService}>
-                  <NavbarContext.Provider value={navbarService}>
-                    <Provider store={store}>
-                      <Head>
-                        <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
-                        <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
-                        <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
-                        <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
-                        <link rel="preconnect" href="https://mc.yandex.ru" />
-                        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-                      </Head>
-                      {process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL'
-                        ? (
-                          <>
-                            <Script 
-                              id="google-analytics"
-                              src="https://www.googletagmanager.com/gtag/js?id=G-P50BP1JPGM"
-                              async
-                              onLoad={() => {
-                                console.log('Google analytics script loaded');
-                              }}
-                              onError={(e) => {
-                                console.error('Error loading Google metrics script', e);
-                              }}
-                            />
-                            <Script
-                              id="gtag-init"
-                              strategy="afterInteractive"
-                              dangerouslySetInnerHTML={{
-                                __html: `
-                        window.dataLayer = window.dataLayer || [];
-                        function gtag(){dataLayer.push(arguments);}
-                        gtag('js', new Date());
-                        gtag('config', 'G-P50BP1JPGM');
-                    `,
-                              }}
-                            />
-                            <Script
-                              id="yandex-metrika"
-                              strategy="afterInteractive"
-                              dangerouslySetInnerHTML={{
-                                __html: `
-                        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-                        m[i].l=1*new Date();
-                        for (var j = 0; j < document.scripts.length; j++) {
-                            if (document.scripts[j].src === r) { return; }
-                        }
-                        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-                        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-                        ym(100705426, "init", {
-                            clickmap:true,
-                            trackLinks:true,
-                            accurateTrackBounce:true,
-                            webvisor:true,
-                            ecommerce:"dataLayer",
-                            referrer:document.referrer,
-                            url:location.href
-                        });
-                    `,
-                              }}
-                            />
-                          </>
-                        ) : null}
-                      <Script 
-                        id="yandex-widget"
-                        src="https://ndd-widget.landpro.site/widget.js"
-                        strategy="lazyOnload"
-                        onLoad={() => {
-                          console.log('Yandex widget script loaded');
-                        }}
-                        onError={(e) => {
-                          console.error('Error loading Yandex widget script', e);
-                        }}
-                      />
-                      <Script 
-                        id="russian-post-widget"
-                        src="https://widget.pochta.ru/map/widget/widget.js"
-                        strategy="lazyOnload"
-                        onLoad={() => {
-                          console.log('Russian Post widget script loaded');
-                        }}
-                        onError={(e) => {
-                          console.error('Error loading Russian Post widget script', e);
-                        }}
-                      />
-                      <Script
-                        id="cdek-widget"
-                        src="https://cdn.jsdelivr.net/npm/@cdek-it/widget@3"
-                        strategy="lazyOnload"
-                        onLoad={() => {
-                          console.log('CDEK widget script loaded');
-                        }}
-                        onError={(e) => {
-                          console.error('Error CDEK widget script', e);
-                        }}
-                      />
-                      <Spinner isLoaded={isLoaded} />
-                      <ToastContainer style={{ zIndex: 999999 }} />
-                      {!isTelegramMiniAppRoute ? (
-                        <CookieConsent
-                          containerClasses="justify-content-center text-center"
-                          style={{ zIndex: 1001, backgroundColor: '#2b3c5f' }}
-                          buttonStyle={{ backgroundColor: '#eaeef6', borderRadius: '7px', padding: '10px 20px' }}
-                          buttonText={i18n.t('cookieConsent.buttonText')}
-                        >
-                          <>
-                            {i18n.t('cookieConsent.contentText')}
-                            <Link className="text-decoration-underline" href={routes.page.base.privacyPolicy}>{i18n.t('cookieConsent.contentLink')}</Link>
-                          </>
-                        </CookieConsent>
-                      ) : null}
-                      {isTelegramMiniAppRoute ? (
-                        <TelegramOrderAppRoutesContext.Provider value={telegramOrderAppRoutesMiniApp}>
-                          <TelegramMiniAppAuthBridge>
-                            <TelegramMiniAppBootstrap>
-                              <TelegramMiniAppPageShell>
-                                <Component {...pageProps} />
-                              </TelegramMiniAppPageShell>
-                            </TelegramMiniAppBootstrap>
-                          </TelegramMiniAppAuthBridge>
-                        </TelegramOrderAppRoutesContext.Provider>
-                      ) : (
-                        <VersionedShell itemGroups={itemGroups}>
-                          <Component {...pageProps} />
-                        </VersionedShell>
-                      )}
-                    </Provider>
-                  </NavbarContext.Provider>
-                </ItemContext.Provider>
-              </SearchContext.Provider>
-            </MobileContext.Provider>
-          </SubmitContext.Provider>
-        </AuthContext.Provider>
-      </VersionContext.Provider>
-    </I18nextProvider>
+    <InitialLanguageContext.Provider value={initialLanguageCode}>
+      <I18nextProvider i18n={seoI18nForProvider}>
+        <VersionContext.Provider value={versionService}>
+          <AuthContext.Provider value={authService}>
+            <SubmitContext.Provider value={submitService}>
+              <MobileContext.Provider value={mobileService}>
+                <SearchContext.Provider value={searchService}>
+                  <ItemContext.Provider value={itemService}>
+                    <CatalogPageContext.Provider value={catalogPageService}>
+                      <NavbarContext.Provider value={navbarService}>
+                        <Provider store={store}>
+                          <Head>
+                            <link rel="manifest" href="/manifest.json" />
+                            <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
+                            <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
+                            <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
+                            <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
+                          </Head>
+                          {process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' && !isTelegramMiniAppRoute
+                            ? (
+                              <>
+                                <GoogleAnalytics />
+                                <YandexMetrika />
+                              </>
+                            ) : null}
+                          <Spinner isLoaded={isLoaded} />
+                          <HtmlLangSync />
+                          <ToastContainer style={{ zIndex: 999999 }} />
+                          {!isTelegramMiniAppRoute ? <CookieConsentBanner /> : null}
+                          {isTelegramMiniAppRoute ? (
+                            <TelegramOrderAppRoutesContext.Provider value={telegramOrderAppRoutesMiniApp}>
+                              <TelegramMiniAppAuthBridge>
+                                <TelegramMiniAppBootstrap>
+                                  <TelegramMiniAppPageShell>
+                                    <Component {...pageProps} />
+                                  </TelegramMiniAppPageShell>
+                                </TelegramMiniAppBootstrap>
+                              </TelegramMiniAppAuthBridge>
+                            </TelegramOrderAppRoutesContext.Provider>
+                          ) : (
+                            <VersionedShell itemGroups={itemGroups}>
+                              <Component {...pageProps} />
+                            </VersionedShell>
+                          )}
+                        </Provider>
+                      </NavbarContext.Provider>
+                    </CatalogPageContext.Provider>
+                  </ItemContext.Provider>
+                </SearchContext.Provider>
+              </MobileContext.Provider>
+            </SubmitContext.Provider>
+          </AuthContext.Provider>
+        </VersionContext.Provider>
+      </I18nextProvider>
+    </InitialLanguageContext.Provider>
   );
 };
 
@@ -281,6 +230,9 @@ Init.getInitialProps = async (context: AppContext) => {
   const { req } = context.ctx;
   const userAgent = req ? req.headers['user-agent'] : navigator.userAgent;
   const isMobile = isMobileDevice(userAgent);
+  const initialLanguage = typeof window === 'undefined'
+    ? getRequestLanguageFromCookieHeader(req?.headers.cookie)
+    : resolveClientLanguage();
 
   const props = await AppNext.getInitialProps(context);
 
@@ -294,6 +246,7 @@ Init.getInitialProps = async (context: AppContext) => {
     itemGroups,
     siteVersion,
     siteSettings,
+    initialLanguage,
   };
 };
 

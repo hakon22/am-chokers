@@ -113,7 +113,7 @@ const MobileNavBar = ({ searchClick, onOpenChange, onChangeHandler, isMobile, it
           title={<div className="text-center"><Image src={logoImage} priority unoptimized className="nav-logo" alt={t('logo')} /></div>}
           getContainer={() => drawerContainer}
           closeIcon={null}
-          width="100%"
+          defaultSize="100%"
           open={isActive}
           zIndex={1500}
         >

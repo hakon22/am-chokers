@@ -3,6 +3,8 @@ import { Button, Rate, Tag } from 'antd';
 import { LikeOutlined } from '@ant-design/icons';
 import { useEffect, useMemo, useRef, useState, useContext, useEffectEvent } from 'react';
 import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
+import 'react-image-gallery/styles/image-gallery.css';
+import Image from 'next/image';
 import Link from 'next/link';
 import cn from 'classnames';
 import { useSearchParams } from 'next/navigation';
@@ -20,7 +22,9 @@ import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
-import { Helmet } from '@/components/Helmet';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
+import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemContext, MobileContext } from '@/components/Context';
@@ -28,6 +32,7 @@ import { getHeight } from '@/utilities/screenExtension';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
+import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import type { ItemInterface } from '@/types/item/Item';
@@ -38,6 +43,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
+  const { t: tSeo } = useTranslation('translation', { keyPrefix: 'seo' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
   const { t: tCart } = useTranslation('translation', { keyPrefix: 'pages.cart' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
@@ -84,40 +91,55 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const imageGalleryItems = useMemo(
     () =>
-      [...images].sort((a, b) => a.order - b.order).map((image) => ({
-        original: image.src,
-        renderThumbInner: image.src.endsWith('.mp4') ? () => (
-          <video
-            className="w-100"
-            autoPlay
-            loop
-            muted
-            playsInline
-            src={image.src}
-          />
-        ) : undefined,
-        thumbnail: image.src,
-        originalAlt: image.src.endsWith('.mp4') ? undefined : imageAlt,
-        originalHeight: isMobile && originalHeight !== getHeight()
-          ? undefined
-          : String(originalHeight),
-        originalWidth: isMobile && originalHeight === getHeight()
-          ? String(originalHeight / 1.3)
-          : undefined,
-        renderItem: image.src.endsWith('.mp4')
-          ? () => (
-            <video
-              className="image-gallery-image"
-              style={!isFullscreen ? { maxHeight: originalHeight, width: '100%' } : { maxHeight: '100vh' }}
-              autoPlay
-              loop
-              muted
-              playsInline
+      [...images].sort((a, b) => a.order - b.order).map((image, slideIndex) => {
+        const slideWidth = originalHeight / 1.3;
+
+        if (image.src.endsWith('.mp4')) {
+          return {
+            original: image.src,
+            renderThumbInner: () => (
+              <video
+                className="w-100"
+                autoPlay
+                loop
+                muted
+                playsInline
+                src={image.src}
+              />
+            ),
+            thumbnail: image.src,
+            renderItem: () => (
+              <video
+                className="image-gallery-image"
+                style={!isFullscreen ? { maxHeight: originalHeight, width: '100%' } : { maxHeight: '100vh' }}
+                autoPlay
+                loop
+                muted
+                playsInline
+                src={image.src}
+              />
+            ),
+          };
+        }
+
+        return {
+          original: image.src,
+          thumbnail: image.src,
+          originalAlt: imageAlt,
+          renderItem: () => (
+            <Image
               src={image.src}
+              alt={imageAlt}
+              className="image-gallery-image"
+              width={Math.round(slideWidth)}
+              height={originalHeight}
+              priority={slideIndex === 0}
+              sizes="(max-width: 768px) 100vw, 420px"
+              style={!isFullscreen ? { maxHeight: originalHeight, width: '100%', objectFit: 'cover' } : { maxHeight: '100vh', width: '100%', objectFit: 'contain' }}
             />
-          )
-          : undefined,
-      })),
+          ),
+        };
+      }),
     [images, imageAlt, isMobile, originalHeight, isFullscreen],
   );
 
@@ -234,9 +256,36 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
     fetchRelatedGroupItems();
   }, [id, item.group?.id]);
 
+  const seoUserLang = useSeoUserLang();
+  const languageCode = useSeoLanguage();
+  const seoProductTranslation = item.translations.find((translation) => translation.lang === seoUserLang) as ItemTranslateEntity | undefined;
+  const seoProductName = seoProductTranslation?.name ?? name ?? '';
+  const seoGroupName = item.group?.translations?.find((translation) => translation.lang === seoUserLang)?.name ?? '';
+  const productFallbackDescription = tSeo('productDescriptionFallback', {
+    name: seoProductName,
+    price: price - discountPrice,
+  });
+  const productSeoDescription = buildProductSeoDescription(item, languageCode, productFallbackDescription);
+  const firstProductImage = getFirstRasterProductImageSrc(images);
+  const productJsonLd = buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count);
+  const productBreadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: tNavbar('menu.home'), url: routes.page.base.homePage },
+    { name: tNavbar('menu.catalog'), url: routes.page.base.catalog },
+    { name: seoGroupName, url: `${routes.page.base.catalog}/${item.group?.code ?? ''}` },
+    { name: seoProductName, url: getHref(item) },
+  ]);
+
   return isEdit ? <CreateItem oldItem={item} updateItem={updateItem} />: !isAdmin && item.publicationDate ? null : (
     <div className="d-flex flex-column" style={isMobile ? { marginTop: '100px' } : {}}>
-      <Helmet title={name} description={description} image={images?.[0]?.src} />
+      <JsonLd
+        title={seoProductName}
+        description={productSeoDescription || productFallbackDescription}
+        image={firstProductImage}
+        imageAlt={imageAlt}
+        type="product"
+        preloadImage={firstProductImage}
+        jsonLd={[productJsonLd, productBreadcrumbJsonLd]}
+      />
       <div className="d-flex flex-column flex-xl-row justify-content-xl-between justify-content-xxl-start gap-xxl-5 mb-5">
         {isMobile
           ? (

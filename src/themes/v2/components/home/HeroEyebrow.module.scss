@@ -1,3 +1,4 @@
+@use '@/themes/v2/styles/mixins' as v2mixins;
 .eyebrowWrap {
   position: relative;
   display: inline-flex;
@@ -30,7 +31,7 @@
 .eyebrowEditIcon {
   flex-shrink: 0;
   margin-left: 8px;
-  font-size: 11px;
+  @include v2mixins.v2-readable-font-size(11px);
   color: rgba(255, 255, 255, 0.55);
   opacity: 0;
   transition: opacity 0.2s ease;

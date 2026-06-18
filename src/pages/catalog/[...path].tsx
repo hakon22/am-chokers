@@ -8,6 +8,7 @@ import Catalog from '@/pages/catalog';
 import { ProductPage } from '@/themes/v2/components/catalog/ProductPage';
 import { VersionContext } from '@/components/Context';
 import { routes } from '@/routes';
+import { isCatalogNumericPageQuery } from '@/utilities/shouldCatalogFiltersNoindex';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemGroupResponseInterface, ItemResponseInterface } from '@/slices/appSlice';
@@ -61,7 +62,16 @@ export const getCatalogServerSideProps = async ({ params, query }: GetServerSide
     ...(query?.inStock ? { inStock: query.inStock } : {}),
   };
 
-  const limit = +(query?.page || 1) * chunkNumber;
+  const rawPageQuery = query?.page;
+  const pageQueryValue = rawPageQuery === undefined
+    ? undefined
+    : Array.isArray(rawPageQuery)
+      ? rawPageQuery[0]
+      : String(rawPageQuery);
+  const pageNumber = isCatalogNumericPageQuery(pageQueryValue)
+    ? Math.max(1, parseInt(pageQueryValue, 10))
+    : 1;
+  const limit = pageNumber * chunkNumber;
 
   const [{ data: { items: payloadItems, paginationParams } }, { data: { statistics } }, { data: { itemGroup } }] = await Promise.all([
     axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: false }), {

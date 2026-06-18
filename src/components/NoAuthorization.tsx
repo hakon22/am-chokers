@@ -6,12 +6,11 @@ import { useContext, useEffect } from 'react';
 import { setUrl } from '@/slices/userSlice';
 import { routes } from '@/routes';
 import { useAppDispatch } from '@/hooks/reduxHooks';
-import { MobileContext, AuthModalContext } from '@/components/Context';
+import { AuthModalContext } from '@/components/Context';
 
 export const NoAuthorization = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.profile' });
 
-  const { isMobile } = useContext(MobileContext);
   const { openAuthModal } = useContext(AuthModalContext);
 
   const dispatch = useAppDispatch();

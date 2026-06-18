@@ -15,7 +15,7 @@ const Page404 = () => {
 
   return (
     <>
-      <Helmet title={t('title')} description={t('description')} />
+      <Helmet title={t('title')} description={t('description')} noindex />
       <Result
         icon={<Image src={image404} alt={t('title')} />}
         title={t('title')}

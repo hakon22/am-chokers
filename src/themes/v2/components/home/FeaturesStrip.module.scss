@@ -1,4 +1,5 @@
 @use '@/themes/v2/styles/variables' as v2;
+@use '@/themes/v2/styles/mixins' as v2mixins;
 
 .strip {
   background: v2.$v2-white;
@@ -68,7 +69,7 @@
   }
 
   span {
-    font-size: 11.5px;
+    @include v2mixins.v2-readable-font-size(11.5px);
     color: v2.$v2-text-secondary;
     line-height: 1.35;
   }

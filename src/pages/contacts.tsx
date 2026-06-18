@@ -5,7 +5,7 @@ import { useContext } from 'react';
 
 import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
-import { Helmet } from '@/components/Helmet';
+import { StaticPageJsonLd } from '@/components/seo/StaticPageJsonLd';
 import { routes } from '@/routes';
 import { MobileContext } from '@/components/Context';
 
@@ -16,7 +16,7 @@ const Contacts = () => {
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
-      <Helmet title={t('title')} description={t('description')} />
+      <StaticPageJsonLd title={t('title')} description={t('description')} path={routes.page.base.contactsPage} />
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div className="d-flex flex-column">
         <p>{t('1')}</p>

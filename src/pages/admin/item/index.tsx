@@ -1,4 +1,5 @@
 import ImageGallery, { type ImageGalleryRef } from 'react-image-gallery';
+import 'react-image-gallery/styles/image-gallery.css';
 import cn from 'classnames';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';

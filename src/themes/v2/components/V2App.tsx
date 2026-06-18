@@ -76,7 +76,7 @@ export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGro
           <NavBar itemGroups={itemGroups} />
           <Breadcrumb />
         </header>
-        <div style={{ paddingBottom: footerHeight + (isMobile ? 80 : 40) }}>
+        <div style={{ paddingBottom: footerHeight + 40 }}>
           <FloatButton.BackTop />
           {isHomePage ? (
             children

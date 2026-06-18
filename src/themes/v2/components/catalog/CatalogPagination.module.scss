@@ -1,0 +1,61 @@
+@use '@/themes/v2/styles/variables' as v2;
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding-bottom: 16px;
+}
+
+.seoOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.pageItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageLink,
+.pageLinkActive {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid v2.$v2-border;
+  color: v2.$v2-navy-secondary;
+}
+
+.pageLink:hover {
+  border-color: v2.$v2-navy-medium;
+  color: v2.$v2-navy-primary;
+}
+
+.pageLinkActive {
+  background: v2.$v2-navy-secondary;
+  border-color: v2.$v2-navy-secondary;
+  color: v2.$v2-white;
+}
+
+.ellipsis {
+  color: v2.$v2-text-secondary;
+  font-size: 12px;
+}

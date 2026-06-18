@@ -7,7 +7,7 @@ import mary from '@/images/mary.jpg';
 import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
 import { MobileContext } from '@/components/Context';
-import { Helmet } from '@/components/Helmet';
+import { StaticPageJsonLd } from '@/components/seo/StaticPageJsonLd';
 import { routes } from '@/routes';
 
 const AboutBrand = () => {
@@ -42,7 +42,7 @@ const AboutBrand = () => {
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
-      <Helmet title={t('title')} description={t('description')} />
+      <StaticPageJsonLd title={t('title')} description={t('description')} path={routes.page.base.aboutBrandPage} />
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div ref={ref} className="d-flex flex-column flex-xl-row row-gap-4 justify-content-between">
         <Image src={mary} width={size.width} height={size.height} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />

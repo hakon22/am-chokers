@@ -3,18 +3,17 @@ import get from 'lodash/get';
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 
 import { routes } from '@/routes';
+import { getLanguageStorageKey, parseLanguageCode } from '@shared/language-config';
+import { setLanguageCookie } from '@/utilities/setLanguageCookie';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
-import type {
-  UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface,
-} from '@/types/user/User';
+import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { InitialState } from '@/types/InitialState';
 
 type KeysUserInitialState = keyof UserInterface;
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
-const languageKey = process.env.NEXT_PUBLIC_LANGUAGE_KEY ?? '';
 
 export interface UserResponseInterface {
   code: number;
@@ -122,7 +121,11 @@ export const changeLang = createAsyncThunk(
   'user/changeLang',
   async ({ lang, token }: { lang: UserLangEnum; token: boolean; }, { rejectWithValue }) => {
     try {
-      window.localStorage.setItem(languageKey, lang);
+      window.localStorage.setItem(getLanguageStorageKey(), lang);
+      const parsedLanguage = parseLanguageCode(lang);
+      if (parsedLanguage) {
+        setLanguageCookie(parsedLanguage);
+      }
       if (token) {
         await axios.get<{ code: number; }>(routes.user.changeLang, { params: { lang } });
       }

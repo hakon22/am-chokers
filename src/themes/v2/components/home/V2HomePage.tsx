@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import type { InferGetServerSidePropsType } from 'next';
 
+import { MobileContext } from '@/components/Context';
 import { HeroSection } from '@/themes/v2/components/home/HeroSection';
 import { FeaturesStrip } from '@/themes/v2/components/home/FeaturesStrip';
 import { BannerSlider } from '@/themes/v2/components/home/BannerSlider';
@@ -33,6 +34,7 @@ export const V2HomePage = ({
   salesHits,
   salesHitsLimit,
 }: HomePageProps) => {
+  const { isMobile } = useContext(MobileContext);
   const rawCoverImages = useAppSelector((state) => state.app.coverImages);
 
   const coverImages = useMemo<GeneralPageCoverImageInterface>(() => {
@@ -51,9 +53,11 @@ export const V2HomePage = ({
   return (
     <>
       <HeroSection banners={banners} homeHero={homeHero} />
-      <div className={pageStyles.mobileBannersOnly}>
-        <BannerSlider banners={banners} />
-      </div>
+      {isMobile ? (
+        <div className={pageStyles.mobileBannersOnly}>
+          <BannerSlider banners={banners} />
+        </div>
+      ) : null}
       <FeaturesStrip />
       <CategoriesSection itemGroups={itemGroups} coverImages={coverImages} />
       <ProductsSection

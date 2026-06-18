@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio } from 'antd';
+import { Button, Checkbox, Form, List, Input, Tag, Modal, Radio, Spin } from 'antd';
 import { CloseOutlined, DeleteOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
 import { useCallback, useContext, useEffect, useMemo, useState, useEffectEvent, useRef } from 'react';
@@ -13,6 +13,7 @@ import type { CheckboxProps } from 'antd/lib';
 
 import { locale } from '@/locales/pickers.locale.ru';
 import { Helmet } from '@/components/Helmet';
+import { pushEcommercePurchase } from '@/utilities/analytics/ecommerce';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
@@ -37,6 +38,7 @@ import { ConfirmPhone } from '@/components/ConfirmPhone';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { VersionContext } from '@/components/Context';
 import { V2CartPage } from '@/themes/v2/components/cart/V2CartPage';
+import { DeliveryWidgetScripts, isDeliveryWidgetScriptReady, useDeliveryWidgetScripts } from '@/components/delivery/DeliveryWidgetScripts';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { DeliveryCredentialsEntity } from '@server/db/entities/delivery.credentials.entity';
@@ -127,6 +129,11 @@ const Cart = () => {
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+
+  const deliveryWidgetScripts = useDeliveryWidgetScripts();
+  const isDeliveryWidgetLoading = isOpenDeliveryWidget
+    && Boolean(deliveryType)
+    && !isDeliveryWidgetScriptReady(deliveryType, deliveryWidgetScripts);
 
   const setUserEffect = useEffectEvent(setUser);
   const setDeliveryEffect = useEffectEvent(setDelivery);
@@ -316,32 +323,6 @@ const Cart = () => {
     form.setFieldsValue({ deliveryDateTime: undefined, telegramNickname: '' });
   };
 
-  const sendOrderToYandex = (order: OrderInterface) => {
-    if (typeof window !== 'undefined' && window.dataLayer) {
-      window.dataLayer.push({
-        ecommerce: {
-          currencyCode: 'RUB',
-          purchase: {
-            actionField: {
-              id: order.id.toString(),
-              coupon: order.promotional?.name,
-              goal_id: 511960192,
-              revenue: getOrderPrice(order) - order.deliveryPrice,
-            },
-            products: cartList.map(({ item, count }, index) => ({
-              id: item.id.toString(),
-              name: item.translations.find((translation) => translation.lang === lang)?.name as string,
-              price: item.price - item.discountPrice,
-              discount: item.discountPrice,
-              quantity: count,
-              position: index + 1,
-            })),
-          },
-        },
-      });
-    }
-  };
-
   const onFinish = async (values: Pick<UserSignupInterface, 'name' | 'phone' | 'lang'> & { comment: string; telegramNickname?: string; delivery?: { deliveryDateTime?: Moment; }; }) => {
     setIsSubmit(true);
     if (!delivery.address) {
@@ -368,7 +349,7 @@ const Cart = () => {
     } else {
       const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
       if (code === 1) {
-        sendOrderToYandex(order);
+        pushEcommercePurchase({ order, cartList, userLanguage: lang as UserLangEnum });
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));
@@ -449,20 +430,26 @@ const Cart = () => {
   }, [deliveryType]);
 
   useEffect(() => {
-    if (isOpenDeliveryWidget) {
-      switch (deliveryType) {
-      case DeliveryTypeEnum.YANDEX_DELIVERY:
-        openYanderDeliveryWidget(cartList);
-        break;
-      case DeliveryTypeEnum.RUSSIAN_POST:
-        openRussianPostDeliveryWidget(cartList);
-        break;
-      case DeliveryTypeEnum.CDEK:
-        openCDEKDeliveryWidget(cartList);
-        break;
-      }
+    if (!isOpenDeliveryWidget || !deliveryType) {
+      return;
     }
-  }, [isOpenDeliveryWidget, deliveryType]);
+
+    if (!isDeliveryWidgetScriptReady(deliveryType, deliveryWidgetScripts)) {
+      return;
+    }
+
+    switch (deliveryType) {
+    case DeliveryTypeEnum.YANDEX_DELIVERY:
+      openYanderDeliveryWidget(cartList);
+      break;
+    case DeliveryTypeEnum.RUSSIAN_POST:
+      openRussianPostDeliveryWidget(cartList);
+      break;
+    case DeliveryTypeEnum.CDEK:
+      openCDEKDeliveryWidget(cartList);
+      break;
+    }
+  }, [isOpenDeliveryWidget, deliveryType, deliveryWidgetScripts]);
 
   useEffect(() => {
     if (isConfirmed && tempUser.phone) {
@@ -513,11 +500,17 @@ const Cart = () => {
           setIsOpenDeliveryWidget(false);
         }}
       >
-        <>
-          <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
-          <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
-          <div id="cdek-map" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
-        </>
+        {isDeliveryWidgetLoading ? (
+          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 500 }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <>
+            <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
+            <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+            <div id="cdek-map" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
+          </>
+        )}
       </Modal>
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title', { count: countCart })}</h1>
       <Form name="cart" className="d-flex flex-column flex-xl-row col-12 gap-3 large-input font-oswald" onFinish={onFinish} form={form} initialValues={{ ...user, comment: '', deliveryDateTime: undefined, telegramNickname: '', personalDataConsent: false }}>
@@ -673,7 +666,12 @@ const Cart = () => {
 
 const CartPage = () => {
   const { version } = useContext(VersionContext);
-  return version === 'v2' ? <V2CartPage /> : <Cart />;
+
+  return (
+    <DeliveryWidgetScripts>
+      {version === 'v2' ? <V2CartPage /> : <Cart />}
+    </DeliveryWidgetScripts>
+  );
 };
 
 export default CartPage;

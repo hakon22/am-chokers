@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { HeartFilled, HeartOutlined } from '@ant-design/icons';
-import { Rate, Skeleton } from 'antd';
+import { Rate } from 'antd';
 import moment from 'moment';
 
 import { getHref } from '@/utilities/getHref';
@@ -21,7 +21,17 @@ import type { ItemInterface } from '@/types/item/Item';
 
 const isVideo = (src: string) => src.endsWith('.mp4');
 
-const MediaItem = ({ src, alt, className, onLoad }: { src: string; alt: string; className: string; onLoad?: () => void; }) => isVideo(src)
+const MediaItem = ({
+  src,
+  alt,
+  className,
+  showLoadingSkeleton,
+}: {
+  src: string;
+  alt: string;
+  className: string;
+  showLoadingSkeleton?: boolean;
+}) => isVideo(src)
   ? (
     <video
       src={src}
@@ -30,11 +40,20 @@ const MediaItem = ({ src, alt, className, onLoad }: { src: string; alt: string; 
       muted
       playsInline
       className={className}
-      onLoadedData={onLoad}
       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
     />
   )
-  : <V2Image src={src} alt={alt} fill style={{ objectFit: 'cover' }} className={className} onLoad={onLoad} />;
+  : (
+    <V2Image
+      src={src}
+      alt={alt}
+      fill
+      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+      style={{ objectFit: 'cover' }}
+      className={className}
+      showLoadingSkeleton={showLoadingSkeleton}
+    />
+  );
 
 export interface ProductCardProps {
   item: ItemInterface;
@@ -50,7 +69,6 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
   const { setIsSubmit } = useContext(SubmitContext);
   const { openAuthModal } = useContext(AuthModalContext);
   const { lang = UserLangEnum.RU, token, favorites } = useAppSelector((state) => state.user);
-  const [imgLoading, setImgLoading] = useState(true);
   const inFavorites = favorites?.find((favItem) => favItem.id === item.id);
   const name = item.translations?.find((translation) => translation.lang === lang)?.name ?? item.translateName;
   const groupName = item.group?.translations?.find((translation) => translation.lang === lang)?.name ?? '';
@@ -78,10 +96,7 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
         <div className={cn(styles.cardImg, { [styles.cardImgOutStock]: outStock })}>
           {image ? (
             <>
-              {imgLoading && (
-                <Skeleton.Image active style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} classNames={{ content: 'w-100 h-100' }} />
-              )}
-              <MediaItem src={image.src} alt={imageAlt} className={styles.imgPrimary} onLoad={() => setImgLoading(false)} />
+              <MediaItem src={image.src} alt={imageAlt} className={styles.imgPrimary} showLoadingSkeleton />
               {image2 && (
                 <MediaItem src={image2.src} alt={imageAlt} className={styles.imgSecondary} />
               )}

@@ -2,6 +2,7 @@ import type { PaginationQueryInterface } from '@server/types/pagination.query.in
 
 export interface PaginationInterface extends PaginationQueryInterface {
   count: number;
+  pageNumber?: number;
 }
 
 export interface PaginationEntityInterface<T> {
