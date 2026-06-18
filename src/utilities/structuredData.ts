@@ -1,11 +1,22 @@
+import { isEmpty } from 'lodash';
+
 import { buildMetaDescription } from '@/utilities/buildMetaDescription';
 import { getProductionHost } from '@/utilities/getProductionHost';
 import { getHref } from '@/utilities/getHref';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { LanguageCode } from '@shared/language-config';
 import type { ItemInterface } from '@/types/item/Item';
+import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
 
 const host = getProductionHost();
+
+const PRODUCT_RATING_BEST = 5;
+const PRODUCT_RATING_WORST = 1;
+const DEFAULT_SHIPPING_RATE_RUB = 300;
+const MERCHANT_RETURN_DAYS = 14;
+const SHIPPING_HANDLING_MAX_DAYS = 4;
+const SHIPPING_TRANSIT_MIN_DAYS = 2;
+const SHIPPING_TRANSIT_MAX_DAYS = 10;
 
 /**
  * Возвращает перевод товара для указанного языка
@@ -32,11 +43,85 @@ export const buildProductSeoDescription = (item: ItemInterface, languageCode: La
 };
 
 /**
+ * Собирает JSON-LD Review для списка опубликованных оценок товара
+ * @param grades - проверенные оценки товара (как на странице)
+ * @returns массив объектов Review schema
+ */
+const buildProductReviewsJsonLd = (grades: ItemGradeEntity[]) => grades.map((grade) => {
+  const { grade: ratingValue, created, user, comment } = grade;
+  const reviewBody = comment?.text?.trim();
+
+  return {
+    '@type': 'Review',
+    author: {
+      '@type': 'Person',
+      name: user.name,
+    },
+    datePublished: new Date(created).toISOString(),
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue,
+      bestRating: PRODUCT_RATING_BEST,
+      worstRating: PRODUCT_RATING_WORST,
+    },
+    ...(reviewBody
+      ? { reviewBody }
+      : {}),
+  };
+});
+
+/**
+ * Собирает JSON-LD OfferShippingDetails по условиям доставки магазина
+ * @returns объект OfferShippingDetails schema
+ */
+const buildOfferShippingDetailsJsonLd = () => ({
+  '@type': 'OfferShippingDetails',
+  shippingRate: {
+    '@type': 'MonetaryAmount',
+    value: DEFAULT_SHIPPING_RATE_RUB,
+    currency: 'RUB',
+  },
+  shippingDestination: {
+    '@type': 'DefinedRegion',
+    addressCountry: 'RU',
+  },
+  deliveryTime: {
+    '@type': 'ShippingDeliveryTime',
+    handlingTime: {
+      '@type': 'QuantitativeValue',
+      minValue: 0,
+      maxValue: SHIPPING_HANDLING_MAX_DAYS,
+      unitCode: 'DAY',
+    },
+    transitTime: {
+      '@type': 'QuantitativeValue',
+      minValue: SHIPPING_TRANSIT_MIN_DAYS,
+      maxValue: SHIPPING_TRANSIT_MAX_DAYS,
+      unitCode: 'DAY',
+    },
+  },
+});
+
+/**
+ * Собирает JSON-LD MerchantReturnPolicy по публичной оферте
+ * @returns объект MerchantReturnPolicy schema
+ */
+const buildOfferReturnPolicyJsonLd = () => ({
+  '@type': 'MerchantReturnPolicy',
+  applicableCountry: 'RU',
+  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+  merchantReturnDays: MERCHANT_RETURN_DAYS,
+  returnMethod: 'https://schema.org/ReturnByMail',
+  returnFees: 'https://schema.org/ReturnShippingFees',
+});
+
+/**
  * Собирает JSON-LD Product для товара
  * @param item - товар
  * @param languageCode - код языка интерфейса
  * @param fallbackDescription - fallback описания
  * @param reviewCount - общее число отзывов (из paginationParams.count)
+ * @param grades - опубликованные оценки товара для блока review
  * @returns объект Product schema
  */
 export const buildProductJsonLd = (
@@ -44,12 +129,15 @@ export const buildProductJsonLd = (
   languageCode: LanguageCode,
   fallbackDescription: string,
   reviewCount?: number,
+  grades?: ItemGradeEntity[],
 ) => {
   const translation = getItemTranslation(item, languageCode);
   const name = translation?.name ?? item.translateName;
   const description = buildProductSeoDescription(item, languageCode, fallbackDescription);
   const gradeRating = item.rating?.rating ?? 0;
   const resolvedReviewCount = reviewCount ?? 0;
+  const hasProductReviews = gradeRating > 0 && resolvedReviewCount > 0;
+  const productReviews = grades && !isEmpty(grades) ? buildProductReviewsJsonLd(grades) : undefined;
 
   return {
     '@context': 'https://schema.org',
@@ -77,14 +165,21 @@ export const buildProductJsonLd = (
         '@type': 'Organization',
         name: 'AM Chokers',
       },
+      shippingDetails: buildOfferShippingDetailsJsonLd(),
+      hasMerchantReturnPolicy: buildOfferReturnPolicyJsonLd(),
     },
-    ...(gradeRating > 0 && resolvedReviewCount > 0
+    ...(hasProductReviews
       ? {
         aggregateRating: {
           '@type': 'AggregateRating',
           ratingValue: gradeRating,
           reviewCount: resolvedReviewCount,
+          bestRating: PRODUCT_RATING_BEST,
+          worstRating: PRODUCT_RATING_WORST,
         },
+        ...(productReviews
+          ? { review: productReviews }
+          : {}),
       }
       : {}),
   };

@@ -109,7 +109,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
       productFallbackDescription,
       productSeoDescription,
       firstProductImage,
-      productJsonLd: buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count),
+      productJsonLd: buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count, item.grades),
       productBreadcrumbJsonLd: buildBreadcrumbJsonLd([
         { name: tNavbar('menu.home'), url: routes.page.base.homePage },
         { name: tNavbar('menu.catalog'), url: routes.page.base.catalog },

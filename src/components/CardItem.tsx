@@ -268,7 +268,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   });
   const productSeoDescription = buildProductSeoDescription(item, languageCode, productFallbackDescription);
   const firstProductImage = getFirstRasterProductImageSrc(images);
-  const productJsonLd = buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count);
+  const productJsonLd = buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count, item.grades);
   const productBreadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: tNavbar('menu.home'), url: routes.page.base.homePage },
     { name: tNavbar('menu.catalog'), url: routes.page.base.catalog },
