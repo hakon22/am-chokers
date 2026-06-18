@@ -20,6 +20,7 @@ import cn from 'classnames';
 import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { onFocus } from '@/utilities/onFocus';
 import { SearchContext, MobileContext, NavbarContext, SubmitContext, AuthModalContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -67,7 +68,8 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
   const searchRef = useRef<GetRef<typeof AutoComplete>>(null);
   const searchParams = urlParams.get('search');
 
-  const { token, lang = UserLangEnum.RU, name, favorites } = useAppSelector((state) => state.user);
+  const { token, name, favorites } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { itemGroups: itemGroupsFromStore } = useAppSelector((state) => state.app);
   const { cart } = useAppSelector((state) => state.cart);
 

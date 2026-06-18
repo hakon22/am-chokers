@@ -11,6 +11,7 @@ import type { CollapseProps, FormInstance } from 'antd/lib';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { onFocus } from '@/utilities/onFocus';
 import { MobileContext } from '@/components/Context';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
@@ -68,7 +69,7 @@ export const CatalogItemsFilter = ({ onFilters, setIsSubmit, form, initialValues
 
   const { itemGroups } = useAppSelector((state) => state.app);
 
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const { isMobile } = useContext(MobileContext);
 

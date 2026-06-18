@@ -14,6 +14,7 @@ import type { LabeledValue } from 'antd/lib/select';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { newPromotionalValidation, periodSchema, discountAndDiscountPercentSchema } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
@@ -335,7 +336,8 @@ const CreatePromotional = () => {
   const withExpiredParams = urlParams.get('withExpired');
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);

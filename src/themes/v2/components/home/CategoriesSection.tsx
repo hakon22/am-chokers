@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
 import { catalogPath } from '@/routes';
-import { useAppSelector } from '@/hooks/reduxHooks';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { useUserLang } from '@/hooks/useUserLang';
 import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ContextMenu } from '@/components/ContextMenu';
@@ -29,7 +28,7 @@ interface CategoriesSectionProps {
 
 export const CategoriesSection = ({ itemGroups, coverImages }: CategoriesSectionProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home.categories' });
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const sortedGroups = [...itemGroups].sort((a, b) => a.order - b.order);
 

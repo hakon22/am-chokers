@@ -13,6 +13,7 @@ import { getHref } from '@/utilities/getHref';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { setPaginationParams } from '@/slices/appSlice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
@@ -27,7 +28,7 @@ export const GroupItem = ({ items, paginationParams, itemGroup }: { items: ItemI
   const dispatch = useAppDispatch();
 
   const { pagination } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const translate = items?.[0]?.group?.translations.find((translation) => translation.lang === lang);
 

@@ -10,6 +10,7 @@ import axios from 'axios';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { createGrade, selectors } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
@@ -71,7 +72,8 @@ export const V2Order = ({ orderId, order: orderParams, onAdminOrderUpdated }: {
 
   const setIsLoadedEffect = useEffectEvent(setIsLoaded);
 
-  const { lang = UserLangEnum.RU, isAdmin } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { loadingStatus } = useAppSelector((state) => state.order);
   const order = useAppSelector((state) => orderParams || selectors.selectById(state, orderId));
 

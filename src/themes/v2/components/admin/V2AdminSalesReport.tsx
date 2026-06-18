@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Helmet } from '@/components/Helmet';
 import { BackButton } from '@/components/BackButton';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { useSalesReport } from '@/hooks/useSalesReport';
 import { V2AdminSalesReportView } from '@/themes/v2/components/admin/V2AdminSalesReportView';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -12,7 +13,7 @@ import styles from './V2AdminSalesReport.module.scss';
 export const V2AdminSalesReport = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.sales' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const reportState = useSalesReport(tToast);
 

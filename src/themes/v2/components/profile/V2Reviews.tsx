@@ -9,6 +9,7 @@ import axios from 'axios';
 import cn from 'classnames';
 
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { getHref } from '@/utilities/getHref';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import { routes } from '@/routes';
@@ -33,7 +34,7 @@ export const V2Reviews = () => {
   const dispatch = useAppDispatch();
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<ItemGradeEntity[]>([]);

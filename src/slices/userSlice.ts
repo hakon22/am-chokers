@@ -221,6 +221,9 @@ const userSlice = createSlice({
     removeTelegramId: (state) => {
       delete state.telegramId;
     },
+    setUserLang: (state, { payload }: PayloadAction<UserLangEnum>) => {
+      state.lang = payload;
+    },
     userProfileUpdate: (state, { payload }: PayloadAction<UserProfileType>) => {
       const { phone, name } = payload;
       if (phone) {
@@ -405,7 +408,7 @@ const userSlice = createSlice({
 });
 
 export const {
-  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate, setRefreshToken,
+  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate, setRefreshToken, setUserLang,
 } = userSlice.actions;
 
 export default userSlice.reducer;

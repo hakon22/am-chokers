@@ -7,8 +7,8 @@ import cn from 'classnames';
 
 import { catalogPath } from '@/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { ItemContext, MobileContext, VersionContext, CatalogPageContext } from '@/components/Context';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { buildCatalogBreadcrumbItems } from '@/utilities/buildCatalogBreadcrumbItems';
 import styles from '@/themes/v2/components/Breadcrumb.module.scss';
 
@@ -18,7 +18,7 @@ export const Breadcrumb = () => {
   const router = useRouter();
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const { item } = useContext(ItemContext);
   const { itemGroup: catalogItemGroup } = useContext(CatalogPageContext);

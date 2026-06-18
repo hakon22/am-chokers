@@ -32,14 +32,12 @@ import { TelegramMiniAppBootstrap } from '@/components/telegram/TelegramMiniAppB
 import { TelegramMiniAppPageShell } from '@/components/telegram/TelegramMiniAppPageShell';
 import { TelegramOrderAppRoutesContext, telegramOrderAppRoutesMiniApp } from '@/contexts/TelegramOrderAppRoutesContext';
 import { setAppData } from '@/slices/appSlice';
-import i18n, { getLanguageFromDocumentCookie, getSeoI18n, resolveClientLanguage } from '@/locales';
+import i18n, { getSeoI18n, resolveClientLanguage } from '@/locales';
 import { getRequestLanguageFromCookieHeader } from '@/lib/server/get-request-language';
 import { HtmlLangSync } from '@/components/HtmlLangSync';
 import { CookieConsentBanner } from '@/components/cookie-consent/CookieConsentBanner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { YandexMetrika } from '@/components/analytics/YandexMetrika';
-import { setLanguageCookie } from '@/utilities/setLanguageCookie';
-import { getLanguageStorageKey, parseLanguageCode } from '@shared/language-config';
 import { InitialLanguageContext, parseInitialLanguageCode } from '@/contexts/InitialLanguageContext';
 import '@/scss/app.scss';
 import '@/themes/v2/styles/v2-fonts.scss';
@@ -133,15 +131,6 @@ const Init = (props: InitPropsInterface) => {
       });
     }
     dispatch(setAppData({ itemGroups, siteSettings }));
-
-    const cookieLanguage = getLanguageFromDocumentCookie();
-    if (!cookieLanguage) {
-      const storedLanguage = window.localStorage.getItem(getLanguageStorageKey());
-      const parsedLanguage = parseLanguageCode(storedLanguage);
-      if (parsedLanguage) {
-        setLanguageCookie(parsedLanguage);
-      }
-    }
   }, [dispatch, itemGroups, siteSettings, siteVersion]);
 
   useEffect(() => {

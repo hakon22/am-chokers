@@ -9,6 +9,7 @@ import cn from 'classnames';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -29,7 +30,8 @@ export const V1AdminUserCard = ({ id }: Props) => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { axiosAuth } = useAppSelector((state) => state.app);
 
   const coefficient = 1.3;

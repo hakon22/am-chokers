@@ -12,6 +12,7 @@ import { catalogPath, routes } from '@/routes';
 import logoImage from '@/images/logo.svg';
 import personIcon from '@/images/icons/person.svg';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { onFocus } from '@/utilities/onFocus';
 import { SearchContext, MobileContext, NavbarContext, SubmitContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -148,7 +149,8 @@ export const NavBar = () => {
 
   const searchParams = urlParams.get('search');
 
-  const { token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { token } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { itemGroups } = useAppSelector((state) => state.app);
 
   const [submenu, setSubmenu] = useState<NavigationKeys['key']>();

@@ -11,6 +11,7 @@ import axios from 'axios';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
@@ -67,7 +68,8 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
 
-  const { id: userId, isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { id: userId, isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const stateOrders = useAppSelector(selectors.selectAll);
   const { loadingStatus: ordersLoadingStatus } = useAppSelector((state) => state.order);

@@ -7,6 +7,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -30,7 +31,8 @@ export const V1AdminOrders = () => {
   const userIdParams = urlParams.get('userId');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [statuses, setStatuses] = useState<OrderStatusEnum[]>(statusesParams);

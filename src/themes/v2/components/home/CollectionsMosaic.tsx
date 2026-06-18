@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 
 import { catalogPath } from '@/routes';
-import { useAppSelector } from '@/hooks/reduxHooks';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { useUserLang } from '@/hooks/useUserLang';
 import { HomeSectionWrapper } from '@/themes/v2/components/home/HomeSectionWrapper';
 import { ContextMenu } from '@/components/ContextMenu';
 import styles from '@/themes/v2/components/home/CollectionsMosaic.module.scss';
@@ -19,7 +18,7 @@ interface CollectionsMosaicProps {
 
 export const CollectionsMosaic = ({ collections, coverImages }: CollectionsMosaicProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.v2Home.collections' });
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   if (!collections.length) {
     return null;

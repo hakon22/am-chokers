@@ -15,6 +15,7 @@ import { locale } from '@/locales/pickers.locale.ru';
 import { Helmet } from '@/components/Helmet';
 import { pushEcommercePurchase } from '@/utilities/analytics/ecommerce';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
 import { Favorites } from '@/components/Favorites';
@@ -84,7 +85,8 @@ const Cart = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { name, phone, key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { name, phone, key } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { cart } = useAppSelector((state) => state.cart);
   const { siteSettings } = useAppSelector((state) => state.app);
   const { pickup: pickupSettings } = siteSettings;

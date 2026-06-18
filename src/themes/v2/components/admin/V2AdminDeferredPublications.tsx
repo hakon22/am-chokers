@@ -7,6 +7,7 @@ import moment from 'moment';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { BackButton } from '@/components/BackButton';
@@ -97,7 +98,8 @@ export const V2AdminDeferredPublications = () => {
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
 
   const { axiosAuth } = useAppSelector((state) => state.app);
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const [deferredPublicationData, setDeferredPublicationData] = useState<DataType[]>([]);
   const [deferredPostData, setDeferredPostData] = useState<DataType[]>([]);

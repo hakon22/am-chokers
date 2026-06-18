@@ -4,6 +4,7 @@ import { HeartOutlined } from '@ant-design/icons';
 import cn from 'classnames';
 
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { getHref } from '@/utilities/getHref';
@@ -17,7 +18,8 @@ const isVideo = (src: string) => src.endsWith('.mp4');
 export const V2Favorites = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  const { favorites, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { favorites } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const sorted = [...(favorites ?? [])].sort((a, b) => (a.deleted ? 1 : 0) - (b.deleted ? 1 : 0));
 

@@ -10,6 +10,7 @@ import type { FormInstance } from 'antd/lib';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext } from '@/components/Context';
 import { useCatalogFilterAffix } from '@/hooks/useCatalogFilterAffix';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
@@ -68,7 +69,7 @@ export const CatalogFilter = ({
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
 
   const { itemGroups } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { isMobile } = useContext(MobileContext);
   const { placeholderRef, panelRef } = useCatalogFilterAffix(160);
 

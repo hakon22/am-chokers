@@ -5,6 +5,7 @@ import { Helmet } from '@/components/Helmet';
 import { BackButton } from '@/components/BackButton';
 import { MobileContext } from '@/components/Context';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { useSalesReport } from '@/hooks/useSalesReport';
 import { AdminSalesReportView } from '@/components/admin/AdminSalesReportView';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -13,7 +14,7 @@ export const V1AdminSalesReport = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.sales' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const { isMobile } = useContext(MobileContext);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const reportState = useSalesReport(tToast);
 

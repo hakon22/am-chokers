@@ -6,6 +6,7 @@ import { CheckCircleOutlined, LockOutlined, PhoneOutlined, UserOutlined } from '
 import axios from 'axios';
 
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { SubmitContext } from '@/components/Context';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
@@ -87,7 +88,8 @@ const SignupView = ({ onClose, onNavigate }: { onClose: () => void; onNavigate: 
   const { t: tValidation } = useTranslation('translation', { keyPrefix: 'validation' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const dispatch = useAppDispatch();
-  const { key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { key } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const [form] = Form.useForm();
   const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);

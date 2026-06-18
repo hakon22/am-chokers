@@ -4,6 +4,7 @@ import Link from 'next/link';
 import cn from 'classnames';
 
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { ImageHover } from '@/components/ImageHover';
 import { Favorites as FavoritesButton } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
@@ -14,7 +15,8 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 export const Favorites = () => {
   const { t: tPrice } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
-  const { favorites, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { favorites } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const coefficient = 1.3;
 

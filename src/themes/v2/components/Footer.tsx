@@ -6,7 +6,7 @@ import { InstagramOutlined } from '@ant-design/icons';
 import { Telegram } from 'react-bootstrap-icons';
 
 import { catalogPath, routes } from '@/routes';
-import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import logoImage from '@/images/logo.svg';
 import styles from '@/themes/v2/components/Footer.module.scss';
@@ -17,7 +17,7 @@ export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
   const { t: tv2 } = useTranslation('translation', { keyPrefix: 'modules.v2Footer' });
 
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const sortedGroups = [...itemGroups].sort((a, b) => a.order - b.order);
 

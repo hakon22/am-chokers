@@ -4,7 +4,6 @@ import type { i18n as I18nInstance } from 'i18next';
 
 import {
   getDefaultLanguageCode,
-  getLanguageStorageKey,
   languageConfig,
   parseLanguageCode,
   type LanguageCode,
@@ -12,6 +11,7 @@ import {
 
 import ru from './ru';
 import en from './en';
+import { ensureLanguageCookieFromStorage, resolveBootstrapLanguageCode } from '@/utilities/bootstrapLanguage';
 
 const i18nInitOptions = {
   returnNull: false,
@@ -57,30 +57,15 @@ const getInitialLang = (): string => {
     return getDefaultLanguageCode();
   }
 
-  const cookieLanguage = getLanguageFromDocumentCookie();
-  if (cookieLanguage) {
-    return cookieLanguage;
-  }
-
-  const languageKey = getLanguageStorageKey();
-  const storedLanguage = window.localStorage.getItem(languageKey);
-  return parseLanguageCode(storedLanguage) ?? getDefaultLanguageCode();
+  ensureLanguageCookieFromStorage();
+  return resolveBootstrapLanguageCode();
 };
 
 /**
  * Определяет язык приложения на клиенте (cookie → localStorage → default)
  * @returns код языка ru/en
  */
-export const resolveClientLanguage = (): LanguageCode => {
-  const cookieLanguage = getLanguageFromDocumentCookie();
-  if (cookieLanguage) {
-    return cookieLanguage;
-  }
-
-  const languageKey = getLanguageStorageKey();
-  const storedLanguage = window.localStorage.getItem(languageKey);
-  return parseLanguageCode(storedLanguage) ?? getDefaultLanguageCode();
-};
+export const resolveClientLanguage = (): LanguageCode => resolveBootstrapLanguageCode();
 
 const i18n = i18next.createInstance();
 

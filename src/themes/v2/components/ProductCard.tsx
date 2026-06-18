@@ -8,6 +8,7 @@ import moment from 'moment';
 
 import { getHref } from '@/utilities/getHref';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { SubmitContext, AuthModalContext } from '@/components/Context';
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { V2Image } from '@/themes/v2/components/V2Image';
@@ -68,7 +69,8 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
   const dispatch = useAppDispatch();
   const { setIsSubmit } = useContext(SubmitContext);
   const { openAuthModal } = useContext(AuthModalContext);
-  const { lang = UserLangEnum.RU, token, favorites } = useAppSelector((state) => state.user);
+  const { token, favorites } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const inFavorites = favorites?.find((favItem) => favItem.id === item.id);
   const name = item.translations?.find((translation) => translation.lang === lang)?.name ?? item.translateName;
   const groupName = item.group?.translations?.find((translation) => translation.lang === lang)?.name ?? '';

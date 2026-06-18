@@ -27,6 +27,7 @@ import { ProductGalleryThumbnailImage } from '@/themes/v2/components/catalog/Pro
 import { buildBreadcrumbJsonLd, buildProductJsonLd, buildProductSeoDescription } from '@/utilities/structuredData';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { AuthModalContext, ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { setPaginationParams } from '@/slices/appSlice';
@@ -150,7 +151,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   const router = useRouter();
   const urlParams = useSearchParams();
   const editParams = urlParams.get('edit');
-  const { lang = UserLangEnum.RU, token, favorites, isAdmin } = useAppSelector((state) => state.user);
+  const { token, favorites, isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { setIsSubmit } = useContext(SubmitContext);
   const { openAuthModal } = useContext(AuthModalContext);
   const { setItem: setContextItem } = useContext(ItemContext);

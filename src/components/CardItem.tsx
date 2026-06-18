@@ -20,6 +20,7 @@ import { ItemAdminToolbarV1 } from '@/components/item-admin/ItemAdminToolbarV1';
 import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -55,7 +56,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const dispatch = useAppDispatch();
 
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { cart } = useAppSelector((state) => state.cart);
   const { pagination } = useAppSelector((state) => state.app);
 

@@ -11,6 +11,7 @@ import { chunk, isEmpty, isNil } from 'lodash';
 import { routes, catalogPath } from '@/routes';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SearchContext, SubmitContext, VersionContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { CatalogItemsFilter } from '@/components/filters/catalog/CatalogItemsFilter';
@@ -323,7 +324,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   const chunkNumber = 8;
 
   const { pagination } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
   const { setIsSearch } = useContext(SearchContext);

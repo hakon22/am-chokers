@@ -17,6 +17,7 @@ import momentGenerateConfig from 'rc-picker/lib/generate/moment';
 import { Helmet } from '@/components/Helmet';
 import { useSortableImageDndSensors } from '@/hooks/useSortableImageDndSensors';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { routes } from '@/routes';
 import { newItemValidation } from '@/validations/validations';
@@ -68,7 +69,8 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const dispatch = useAppDispatch();
   const router = useRouter();
 
-  const { isAdmin, token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin, token } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { itemGroups, axiosAuth } = useAppSelector((state) => state.app);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);

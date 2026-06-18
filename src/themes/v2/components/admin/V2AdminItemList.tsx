@@ -14,6 +14,7 @@ import locale from 'antd/es/date-picker/locale/ru_RU';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { deleteItem, restoreItem, setPaginationParams, type ItemResponseInterface } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
@@ -86,7 +87,8 @@ export const V2AdminItemList = () => {
   const outOfStockParams = urlParams.get('outOfStock');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
-  const { isAdmin, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const { setIsSubmit, isSubmit } = useContext(SubmitContext);
 

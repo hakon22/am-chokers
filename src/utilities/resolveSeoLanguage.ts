@@ -1,7 +1,6 @@
-import { useTranslation } from 'react-i18next';
-
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { LanguageCode } from '@shared/language-config';
+import { useUserLang } from '@/hooks/useUserLang';
 
 /**
  * Преобразует код i18n в UserLangEnum для выбора translation в SEO
@@ -22,19 +21,16 @@ export const resolveSeoLanguageCode = (i18nLanguage: string): LanguageCode => (
 );
 
 /**
- * Возвращает актуальный код языка для SEO meta и JSON-LD (следует за i18n после смены языка)
+ * Возвращает актуальный код языка для SEO meta и JSON-LD
  * @returns код языка ru/en
  */
 export const useSeoLanguage = (): LanguageCode => {
-  const { i18n } = useTranslation();
-  return resolveSeoLanguageCode(i18n.language);
+  const userLang = useUserLang();
+  return userLang === UserLangEnum.EN ? 'en' : 'ru';
 };
 
 /**
- * Возвращает актуальный UserLangEnum для выбора translation в SEO (следует за i18n после смены языка)
+ * Возвращает актуальный UserLangEnum для выбора translation в SEO
  * @returns язык пользователя для поля translation.lang
  */
-export const useSeoUserLang = (): UserLangEnum => {
-  const { i18n } = useTranslation();
-  return resolveSeoUserLang(i18n.language);
-};
+export const useSeoUserLang = (): UserLangEnum => useUserLang();

@@ -5,14 +5,14 @@ import Link from 'next/link';
 import telegramIcon from '@/images/icons/telegram.svg';
 import instagramIcon from '@/images/icons/instagram.svg';
 import { catalogPath, routes } from '@/routes';
-import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 export const Footer = ({ itemGroups }: { itemGroups: ItemGroupEntity[]; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.footer' });
 
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   return (
     <div className="container d-flex col-12">

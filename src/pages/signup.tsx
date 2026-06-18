@@ -8,6 +8,7 @@ import { useContext, useEffect, useState } from 'react';
 
 import { Helmet } from '@/components/Helmet';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { signupValidation } from '@/validations/validations';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { routes } from '@/routes';
@@ -28,7 +29,8 @@ const Signup = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { key, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { key } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);

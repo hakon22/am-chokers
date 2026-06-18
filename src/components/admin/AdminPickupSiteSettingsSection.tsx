@@ -11,6 +11,7 @@ import { SubmitContext } from '@/components/Context';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { toast } from '@/utilities/toast';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { routes } from '@/routes';
 import { setAppData } from '@/slices/appSlice';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -37,7 +38,7 @@ export const AdminPickupSiteSettingsSection = ({ variant }: AdminPickupSiteSetti
 
   const { setIsSubmit } = useContext(SubmitContext);
   const { axiosAuth, siteSettings } = useAppSelector((state) => state.app);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const dispatch = useAppDispatch();
 
   const [form] = Form.useForm();

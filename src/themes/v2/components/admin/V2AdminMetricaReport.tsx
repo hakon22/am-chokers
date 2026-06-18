@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Helmet } from '@/components/Helmet';
 import { BackButton } from '@/components/BackButton';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { useMetricaReport } from '@/hooks/useMetricaReport';
 import { V2AdminMetricaReportView } from '@/themes/v2/components/admin/V2AdminMetricaReportView';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -12,7 +13,7 @@ import styles from './V2AdminMetricaReport.module.scss';
 export const V2AdminMetricaReport = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.metrica' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const reportState = useMetricaReport(tToast);
 

@@ -7,6 +7,7 @@ import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, X
 
 import { Helmet } from '@/components/Helmet';
 import { useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { useMetricaReport } from '@/hooks/useMetricaReport';
 import { BackButton } from '@/components/BackButton';
 import { MobileContext } from '@/components/Context';
@@ -21,7 +22,7 @@ export const V1AdminMetricaReport = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.metrica' });
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const { isMobile } = useContext(MobileContext);
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const {
     isAdmin,

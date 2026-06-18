@@ -24,6 +24,7 @@ import {
   DEFAULT_OG_IMAGE_WIDTH,
 } from '@/utilities/defaultOgImage';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { ContextMenu } from '@/components/ContextMenu';
 import { MobileContext } from '@/components/Context';
 import { getHref } from '@/utilities/getHref';
@@ -234,7 +235,7 @@ const Index = ({
 
   const { isMobile } = useContext(MobileContext);
 
-  const { lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
 
   const [coverSize, setCoverSize] = useState<{ cover: { width: string | number; height: number; }; coverCollection: { width: string | number; height: number; } }>({ cover: { width: '100%', height: 200 }, coverCollection: { width: 450, height: 299 } });
   const [autoPlay, setAutoPlay] = useState(false);

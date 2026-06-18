@@ -3,17 +3,16 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
-import { changeLang, fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
+import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
 import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { fetchCart, addMany } from '@/slices/cartSlice';
 import { setAxiosAuth } from '@/slices/appSlice';
 import { routes } from '@/routes';
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
 const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
-const languageKey = process.env.NEXT_PUBLIC_LANGUAGE_KEY ?? '';
 
 export const useAuthHandler = () => {
   const { i18n } = useTranslation();
@@ -22,7 +21,8 @@ export const useAuthHandler = () => {
 
   const { logIn, loggedIn } = useContext(AuthContext);
 
-  const { token, refreshToken, url, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { token, refreshToken, url } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { cart } = useAppSelector((state) => state.cart);
 
   const pathWithoutQuery = (router.asPath.split('?')[0] ?? '').split('#')[0];
@@ -64,10 +64,6 @@ export const useAuthHandler = () => {
       }
       dispatch(fetchOrders());
       dispatch(fetchCart(cart));
-    }
-    const langStorage = window.localStorage.getItem(languageKey) as UserLangEnum;
-    if (!langStorage || (langStorage && langStorage !== lang)) {
-      dispatch(changeLang({ token: !!token, lang: lang || langStorage || UserLangEnum.RU }));
     }
   }, [token]);
 

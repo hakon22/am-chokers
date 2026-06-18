@@ -8,6 +8,7 @@ import type { MenuProps } from 'antd';
 
 import { SubmitContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useUserLang } from '@/hooks/useUserLang';
 import { deleteItem, type ItemResponseInterface, partialUpdateItem, removeCoverImage, removeSpecialItem, setCoverImage, setSpecialItems } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
@@ -40,7 +41,8 @@ export const ContextMenu = ({ children, order, cover, isCoverCollection, coverTy
   const { t: tToast } = useTranslation('translation', { keyPrefix: 'toast' });
   const router = useRouter();
 
-  const { isAdmin, token, lang = UserLangEnum.RU } = useAppSelector((state) => state.user);
+  const { isAdmin, token } = useAppSelector((state) => state.user);
+  const lang = useUserLang();
   const { specialItems } = useAppSelector((state) => state.app);
 
   const { bestsellers, collections } = specialItems.reduce((acc, value) => {
