@@ -185,6 +185,13 @@ $bg-alt:         #EAEEF6;
     flex-shrink: 0;
   }
 
+  // Мобильная/планшетная вёрстка (isMobile < 1200): в fullscreen миниатюры справа скрыты (как раньше showThumbnails=false)
+  @media (max-width: 1199px) {
+    :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-thumbnails-wrapper.image-gallery-thumbnails-right) {
+      display: none !important;
+    }
+  }
+
   :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide-wrapper.image-gallery-thumbnails-left),
   :global(.image-gallery .image-gallery-content.fullscreen .image-gallery-slide-wrapper.image-gallery-thumbnails-right) {
     flex: 1 1 0;

@@ -180,7 +180,6 @@ export const V2ProductGallery = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isFullscreenRef = useRef(false);
   const [galleryFsCurtain, setGalleryFsCurtain] = useState(false);
-  const [showThumbnails, setShowThumbnails] = useState(true);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const currentSlideIndexRef = useRef(0);
   const [gallerySlideDuration, setGallerySlideDuration] = useState(GALLERY_SLIDE_DURATION_MS);
@@ -367,7 +366,6 @@ export const V2ProductGallery = ({
       restoreThumbnailsRightSlideWrapperStylesAfterMobileFullscreen();
       flushSync(() => {
         setIsFullscreen(false);
-        setShowThumbnails(true);
       });
     } else {
       setIsFullscreen(false);
@@ -479,9 +477,7 @@ export const V2ProductGallery = ({
     flushSync(() => {
       setGallerySlideDuration(0);
       setIsFullscreen(true);
-      if (isMobile) {
-        setShowThumbnails(false);
-      } else {
+      if (!isMobile) {
         setGalleryFsCurtain(true);
       }
     });
@@ -578,7 +574,7 @@ export const V2ProductGallery = ({
                 key={image.src}
                 src={image.src}
                 variant="slide"
-                skeletonBorderRadius={isFullscreen ? 0 : 16}
+                skeletonBorderRadius={isFullscreenRef.current ? 0 : 16}
                 slideStyle={
                   isFullscreenRef.current
                     ? { maxHeight: '100dvh', width: 'auto', maxWidth: '100%', objectFit: 'contain' }
@@ -604,13 +600,13 @@ export const V2ProductGallery = ({
             slideIndex={slideIndex}
             slideHeight={slideHeight}
             slideWidth={slideWidth ?? null}
-            isFullscreen={isFullscreen}
+            isFullscreen={isFullscreenRef.current}
             isMobile={isMobile}
           />
         ),
       };
     });
-  }, [sortedImages, imageAlt, slideHeight, slideWidth, isFullscreen, isMobile]);
+  }, [sortedImages, imageAlt, slideHeight, slideWidth, isMobile]);
 
   return (
     <>
@@ -649,7 +645,7 @@ export const V2ProductGallery = ({
               showNav={!isMobile}
               showPlayButton={false}
               thumbnailPosition={isMobile ? 'right' : 'left'}
-              showThumbnails={showThumbnails}
+              showThumbnails
               slideDuration={gallerySlideDuration}
               useBrowserFullscreen
               renderFullscreenButton={renderGalleryFullscreenButton}
@@ -667,7 +663,6 @@ export const V2ProductGallery = ({
                   setIsFullscreen(true);
                   setGalleryFullscreenCssVariablesOnDocumentRoot(isMobile);
                   if (isMobile) {
-                    setShowThumbnails(false);
                     applyThumbnailsRightSlideWrapperStylesWhenMobileFullscreen();
                   }
                   jumpGalleryToIndex(indexToShow);

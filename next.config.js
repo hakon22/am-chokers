@@ -19,6 +19,8 @@ const nextConfig = {
   },
   images: {
     qualities: [100, 75],
+    /** Кэш ответов /_next/image на сервере (сек.); фото товаров с uuid в имени редко меняются */
+    minimumCacheTTL: 604800,
     localPatterns: [
       { pathname: '/items/**' },
       { pathname: '/covers/**' },

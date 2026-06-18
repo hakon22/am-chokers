@@ -4,6 +4,8 @@ import Image from 'next/image';
 import {
   forwardRef,
   useCallback,
+  useLayoutEffect,
+  useRef,
   useState,
   type ComponentProps,
   type CSSProperties,
@@ -24,9 +26,22 @@ export type V2ImageProps = ComponentProps<typeof Image> & {
   loadingPlaceholder?: V2ImageLoadingPlaceholder;
 };
 
-type V2ImageSkeletonWrapProps = Omit<V2ImageProps, 'showLoadingSkeleton'> & {
-  showLoadingSkeleton: true;
-};
+type V2ImageSkeletonWrapProps = Omit<V2ImageProps, 'showLoadingSkeleton'>;
+
+/** Интервал poll watchdog, пока optimizer ещё грузится */
+const OPTIMIZER_FALLBACK_POLL_MS = 1000;
+
+/** Принудительный fallback, если за это время нет декодированной картинки */
+const OPTIMIZER_FALLBACK_MAX_WAIT_MS = 5000;
+
+/**
+ * Проверяет, что img всё ещё грузится через /_next/image
+ * @param imageElement - DOM img
+ * @returns true, если currentSrc указывает на оптимизатор Next.js
+ */
+const imageUsesNextOptimizerUrl = (imageElement: HTMLImageElement): boolean => (
+  imageElement.currentSrc.includes('/_next/image')
+);
 
 /**
  * Пытается снять плейсхолдер для уже загруженного или декодированного img (Safari)
@@ -64,6 +79,7 @@ const V2ImageSkeletonWrap = forwardRef<HTMLImageElement, V2ImageSkeletonWrapProp
     ...rest
   }, ref) => {
     const sourceKey = getMediaSourceKey(src);
+    const imageElementRef = useRef<HTMLImageElement | null>(null);
     const [optimizerFailed, setOptimizerFailed] = useState(false);
     const [isLoading, setIsLoading] = useState(() => !isMediaSourceLoaded(sourceKey));
     const useDirect = Boolean(unoptimized || optimizerFailed);
@@ -79,36 +95,52 @@ const V2ImageSkeletonWrap = forwardRef<HTMLImageElement, V2ImageSkeletonWrapProp
     }, [sourceKey]);
 
     /**
-     * Пробрасывает ref наружу; для кэшированных img сразу снимает плейсхолдер
+     * Переключает загрузку на прямой URL (unoptimized) и показывает плейсхолдер на время retry
+     */
+    const beginOptimizerFallback = useCallback(() => {
+      setOptimizerFailed(true);
+      setIsLoading(true);
+    }, []);
+
+    /**
+     * Пробрасывает ref наружу и проверяет готовность img (в т.ч. при cache hit)
      * @param node - DOM-элемент img
      */
     const assignImageRef = useCallback(
       (node: HTMLImageElement | null) => {
+        imageElementRef.current = node;
         if (typeof ref === 'function') {
           ref(node);
         } else if (ref) {
           ref.current = node;
         }
-        if (!node || !isLoading) {
+        if (!node) {
           return;
+        }
+        if (node.complete && node.naturalWidth > 0) {
+          finishLoading();
+          return;
+        }
+        if (isMediaSourceLoaded(sourceKey) && node.naturalWidth === 0) {
+          setIsLoading(true);
         }
         tryFinishLoadingFromImageElement(node, finishLoading);
         requestAnimationFrame(() => {
           tryFinishLoadingFromImageElement(node, finishLoading);
         });
       },
-      [finishLoading, isLoading, ref],
+      [finishLoading, ref, sourceKey],
     );
 
     const handleError = useCallback(
       (event: SyntheticEvent<HTMLImageElement, Event>) => {
         if (!unoptimized && !optimizerFailed) {
-          setOptimizerFailed(true);
+          beginOptimizerFallback();
           return;
         }
         onError?.(event);
       },
-      [unoptimized, optimizerFailed, onError],
+      [beginOptimizerFallback, onError, optimizerFailed, unoptimized],
     );
 
     /**
@@ -117,11 +149,72 @@ const V2ImageSkeletonWrap = forwardRef<HTMLImageElement, V2ImageSkeletonWrapProp
      */
     const handleLoad = useCallback(
       (event: SyntheticEvent<HTMLImageElement, Event>) => {
-        finishLoading();
+        const { currentTarget } = event;
+        if (currentTarget.naturalWidth > 0) {
+          finishLoading();
+        }
         onLoad?.(event);
       },
       [finishLoading, onLoad],
     );
+
+    useLayoutEffect(() => {
+      if (unoptimized || optimizerFailed) {
+        return undefined;
+      }
+
+      const startedAt = Date.now();
+      let pollTimeoutId = 0;
+
+      /**
+       * Проверяет img optimizer: finish, fallback при ошибке или по таймауту, иначе poll
+       */
+      const runOptimizerFallbackWatchdog = (): void => {
+        const imageElement = imageElementRef.current;
+
+        if (imageElement && imageElement.naturalWidth > 0) {
+          finishLoading();
+          return;
+        }
+
+        if (imageElement && imageUsesNextOptimizerUrl(imageElement)) {
+          const elapsedMilliseconds = Date.now() - startedAt;
+          const optimizerLoadFailed = imageElement.complete && imageElement.naturalWidth === 0;
+          const optimizerWaitExceeded = elapsedMilliseconds >= OPTIMIZER_FALLBACK_MAX_WAIT_MS;
+
+          if (optimizerLoadFailed || optimizerWaitExceeded) {
+            beginOptimizerFallback();
+            return;
+          }
+        }
+
+        pollTimeoutId = window.setTimeout(runOptimizerFallbackWatchdog, OPTIMIZER_FALLBACK_POLL_MS);
+      };
+
+      pollTimeoutId = window.setTimeout(runOptimizerFallbackWatchdog, OPTIMIZER_FALLBACK_POLL_MS);
+
+      return () => {
+        clearTimeout(pollTimeoutId);
+      };
+    }, [beginOptimizerFallback, finishLoading, optimizerFailed, sourceKey, unoptimized]);
+
+    useLayoutEffect(() => {
+      if (!isLoading) {
+        return undefined;
+      }
+
+      let layoutAnimationFrame = 0;
+      const verifyLoadingAfterLayout = () => {
+        layoutAnimationFrame = requestAnimationFrame(() => {
+          tryFinishLoadingFromImageElement(imageElementRef.current, finishLoading);
+        });
+      };
+
+      verifyLoadingAfterLayout();
+      return () => {
+        cancelAnimationFrame(layoutAnimationFrame);
+      };
+    }, [finishLoading, isLoading, useDirect]);
 
     const wrapStyle: CSSProperties | undefined = skeletonBorderRadius !== undefined
       ? { borderRadius: typeof skeletonBorderRadius === 'number' ? `${skeletonBorderRadius}px` : skeletonBorderRadius }
@@ -152,6 +245,7 @@ const V2ImageSkeletonWrap = forwardRef<HTMLImageElement, V2ImageSkeletonWrapProp
         )}
         <Image
           {...rest}
+          key={useDirect ? 'direct' : 'optimized'}
           src={src}
           ref={assignImageRef}
           alt={alt ?? ''}
@@ -190,15 +284,22 @@ export const V2Image = forwardRef<HTMLImageElement, V2ImageProps>(
     const [optimizerFailed, setOptimizerFailed] = useState(false);
     const useDirect = Boolean(unoptimized || optimizerFailed);
 
+    /**
+     * Переключает на прямой URL при ошибке оптимизатора
+     */
+    const beginOptimizerFallback = useCallback(() => {
+      setOptimizerFailed(true);
+    }, []);
+
     const handleError = useCallback(
       (event: SyntheticEvent<HTMLImageElement, Event>) => {
         if (!unoptimized && !optimizerFailed) {
-          setOptimizerFailed(true);
+          beginOptimizerFallback();
           return;
         }
         onError?.(event);
       },
-      [unoptimized, optimizerFailed, onError],
+      [beginOptimizerFallback, onError, optimizerFailed, unoptimized],
     );
 
     if (showLoadingSkeleton) {
@@ -211,7 +312,6 @@ export const V2Image = forwardRef<HTMLImageElement, V2ImageProps>(
           onLoad={onLoad}
           unoptimized={unoptimized}
           alt={alt}
-          showLoadingSkeleton
           skeletonBorderRadius={skeletonBorderRadius}
           loadingPlaceholder={loadingPlaceholder}
           fill={fill}
@@ -226,6 +326,7 @@ export const V2Image = forwardRef<HTMLImageElement, V2ImageProps>(
     return (
       <Image
         {...rest}
+        key={useDirect ? 'direct' : 'optimized'}
         src={src}
         ref={ref}
         alt={alt ?? ''}
