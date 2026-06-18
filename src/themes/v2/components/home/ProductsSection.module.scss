@@ -131,12 +131,14 @@
   transition: opacity 0.4s ease;
 }
 
-.card:hover .imgPrimary {
-  opacity: 0;
-}
+@media (hover: hover) and (pointer: fine) {
+  .card:hover .imgPrimary {
+    opacity: 0;
+  }
 
-.card:hover .imgSecondary {
-  opacity: 1;
+  .card:hover .imgSecondary {
+    opacity: 1;
+  }
 }
 
 .cardImgOutStock {
