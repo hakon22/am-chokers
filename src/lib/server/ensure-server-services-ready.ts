@@ -5,6 +5,7 @@ import { Container } from 'typescript-ioc';
 
 import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
+import { isNextProductionBuild } from '@/lib/server/is-next-production-build';
 
 let isServerServicesReady = false;
 let serverServicesInitPromise: Promise<void> | null = null;
@@ -14,6 +15,10 @@ let serverServicesInitPromise: Promise<void> | null = null;
  * @returns Promise по завершении инициализации (идемпотентно)
  */
 export const ensureServerServicesReady = async (): Promise<void> => {
+  if (isNextProductionBuild()) {
+    return;
+  }
+
   if (isServerServicesReady) {
     return;
   }
