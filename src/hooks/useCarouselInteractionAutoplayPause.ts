@@ -10,6 +10,19 @@ import {
 
 const FINE_POINTER_HOVER_MEDIA_QUERY = '(hover: hover) and (pointer: fine)';
 
+/**
+ * Проверяет, что pointer-событие началось на интерактивном элементе карточки (ссылка, кнопка)
+ * @param target - DOM-элемент, на котором произошло событие
+ * @returns true, если нельзя вызывать setPointerCapture — иначе ломается клик по Link
+ */
+const isCarouselInteractiveTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return Boolean(target.closest('a, button, input, textarea, select, label'));
+};
+
 export type CarouselInteractionPauseProps = Pick<
   HTMLAttributes<HTMLDivElement>,
   'onPointerDown' | 'onPointerUp' | 'onTouchStartCapture' | 'onMouseEnter' | 'onMouseLeave'
@@ -18,7 +31,7 @@ export type CarouselInteractionPauseProps = Pick<
 /**
  * Пауза автоплея карусели при удержании pointer (touch/pen/mouse) и при hover на fine-pointer.
  * Touch: touchstart + document touchend (не pointercancel — он срывается при drag карусели).
- * Mouse: pointer capture до pointerup.
+ * Mouse: pointer capture до pointerup, кроме кликов по ссылкам и кнопкам внутри карусели.
  * @returns флаг паузы и props для обёртки карусели
  */
 export const useCarouselInteractionAutoplayPause = () => {
@@ -87,8 +100,11 @@ export const useCarouselInteractionAutoplayPause = () => {
    * @param event - pointerdown на обёртке
    */
   const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>): void => {
-    const { pointerId, pointerType, currentTarget } = event;
+    const { pointerId, pointerType, currentTarget, target } = event;
     if (pointerType === 'touch') {
+      return;
+    }
+    if (isCarouselInteractiveTarget(target)) {
       return;
     }
     if (activeMousePointerIdsRef.current.has(pointerId)) {

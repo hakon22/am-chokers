@@ -1,6 +1,5 @@
 import 'dayjs/locale/ru';
-import type { AppProps, AppContext } from 'next/app';
-import AppNext from 'next/app';
+import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import {
   useCallback, useEffect, useMemo, useState, type JSX,
@@ -15,6 +14,7 @@ import moment from 'moment';
 import { AuthContext, SubmitContext, NavbarContext, ItemContext, SearchContext, MobileContext, VersionContext, CatalogPageContext } from '@/components/Context';
 import { Spinner } from '@/components/Spinner';
 import { useRouterHandler } from '@/hooks/useRouterHandler';
+import { useItemGroupsBootstrap } from '@/hooks/useItemGroupsBootstrap';
 import { routes } from '@/routes';
 import { isMobileDevice } from '@/utilities/isMobileDevice';
 import { removeToken as removeUserToken } from '@/slices/userSlice';
@@ -32,17 +32,18 @@ import { TelegramMiniAppBootstrap } from '@/components/telegram/TelegramMiniAppB
 import { TelegramMiniAppPageShell } from '@/components/telegram/TelegramMiniAppPageShell';
 import { TelegramOrderAppRoutesContext, telegramOrderAppRoutesMiniApp } from '@/contexts/TelegramOrderAppRoutesContext';
 import { setAppData } from '@/slices/appSlice';
-import i18n, { getSeoI18n, resolveClientLanguage } from '@/locales';
-import { getCachedItemGroups, getCachedSiteSettings } from '@/lib/server/app-bootstrap-cache';
-import { getRequestLanguageFromCookieHeader } from '@/lib/server/get-request-language';
+import i18n, { getSeoI18n } from '@/locales';
 import { HtmlLangSync } from '@/components/HtmlLangSync';
 import { CookieConsentBanner } from '@/components/cookie-consent/CookieConsentBanner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { YandexMetrika } from '@/components/analytics/YandexMetrika';
 import { InitialLanguageContext, parseInitialLanguageCode } from '@/contexts/InitialLanguageContext';
-import '@/scss/app.scss';
-import '@/themes/v2/styles/v2-fonts.scss';
-import { emptySiteSettings, type SiteSettingsInterface } from '@/types/site/SiteSettings';
+import { getDefaultLanguageCode } from '@shared/language-config';
+import '@/scss/app-vendor.scss';
+import '@/scss/app-shared.scss';
+import '@/scss/app-v1.scss';
+import '@/scss/app-v2.scss';
+import type { SiteSettingsInterface } from '@/types/site/SiteSettings';
 import type { SiteVersion } from '@/types/SiteVersion';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
@@ -60,35 +61,50 @@ moment.updateLocale('ru-ru', {
   },
 });
 
+interface InitPagePropsInterface {
+  itemGroups?: ItemGroupInterface[];
+  siteSettings?: SiteSettingsInterface;
+  siteVersion?: SiteVersion;
+  isMobile?: boolean;
+  initialLanguage?: string;
+  item?: ItemInterface;
+  itemGroup?: ItemGroupInterface;
+  [key: string]: unknown;
+}
+
 interface InitPropsInterface extends AppProps {
-  isMobile: boolean;
-  siteVersion: SiteVersion;
-  itemGroups: ItemGroupInterface[];
-  siteSettings: SiteSettingsInterface;
-  initialLanguage: string;
+  pageProps: InitPagePropsInterface;
 }
 
 const Init = (props: InitPropsInterface) => {
-  const { pageProps, Component, isMobile: isMobileProps, itemGroups, siteVersion, siteSettings, initialLanguage } = props;
+  const { pageProps, Component } = props;
+  const {
+    itemGroups: pageItemGroups = [],
+    siteSettings: pageSiteSettings,
+    siteVersion: pageSiteVersion,
+    isMobile: pageIsMobile,
+    initialLanguage: pageInitialLanguage,
+  } = pageProps;
 
-  if (itemGroups.length > 0 && store.getState().app.itemGroups.length === 0) {
-    store.dispatch(setAppData({ itemGroups, siteSettings }));
-  }
+  const bootstrapState = useItemGroupsBootstrap(pageItemGroups, pageSiteSettings, pageSiteVersion);
+
+  const { itemGroups, siteSettings, siteVersion, isLoading: isBootstrapLoading } = bootstrapState;
+  const isBootstrapReady = Boolean(siteVersion) && !isBootstrapLoading;
 
   const isLoaded = useRouterHandler();
   const { dispatch } = store;
 
   const { id, refreshToken } = store.getState().user;
 
-  const [isSubmit, setIsSubmit] = useState(false); // submit spinner
-  const [isActive, setIsActive] = useState(false); // navbar
-  const [loggedIn, setLoggedIn] = useState(false); // auth service
+  const [isSubmit, setIsSubmit] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const pageItem = pageProps?.item as ItemInterface | undefined;
   const pageItemGroup = pageProps?.itemGroup as ItemGroupInterface | undefined;
   const [internalItem, setItem] = useState<ItemInterface | undefined>();
   const item = pageItem ?? internalItem;
-  const [isSearch, setIsSearch] = useState({ value: false, needFetch: false }); // global search service
-  const [isMobile, setIsMobile] = useState(isMobileProps); // is mobile device
+  const [isSearch, setIsSearch] = useState({ value: false, needFetch: false });
+  const [isMobile, setIsMobile] = useState(pageIsMobile ?? false);
 
   const closeNavbar = () => setIsActive(false);
 
@@ -109,36 +125,51 @@ const Init = (props: InitPropsInterface) => {
     dispatch(removeMany());
     dispatch(removeManyCart());
     axios.defaults.headers.common.Authorization = null;
-  }, [id]);
+  }, [dispatch, id, refreshToken]);
 
-  const authService = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn]);
+  const authService = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn, logIn, logOut]);
   const submitService = useMemo(() => ({ isSubmit, setIsSubmit }), [isSubmit]);
-  const navbarService = useMemo(() => ({ isActive, setIsActive, closeNavbar }), [isActive]);
+  const navbarService = useMemo(() => ({ isActive, setIsActive, closeNavbar }), [isActive, closeNavbar]);
   const itemService = useMemo(() => ({ item, setItem }), [item]);
   const searchService = useMemo(() => ({ isSearch, setIsSearch }), [isSearch]);
-  const mobileService = useMemo(() => ({ isMobile, setIsMobile }), [isMobile]);
-  const versionService = useMemo(() => ({ version: siteVersion }), [siteVersion]);
+  const mobileService = useMemo(() => ({ isMobile, setIsMobile }), [isMobile, setIsMobile]);
   const catalogPageService = useMemo(() => ({ itemGroup: pageItemGroup }), [pageItemGroup]);
 
-  const initialLanguageCode = parseInitialLanguageCode(initialLanguage);
+  const resolvedInitialLanguage = pageInitialLanguage ?? getDefaultLanguageCode();
+  const initialLanguageCode = parseInitialLanguageCode(resolvedInitialLanguage);
   const seoI18nForProvider = typeof window === 'undefined'
     ? getSeoI18n(initialLanguageCode)
     : i18n;
 
   useEffect(() => {
+    if (!siteVersion) {
+      return;
+    }
+
     if (siteVersion === 'v1') {
       import('aos').then(({ default: aosLibrary }) => {
         aosLibrary.init();
       });
     }
+
     dispatch(setAppData({ itemGroups, siteSettings }));
   }, [dispatch, itemGroups, siteSettings, siteVersion]);
 
   useEffect(() => {
-    if (i18n.language !== initialLanguage) {
-      i18n.changeLanguage(initialLanguage);
+    if (typeof window === 'undefined') {
+      return;
     }
-  }, [initialLanguage]);
+
+    if (pageIsMobile === undefined) {
+      setIsMobile(isMobileDevice(navigator.userAgent));
+    }
+  }, [pageIsMobile]);
+
+  useEffect(() => {
+    if (i18n.language !== resolvedInitialLanguage) {
+      i18n.changeLanguage(resolvedInitialLanguage);
+    }
+  }, [resolvedInitialLanguage]);
 
   useEffect(() => {
     if (pathWithoutQuery !== routes.page.base.catalog) {
@@ -146,105 +177,69 @@ const Init = (props: InitPropsInterface) => {
     }
   }, [pathWithoutQuery]);
 
+  const appProvidersTree = (
+    <AuthContext.Provider value={authService}>
+      <SubmitContext.Provider value={submitService}>
+        <MobileContext.Provider value={mobileService}>
+          <SearchContext.Provider value={searchService}>
+            <ItemContext.Provider value={itemService}>
+              <CatalogPageContext.Provider value={catalogPageService}>
+                <NavbarContext.Provider value={navbarService}>
+                  <Provider store={store}>
+                    <Head>
+                      <link rel="manifest" href="/manifest.json" />
+                      <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
+                      <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
+                      <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
+                      <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
+                    </Head>
+                    {process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' && !isTelegramMiniAppRoute
+                      ? (
+                        <>
+                          <GoogleAnalytics />
+                          <YandexMetrika />
+                        </>
+                      ) : null}
+                    <Spinner isLoaded={isLoaded && (isTelegramMiniAppRoute || isBootstrapReady)} />
+                    <HtmlLangSync />
+                    <ToastContainer style={{ zIndex: 999999 }} />
+                    {!isTelegramMiniAppRoute ? <CookieConsentBanner /> : null}
+                    {isTelegramMiniAppRoute ? (
+                      <TelegramOrderAppRoutesContext.Provider value={telegramOrderAppRoutesMiniApp}>
+                        <TelegramMiniAppAuthBridge>
+                          <TelegramMiniAppBootstrap>
+                            <TelegramMiniAppPageShell>
+                              <Component {...pageProps} />
+                            </TelegramMiniAppPageShell>
+                          </TelegramMiniAppBootstrap>
+                        </TelegramMiniAppAuthBridge>
+                      </TelegramOrderAppRoutesContext.Provider>
+                    ) : isBootstrapReady ? (
+                      <VersionedShell itemGroups={itemGroups}>
+                        <Component {...pageProps} />
+                      </VersionedShell>
+                    ) : null}
+                  </Provider>
+                </NavbarContext.Provider>
+              </CatalogPageContext.Provider>
+            </ItemContext.Provider>
+          </SearchContext.Provider>
+        </MobileContext.Provider>
+      </SubmitContext.Provider>
+    </AuthContext.Provider>
+  );
+
   return (
     <InitialLanguageContext.Provider value={initialLanguageCode}>
       <I18nextProvider i18n={seoI18nForProvider}>
-        <VersionContext.Provider value={versionService}>
-          <AuthContext.Provider value={authService}>
-            <SubmitContext.Provider value={submitService}>
-              <MobileContext.Provider value={mobileService}>
-                <SearchContext.Provider value={searchService}>
-                  <ItemContext.Provider value={itemService}>
-                    <CatalogPageContext.Provider value={catalogPageService}>
-                      <NavbarContext.Provider value={navbarService}>
-                        <Provider store={store}>
-                          <Head>
-                            <link rel="manifest" href="/manifest.json" />
-                            <link rel="icon" type="image/png" sizes="16x16" href={favicon16.src} />
-                            <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
-                            <link rel="apple-touch-icon" sizes="57x57" href={favicon57.src} />
-                            <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
-                          </Head>
-                          {process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' && !isTelegramMiniAppRoute
-                            ? (
-                              <>
-                                <GoogleAnalytics />
-                                <YandexMetrika />
-                              </>
-                            ) : null}
-                          <Spinner isLoaded={isLoaded} />
-                          <HtmlLangSync />
-                          <ToastContainer style={{ zIndex: 999999 }} />
-                          {!isTelegramMiniAppRoute ? <CookieConsentBanner /> : null}
-                          {isTelegramMiniAppRoute ? (
-                            <TelegramOrderAppRoutesContext.Provider value={telegramOrderAppRoutesMiniApp}>
-                              <TelegramMiniAppAuthBridge>
-                                <TelegramMiniAppBootstrap>
-                                  <TelegramMiniAppPageShell>
-                                    <Component {...pageProps} />
-                                  </TelegramMiniAppPageShell>
-                                </TelegramMiniAppBootstrap>
-                              </TelegramMiniAppAuthBridge>
-                            </TelegramOrderAppRoutesContext.Provider>
-                          ) : (
-                            <VersionedShell itemGroups={itemGroups}>
-                              <Component {...pageProps} />
-                            </VersionedShell>
-                          )}
-                        </Provider>
-                      </NavbarContext.Provider>
-                    </CatalogPageContext.Provider>
-                  </ItemContext.Provider>
-                </SearchContext.Provider>
-              </MobileContext.Provider>
-            </SubmitContext.Provider>
-          </AuthContext.Provider>
-        </VersionContext.Provider>
+        {siteVersion ? (
+          <VersionContext.Provider value={{ version: siteVersion }}>
+            {appProvidersTree}
+          </VersionContext.Provider>
+        ) : appProvidersTree}
       </I18nextProvider>
     </InitialLanguageContext.Provider>
   );
-};
-
-Init.getInitialProps = async (context: AppContext) => {
-  const [itemGroups, siteSettings] = await Promise.all([
-    getCachedItemGroups(async () => {
-      const { data: { itemGroups: fetchedItemGroups } } = await axios.get<{ itemGroups: ItemGroupInterface[]; }>(
-        routes.itemGroup.findMany({ isServer: false }),
-      );
-
-      return fetchedItemGroups;
-    }),
-    getCachedSiteSettings(async () => {
-      const { data: settingsData } = await axios.get<{ code: number; siteSettings?: SiteSettingsInterface; }>(
-        routes.settings.getSettings({ isServer: false }),
-      );
-
-      return settingsData.siteSettings ?? emptySiteSettings;
-    }),
-  ]);
-  const siteVersion = siteSettings.siteVersion;
-
-  const { req } = context.ctx;
-  const userAgent = req ? req.headers['user-agent'] : navigator.userAgent;
-  const isMobile = isMobileDevice(userAgent);
-  const initialLanguage = typeof window === 'undefined'
-    ? getRequestLanguageFromCookieHeader(req?.headers.cookie)
-    : resolveClientLanguage();
-
-  const props = await AppNext.getInitialProps(context);
-
-  return {
-    ...props,
-    pageProps: {
-      ...props.pageProps,
-      itemGroups,
-    },
-    isMobile,
-    itemGroups,
-    siteVersion,
-    siteSettings,
-    initialLanguage,
-  };
 };
 
 export default Init;

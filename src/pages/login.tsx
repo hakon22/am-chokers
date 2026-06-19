@@ -95,4 +95,6 @@ const Login = () => {
   );
 };
 
+export { getShopPageServerSideProps as getServerSideProps } from '@/lib/server/get-shop-page-server-side-props';
+
 export default Login;

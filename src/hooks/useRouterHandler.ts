@@ -43,13 +43,33 @@ export const useRouterHandler = () => {
       return undefined;
     }
 
-    const animationFrameId = window.requestAnimationFrame(() => {
+    let isCancelled = false;
+
+    const completeInitialLoad = () => {
+      if (isCancelled) {
+        return;
+      }
+
       setHasCompletedInitialLoad(true);
       setIsLoaded(true);
-    });
+    };
+
+    const waitForInitialPaint = async () => {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // fonts API недоступен — продолжаем без ожидания
+        }
+      }
+
+      window.requestAnimationFrame(completeInitialLoad);
+    };
+
+    waitForInitialPaint();
 
     return () => {
-      window.cancelAnimationFrame(animationFrameId);
+      isCancelled = true;
     };
   }, [hasCompletedInitialLoad, isTelegramRoute, router.isReady]);
 

@@ -1,163 +1,34 @@
 import { useContext } from 'react';
-import axios from 'axios';
-import { isEmpty } from 'lodash';
-import { v4 as uuidv4 } from 'uuid';
+import type { GetServerSidePropsContext } from 'next';
 
+import { getCatalogPathServerSideProps } from '@/lib/server/ssr/catalog-server-props';
 import { CardItem } from '@/components/CardItem';
 import Catalog from '@/pages/catalog';
 import { ProductPage } from '@/themes/v2/components/catalog/ProductPage';
 import { VersionContext } from '@/components/Context';
-import { routes } from '@/routes';
-import { isCatalogNumericPageQuery } from '@/utilities/shouldCatalogFiltersNoindex';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
-import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
-import type { ItemGroupResponseInterface, ItemResponseInterface } from '@/slices/appSlice';
-import type { ItemGradeEntity } from '@server/db/entities/item.grade.entity';
+import type { PaginationInterface } from '@/types/PaginationInterface';
+import type { ShopPagePropsInterface } from '@/lib/server/shop-page-props.interface';
 
-interface GetServerSidePropsInterface {
-  params: {
-    path: string[];
-  },
-  query?: {
-    groupIds?: number | number[];
-    collectionIds?: number | number[];
-    compositionIds?: number | number[];
-    colorIds?: number | number[];
-    from?: number;
-    to?: number;
-    search?: string;
-    new?: boolean;
-    bestseller?: boolean;
-    inStock?: boolean;
-    sort?: string;
-    page: number;
-  },
-}
-
-export interface PagePropsInterface {
-  item?: ItemInterface;
-  items: ItemInterface[];
+export interface CatalogViewPropsInterface {
+  items?: ItemInterface[];
   paginationParams?: PaginationInterface;
   itemGroup?: ItemGroupInterface;
-  uuid: string;
-  statistics: Record<number, number>;
+  uuid?: string;
+  statistics?: Record<number, number>;
 }
 
-export const getCatalogServerSideProps = async ({ params, query }: GetServerSidePropsInterface) => {
-  const { path } = params ?? { path: [undefined] };
+export interface PagePropsInterface extends ShopPagePropsInterface, CatalogViewPropsInterface {
+  item?: ItemInterface;
+}
 
-  const [groupCode] = path;
-
-  const chunkNumber = 8;
-
-  const filters = {
-    ...(query?.collectionIds ? Array.isArray(query.collectionIds) ? { collectionIds: query.collectionIds } : { collectionIds: [query.collectionIds] } : {}),
-    ...(query?.compositionIds ? Array.isArray(query.compositionIds) ? { compositionIds: query.compositionIds } : { compositionIds: [query.compositionIds] } : {}),
-    ...(query?.colorIds ? Array.isArray(query.colorIds) ? { colorIds: query.colorIds } : { colorIds: [query.colorIds] } : {}),
-    ...(query?.from ? { from: query.from } : {}),
-    ...(query?.to ? { to: query.to } : {}),
-    ...(query?.search ? { search: query.search } : {}),
-    ...(query?.new ? { new: query.new } : {}),
-    ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
-    ...(query?.inStock ? { inStock: query.inStock } : {}),
-  };
-
-  const rawPageQuery = query?.page;
-  const pageQueryValue = rawPageQuery === undefined
-    ? undefined
-    : Array.isArray(rawPageQuery)
-      ? rawPageQuery[0]
-      : String(rawPageQuery);
-  const pageNumber = isCatalogNumericPageQuery(pageQueryValue)
-    ? Math.max(1, parseInt(pageQueryValue, 10))
-    : 1;
-  const limit = pageNumber * chunkNumber;
-
-  const [{ data: { items: payloadItems, paginationParams } }, { data: { statistics } }, { data: { itemGroup } }] = await Promise.all([
-    axios.get<PaginationEntityInterface<ItemInterface>>(routes.item.getList({ isServer: false }), {
-      params: {
-        limit,
-        offset: 0,
-        ...(query?.groupIds || !isEmpty(filters) ? {} : { groupCode }),
-        ...(query?.groupIds ? Array.isArray(query.groupIds) ? { groupIds: query.groupIds } : { groupIds: [query.groupIds] } : {}),
-        ...(query?.sort ? { sort: query.sort } : {}),
-        ...filters,
-      },
-    }),
-    axios.get<{ code: number; statistics: Record<number, number>; }>(routes.item.getStatistics({ isServer: false }), {
-      params: filters,
-    }),
-    ...(groupCode ? [axios.get<ItemGroupResponseInterface>(routes.itemGroup.getByCode({ isServer: false }), {
-      params: { code: groupCode },
-    })] : [{ data: { itemGroup: null } }]),
-  ]);
-
-  return {
-    props: {
-      items: payloadItems,
-      paginationParams: {
-        limit: chunkNumber,
-        offset: limit !== chunkNumber ? limit - chunkNumber : 0,
-        count: paginationParams.count,
-      },
-      itemGroup,
-      statistics,
-      uuid: uuidv4(),
-    },
-  };
-};
-
-export const getServerSideProps = async ({ params, query }: GetServerSidePropsInterface) => {
-  try {
-    const { data: { links } } = await axios.get<{ links: string[]; }>(routes.item.getLinks({ isServer: false }));
-
-    const { path } = params;
-
-    const [, itemName] = path;
-
-    if (path.length > 2 || path.find((link) => !links.includes(link))) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: routes.page.base.homePage,
-        },
-      };
-    }
-
-    if (itemName) {
-      const { data: { item } } = await axios.get<ItemResponseInterface>(routes.item.getByName({ isServer: false }), {
-        params: { translateName: itemName },
-      });
-  
-      if (item) {
-        const { data: { items: grades, paginationParams } } = await axios.get<PaginationEntityInterface<ItemGradeEntity>>(routes.item.getGrades({ isServer: false, id: item.id }), {
-          params: {
-            limit: 10,
-            offset: 0,
-          },
-        });
-
-        item.grades = grades;
-
-        return {
-          props: {
-            item,
-            paginationParams,
-          },
-        };
-      }
-    }
-
-    return getCatalogServerSideProps({ params, query });
-  } catch {
-    return {
-      redirect: {
-        permanent: false,
-        destination: routes.page.base.homePage,
-      },
-    };
-  }
-};
+/**
+ * SSR каталога и карточки товара
+ * @param context - контекст getServerSideProps Next.js
+ * @returns redirect или props страницы
+ */
+export const getServerSideProps = async (context: GetServerSidePropsContext) =>
+  getCatalogPathServerSideProps(context);
 
 const ItemPageResolver = ({ item, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { version } = useContext(VersionContext);
@@ -166,6 +37,10 @@ const ItemPageResolver = ({ item, paginationParams }: { item: ItemInterface; pag
     : <CardItem item={item} paginationParams={paginationParams} />;
 };
 
-const Page = ({ item, paginationParams, items, itemGroup, uuid, statistics }: PagePropsInterface) => (item ? <ItemPageResolver item={item} paginationParams={paginationParams} /> : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />);
+const Page = ({ item, paginationParams, items = [], itemGroup, uuid = '', statistics = {} }: PagePropsInterface) => (
+  item
+    ? <ItemPageResolver item={item} paginationParams={paginationParams} />
+    : <Catalog items={items} paginationParams={paginationParams} itemGroup={itemGroup} uuid={uuid} statistics={statistics} />
+);
 
 export default Page;

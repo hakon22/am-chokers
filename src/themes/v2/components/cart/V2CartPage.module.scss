@@ -217,14 +217,16 @@ $success: v2.$v2-success;
 
 .itemPriceUnit {
   @include v2mixins.v2-readable-font-size(11px);
+  font-family: v2.$v2-font-sans;
   color: $textM;
   white-space: nowrap;
 }
 
 .itemPriceTotal {
+  font-family: v2.$v2-font-sans;
   font-size: 17px;
-  font-weight: 700;
-  color: $navy;
+  font-weight: 600;
+  color: $navy2;
   letter-spacing: -0.4px;
   white-space: nowrap;
 }
@@ -582,6 +584,12 @@ $success: v2.$v2-success;
   font-size: 13px;
   color: $textS;
   margin-bottom: 8px;
+
+  > span:last-child {
+    font-family: v2.$v2-font-sans;
+    font-weight: 600;
+    color: $navy2;
+  }
 }
 
 .totalsMain {
@@ -599,6 +607,12 @@ $success: v2.$v2-success;
     text-transform: uppercase;
     font-weight: 600;
     color: $textS;
+  }
+
+  > span:last-child {
+    font-family: v2.$v2-font-sans;
+    font-weight: 600;
+    color: $navy2;
   }
 }
 
@@ -714,9 +728,10 @@ $success: v2.$v2-success;
 
   .itemPriceMobile {
     display: block;
+    font-family: v2.$v2-font-sans;
     font-size: 15px;
-    font-weight: 700;
-    color: $navy;
+    font-weight: 600;
+    color: $navy2;
     letter-spacing: -0.3px;
   }
 

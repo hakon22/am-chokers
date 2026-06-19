@@ -8,53 +8,53 @@ import Document, {
 } from 'next/document';
 
 import { getRequestLanguageFromCookieHeader } from '@/lib/server/get-request-language';
+import { ensureServerServicesReady } from '@/lib/server/ensure-server-services-ready';
+import { resolveSiteVersion } from '@/lib/server/resolve-site-settings';
+import { cormorantFont, interFont } from '@/lib/fonts/v2-fonts';
+import type { SiteVersion } from '@/types/SiteVersion';
 
 interface DocumentPropsInterface extends DocumentInitialProps {
   languageCode: 'ru' | 'en';
+  siteVersion: SiteVersion;
 }
 
 /**
- * Кастомный Document: lang и data-scroll-behavior на html, preload критичных шрифтов v2
+ * Кастомный Document: lang, data-scroll-behavior на html и класс body.v2-theme
  */
 export default class CustomDocument extends Document<DocumentPropsInterface> {
   /**
-   * Читает язык из cookie для атрибута lang
+   * Читает язык из cookie и версию сайта для атрибута lang и класса body
    * @param context - контекст Next.js Document
-   * @returns props с languageCode
+   * @returns props с languageCode и siteVersion
    */
   static getInitialProps = async (context: DocumentContext): Promise<DocumentPropsInterface> => {
     const initialProps = await Document.getInitialProps(context);
     const cookieHeader = context.req?.headers.cookie;
     const languageCode = getRequestLanguageFromCookieHeader(cookieHeader);
+    await ensureServerServicesReady();
+    const siteVersion = await resolveSiteVersion();
 
     return {
       ...initialProps,
       languageCode,
+      siteVersion,
     };
   };
 
   render = () => {
-    const { languageCode } = this.props;
+    const { languageCode, siteVersion } = this.props;
+    const isV2Theme = siteVersion === 'v2';
+
+    const bodyClassName = [
+      isV2Theme ? 'v2-theme' : '',
+      isV2Theme ? interFont.variable : '',
+      isV2Theme ? cormorantFont.variable : '',
+    ].filter(Boolean).join(' ') || undefined;
 
     return (
       <Html lang={languageCode} data-scroll-behavior="smooth">
-        <Head>
-          <link
-            rel="preload"
-            href="/fonts/v2/Inter_24pt-Regular.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
-          <link
-            rel="preload"
-            href="/fonts/v2/CormorantGaramond-Light.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
-        </Head>
-        <body>
+        <Head />
+        <body className={bodyClassName}>
           <Main />
           <NextScript />
         </body>

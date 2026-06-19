@@ -6,9 +6,9 @@ import Carousel from 'react-multi-carousel';
 import { throttle } from 'lodash';
 import { ArrowRight } from 'react-bootstrap-icons';
 import cn from 'classnames';
-import axios from 'axios';
-import type { InferGetServerSidePropsType } from 'next';
+import type { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 
+import { getHomeServerSideProps } from '@/lib/server/ssr/home-server-props';
 import { VersionContext } from '@/components/Context';
 import { V2HomePage } from '@/themes/v2/components/home/V2HomePage';
 import uniqueDecoration from '@/images/unique-decoration.jpg';
@@ -32,129 +32,17 @@ import { getHref } from '@/utilities/getHref';
 import { getWidth } from '@/utilities/screenExtension';
 import { setAppData } from '@/slices/appSlice';
 import { toast } from '@/utilities/toast';
-import { getCachedSiteSettings } from '@/lib/server/app-bootstrap-cache';
-import type { ItemInterface, ItemGroupInterface, GeneralPageBestsellerInterface, GeneralPageCollectionInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
+import type { ItemInterface } from '@/types/item/Item';
 import type { ImageEntity } from '@server/db/entities/image.entity';
-import type { BannerInterface, BannerListResponseInterface } from '@/types/banner/BannerInterface';
-import type { SiteSettingsInterface } from '@/types/site/SiteSettings';
-import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
+import type { BannerInterface } from '@/types/banner/BannerInterface';
 
-const buildCoverImagesMap = (images: ImageEntity[]): GeneralPageCoverImageInterface =>
-  images.reduce((acc, image) => {
-    if (!image.coverOrder || !image.coverType) {
-      return acc;
-    }
-    acc[`${image.coverType}${image.coverOrder}` as keyof GeneralPageCoverImageInterface] = image;
-    return acc;
-  }, {} as GeneralPageCoverImageInterface);
-
-export const getServerSideProps = async () => {
-  const salesHitsLimit = 4;
-
-  const siteSettings = await getCachedSiteSettings(async () => {
-    const { data: { siteSettings: fetchedSiteSettings } } = await axios.get<{ siteSettings: SiteSettingsInterface; }>(
-      routes.settings.getSettings({ isServer: false }),
-    );
-
-    return fetchedSiteSettings;
-  });
-
-  const [{ data: { specialItems } }, { data: { banners } }, { data: { itemCollections } }] = await Promise.all([
-    axios.get<{ specialItems: ItemInterface[]; }>(routes.item.getSpecials({ isServer: false })),
-    axios.get<BannerListResponseInterface>(routes.banner.findMany({ isServer: false })),
-    axios.get<{ itemCollections: ItemCollectionEntity[]; }>(routes.itemCollection.findMany({ isServer: false })),
-  ]);
-
-  const automaticSalesHits = siteSettings.automaticSalesHits ?? false;
-
-  let salesHits: ItemInterface[] = [];
-
-  if (automaticSalesHits) {
-    const { data: { items } } = await axios.get<{ items: ItemInterface[]; }>(
-      `${routes.item.getTopSalesHits({ isServer: false })}?limit=4`,
-    );
-    salesHits = items ?? [];
-  }
-
-  const versionNumber = parseInt(siteSettings.siteVersion.slice(1));
-  const { data: { coverImages } } = await axios.get<{ coverImages: ImageEntity[]; }>(
-    routes.storage.image.getCoverImages({ isServer: false, siteVersion: versionNumber }),
-  );
-
-  const { bestsellers, collections, news } = specialItems.reduce((acc, item) => {
-    if (item.new) {
-      acc.news.push(item);
-    }
-    if (item.bestseller) {
-      acc.bestsellers.push(item);
-    }
-    if (item.collection) {
-      acc.collections.push(item);
-    }
-    return acc;
-  }, { bestsellers: [], collections: [], news: [] } as { bestsellers: ItemInterface[]; collections: ItemInterface[]; news: ItemInterface[]; });
-
-  const preparedBestsellers = automaticSalesHits
-    ? { bestseller1: null, bestseller2: null, bestseller3: null } as GeneralPageBestsellerInterface
-    : bestsellers.reduce((acc, item) => {
-      if (!item.deleted) {
-        switch (item.order) {
-        case 1:
-          acc.bestseller1 = item;
-          break;
-        case 2:
-          acc.bestseller2 = item;
-          break;
-        case 3:
-          acc.bestseller3 = item;
-          break;
-        }
-      }
-      return acc;
-    }, { bestseller1: null, bestseller2: null, bestseller3: null } as GeneralPageBestsellerInterface);
-    
-  const preparedCollections = collections.reduce((acc, item) => {
-    if (!item.deleted) {
-      switch (item.order) {
-      case 4:
-        acc.collection1 = item;
-        break;
-      case 5:
-        acc.collection2 = item;
-        break;
-      case 6:
-        acc.collection3 = item;
-        break;
-      case 7:
-        acc.collection4 = item;
-        break;
-      case 8:
-        acc.collection5 = item;
-        break;
-      }
-    }
-    return acc;
-  }, { collection1: null, collection2: null, collection3: null, collection4: null, collection5: null } as GeneralPageCollectionInterface);
-    
-  const preparedCoverImages = buildCoverImagesMap(coverImages);
-
-  return {
-    props: {
-      news,
-      preparedBestsellers,
-      preparedCollections,
-      preparedCoverImages,
-      itemCollections,
-      specialItems,
-      coverImages,
-      banners,
-      homeHero: siteSettings.homeHero,
-      automaticSalesHits,
-      salesHits,
-      salesHitsLimit,
-    },
-  };
-};
+/**
+ * SSR главной: данные загружаются на VPS при запросе, сборка Docker не требует доступа к БД
+ * @param context - контекст getServerSideProps Next.js
+ * @returns props главной страницы
+ */
+export const getServerSideProps = async (context: GetServerSidePropsContext) =>
+  getHomeServerSideProps(context);
 
 interface BannerSlideProps {
   banner: BannerInterface;
@@ -211,9 +99,7 @@ const BannerSlide = ({ banner, isMobile, width, height, countBanners, onCopyValu
   );
 };
 
-type IndexPageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
-  itemGroups: ItemGroupInterface[];
-};
+type IndexPageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 
 const Index = ({
   news,
@@ -470,10 +356,7 @@ const Index = ({
         <V2HomePage
           news={news}
           preparedBestsellers={preparedBestsellers}
-          preparedCollections={preparedCollections}
           preparedCoverImages={preparedCoverImages}
-          coverImages={coverImages}
-          specialItems={specialItems}
           banners={banners}
           itemGroups={itemGroups}
           itemCollections={itemCollections}

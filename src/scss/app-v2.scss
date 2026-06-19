@@ -1,0 +1,10 @@
+.v2-app {
+  .icon {
+    z-index: auto;
+  }
+
+  .ant-menu-horizontal .ant-menu-item,
+  .ant-menu-horizontal .ant-menu-submenu-title {
+    font-family: var(--font-inter), 'Inter', sans-serif;
+  }
+}

@@ -282,17 +282,25 @@ export class ImageService extends BaseService {
   public getCoverImages = async (req: Request, res: Response) => {
     try {
       const siteVersion = req.query.siteVersion ? Number(req.query.siteVersion) : 1;
-
-      const builder = this.createQueryBuilder()
-        .where('image.siteVersion = :siteVersion', { siteVersion })
-        .orderBy('image.coverOrder', 'ASC');
-
-      const coverImages = await builder.getMany();
+      const coverImages = await this.findCoverImagesBySiteVersion(siteVersion);
 
       res.json({ code: 1, coverImages });
     } catch (e) {
       this.errorHandler(e, res);
     }
+  };
+
+  /**
+   * Возвращает обложки главной страницы для указанной версии темы
+   * @param siteVersion - номер версии сайта (1, 2, 3)
+   * @returns список изображений обложек
+   */
+  public findCoverImagesBySiteVersion = async (siteVersion: number): Promise<ImageEntity[]> => {
+    const builder = this.createQueryBuilder()
+      .where('image.siteVersion = :siteVersion', { siteVersion })
+      .orderBy('image.coverOrder', 'ASC');
+
+    return builder.getMany();
   };
 
   public upload = () => {

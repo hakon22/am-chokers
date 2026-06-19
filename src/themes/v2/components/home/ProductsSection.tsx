@@ -31,16 +31,13 @@ const newsCarouselResponsive = {
 /**
  * Возвращает число карточек «Хиты продаж» по ширине viewport
  * @param viewportWidth - ширина окна в px
- * @returns 4 на десктопе, 3 на планшете, 2 на телефоне
+ * @returns 4 на телефоне, 3 на планшете и десктопе
  */
 const getBestsellerVisibleCountByViewportWidth = (viewportWidth: number): number => {
   if (viewportWidth <= 768) {
-    return 2;
+    return 4;
   }
-  if (viewportWidth <= 1199) {
-    return 3;
-  }
-  return 4;
+  return 3;
 };
 
 export const ProductsSection = ({

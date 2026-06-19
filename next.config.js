@@ -15,6 +15,20 @@ const nextConfig = {
   ],
   reactStrictMode: false,
   allowedDevOrigins: ['192.168.0.103'],
+  serverExternalPackages: [
+    'typeorm',
+    'pg',
+    'redis',
+    'bullmq',
+    'typescript-ioc',
+    'reflect-metadata',
+    'fluent-ffmpeg',
+    'ffmpeg-static',
+    'ffprobe-static',
+    'bcryptjs',
+    'winston',
+    'telegraf',
+  ],
   images: {
     qualities: [100, 75],
     /** Кэш ответов /_next/image на сервере (сек.); фото товаров с uuid в имени редко меняются */
@@ -26,6 +40,9 @@ const nextConfig = {
       { pathname: '/comments/**' },
       { pathname: '/temp/**' },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ['antd', '@ant-design/icons'],
   },
 };
 

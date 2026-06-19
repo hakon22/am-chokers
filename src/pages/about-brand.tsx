@@ -45,7 +45,7 @@ const AboutBrand = () => {
       <StaticPageJsonLd title={t('title')} description={t('description')} path={routes.page.base.aboutBrandPage} />
       <h1 className="font-good-vibes-pro text-center mb-5">{t('title')}</h1>
       <div ref={ref} className="d-flex flex-column flex-xl-row row-gap-4 justify-content-between">
-        <Image src={mary} width={size.width} height={size.height} unoptimized sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
+        <Image src={mary} width={size.width} height={size.height} unoptimized loading="eager" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={100} style={{ borderRadius: '15px' }} alt={t('title')} />
         <div className="d-flex flex-column" style={{ width: isMobile ? '100%' : `${97 - (size.width * 100 / width)}%` }}>
           <p>{t('1')}<span className="fw-bold">{t('2')}</span>{t('3')}<span className="fw-bold">{process.env.NEXT_PUBLIC_APP_NAME?.toUpperCase()}</span>{t('4')}</p>
           <p>{t('5')}</p>
@@ -66,5 +66,7 @@ const AboutBrand = () => {
     </div>
   );
 };
+
+export { getShopPageServerSideProps as getServerSideProps } from '@/lib/server/get-shop-page-server-side-props';
 
 export default AboutBrand;

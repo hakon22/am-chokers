@@ -1,5 +1,4 @@
 import { useContext, useMemo } from 'react';
-import type { InferGetServerSidePropsType } from 'next';
 
 import { MobileContext } from '@/components/Context';
 import { HeroSection } from '@/themes/v2/components/home/HeroSection';
@@ -12,15 +11,24 @@ import { CollectionsMosaic } from '@/themes/v2/components/home/CollectionsMosaic
 import { CustomOrderSection } from '@/themes/v2/components/home/CustomOrderSection';
 import { SocialSection } from '@/themes/v2/components/home/SocialSection';
 import { useAppSelector } from '@/hooks/reduxHooks';
-import type { getServerSideProps } from '@/pages/index';
+import type { BannerInterface } from '@/types/banner/BannerInterface';
+import type { ItemInterface, GeneralPageBestsellerInterface, GeneralPageCoverImageInterface } from '@/types/item/Item';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 import type { ItemCollectionEntity } from '@server/db/entities/item.collection.entity';
-import type { GeneralPageCoverImageInterface } from '@/types/item/Item';
+import type { PublicHomeHeroSettingsInterface } from '@/types/site/PublicHomeHeroSettings';
 
-type HomePageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
+interface HomePageProps {
+  news: ItemInterface[];
+  preparedBestsellers: GeneralPageBestsellerInterface;
+  preparedCoverImages: GeneralPageCoverImageInterface;
   itemGroups: ItemGroupEntity[];
   itemCollections: ItemCollectionEntity[];
-};
+  banners: BannerInterface[];
+  homeHero: PublicHomeHeroSettingsInterface;
+  automaticSalesHits: boolean;
+  salesHits: ItemInterface[];
+  salesHitsLimit: number;
+}
 
 export const V2HomePage = ({
   news,

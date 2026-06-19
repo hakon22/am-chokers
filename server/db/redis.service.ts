@@ -38,7 +38,6 @@ export class RedisService {
    * @param key ключ
    */
   public get = async <T>(key: string): Promise<T | null> => {
-    this.loggerService.info(this.TAG, `Получение значения по ключу ${key}`);
     const value = await this.redis.get(`${this.commonOptions.prefix}${key}`);
 
     return typeof value === 'string' ? JSON.parse(value) : null;

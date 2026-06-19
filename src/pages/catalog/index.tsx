@@ -7,7 +7,9 @@ import { useSearchParams } from 'next/navigation';
 import { Skeleton, Button, Form } from 'antd';
 import cn from 'classnames';
 import { chunk, isEmpty, isNil } from 'lodash';
+import type { GetServerSidePropsContext } from 'next';
 
+import { getCatalogIndexServerSideProps } from '@/lib/server/ssr/catalog-server-props';
 import { routes, catalogPath } from '@/routes';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -20,7 +22,6 @@ import { setPaginationParams } from '@/slices/appSlice';
 import { ImageHover } from '@/components/ImageHover';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { getHref } from '@/utilities/getHref';
-import { getCatalogServerSideProps as getServerSideProps } from '@/pages/catalog/[...path]';
 import { scrollTop } from '@/utilities/scrollTop';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { getWidth } from '@/utilities/screenExtension';
@@ -34,7 +35,7 @@ import { getProductionHost } from '@/utilities/getProductionHost';
 import { isCatalogNumericPageQuery, shouldCatalogFiltersNoindex } from '@/utilities/shouldCatalogFiltersNoindex';
 import { useSeoLanguage, useSeoUserLang } from '@/utilities/resolveSeoLanguage';
 import { buildBreadcrumbJsonLd, buildItemListJsonLd } from '@/utilities/structuredData';
-import type { PagePropsInterface } from '@/pages/catalog/[...path]';
+import type { CatalogViewPropsInterface } from '@/pages/catalog/[...path]';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 
@@ -52,7 +53,14 @@ export interface CatalogFiltersInterface {
   inStock?: string | null;
 }
 
-export { getServerSideProps };
+/**
+ * SSR для корневого маршрута каталога
+ * @param context - контекст getServerSideProps Next.js
+ * @returns props каталога с bootstrap
+ */
+export const getServerSideProps = async (context: GetServerSidePropsContext) => ({
+  props: await getCatalogIndexServerSideProps(context),
+});
 
 const msPerDay = 86400000;
 const getBadge = (item: ItemInterface): 'new' | 'sale' | undefined => {
@@ -315,7 +323,7 @@ const CatalogItems = ({ chunkItems, i, isSkeleton, lang }: { chunkItems: ItemInt
     );
 };
 
-const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, itemGroup, uuid, statistics: propsStatistics }: Omit<PagePropsInterface, 'item'>) => {
+const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, itemGroup, uuid = '', statistics: propsStatistics }: CatalogViewPropsInterface) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.catalog' });
   const { t: tPagination } = useTranslation('translation', { keyPrefix: 'pages.catalog.pagination' });
   const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
@@ -394,9 +402,9 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     sort: undefined,
   };
 
-  const [items, setItems] = useState<ItemInterface[]>(propsItems);
+  const [items, setItems] = useState<ItemInterface[]>(propsItems ?? []);
   const [initialValues, setInitialValues] = useState<CatalogFiltersInterface>(preparedInitialValues);
-  const [statistics, setStatistics] = useState<Record<number, number>>(propsStatistics);
+  const [statistics, setStatistics] = useState<Record<number, number>>(propsStatistics ?? {});
 
   const getStatistics = async (params?: CatalogFiltersInterface) => {
     try {
@@ -584,7 +592,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
   useEffect(() => {
     if (searchParams) {
       setInitialValuesEffect({ search: searchParams });
-      setItemsEffect(propsItems);
+      setItemsEffect(propsItems ?? []);
     } else if (!isSearch?.value) {
       setInitialValuesEffect((state) => ({ ...state, search: undefined }));
       if (isSearch?.needFetch) {
@@ -592,15 +600,15 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
       } else if (isFilters) {
         setIsFiltersEffect(false);
       } else {
-        setItemsEffect(propsItems);
+        setItemsEffect(propsItems ?? []);
       }
     }
   }, [searchParams, isSearch?.value]);
 
   useEffect(() => {
-    setItemsEffect(propsItems);
+    setItemsEffect(propsItems ?? []);
     setInitialValuesEffect({ ...preparedInitialValues, ...(itemGroup?.id && Object.values(preparedInitialValues).every((value) => Array.isArray(value) ? isEmpty(value) : isNil(value))) ? { groupIds: [itemGroup.id.toString()] } : {} });
-    setStatisticsEffect(propsStatistics);
+    setStatisticsEffect(propsStatistics ?? {});
   }, [itemGroup?.id, uuid]);
 
   const filterProps = {

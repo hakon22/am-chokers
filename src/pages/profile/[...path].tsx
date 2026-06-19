@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useContext, useEffect, useEffectEvent, useState, type JSX } from 'react';
 import { Button, Collapse, Divider, Menu, Skeleton } from 'antd';
-import type { InferGetServerSidePropsType } from 'next';
+import type { GetServerSidePropsContext } from 'next';
 import type { CollapseProps, MenuProps } from 'antd/lib';
 
 import { routes } from '@/routes';
@@ -19,21 +19,22 @@ import { NoAuthorization } from '@/components/NoAuthorization';
 import { Order } from '@/components/profile/Order';
 import { Reviews } from '@/components/profile/Reviews';
 import { AdminSettings } from '@/components/AdminSettings';
+import { getShopPageServerSideProps } from '@/lib/server/get-shop-page-server-side-props';
 
 type MenuItem = Required<MenuProps>['items'][number];
 type CollapseItem = Required<CollapseProps>['items'][number];
 
-export const getServerSideProps = async ({ params }: { params: { path: string[] } }) => {
-  const { path } = params;
+interface ProfilePathPropsInterface {
+  path: string[];
+}
 
-  return {
-    props: {
-      path,
-    },
-  };
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const { path } = context.params as { path: string[]; };
+
+  return getShopPageServerSideProps(context, { path });
 };
 
-const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const Page = ({ path }: ProfilePathPropsInterface) => {
   const { t: tMenu } = useTranslation('translation', { keyPrefix: 'pages.profile' });
   const { t } = useTranslation('translation', { keyPrefix: `pages.profile.${path.length === 1 ? path[0] : `${path[0]}.order`}` });
 
@@ -217,7 +218,7 @@ const Page = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) 
   );
 };
 
-const ProfilePage = ({ path }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const ProfilePage = ({ path }: ProfilePathPropsInterface) => {
   const { version } = useContext(VersionContext);
   return version === 'v2' ? <V2ProfilePage path={path} /> : <Page path={path} />;
 };
