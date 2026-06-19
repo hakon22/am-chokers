@@ -10,6 +10,7 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { DatabaseService } from '@server/db/database.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
 import { SitemapImageService } from '@server/services/storage/sitemap-image.service';
+import { DEFAULT_SHIPPING_RATE_RUB } from '@shared/delivery-config';
 
 const TAG = 'UpdateFids';
 
@@ -96,8 +97,6 @@ class UpdateFidsCron {
   private static readonly ROOT_FEED_CATEGORY_ID = 1000;
 
   private static readonly ROOT_CATEGORY_NAME = 'Украшения';
-
-  private static readonly DELIVERY_COST = 300;
 
   private static readonly DELIVERY_DAYS = '2-7';
 
@@ -464,7 +463,7 @@ class UpdateFidsCron {
     </currencies>
     <delivery>true</delivery>
     <delivery-options>
-      <option cost="${UpdateFidsCron.DELIVERY_COST}" days="${UpdateFidsCron.DELIVERY_DAYS}" order-before="${UpdateFidsCron.DELIVERY_ORDER_BEFORE}"/>
+      <option cost="${DEFAULT_SHIPPING_RATE_RUB}" days="${UpdateFidsCron.DELIVERY_DAYS}" order-before="${UpdateFidsCron.DELIVERY_ORDER_BEFORE}"/>
     </delivery-options>
     <categories>
       <category id="${UpdateFidsCron.ROOT_FEED_CATEGORY_ID}">${this.escapeXml(UpdateFidsCron.ROOT_CATEGORY_NAME)}</category>

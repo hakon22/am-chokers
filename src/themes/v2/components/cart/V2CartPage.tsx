@@ -27,6 +27,7 @@ import { getHref } from '@/utilities/getHref';
 import { newOrderPositionValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { PICKUP_DISABLED_HOURS } from '@/constants/pickupDelivery';
+import { DEFAULT_SHIPPING_RATE_RUB, formatDefaultShippingRateRub } from '@shared/delivery-config';
 import { isCalendarDayBlockedByPickupRanges } from '@/utilities/pickup/isCalendarDayBlockedByPickupRanges';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
@@ -329,7 +330,7 @@ export const V2CartPage = () => {
         city: 'Москва',
         size: { height: '500px', width: '90vw' },
         physical_dims_weight_gross: items.length * 200,
-        delivery_price: '300 руб',
+        delivery_price: formatDefaultShippingRateRub(),
         delivery_term: lang === UserLangEnum.RU ? 'от 2 до 7 дней' : 'from 2 to 7 days',
         show_select_button: true,
         filter: { type: ['pickup_point'], is_yandex_branded: true, payment_methods: ['already_paid'], payment_methods_filter: 'and' },
@@ -500,9 +501,9 @@ export const V2CartPage = () => {
   useEffect(() => {
     const handlePointSelected = (data: any) => {
       const detail = data.detail as YandexDeliveryDataInterface;
-      setSavedDeliveryPrice(300);
+      setSavedDeliveryPrice(DEFAULT_SHIPPING_RATE_RUB);
       setDelivery({
-        price: isDeliveryFree ? 0 : 300,
+        price: isDeliveryFree ? 0 : DEFAULT_SHIPPING_RATE_RUB,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });

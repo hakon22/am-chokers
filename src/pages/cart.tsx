@@ -27,6 +27,7 @@ import { getHref } from '@/utilities/getHref';
 import { newOrderPositionValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { PICKUP_DISABLED_HOURS } from '@/constants/pickupDelivery';
+import { DEFAULT_SHIPPING_RATE_RUB, formatDefaultShippingRateRub } from '@shared/delivery-config';
 import { isCalendarDayBlockedByPickupRanges } from '@/utilities/pickup/isCalendarDayBlockedByPickupRanges';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
@@ -220,7 +221,7 @@ const Cart = () => {
         },
         // source_platform_station: 'ca56c850-d268-4c9e-9e52-5dc09b006a7d',
         physical_dims_weight_gross: items.length * 200,
-        delivery_price: '300 руб',
+        delivery_price: formatDefaultShippingRateRub(),
         delivery_term: lang === UserLangEnum.RU ? 'от 2 до 7 дней' : 'from 2 to 7 days',
         show_select_button: true,
         filter: {
@@ -414,9 +415,9 @@ const Cart = () => {
   useEffect(() => {
     const handlePointSelected = (data: any) => {
       const detail = data.detail as YandexDeliveryDataInterface;
-      setSavedDeliveryPrice(300);
+      setSavedDeliveryPrice(DEFAULT_SHIPPING_RATE_RUB);
       setDelivery({
-        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : 300,
+        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : DEFAULT_SHIPPING_RATE_RUB,
         address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
         type: deliveryType,
       });

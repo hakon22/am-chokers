@@ -3,6 +3,7 @@ import { isEmpty } from 'lodash';
 import { buildMetaDescription } from '@/utilities/buildMetaDescription';
 import { getProductionHost } from '@/utilities/getProductionHost';
 import { getHref } from '@/utilities/getHref';
+import { DEFAULT_SHIPPING_RATE_RUB } from '@shared/delivery-config';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { LanguageCode } from '@shared/language-config';
 import type { ItemInterface } from '@/types/item/Item';
@@ -12,11 +13,21 @@ const host = getProductionHost();
 
 const PRODUCT_RATING_BEST = 5;
 const PRODUCT_RATING_WORST = 1;
-const DEFAULT_SHIPPING_RATE_RUB = 300;
 const MERCHANT_RETURN_DAYS = 14;
 const SHIPPING_HANDLING_MAX_DAYS = 4;
 const SHIPPING_TRANSIT_MIN_DAYS = 2;
 const SHIPPING_TRANSIT_MAX_DAYS = 10;
+const PRICE_VALID_YEARS_OFFSET = 1;
+
+/**
+ * Возвращает дату окончания действия цены для JSON-LD Offer (сегодня + 1 год)
+ * @returns дата в формате YYYY-MM-DD
+ */
+const getPriceValidUntilDate = (): string => {
+  const validUntilDate = new Date();
+  validUntilDate.setFullYear(validUntilDate.getFullYear() + PRICE_VALID_YEARS_OFFSET);
+  return validUntilDate.toISOString().slice(0, 10);
+};
 
 /**
  * Возвращает перевод товара для указанного языка
@@ -27,6 +38,47 @@ const SHIPPING_TRANSIT_MAX_DAYS = 10;
 const getItemTranslation = (item: ItemInterface, languageCode: LanguageCode) => {
   const langEnum = languageCode === 'en' ? UserLangEnum.EN : UserLangEnum.RU;
   return item.translations.find((({ lang }) => lang === langEnum));
+};
+
+/**
+ * Собирает строку материалов товара для JSON-LD из составов
+ * @param item - товар
+ * @param languageCode - код языка
+ * @returns имена составов через «/» или пустая строка
+ */
+const getCompositionNames = (item: ItemInterface, languageCode: LanguageCode): string => {
+  const langEnum = languageCode === 'en' ? UserLangEnum.EN : UserLangEnum.RU;
+  const names = (item.compositions ?? [])
+    .map(({ translations }) => translations?.find(({ lang }) => lang === langEnum)?.name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  return names.join('/');
+};
+
+/**
+ * Собирает строку цветов товара для JSON-LD
+ * @param item - товар
+ * @param languageCode - код языка
+ * @returns имена цветов через «/» или пустая строка
+ */
+const getColorNames = (item: ItemInterface, languageCode: LanguageCode): string => {
+  const langEnum = languageCode === 'en' ? UserLangEnum.EN : UserLangEnum.RU;
+  const names = (item.colors ?? [])
+    .map(({ translations }) => translations?.find(({ lang }) => lang === langEnum)?.name?.trim())
+    .filter((name): name is string => Boolean(name));
+
+  return names.join('/');
+};
+
+/**
+ * Возвращает размер/длину изделия из перевода товара
+ * @param item - товар
+ * @param languageCode - код языка
+ * @returns значение length или пустая строка
+ */
+const getProductSize = (item: ItemInterface, languageCode: LanguageCode): string => {
+  const translation = getItemTranslation(item, languageCode);
+  return translation?.length?.trim() ?? '';
 };
 
 /**
@@ -113,6 +165,11 @@ const buildOfferReturnPolicyJsonLd = () => ({
   merchantReturnDays: MERCHANT_RETURN_DAYS,
   returnMethod: 'https://schema.org/ReturnByMail',
   returnFees: 'https://schema.org/ReturnShippingFees',
+  returnShippingFeesAmount: {
+    '@type': 'MonetaryAmount',
+    value: DEFAULT_SHIPPING_RATE_RUB,
+    currency: 'RUB',
+  },
 });
 
 /**
@@ -138,6 +195,11 @@ export const buildProductJsonLd = (
   const resolvedReviewCount = reviewCount ?? 0;
   const hasProductReviews = gradeRating > 0 && resolvedReviewCount > 0;
   const productReviews = grades && !isEmpty(grades) ? buildProductReviewsJsonLd(grades) : undefined;
+  const material = getCompositionNames(item, languageCode);
+  const color = getColorNames(item, languageCode);
+  const size = getProductSize(item, languageCode);
+  const activePrice = item.price - item.discountPrice;
+  const hasStrikethroughPrice = item.discountPrice > 0;
 
   return {
     '@context': 'https://schema.org',
@@ -153,11 +215,32 @@ export const buildProductJsonLd = (
       .map(({ src }) => src)
       .filter((src) => /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(src))
       .map((src) => `${host}${src}`),
+    ...(material
+      ? { material }
+      : {}),
+    ...(color
+      ? { color }
+      : {}),
+    ...(size
+      ? { size }
+      : {}),
     offers: {
       '@type': 'Offer',
       url: `${host}${getHref(item)}`,
       priceCurrency: 'RUB',
-      price: item.price - item.discountPrice,
+      price: activePrice,
+      itemCondition: 'https://schema.org/NewCondition',
+      priceValidUntil: getPriceValidUntilDate(),
+      ...(hasStrikethroughPrice
+        ? {
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            priceType: 'https://schema.org/StrikethroughPrice',
+            price: item.price,
+            priceCurrency: 'RUB',
+          },
+        }
+        : {}),
       availability: item.deleted || item.outStock
         ? 'https://schema.org/OutOfStock'
         : 'https://schema.org/InStock',
