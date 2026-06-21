@@ -2,6 +2,7 @@ import { hasAnalyticsConsent } from '@shared/has-analytics-consent';
 import { cookieConsentConfig } from '@shared/cookie-consent-config';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
+import type { CartItemInterface } from '@/types/cart/Cart';
 import type { ItemInterface } from '@/types/item/Item';
 import type { OrderInterface } from '@/types/order/Order';
 
@@ -20,12 +21,22 @@ export interface PushEcommercePurchaseParametersInterface {
   userLanguage: UserLangEnum;
 }
 
+export interface PushEcommerceAddToCartParametersInterface {
+  cartItem: CartItemInterface;
+  userLanguage: UserLangEnum;
+  quantityAdded: number;
+}
+
+type PendingEcommerceEvent =
+  | { type: 'purchase'; parameters: PushEcommercePurchaseParametersInterface }
+  | { type: 'add'; parameters: PushEcommerceAddToCartParametersInterface };
+
 type YandexMetrikaWindowExtension = Window & {
   dataLayer?: Record<string, unknown>[];
   amChokersYandexMetrikaReady?: boolean;
 };
 
-const pendingPurchases: PushEcommercePurchaseParametersInterface[] = [];
+const pendingEcommerceEvents: PendingEcommerceEvent[] = [];
 
 /**
  * Возвращает window с полями dataLayer и флагом готовности Метрики
@@ -40,15 +51,21 @@ const getEcommerceWindow = (): YandexMetrikaWindowExtension | undefined => {
 };
 
 /**
+ * Возвращает название товара на языке пользователя
+ * @param item - товар из корзины или заказа
+ * @param userLanguage - язык пользователя
+ * @returns локализованное название
+ */
+const getItemNameForLanguage = (item: ItemInterface, userLanguage: UserLangEnum): string => (
+  item.translations.find((translation) => translation.lang === userLanguage)?.name as string
+);
+
+/**
  * Формирует payload purchase для dataLayer
  * @param parameters - заказ, строки корзины и язык пользователя
  * @returns объект ecommerce purchase
  */
-const buildEcommercePurchasePayload = ({
-  order,
-  cartList,
-  userLanguage,
-}: PushEcommercePurchaseParametersInterface) => ({
+const buildEcommercePurchasePayload = ({ order, cartList, userLanguage }: PushEcommercePurchaseParametersInterface) => ({
   ecommerce: {
     currencyCode: 'RUB',
     purchase: {
@@ -60,12 +77,32 @@ const buildEcommercePurchasePayload = ({
       },
       products: cartList.map(({ item, count }, index) => ({
         id: item.id.toString(),
-        name: item.translations.find((translation) => translation.lang === userLanguage)?.name as string,
+        name: getItemNameForLanguage(item, userLanguage),
         price: item.price - item.discountPrice,
         discount: item.discountPrice,
         quantity: count,
         position: index + 1,
       })),
+    },
+  },
+});
+
+/**
+ * Формирует payload add для dataLayer
+ * @param parameters - позиция корзины, язык пользователя и добавленное количество
+ * @returns объект ecommerce add
+ */
+const buildEcommerceAddToCartPayload = ({ cartItem, userLanguage, quantityAdded }: PushEcommerceAddToCartParametersInterface) => ({
+  ecommerce: {
+    currencyCode: 'RUB',
+    add: {
+      products: [{
+        id: cartItem.item.id.toString(),
+        name: getItemNameForLanguage(cartItem.item, userLanguage),
+        price: cartItem.item.price - cartItem.item.discountPrice,
+        discount: cartItem.item.discountPrice,
+        quantity: quantityAdded,
+      }],
     },
   },
 });
@@ -85,10 +122,37 @@ const pushPurchaseToDataLayer = (parameters: PushEcommercePurchaseParametersInte
 };
 
 /**
- * Сбрасывает очередь purchase и флаг готовности Метрики
+ * Отправляет add в dataLayer
+ * @param parameters - позиция корзины, язык пользователя и добавленное количество
+ */
+const pushAddToCartToDataLayer = (parameters: PushEcommerceAddToCartParametersInterface): void => {
+  const ecommerceWindow = getEcommerceWindow();
+  if (!ecommerceWindow) {
+    return;
+  }
+
+  ecommerceWindow.dataLayer = ecommerceWindow.dataLayer || [];
+  ecommerceWindow.dataLayer.push(buildEcommerceAddToCartPayload(parameters));
+};
+
+/**
+ * Отправляет отложенное ecommerce-событие в dataLayer
+ * @param event - тип события и параметры
+ */
+const pushPendingEcommerceEvent = (event: PendingEcommerceEvent): void => {
+  if (event.type === 'purchase') {
+    pushPurchaseToDataLayer(event.parameters);
+    return;
+  }
+
+  pushAddToCartToDataLayer(event.parameters);
+};
+
+/**
+ * Сбрасывает очередь ecommerce-событий и флаг готовности Метрики
  */
 export const resetEcommercePurchaseQueue = (): void => {
-  pendingPurchases.length = 0;
+  pendingEcommerceEvents.length = 0;
 
   const ecommerceWindow = getEcommerceWindow();
   if (ecommerceWindow) {
@@ -97,7 +161,7 @@ export const resetEcommercePurchaseQueue = (): void => {
 };
 
 /**
- * Отправляет отложенные purchase из очереди в dataLayer
+ * Отправляет отложенные ecommerce-события из очереди в dataLayer
  */
 export const flushPendingEcommercePurchases = (): void => {
   if (!hasAnalyticsConsent()) {
@@ -110,19 +174,19 @@ export const flushPendingEcommercePurchases = (): void => {
     return;
   }
 
-  while (pendingPurchases.length > 0) {
-    const nextPurchase = pendingPurchases.shift();
-    if (nextPurchase) {
-      pushPurchaseToDataLayer(nextPurchase);
+  while (pendingEcommerceEvents.length > 0) {
+    const nextEvent = pendingEcommerceEvents.shift();
+    if (nextEvent) {
+      pushPendingEcommerceEvent(nextEvent);
     }
   }
 };
 
 /**
- * Отправляет purchase в Яндекс.Метрику ecommerce или ставит в очередь до init tag.js
- * @param parameters - заказ, строки корзины и язык пользователя
+ * Ставит ecommerce-событие в очередь или отправляет сразу, если Метрика готова
+ * @param event - тип события и параметры
  */
-export const pushEcommercePurchase = (parameters: PushEcommercePurchaseParametersInterface): void => {
+const enqueueOrPushEcommerceEvent = (event: PendingEcommerceEvent): void => {
   if (!hasAnalyticsConsent()) {
     return;
   }
@@ -133,11 +197,27 @@ export const pushEcommercePurchase = (parameters: PushEcommercePurchaseParameter
   }
 
   if (ecommerceWindow.amChokersYandexMetrikaReady) {
-    pushPurchaseToDataLayer(parameters);
+    pushPendingEcommerceEvent(event);
     return;
   }
 
-  pendingPurchases.push(parameters);
+  pendingEcommerceEvents.push(event);
+};
+
+/**
+ * Отправляет purchase в Яндекс.Метрику ecommerce или ставит в очередь до init tag.js
+ * @param parameters - заказ, строки корзины и язык пользователя
+ */
+export const pushEcommercePurchase = (parameters: PushEcommercePurchaseParametersInterface): void => {
+  enqueueOrPushEcommerceEvent({ type: 'purchase', parameters });
+};
+
+/**
+ * Отправляет add в Яндекс.Метрику ecommerce или ставит в очередь до init tag.js
+ * @param parameters - позиция корзины, язык пользователя и добавленное количество
+ */
+export const pushEcommerceAddToCart = (parameters: PushEcommerceAddToCartParametersInterface): void => {
+  enqueueOrPushEcommerceEvent({ type: 'add', parameters });
 };
 
 if (typeof window !== 'undefined') {
