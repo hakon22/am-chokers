@@ -1,4 +1,5 @@
-import { useCartItem } from '@/themes/v2/hooks/useCartItem';
+import { useCartItem } from '@/hooks/useCartItem';
+import { useHasHydrated } from '@/hooks/useHasHydrated';
 import styles from '@/themes/v2/components/V2CartControl.module.scss';
 
 interface V2CartControlProps {
@@ -23,7 +24,9 @@ export const V2CartControl = ({
   qty = 1,
   onQtyChange,
 }: V2CartControlProps) => {
+  const hasHydrated = useHasHydrated();
   const { inCart, handleAdd, handleIncrement, handleDecrement } = useCartItem(itemId);
+  const isQtyDecrementDisabled = hasHydrated && qty <= 1;
 
   const stop = (fn: () => void) => (e: React.MouseEvent) => {
     if (variant === 'card') {
@@ -70,7 +73,7 @@ export const V2CartControl = ({
         <>
           {onQtyChange && (
             <div className={styles.qtyControl}>
-              <button className={styles.qtyBtn} onClick={() => onQtyChange(Math.max(1, qty - 1))} type="button" disabled={qty <= 1}>−</button>
+              <button className={styles.qtyBtn} onClick={() => onQtyChange(Math.max(1, qty - 1))} type="button" disabled={isQtyDecrementDisabled}>−</button>
               <span className={styles.qtyVal}>{qty}</span>
               <button className={styles.qtyBtn} onClick={() => onQtyChange(qty + 1)} type="button">+</button>
             </div>

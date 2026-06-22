@@ -4,7 +4,8 @@ import cn from 'classnames';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
-import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useHydrationSafeInCart } from '@/hooks/useHydrationSafeInCart';
 import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
@@ -13,12 +14,8 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
 
   const dispatch = useAppDispatch();
-
-  const { cart } = useAppSelector((state) => state.cart);
-
   const { setIsSubmit } = useContext(SubmitContext);
-
-  const inCart = cart.find((cartItem) => cartItem.item.id === id);
+  const inCart = useHydrationSafeInCart(id);
 
   const add = async () => {
     setIsSubmit(true);

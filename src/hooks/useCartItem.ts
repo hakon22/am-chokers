@@ -1,16 +1,20 @@
 import { useCallback, useContext } from 'react';
 
-import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useHydrationSafeInCart } from '@/hooks/useHydrationSafeInCart';
 import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem } from '@/slices/cartSlice';
 import type { CartItemFormInterface } from '@/types/cart/Cart';
 
+/**
+ * Управление добавлением товара в корзину и изменением количества
+ * @param itemId - идентификатор товара
+ * @returns состояние позиции в корзине и обработчики add/increment/decrement
+ */
 export const useCartItem = (itemId: number) => {
   const dispatch = useAppDispatch();
   const { setIsSubmit } = useContext(SubmitContext);
-  const { cart } = useAppSelector((state) => state.cart);
-
-  const inCart = cart.find((cartItem) => cartItem.item.id === itemId);
+  const inCart = useHydrationSafeInCart(itemId);
 
   const handleAdd = useCallback(async (count = 1) => {
     setIsSubmit(true);

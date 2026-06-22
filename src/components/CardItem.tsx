@@ -20,6 +20,7 @@ import { ItemAdminToolbarV1 } from '@/components/item-admin/ItemAdminToolbarV1';
 import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { useHydrationSafeInCart } from '@/hooks/useHydrationSafeInCart';
 import { useUserLang } from '@/hooks/useUserLang';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
@@ -61,8 +62,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const { isAdmin } = useAppSelector((state) => state.user);
   const lang = useUserLang();
-  const { cart } = useAppSelector((state) => state.cart);
   const { pagination } = useAppSelector((state) => state.app);
+  const inCart = useHydrationSafeInCart(id);
 
   const position = rest.translations.find((translation) => translation.lang === lang) as ItemTranslateEntity;
 
@@ -181,8 +182,6 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
 
   const setItemEffect = useEffectEvent(setItem);
   const setEditEffect = useEffectEvent(setEdit);
-
-  const inCart = cart.find((cartItem) => cartItem.item.id === item.id);
 
   const responsive = {
     desktop: {

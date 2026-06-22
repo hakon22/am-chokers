@@ -36,7 +36,7 @@ import { DateTimeSplitField } from '@/components/forms/DateTimeSplitField';
 import { MaskedInput } from '@/components/forms/MaskedInput';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import { useCartItem } from '@/themes/v2/hooks/useCartItem';
+import { useCartItem } from '@/hooks/useCartItem';
 import styles from '@/themes/v2/components/cart/V2CartPage.module.scss';
 import type { PromotionalInterface, PromotionalResponseInterface } from '@/types/promotional/PromotionalInterface';
 import type { CartItemInterface } from '@/types/cart/Cart';
