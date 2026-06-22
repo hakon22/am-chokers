@@ -1,41 +1,31 @@
 import { useCallback, useContext } from 'react';
 
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { useUserLang } from '@/hooks/useUserLang';
 import { SubmitContext } from '@/components/Context';
-import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
-import { pushEcommerceAddToCart } from '@/utilities/analytics/ecommerce';
+import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem } from '@/slices/cartSlice';
 import type { CartItemFormInterface } from '@/types/cart/Cart';
 
 export const useCartItem = (itemId: number) => {
   const dispatch = useAppDispatch();
   const { setIsSubmit } = useContext(SubmitContext);
   const { cart } = useAppSelector((state) => state.cart);
-  const userLanguage = useUserLang();
 
   const inCart = cart.find((cartItem) => cartItem.item.id === itemId);
 
   const handleAdd = useCallback(async (count = 1) => {
     setIsSubmit(true);
-    const { payload: { code, cartItem } } = await dispatch(addCartItem({ count, item: { id: itemId } } as CartItemFormInterface)) as { payload: CartResponseInterface; };
-    if (code === 1) {
-      pushEcommerceAddToCart({ cartItem, userLanguage: userLanguage as UserLangEnum, quantityAdded: count });
-    }
+    await dispatch(addCartItem({ count, item: { id: itemId } } as CartItemFormInterface));
     setIsSubmit(false);
-  }, [dispatch, itemId, setIsSubmit, userLanguage]);
+  }, [dispatch, itemId, setIsSubmit]);
 
   const handleIncrement = useCallback(async () => {
     if (!inCart) {
       return;
     }
     setIsSubmit(true);
-    const { payload: { code, cartItem } } = await dispatch(incrementCartItem(inCart.id)) as { payload: CartResponseInterface; };
-    if (code === 1) {
-      pushEcommerceAddToCart({ cartItem, userLanguage: userLanguage as UserLangEnum, quantityAdded: 1 });
-    }
+    await dispatch(incrementCartItem(inCart.id));
     setIsSubmit(false);
-  }, [dispatch, inCart, setIsSubmit, userLanguage]);
+  }, [dispatch, inCart, setIsSubmit]);
 
   const handleDecrement = useCallback(async () => {
     if (!inCart) {

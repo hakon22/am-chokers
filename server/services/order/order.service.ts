@@ -188,7 +188,7 @@ export class OrderService extends BaseService {
     return [orders, count];
   };
 
-  public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, comment?: string, promotional?: PromotionalInterface) => {
+  public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, comment?: string, promotional?: PromotionalInterface, yclid?: string) => {
     const cartIds = body.map(({ id }) => id);
 
     if (promotional) {
@@ -281,6 +281,7 @@ export class OrderService extends BaseService {
         positions,
         promotional,
         comment,
+        yclid: yclid || null,
         delivery: await deliveryRepo.create(delivery).save(),
       } as OrderEntity);
 

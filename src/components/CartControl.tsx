@@ -4,12 +4,9 @@ import cn from 'classnames';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
-import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { useUserLang } from '@/hooks/useUserLang';
 import { SubmitContext } from '@/components/Context';
 import { addCartItem, incrementCartItem, decrementCartItem, removeCartItem, type CartResponseInterface } from '@/slices/cartSlice';
-import { pushEcommerceAddToCart } from '@/utilities/analytics/ecommerce';
 import type { CartItemFormInterface, CartItemInterface } from '@/types/cart/Cart';
 
 export const CartControl = ({ id, className = 'fs-6', classNameButton, width, setCartList }: { id: number; width?: number; setCartList?: React.Dispatch<React.SetStateAction<CartItemInterface[]>>; className?: string; classNameButton?: string; }) => {
@@ -21,8 +18,6 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
 
   const { setIsSubmit } = useContext(SubmitContext);
 
-  const userLanguage = useUserLang();
-
   const inCart = cart.find((cartItem) => cartItem.item.id === id);
 
   const add = async () => {
@@ -31,10 +26,7 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
       count: 1,
       item: { id } as CartItemFormInterface['item'],
     };
-    const { payload: { code, cartItem } } = await dispatch(addCartItem(item)) as { payload: CartResponseInterface; };
-    if (code === 1) {
-      pushEcommerceAddToCart({ cartItem, userLanguage: userLanguage as UserLangEnum, quantityAdded: 1 });
-    }
+    await dispatch(addCartItem(item));
     setIsSubmit(false);
   };
 
@@ -44,17 +36,14 @@ export const CartControl = ({ id, className = 'fs-6', classNameButton, width, se
     }
     setIsSubmit(true);
     const { payload: { code, cartItem } } = await dispatch(incrementCartItem(inCart.id)) as { payload: CartResponseInterface; };
-    if (code === 1) {
-      pushEcommerceAddToCart({ cartItem, userLanguage: userLanguage as UserLangEnum, quantityAdded: 1 });
-      if (setCartList) {
-        setCartList((state) => {
-          const cartIndex = state.findIndex((cartListItem) => cartListItem.id === cartItem.id);
-          if (cartIndex !== -1) {
-            state[cartIndex] = cartItem;
-          }
-          return state;
-        });
-      }
+    if (code === 1 && setCartList) {
+      setCartList((state) => {
+        const cartIndex = state.findIndex((cartListItem) => cartListItem.id === cartItem.id);
+        if (cartIndex !== -1) {
+          state[cartIndex] = cartItem;
+        }
+        return state;
+      });
     }
     setIsSubmit(false);
   };

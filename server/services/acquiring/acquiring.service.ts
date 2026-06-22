@@ -1,4 +1,4 @@
-import { In } from 'typeorm';
+import { In, IsNull } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer, type IItemWithoutData } from '@a2seven/yoo-checkout';
 import { Container } from 'typescript-ioc';
@@ -6,6 +6,7 @@ import moment from 'moment';
 import _ from 'lodash';
 
 import { BaseService } from '@server/services/app/base.service';
+import { YandexMetrikaOfflineConversionService } from '@server/services/integration/yandex-metrika-offline-conversion.service';
 import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.error.translate';
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
@@ -46,6 +47,8 @@ export class AcquiringService extends BaseService {
   private readonly itemHistoryService = Container.get(ItemHistoryService);
 
   private readonly itemService = Container.get(ItemService);
+
+  private readonly yandexMetrikaOfflineConversionService = Container.get(YandexMetrikaOfflineConversionService);
 
   private readonly TAG = 'AcquiringService';
 
@@ -428,8 +431,35 @@ export class AcquiringService extends BaseService {
       }
       this.bullMQQueuesService.sendTelegramAdminMessage({ messageRu, messageEn });
       this.bullMQQueuesService.NPDNalogCreateOrder({ order: transaction.order, items });
+      await this.sendOrderPaidOfflineConversion(order);
     } catch (e) {
       this.loggerService.error(this.TAG, 'Ошибка во время занесения оплаты!', e);
     }
+  };
+
+  /**
+   * Отправляет офлайн-конверсию order_paid и фиксирует идемпотентность в БД
+   * @param order - оплаченный заказ с yclid
+   */
+  private sendOrderPaidOfflineConversion = async (order: OrderEntity): Promise<void> => {
+    if (_.isNil(order.yclid)) {
+      this.loggerService.warn(this.TAG, 'yclid отсутствует — order_paid не отправлен', { orderId: order.id });
+      return;
+    }
+
+    if (!_.isNil(order.metricaPurchaseSentAt)) {
+      return;
+    }
+
+    const uploaded = await this.yandexMetrikaOfflineConversionService.uploadOrderPaid(order);
+
+    if (!uploaded) {
+      return;
+    }
+
+    await OrderEntity.update(
+      { id: order.id, metricaPurchaseSentAt: IsNull() },
+      { metricaPurchaseSentAt: new Date() },
+    );
   };
 }

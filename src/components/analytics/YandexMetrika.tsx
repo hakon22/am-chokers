@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 
 import { cookieConsentConfig } from '@shared/cookie-consent-config';
 import { hasAnalyticsConsent } from '@shared/has-analytics-consent';
-import { flushPendingEcommercePurchases, resetEcommercePurchaseQueue, YANDEX_METRIKA_READY_EVENT_NAME } from '@/utilities/analytics/ecommerce';
 
 const YANDEX_METRIKA_COUNTER_ID = 100705426;
 const YANDEX_METRIKA_SCRIPT_URL = `https://mc.yandex.ru/metrika/tag.js?id=${YANDEX_METRIKA_COUNTER_ID}`;
@@ -16,9 +15,7 @@ interface YandexMetrikaQueueInterface {
 
 type YandexMetrikaWindowExtension = {
   ym?: YandexMetrikaQueueInterface;
-  dataLayer?: unknown[];
   amChokersYandexMetrikaInitialized?: boolean;
-  amChokersYandexMetrikaReady?: boolean;
 };
 
 /**
@@ -40,7 +37,6 @@ const injectYandexMetrikaScript = (): void => {
   }
 
   metrikaWindow.amChokersYandexMetrikaInitialized = true;
-  metrikaWindow.dataLayer = metrikaWindow.dataLayer || [];
 
   const metrikaLoader = (
     targetWindow: Window & YandexMetrikaWindowExtension,
@@ -64,9 +60,6 @@ const injectYandexMetrikaScript = (): void => {
 
     for (let scriptIndex = 0; scriptIndex < documentObject.scripts.length; scriptIndex += 1) {
       if (documentObject.scripts[scriptIndex].src === scriptUrl) {
-        targetWindow.amChokersYandexMetrikaReady = true;
-        window.dispatchEvent(new Event(YANDEX_METRIKA_READY_EVENT_NAME));
-        flushPendingEcommercePurchases();
         return;
       }
     }
@@ -75,11 +68,6 @@ const injectYandexMetrikaScript = (): void => {
     const firstScript = documentObject.getElementsByTagName(scriptTag)[0];
     scriptElement.async = true;
     scriptElement.src = scriptUrl;
-    scriptElement.onload = () => {
-      targetWindow.amChokersYandexMetrikaReady = true;
-      window.dispatchEvent(new Event(YANDEX_METRIKA_READY_EVENT_NAME));
-      flushPendingEcommercePurchases();
-    };
     firstScript.parentNode?.insertBefore(scriptElement, firstScript);
   };
 
@@ -90,7 +78,6 @@ const injectYandexMetrikaScript = (): void => {
     trackLinks: true,
     accurateTrackBounce: true,
     webvisor: true,
-    ecommerce: 'dataLayer',
     referrer: document.referrer,
     url: location.href,
   });
@@ -107,11 +94,7 @@ export const YandexMetrika = () => {
      * Синхронизирует флаг согласия с cookie
      */
     const syncConsentState = (): void => {
-      const isGranted = hasAnalyticsConsent();
-      if (!isGranted) {
-        resetEcommercePurchaseQueue();
-      }
-      setIsConsentGranted(isGranted);
+      setIsConsentGranted(hasAnalyticsConsent());
     };
 
     injectYandexMetrikaScript();
@@ -129,7 +112,6 @@ export const YandexMetrika = () => {
 
     return () => {
       window.removeEventListener(cookieConsentConfig.consentAcceptedEventName, handleConsentAccepted);
-      resetEcommercePurchaseQueue();
     };
   }, []);
 

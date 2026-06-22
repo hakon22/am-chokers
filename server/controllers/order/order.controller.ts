@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
+import { getYclidFromCookieHeader } from '@shared/get-yclid-from-cookie-header';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderService } from '@server/services/order/order.service';
 import { paramsIdSchema, queryOrderParams } from '@server/utilities/convertation.params';
@@ -97,6 +98,8 @@ export class OrderController extends BaseService {
     try {
       const { cart, promotional, delivery, user, comment } = await newOrderPositionValidation.serverValidator(req.body) as CreateOrderInterface;
 
+      const yclid = getYclidFromCookieHeader(req.headers.cookie);
+
       const {
         order,
         url,
@@ -107,6 +110,7 @@ export class OrderController extends BaseService {
         delivery,
         comment,
         promotional,
+        yclid,
       );
 
       res.json({ code: 1, order, url, refreshToken });

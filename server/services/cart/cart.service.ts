@@ -1,10 +1,11 @@
-import { Singleton } from 'typescript-ioc';
+import { Singleton, Container } from 'typescript-ioc';
 import { Brackets, type EntityManager } from 'typeorm';
 import moment from 'moment';
 import _ from 'lodash';
 
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
+import { YandexMetrikaOfflineConversionService } from '@server/services/integration/yandex-metrika-offline-conversion.service';
 import { UserRoleEnum } from '@server/types/user/enums/user.role.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { NullableParamsIdInterface, ParamsIdStringInterface } from '@server/types/params.id.interface';
@@ -15,6 +16,21 @@ import type { UserEntity } from '@server/db/entities/user.entity';
 
 @Singleton
 export class CartService extends BaseService {
+
+  private readonly yandexMetrikaOfflineConversionService = Container.get(YandexMetrikaOfflineConversionService);
+
+  /**
+   * Отправляет офлайн-конверсию cart_add без блокировки ответа API
+   * @param yclid - идентификатор клика Яндекс Директа из cookie
+   * @param itemId - id товара
+   */
+  private sendCartAddConversion = (yclid: string | undefined, itemId: number): void => {
+    if (_.isNil(yclid)) {
+      return;
+    }
+
+    void this.yandexMetrikaOfflineConversionService.uploadCartAdd(yclid, itemId);
+  };
 
   private createQueryBuilder = (userId: number | null, query?: CartQueryInterface, options?: CartOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -98,7 +114,7 @@ export class CartService extends BaseService {
     return builder;
   };
 
-  public createOne = async (user: NullableParamsIdInterface | null, body: CartEntity, options?: { manager?: EntityManager; }) => {
+  public createOne = async (user: NullableParamsIdInterface | null, body: CartEntity, options?: { manager?: EntityManager; yclid?: string; }) => {
     const manager = options?.manager || this.databaseService.getManager();
 
     const cartRepo = manager.getRepository(CartEntity);
@@ -109,6 +125,8 @@ export class CartService extends BaseService {
 
     const created = await cartRepo.save(body);
     const cartItem = await this.findOne(user, { id: created.id });
+
+    this.sendCartAddConversion(options?.yclid, cartItem.item.id);
 
     return { code: 1, cartItem };
   };
@@ -165,12 +183,16 @@ export class CartService extends BaseService {
     return builder.getCount();  
   };
 
-  public updateOne = async (user: NullableParamsIdInterface | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement') => {
+  public updateOne = async (user: NullableParamsIdInterface | null, params: ParamsIdStringInterface, action: 'increment' | 'decrement', options?: { yclid?: string; }) => {
     const item = await this.findOne(user, params);
 
     const newItem = { ...item, count: action === 'increment' ? item.count + 1 : item.count - 1 } as CartEntity;
       
     await CartEntity.save(newItem);
+
+    if (action === 'increment') {
+      this.sendCartAddConversion(options?.yclid, newItem.item.id);
+    }
 
     return newItem;
   };

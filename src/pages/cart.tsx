@@ -13,7 +13,6 @@ import type { CheckboxProps } from 'antd/lib';
 
 import { locale } from '@/locales/pickers.locale.ru';
 import { Helmet } from '@/components/Helmet';
-import { pushEcommercePurchase } from '@/utilities/analytics/ecommerce';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext } from '@/components/Context';
@@ -350,9 +349,8 @@ const Cart = () => {
         toast(tToast('timeNotOverForSms'), 'error');
       }
     } else {
-      const { payload: { code, order, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
+      const { payload: { code, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
       if (code === 1) {
-        pushEcommercePurchase({ order, cartList, userLanguage: lang as UserLangEnum });
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));

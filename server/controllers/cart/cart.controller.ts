@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { Container, Singleton } from 'typescript-ioc';
 
+import { getYclidFromCookieHeader } from '@shared/get-yclid-from-cookie-header';
 import { CartEntity } from '@server/db/entities/cart.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { CartService } from '@server/services/cart/cart.service';
@@ -29,7 +30,8 @@ export class CartController extends BaseService {
       const user = this.getCurrentUser(req);
       const body = await newCartItemValidation.serverValidator(req.body) as CartEntity;
 
-      const result = await this.cartService.createOne(user, body);
+      const yclid = getYclidFromCookieHeader(req.headers.cookie);
+      const result = await this.cartService.createOne(user, body, { yclid });
 
       res.json(result);
     } catch (e) {
@@ -42,7 +44,8 @@ export class CartController extends BaseService {
       const user = this.getCurrentUser(req);
       const params = await uuidSchema.validate(req.params);
 
-      const cartItem = await this.cartService.updateOne(user, params, 'increment');
+      const yclid = getYclidFromCookieHeader(req.headers.cookie);
+      const cartItem = await this.cartService.updateOne(user, params, 'increment', { yclid });
 
       res.json({ code: 1, cartItem });
     } catch (e) {

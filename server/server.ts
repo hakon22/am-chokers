@@ -8,6 +8,7 @@ import { Container } from 'typescript-ioc';
 
 import { RouterService } from '@server/services/app/router.service';
 import { BaseService } from '@server/services/app/base.service';
+import { yclidCookieMiddleware } from '@server/middleware/yclid-cookie.middleware';
 import { ItemService } from '@server/services/item/item.service';
 import { CDEKService } from '@server/services/delivery/cdek.service';
 import { TelegramBotService } from '@server/services/integration/telegram-bot.service';
@@ -57,6 +58,7 @@ class Server extends BaseService {
 
       this.server.use(express.json());
       this.server.use(cors());
+      this.server.use(yclidCookieMiddleware);
       this.server.use(passport.initialize());
       this.server.use(this.routerService.get());
 

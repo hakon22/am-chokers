@@ -105,6 +105,19 @@ export class OrderEntity extends BaseEntity {
   })
   public telegramOrderRatingReminderSentAt: Date | null;
 
+  /** yclid клика Яндекс Директа на момент создания заказа */
+  @Column('character varying', {
+    nullable: true,
+  })
+  public yclid: string | null;
+
+  /** Дата успешной отправки офлайн-конверсии `order_paid` в Яндекс.Метрику */
+  @Column('timestamp with time zone', {
+    nullable: true,
+    name: 'metrica_purchase_sent_at',
+  })
+  public metricaPurchaseSentAt: Date | null;
+
   /** Позиции */
   @OneToMany(() => OrderPositionEntity, orderPosition => orderPosition.order)
   public positions: OrderPositionEntity[];
