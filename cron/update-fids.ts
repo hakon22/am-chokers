@@ -87,7 +87,25 @@ interface YandexProductsDataInterface {
   offers: YandexProductsOfferInterface[];
 }
 
-/** Обновляет файлы фидов для Яндекс Директа, Google Merchant, Яндекс Вебмастера и Яндекс Товаров */
+interface PinterestFidRowInterface {
+  id: string;
+  title: string;
+  description: string;
+  link: string;
+  image_link: string;
+  price: string;
+  availability: 'in stock' | 'out of stock';
+  sale_price?: string;
+  condition: 'new';
+  brand: string;
+  color?: string;
+  material?: string;
+  product_type?: string;
+  google_product_category: string;
+  additional_image_link?: string;
+}
+
+/** Обновляет файлы фидов для Яндекс Директа, Google Merchant, Яндекс Вебмастера, Яндекс Товаров и Pinterest */
 class UpdateFidsCron {
 
   private static readonly SHOP_NAME = 'AM Chokers';
@@ -101,6 +119,14 @@ class UpdateFidsCron {
   private static readonly DELIVERY_DAYS = '2-7';
 
   private static readonly DELIVERY_ORDER_BEFORE = 18;
+
+  private static readonly PINTEREST_DESCRIPTION_MAX_LENGTH = 10000;
+
+  private static readonly PINTEREST_ATTRIBUTE_MAX_LENGTH = 30;
+
+  private static readonly PINTEREST_MAX_ADDITIONAL_IMAGES = 10;
+
+  private static readonly PINTEREST_GOOGLE_PRODUCT_CATEGORY = 'Apparel & Accessories > Jewelry > Necklaces';
 
   public readonly loggerService = Container.get(LoggerService);
 
@@ -213,6 +239,10 @@ class UpdateFidsCron {
     const yandexProductsData = await this.fetchYandexProductsData(manager);
     const yandexProductsContent = this.generateYandexProductsYmlContent(yandexProductsData);
     writeFileSync(`${this.uploadPathService.uploadFilesPath}/yandex_products.xml`, yandexProductsContent, { encoding: 'utf8' });
+
+    const pinterestRows = this.buildPinterestFeedRows(yandexProductsData);
+    const pinterestCsvBuffer = this.generatePinterestCsv(pinterestRows);
+    writeFileSync(`${this.uploadPathService.uploadFilesPath}/pinterest_fid.csv`, pinterestCsvBuffer, { encoding: 'utf8' });
 
     await this.sitemapImageService.rebuildImageSitemap();
 
@@ -397,6 +427,151 @@ class UpdateFidsCron {
     });
 
     return paramsByItemId;
+  };
+
+  /**
+   * Форматирует цену для фида Pinterest с валютой ISO 4217
+   * @param amount - сумма в рублях
+   * @returns строка вида «2490.00 RUB»
+   */
+  private formatPinterestPrice = (amount: number): string => {
+    return `${amount.toFixed(2)} RUB`;
+  };
+
+  /**
+   * Нормализует описание товара для фида Pinterest
+   * @param text - исходное описание из базы данных
+   * @returns plain text до 10 000 символов
+   */
+  private normalizePinterestDescription = (text: string): string => {
+    const withoutHtml = text.replace(/<[^>]*>/g, '');
+    const normalized = withoutHtml.trim().replace(/\s+/g, ' ');
+
+    if (normalized.length <= UpdateFidsCron.PINTEREST_DESCRIPTION_MAX_LENGTH) {
+      return normalized;
+    }
+
+    return normalized.slice(0, UpdateFidsCron.PINTEREST_DESCRIPTION_MAX_LENGTH);
+  };
+
+  /**
+   * Преобразует флаг наличия в значение availability для Pinterest
+   * @param available - товар в наличии
+   * @returns «in stock» или «out of stock»
+   */
+  private buildPinterestAvailability = (available: boolean): 'in stock' | 'out of stock' => {
+    if (available) {
+      return 'in stock';
+    }
+
+    return 'out of stock';
+  };
+
+  /**
+   * Собирает строки CSV-фида Pinterest из данных Яндекс Товаров
+   * @param yandexProductsData - категории и предложения из базы данных
+   * @returns массив строк для записи в pinterest_fid.csv
+   */
+  private buildPinterestFeedRows = (yandexProductsData: YandexProductsDataInterface): PinterestFidRowInterface[] => {
+    const { categories, offers } = yandexProductsData;
+
+    const categoryNameById = categories.reduce<Record<number, string>>((categoryMap, { id, name }) => {
+      categoryMap[id] = name;
+      return categoryMap;
+    }, {});
+
+    return offers.reduce<PinterestFidRowInterface[]>((pinterestRows, offer) => {
+      const {
+        id,
+        name,
+        description,
+        url,
+        price,
+        oldPrice,
+        categoryId,
+        available,
+        pictures,
+        params,
+      } = offer;
+
+      const [imageLink, ...additionalPictures] = pictures;
+
+      if (!imageLink) {
+        this.loggerService.warn(TAG, `Товар ${id} пропущен в Pinterest-фиде: нет изображения`);
+        return pinterestRows;
+      }
+
+      const colorValues = params
+        .filter(({ name: paramName }) => paramName === 'Цвет')
+        .map(({ value }) => value);
+      const materialValues = params
+        .filter(({ name: paramName }) => paramName === 'Материал')
+        .map(({ value }) => value);
+
+      const categoryName = categoryNameById[categoryId];
+      const productType = categoryName
+        ? `${UpdateFidsCron.ROOT_CATEGORY_NAME} > ${categoryName}`
+        : UpdateFidsCron.ROOT_CATEGORY_NAME;
+
+      const color = colorValues.join(', ').slice(0, UpdateFidsCron.PINTEREST_ATTRIBUTE_MAX_LENGTH);
+      const material = materialValues.join(', ').slice(0, UpdateFidsCron.PINTEREST_ATTRIBUTE_MAX_LENGTH);
+
+      const regularPrice = oldPrice ?? price;
+      const pinterestRow: PinterestFidRowInterface = {
+        id: String(id),
+        title: name,
+        description: this.normalizePinterestDescription(description),
+        link: url,
+        image_link: imageLink,
+        price: this.formatPinterestPrice(regularPrice),
+        availability: this.buildPinterestAvailability(available),
+        condition: 'new',
+        brand: UpdateFidsCron.VENDOR_NAME,
+        product_type: productType,
+        google_product_category: UpdateFidsCron.PINTEREST_GOOGLE_PRODUCT_CATEGORY,
+      };
+
+      if (oldPrice !== null && oldPrice > price) {
+        pinterestRow.sale_price = this.formatPinterestPrice(price);
+      }
+
+      if (color) {
+        pinterestRow.color = color;
+      }
+
+      if (material) {
+        pinterestRow.material = material;
+      }
+
+      const additionalImageLinks = additionalPictures
+        .slice(0, UpdateFidsCron.PINTEREST_MAX_ADDITIONAL_IMAGES)
+        .join(', ');
+
+      if (additionalImageLinks) {
+        pinterestRow.additional_image_link = additionalImageLinks;
+      }
+
+      pinterestRows.push(pinterestRow);
+
+      return pinterestRows;
+    }, []);
+  };
+
+  /**
+   * Формирует CSV-буфер для фида Pinterest
+   * @param pinterestRows - строки фида
+   * @returns буфер CSV в кодировке UTF-8
+   */
+  private generatePinterestCsv = (pinterestRows: PinterestFidRowInterface[]): Buffer => {
+    const worksheet = XLSX.utils.json_to_sheet(pinterestRows);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Лист1');
+
+    return XLSX.write(workbook, {
+      bookType: 'csv',
+      type: 'buffer',
+    });
   };
 
   /**
