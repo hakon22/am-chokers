@@ -1,10 +1,10 @@
 import _ from 'lodash';
-import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Telegraf } from 'telegraf';
 import { Container, Singleton } from 'typescript-ioc';
 import type { Request, Response } from 'express';
 import type { Context, Types } from 'telegraf';
 
+import { HttpsProxyAgentProvider } from '@server/services/app/https-proxy-agent.provider';
 import { LoggerService } from '@server/services/app/logger.service';
 import { TelegramService } from '@server/services/integration/telegram.service';
 import { isTelegramDevOutboundAllowlistedChatId, isUserOutboundMessagingSkipped } from '@server/utilities/is-user-outbound-messaging-skipped';
@@ -19,11 +19,9 @@ export class TelegramBotService {
 
   private readonly loggerService = Container.get(LoggerService);
 
-  private bot: Telegraf<Context> | null = null;
+  private readonly httpsProxyAgentProvider = Container.get(HttpsProxyAgentProvider);
 
-  private readonly proxyAgent = process.env.PROXY_USER && process.env.PROXY_PASS && process.env.PROXY_HOST
-    ? new HttpsProxyAgent(`http://${process.env.PROXY_USER}:${process.env.PROXY_PASS}@${process.env.PROXY_HOST}`)
-    : null;
+  private bot: Telegraf<Context> | null = null;
 
   /**
    * Возвращает экземпляр Telegraf после init
@@ -106,10 +104,12 @@ export class TelegramBotService {
     this.bot = null;
 
     try {
-      this.bot = new Telegraf(token, this.proxyAgent
+      const httpsProxyAgent = this.httpsProxyAgentProvider.getHttpsProxyAgent();
+
+      this.bot = new Telegraf(token, httpsProxyAgent
         ? {
           telegram: {
-            agent: this.proxyAgent,
+            agent: httpsProxyAgent,
           },
         }
         : {});

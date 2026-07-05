@@ -87,6 +87,8 @@ export const routes = {
   integration: {
     telegram: {
       webhook: [apiPath, 'telegram'].join('/'),
+      webAppScript: [apiPath, 'integration', 'telegram-web-app.js'].join('/'),
+      bootstrapLog: [apiPath, 'integration', 'telegram-web-app-bootstrap-log'].join('/'),
     },
     yookassa: {
       webhook: [apiPath, 'payment', 'check'].join('/'),

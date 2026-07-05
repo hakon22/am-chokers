@@ -61,7 +61,7 @@ export const MobileContext = createContext<{ isMobile: boolean; setIsMobile: Rea
 });
 
 export const VersionContext = createContext<{ version: SiteVersion }>({
-  version: 'v1',
+  version: 'v2',
 });
 
 export const AuthModalContext = createContext<{

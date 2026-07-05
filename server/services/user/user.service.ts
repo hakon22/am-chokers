@@ -715,6 +715,9 @@ export class UserService extends BaseService {
   public telegramWebAppAuth = async (req: Request, res: Response) => {
     try {
       const { initData } = await telegramWebAppAuthValidation.serverValidator(req.body) as { initData: string; };
+
+      this.loggerService.info('UserService', `telegramWebAppAuth: request received, initDataLength=${initData.length}`);
+
       const botToken = process.env.TELEGRAM_TOKEN ?? '';
 
       if (_.isNil(botToken) || botToken === '') {
@@ -743,6 +746,11 @@ export class UserService extends BaseService {
       const refreshToken = this.tokenService.generateRefreshToken(user.id, user.phone);
 
       await UserRefreshTokenEntity.insert({ refreshToken, user });
+
+      this.loggerService.info(
+        'UserService',
+        `telegramWebAppAuth: success, userId=${user.id}, telegramUserId=${telegramUserId}`,
+      );
 
       res.json({
         code: 1,

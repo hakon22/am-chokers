@@ -9,6 +9,7 @@ import { booleanSchema } from '@server/utilities/convertation.params';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
+import { TelegramMiniAppBootstrapLogPhaseEnum } from '@shared/enums/telegram-mini-app-bootstrap-log-phase.enum';
 
 const { t } = i18n;
 
@@ -105,6 +106,19 @@ const loginSchema = yup.object().shape({
 
 const telegramWebAppAuthSchema = yup.object().shape({
   initData: stringSchema.min(1),
+});
+
+const telegramMiniAppBootstrapLogSchema = yup.object().shape({
+  phase: yup.string().oneOf(Object.values(TelegramMiniAppBootstrapLogPhaseEnum)).required(),
+  bootstrapPhase: yup.string().optional(),
+  loadAttempt: yup.number().integer().min(0).optional(),
+  elapsedMilliseconds: yup.number().integer().min(0).optional(),
+  scriptUrl: yup.string().optional(),
+  hasTelegramWebApp: yup.boolean().optional(),
+  hasHashLaunchParams: yup.boolean().optional(),
+  initDataLength: yup.number().integer().min(0).optional(),
+  authCode: yup.number().integer().optional(),
+  detail: yup.string().max(500).optional(),
 });
 
 const signupSchema = yup.object().shape({
@@ -451,6 +465,7 @@ export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);
 export const loginValidation = validate(loginSchema);
 export const telegramWebAppAuthValidation = validate(telegramWebAppAuthSchema);
+export const telegramMiniAppBootstrapLogValidation = validate(telegramMiniAppBootstrapLogSchema);
 export const signupValidation = validate(signupSchema);
 export const profileValidation = validate(profileSchema);
 export const newItemValidation = validate(newItemSchema);

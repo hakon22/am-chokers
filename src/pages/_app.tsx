@@ -232,11 +232,9 @@ const Init = (props: InitPropsInterface) => {
   return (
     <InitialLanguageContext.Provider value={initialLanguageCode}>
       <I18nextProvider i18n={seoI18nForProvider}>
-        {siteVersion ? (
-          <VersionContext.Provider value={{ version: siteVersion }}>
-            {appProvidersTree}
-          </VersionContext.Provider>
-        ) : appProvidersTree}
+        <VersionContext.Provider value={{ version: siteVersion ?? 'v2' }}>
+          {appProvidersTree}
+        </VersionContext.Provider>
       </I18nextProvider>
     </InitialLanguageContext.Provider>
   );
