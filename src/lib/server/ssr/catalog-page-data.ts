@@ -7,16 +7,17 @@ import { ItemService } from '@server/services/item/item.service';
 import { LoggerService } from '@server/services/app/logger.service';
 import { mapLanguageCodeToUserLang } from '@/lib/server/map-language-code-to-user-lang';
 import { isCatalogNumericPageQuery } from '@/utilities/shouldCatalogFiltersNoindex';
+import { parseCatalogIdQueryValue, type CatalogIdQueryValue } from '@shared/parse-catalog-id-query-value';
 import type { LanguageCode } from '@shared/language-config';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
 
 interface CatalogListQueryInterface {
-  groupIds?: number | number[];
-  collectionIds?: number | number[];
-  compositionIds?: number | number[];
-  colorIds?: number | number[];
+  groupIds?: CatalogIdQueryValue;
+  collectionIds?: CatalogIdQueryValue;
+  compositionIds?: CatalogIdQueryValue;
+  colorIds?: CatalogIdQueryValue;
   from?: number;
   to?: number;
   search?: string;
@@ -44,25 +45,23 @@ export interface ProductPageDataInterface {
   paginationParams: PaginationInterface;
 }
 
-const normalizeIdArray = (value?: number | number[]): number[] | undefined => {
-  if (value === undefined) {
-    return undefined;
-  }
+const buildCatalogFilters = (query?: CatalogListQueryInterface): Partial<ItemQueryInterface> => {
+  const collectionIds = parseCatalogIdQueryValue(query?.collectionIds);
+  const compositionIds = parseCatalogIdQueryValue(query?.compositionIds);
+  const colorIds = parseCatalogIdQueryValue(query?.colorIds);
 
-  return Array.isArray(value) ? value : [value];
+  return {
+    ...(collectionIds ? { collectionIds } : {}),
+    ...(compositionIds ? { compositionIds } : {}),
+    ...(colorIds ? { colorIds } : {}),
+    ...(query?.from ? { from: query.from } : {}),
+    ...(query?.to ? { to: query.to } : {}),
+    ...(query?.search ? { search: query.search } : {}),
+    ...(query?.new ? { new: query.new } : {}),
+    ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
+    ...(query?.inStock ? { inStock: query.inStock } : {}),
+  };
 };
-
-const buildCatalogFilters = (query?: CatalogListQueryInterface): Partial<ItemQueryInterface> => ({
-  ...(query?.collectionIds ? { collectionIds: normalizeIdArray(query.collectionIds) } : {}),
-  ...(query?.compositionIds ? { compositionIds: normalizeIdArray(query.compositionIds) } : {}),
-  ...(query?.colorIds ? { colorIds: normalizeIdArray(query.colorIds) } : {}),
-  ...(query?.from ? { from: query.from } : {}),
-  ...(query?.to ? { to: query.to } : {}),
-  ...(query?.search ? { search: query.search } : {}),
-  ...(query?.new ? { new: query.new } : {}),
-  ...(query?.bestseller ? { bestseller: query.bestseller } : {}),
-  ...(query?.inStock ? { inStock: query.inStock } : {}),
-});
 
 /**
  * Загружает данные листинга каталога прямыми вызовами сервисов
@@ -87,6 +86,7 @@ export const loadCatalogListPageData = async (
 
   const chunkNumber = 8;
   const filters = buildCatalogFilters(query);
+  const groupIds = parseCatalogIdQueryValue(query?.groupIds);
 
   const rawPageQuery = query?.page;
   const pageQueryValue = rawPageQuery === undefined
@@ -102,8 +102,8 @@ export const loadCatalogListPageData = async (
   const listQuery: ItemQueryInterface = {
     limit,
     offset: 0,
-    ...(query?.groupIds || !isEmpty(filters) ? {} : { groupCode }),
-    ...(query?.groupIds ? { groupIds: normalizeIdArray(query.groupIds) } : {}),
+    ...(groupIds || !isEmpty(filters) ? {} : { groupCode }),
+    ...(groupIds ? { groupIds } : {}),
     ...(query?.sort ? { sort: query.sort as ItemQueryInterface['sort'] } : {}),
     ...filters,
   };

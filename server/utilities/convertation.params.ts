@@ -10,6 +10,12 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { BannerMediaTypeEnum } from '@server/types/banner/enums/banner.media.type.enum';
 import { TableSortOrderEnum } from '@server/types/table/table-sort-order.enum';
 import { UserListSortFieldEnum } from '@server/types/user/enums/user-list-sort-field.enum';
+import { parseCatalogIdQueryValue, type CatalogIdQueryValue } from '@shared/parse-catalog-id-query-value';
+
+const catalogIdQueryArraySchema = yup
+  .mixed<number[]>()
+  .transform((value) => parseCatalogIdQueryValue(value as CatalogIdQueryValue))
+  .optional();
 
 export const userOptionalParamsSchema = yup.object().shape({
   userId: yup
@@ -135,10 +141,10 @@ export const queryUploadImageParams = yup.object().shape({
 export const queryItemsParams = queryPaginationWithParams.concat(
   yup.object().shape({
     groupCode: yup.string().optional(),
-    groupIds: yup.array(yup.number().required()).optional(),
-    collectionIds: yup.array(yup.number().required()).optional(),
-    compositionIds: yup.array(yup.number().required()).optional(),
-    colorIds: yup.array(yup.number().required()).optional(),
+    groupIds: catalogIdQueryArraySchema,
+    collectionIds: catalogIdQueryArraySchema,
+    compositionIds: catalogIdQueryArraySchema,
+    colorIds: catalogIdQueryArraySchema,
     from: yup.number().optional(),
     to: yup.number().optional(),
     new: booleanSchema,
@@ -146,7 +152,7 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     inStock: booleanSchema,
     outOfStock: booleanSchema,
     sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
-    excludeIds: yup.array(yup.number().required()).optional(),
+    excludeIds: catalogIdQueryArraySchema,
   }),
 );
 

@@ -3,22 +3,19 @@ import type { GetServerSidePropsContext } from 'next';
 import { ensureServerServicesReady } from '@/lib/server/ensure-server-services-ready';
 import { loadPageContext } from '@/lib/server/load-page-context';
 import { mergeShopPageProps } from '@/lib/server/merge-shop-page-props';
-import {
-  loadCatalogLinks,
-  loadCatalogListPageData,
-  loadProductPageData,
-} from '@/lib/server/ssr/catalog-page-data';
+import { loadCatalogLinks, loadCatalogListPageData, loadProductPageData } from '@/lib/server/ssr/catalog-page-data';
 import { routes } from '@/routes';
+import type { CatalogIdQueryValue } from '@shared/parse-catalog-id-query-value';
 
 interface CatalogRouteParamsInterface {
   path?: string[];
 }
 
 interface CatalogRouteQueryInterface {
-  groupIds?: number | number[];
-  collectionIds?: number | number[];
-  compositionIds?: number | number[];
-  colorIds?: number | number[];
+  groupIds?: CatalogIdQueryValue;
+  collectionIds?: CatalogIdQueryValue;
+  compositionIds?: CatalogIdQueryValue;
+  colorIds?: CatalogIdQueryValue;
   from?: number;
   to?: number;
   search?: string;
@@ -37,16 +34,25 @@ interface CatalogRouteQueryInterface {
 export const getCatalogIndexServerSideProps = async (context: GetServerSidePropsContext) => {
   await ensureServerServicesReady();
 
-  const { initialLanguage } = loadPageContext(context.req);
-  const catalogData = await loadCatalogListPageData(
-    {
-      params: { path: [] },
-      query: context.query as CatalogRouteQueryInterface,
-    },
-    initialLanguage,
-  );
+  try {
+    const { initialLanguage } = loadPageContext(context.req);
+    const catalogData = await loadCatalogListPageData(
+      {
+        params: { path: [] },
+        query: context.query as CatalogRouteQueryInterface,
+      },
+      initialLanguage,
+    );
 
-  return mergeShopPageProps(catalogData, context.req);
+    return mergeShopPageProps(catalogData, context.req);
+  } catch {
+    return {
+      redirect: {
+        permanent: false,
+        destination: routes.page.base.homePage,
+      },
+    };
+  }
 };
 
 /**
