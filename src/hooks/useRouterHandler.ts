@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { routes } from '@/routes';
 
 const ROUTE_SPINNER_DELAY_MS = 1000;
+const FONTS_READY_TIMEOUT_MS = 2000;
 
 /**
  * Извлекает путь без query и hash
@@ -11,6 +12,20 @@ const ROUTE_SPINNER_DELAY_MS = 1000;
  * @returns путь без query и hash
  */
 const getPathWithoutQuery = (asPath: string): string => (asPath.split('?')[0] ?? '').split('#')[0];
+
+/**
+ * Ожидает promise не дольше заданного таймаута
+ * @param promise - promise для ожидания (например, document.fonts.ready)
+ * @param timeoutMs - максимальное время ожидания в миллисекундах
+ * @returns promise, который завершится по готовности promise или по таймауту
+ */
+const waitWithTimeout = (promise: Promise<unknown>, timeoutMs: number): Promise<void> =>
+  Promise.race([
+    promise.then(() => undefined),
+    new Promise<void>((resolve) => {
+      window.setTimeout(resolve, timeoutMs);
+    }),
+  ]);
 
 /**
  * Управляет глобальным спиннером: скрывает оверлей после готовности роутера и при завершении навигации
@@ -57,10 +72,14 @@ export const useRouterHandler = () => {
     const waitForInitialPaint = async () => {
       if (typeof document !== 'undefined' && document.fonts?.ready) {
         try {
-          await document.fonts.ready;
+          await waitWithTimeout(document.fonts.ready, FONTS_READY_TIMEOUT_MS);
         } catch {
           // fonts API недоступен — продолжаем без ожидания
         }
+      }
+
+      if (isCancelled) {
+        return;
       }
 
       window.requestAnimationFrame(completeInitialLoad);
