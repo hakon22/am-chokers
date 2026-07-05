@@ -14,7 +14,7 @@ const nextConfig = {
     '@ant-design/icons-svg',
   ],
   reactStrictMode: false,
-  allowedDevOrigins: ['192.168.0.103'],
+  allowedDevOrigins: ['192.168.0.103', 'dev.am-projects.ru'],
   serverExternalPackages: [
     'typeorm',
     'pg',

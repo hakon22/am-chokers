@@ -12,6 +12,7 @@ import { yclidCookieMiddleware } from '@server/middleware/yclid-cookie.middlewar
 import { ItemService } from '@server/services/item/item.service';
 import { CDEKService } from '@server/services/delivery/cdek.service';
 import { TelegramBotService } from '@server/services/integration/telegram-bot.service';
+import { getInitializeServerServicesService } from '@server/runtime/initialize-server-services.service';
 
 const { NEXT_PUBLIC_PORT: port = 3001, NODE_ENV } = process.env;
 
@@ -33,8 +34,7 @@ class Server extends BaseService {
   private server = express();
 
   private init = async () => {
-    await this.databaseService.init();
-    await this.redisService.init({ withoutSubscribles: true });
+    await getInitializeServerServicesService().initialize({ redisWithoutSubscribles: true });
     await this.CDEKService.init({ withWebhooks: true });
     await this.itemService.synchronizationCache();
     await this.telegramBotService.init({ mode: this.dev ? 'development' : 'production' });

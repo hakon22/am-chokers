@@ -1,44 +1,26 @@
-import { DataSource } from 'typeorm';
+import 'reflect-metadata';
+
+import {
+  DataSource,
+  getMetadataArgsStorage,
+  type EntityMetadata,
+  type EntityTarget,
+} from 'typeorm';
 import { Singleton } from 'typescript-ioc';
 
 import { entities } from '@server/db/entities';
-import { TypeormLogger } from '@server/db/typeorm.logger';
-import 'dotenv/config';
+import { getServerInfrastructureService } from '@server/runtime/server-infrastructure.service';
 
-const {
-  DB = 'LOCAL',
-  DB_LOCAL = '',
-  DB_HOST = '',
-  USER_DB_LOCAL = '',
-  PASSWORD_DB_LOCAL = '',
-  USER_DB_HOST = '',
-  PASSWORD_DB_HOST = '',
-  IS_DOCKER = '',
-  NODE_ENV,
-} = process.env;
+const serverInfrastructureService = getServerInfrastructureService();
 
-const host = (NODE_ENV === 'production' && DB !== 'LOCAL') || !IS_DOCKER ? 'localhost' : 'host.docker.internal';
+export const redisConfig = serverInfrastructureService.getRedisConfig();
 
-export const redisConfig = {
-  host,
-  port: 6379,
+export const databaseConfig = serverInfrastructureService.getSharedDataSource();
+
+type ActiveRecordEntityConstructor = EntityTarget<unknown> & {
+  name: string;
+  useDataSource: (dataSource: DataSource) => void;
 };
-
-export const databaseConfig = new DataSource({
-  type: 'postgres',
-  host,
-  port: 5432,
-  username: DB === 'LOCAL' ? USER_DB_LOCAL : USER_DB_HOST,
-  password: DB === 'LOCAL' ? PASSWORD_DB_LOCAL : PASSWORD_DB_HOST,
-  database: DB === 'LOCAL' ? DB_LOCAL : DB_HOST,
-  logger: new TypeormLogger(),
-  schema: 'chokers',
-  synchronize: false,
-  logging: true,
-  entities,
-  subscribers: [],
-  migrations: [`server/db/migrations/*.${NODE_ENV === 'production' ? 'js' : 'ts'}`],
-});
 
 @Singleton
 export abstract class DatabaseService {
@@ -55,12 +37,78 @@ export abstract class DatabaseService {
     return this.db.createEntityManager();
   };
 
-  public init = async () => {
+  /**
+   * Находит метаданные сущности в общем DataSource для класса из текущего бандла
+   * @param entity - конструктор сущности Active Record
+   * @returns метаданные TypeORM или undefined, если совпадение не найдено
+   */
+  private findSharedEntityMetadata = (entity: EntityTarget<unknown>): EntityMetadata | undefined => {
+    if (this.db.hasMetadata(entity)) {
+      return this.db.getMetadata(entity);
+    }
+
+    const tableArgs = getMetadataArgsStorage().tables.find(({ target }) => target === entity);
+    const tableName = tableArgs?.name;
+    const entityClassName = (entity as ActiveRecordEntityConstructor).name;
+
+    return this.db.entityMetadatas.find((metadata) => {
+      if (tableName && metadata.tableName === tableName) {
+        return true;
+      }
+
+      return metadata.name === entityClassName;
+    });
+  };
+
+  /**
+   * Регистрирует метаданные сущности текущего бандла в entityMetadatasMap общего DataSource
+   * @param entity - конструктор сущности Active Record
+   * @returns void
+   */
+  private registerSharedEntityMetadata = (entity: EntityTarget<unknown>): void => {
+    if (this.db.hasMetadata(entity)) {
+      return;
+    }
+
+    const sharedMetadata = this.findSharedEntityMetadata(entity);
+
+    if (!sharedMetadata) {
+      return;
+    }
+
+    const entityMetadatasMap = this.db.entityMetadatasMap as Map<EntityTarget<unknown>, EntityMetadata>;
+    entityMetadatasMap.set(entity, sharedMetadata);
+  };
+
+  /**
+   * Привязывает Active Record-сущности текущего модульного контекста к общему DataSource
+   * @returns void
+   */
+  public bindActiveRecordEntities = (): void => {
+    if (!this.db.isInitialized) {
+      return;
+    }
+
+    for (const entity of entities) {
+      this.registerSharedEntityMetadata(entity);
+      (entity as ActiveRecordEntityConstructor).useDataSource(this.db);
+    }
+  };
+
+  /**
+   * Инициализирует подключение к PostgreSQL (идемпотентно на общем DataSource)
+   * @returns Promise по завершении подключения
+   */
+  public init = async (): Promise<void> => {
     try {
-      await this.db.initialize();
-      console.log('Соединение с PostgreSQL было успешно установлено');
-    } catch (e) {
-      console.log('Невозможно выполнить подключение к PostgreSQL: ', e);
+      if (!this.db.isInitialized) {
+        await this.db.initialize();
+        console.log('Соединение с PostgreSQL было успешно установлено');
+      }
+
+      this.bindActiveRecordEntities();
+    } catch (error) {
+      console.log('Невозможно выполнить подключение к PostgreSQL: ', error);
     }
   };
 }

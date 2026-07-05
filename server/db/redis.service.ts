@@ -1,17 +1,16 @@
-import { createClient, RedisClientType } from 'redis';
+import { RedisClientType } from 'redis';
 import { Container, Singleton } from 'typescript-ioc';
 
 import { redisConfig } from '@server/db/database.service';
 import { LoggerService } from '@server/services/app/logger.service';
+import { ServerInfrastructureService } from '@server/runtime/server-infrastructure.service';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
 
 @Singleton
 export class RedisService {
-  private redis: RedisClientType<any, any, any, any, any>;
-
-  public subscribeRedis: RedisClientType<any, any, any, any, any>;
-
   private readonly loggerService = Container.get(LoggerService);
+
+  private readonly serverInfrastructureService = Container.get(ServerInfrastructureService);
 
   private readonly TAG = 'RedisService';
 
@@ -20,25 +19,65 @@ export class RedisService {
     prefix: `${process.env.NEXT_PUBLIC_APP_NAME ?? 'myapp'}:${process.env.NODE_ENV ?? 'development'}:`.toUpperCase(),
   };
 
-  public init = async (options?: { withoutSubscribles?: boolean; }) => {
-    this.redis = await createClient(this.commonOptions)
-      .on('error', (error) => console.log('Невозможно подключиться к Redis', error))
-      .connect();
+  /**
+   * Возвращает подключённый общий Redis-клиент процесса
+   * @returns активный Redis-клиент
+   */
+  private getConnectedRedisClient = (): RedisClientType => {
+    const sharedRedisClient = this.serverInfrastructureService.getSharedRedisClient();
 
-    if (!options?.withoutSubscribles) {
-      this.subscribeRedis = await createClient(this.commonOptions)
-        .on('error', (error) => console.log('Ошибка при попытке подписаться на события Redis', error))
-        .connect();
+    if (!sharedRedisClient.isOpen) {
+      throw new Error('Redis connection is not initialized. Please call init() first.');
     }
 
-    console.log('Соединение с Redis было успешно установлено');
+    return sharedRedisClient;
+  };
+
+  /**
+   * Возвращает подключённый Redis-клиент подписок процесса
+   * @returns активный Redis-клиент подписок
+   */
+  public get subscribeRedis(): RedisClientType {
+    const sharedSubscribeRedisClient = this.serverInfrastructureService.getSharedRedisSubscribeClient();
+
+    if (!sharedSubscribeRedisClient.isOpen) {
+      throw new Error('Redis subscribe connection is not initialized. Please call init() first.');
+    }
+
+    return sharedSubscribeRedisClient;
+  }
+
+  /**
+   * Инициализирует подключение к Redis (идемпотентно на общих клиентах процесса)
+   * @param options - withoutSubscribles: не поднимать клиент подписок
+   * @returns Promise по завершении подключения
+   */
+  public init = async (options?: { withoutSubscribles?: boolean; }): Promise<void> => {
+    const sharedRedisClient = this.serverInfrastructureService.getSharedRedisClient();
+    const wasRedisAlreadyConnected = sharedRedisClient.isOpen;
+
+    if (!sharedRedisClient.isOpen) {
+      await sharedRedisClient.connect();
+    }
+
+    if (!options?.withoutSubscribles) {
+      const sharedSubscribeRedisClient = this.serverInfrastructureService.getSharedRedisSubscribeClient();
+
+      if (!sharedSubscribeRedisClient.isOpen) {
+        await sharedSubscribeRedisClient.connect();
+      }
+    }
+
+    if (!wasRedisAlreadyConnected) {
+      console.log('Соединение с Redis было успешно установлено');
+    }
   };
 
   /** Получение значения из кеша
    * @param key ключ
    */
   public get = async <T>(key: string): Promise<T | null> => {
-    const value = await this.redis.get(`${this.commonOptions.prefix}${key}`);
+    const value = await this.getConnectedRedisClient().get(`${this.commonOptions.prefix}${key}`);
 
     return typeof value === 'string' ? JSON.parse(value) : null;
   };
@@ -51,7 +90,7 @@ export class RedisService {
     const newValue = JSON.stringify(value);
     const length = newValue.length;
     this.loggerService.info(this.TAG, `Сохранение значения по ключу ${key}:`, length > 300 ? `${newValue.substring(0, 300)}...[${length - 300} more characters]` : newValue);
-    await this.redis.set(`${this.commonOptions.prefix}${key}`, newValue);
+    await this.getConnectedRedisClient().set(`${this.commonOptions.prefix}${key}`, newValue);
   };
 
   /** Запись значения в кеш
@@ -59,19 +98,19 @@ export class RedisService {
    * @param value значение
    * @param time время в секундах, через которое запись будет удалена
    */
-  public setEx = (key: string, value: any, time: number) => this.redis.setEx(`${this.commonOptions.prefix}${key}`, time, JSON.stringify(value));
+  public setEx = (key: string, value: any, time: number) => this.getConnectedRedisClient().setEx(`${this.commonOptions.prefix}${key}`, time, JSON.stringify(value));
 
   /** Проверка на наличие значения в кеше
    * @param key ключ
    */
-  public exists = (key: string) => this.redis.exists(`${this.commonOptions.prefix}${key}`);
+  public exists = (key: string) => this.getConnectedRedisClient().exists(`${this.commonOptions.prefix}${key}`);
 
   /** Удаление значения из кеша
    * @param key ключ
    */
   public delete = async (key: string) => {
     this.loggerService.info(this.TAG, `Удаление значения по ключу ${key}`);
-    await this.redis.del(`${this.commonOptions.prefix}${key}`);
+    await this.getConnectedRedisClient().del(`${this.commonOptions.prefix}${key}`);
   };
 
   /**
@@ -81,12 +120,13 @@ export class RedisService {
    * @returns новое значение счётчика после инкремента
    */
   public incrementWithWindowTtl = async (key: string, windowSeconds: number): Promise<number> => {
+    const connectedRedisClient = this.getConnectedRedisClient();
     const fullKey = `${this.commonOptions.prefix}${key}`;
-    const nextValueRaw = await this.redis.incr(fullKey);
+    const nextValueRaw = await connectedRedisClient.incr(fullKey);
     const nextValue = Number(nextValueRaw);
 
     if (nextValue === 1) {
-      await this.redis.expire(fullKey, windowSeconds);
+      await connectedRedisClient.expire(fullKey, windowSeconds);
     }
 
     return nextValue;
@@ -104,7 +144,7 @@ export class RedisService {
     }
 
     this.loggerService.info(this.TAG, `Обновление значений по ключам: ${items.map(({ id }) => id).join(', ').trim()}`);
-    const pipeline = this.redis.multi();
+    const pipeline = this.getConnectedRedisClient().multi();
 
     for (const item of items) {
       if (item.id) {
@@ -161,7 +201,7 @@ export class RedisService {
     const keys = ids.map((id) => `${this.commonOptions.prefix}${key}${id}`);
 
     try {
-      const values = await this.redis.mGet(keys);
+      const values = await this.getConnectedRedisClient().mGet(keys);
       for (const value of values) {
         if (value && typeof value === 'string') {
           items.push(JSON.parse(value) as T);
