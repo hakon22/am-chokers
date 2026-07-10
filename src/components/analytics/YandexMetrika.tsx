@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { cookieConsentConfig } from '@shared/cookie-consent-config';
 import { hasAnalyticsConsent } from '@shared/has-analytics-consent';
@@ -15,7 +15,8 @@ interface YandexMetrikaQueueInterface {
 
 type YandexMetrikaWindowExtension = {
   ym?: YandexMetrikaQueueInterface;
-  amChokersYandexMetrikaInitialized?: boolean;
+  amChokersYandexMetrikaScriptLoaded?: boolean;
+  amChokersYandexMetrikaFullModeEnabled?: boolean;
 };
 
 /**
@@ -27,16 +28,30 @@ const getYandexMetrikaWindow = (): Window & YandexMetrikaWindowExtension => (
 );
 
 /**
- * Подключает скрипт Яндекс.Метрики после согласия пользователя
+ * Формирует параметры init счётчика в зависимости от согласия на расширенную аналитику
+ * @param hasConsent - разрешены ли webvisor, карта кликов и отслеживание ссылок
+ * @returns объект параметров для ym(..., 'init', ...)
  */
-const injectYandexMetrikaScript = (): void => {
+const getYandexMetrikaInitOptions = (hasConsent: boolean) => ({
+  clickmap: hasConsent,
+  trackLinks: hasConsent,
+  accurateTrackBounce: hasConsent,
+  webvisor: hasConsent,
+  referrer: document.referrer,
+  url: location.href,
+});
+
+/**
+ * Вставляет tag.js и создаёт очередь ym, если скрипт ещё не подключён
+ */
+const loadYandexMetrikaScript = (): void => {
   const metrikaWindow = getYandexMetrikaWindow();
 
-  if (metrikaWindow.amChokersYandexMetrikaInitialized || !hasAnalyticsConsent()) {
+  if (metrikaWindow.amChokersYandexMetrikaScriptLoaded) {
     return;
   }
 
-  metrikaWindow.amChokersYandexMetrikaInitialized = true;
+  metrikaWindow.amChokersYandexMetrikaScriptLoaded = true;
 
   const metrikaLoader = (
     targetWindow: Window & YandexMetrikaWindowExtension,
@@ -72,40 +87,56 @@ const injectYandexMetrikaScript = (): void => {
   };
 
   metrikaLoader(metrikaWindow, document, 'script', YANDEX_METRIKA_SCRIPT_URL, 'ym');
-
-  metrikaWindow.ym?.(YANDEX_METRIKA_COUNTER_ID, 'init', {
-    clickmap: true,
-    trackLinks: true,
-    accurateTrackBounce: true,
-    webvisor: true,
-    referrer: document.referrer,
-    url: location.href,
-  });
 };
 
 /**
- * Компонент подключения Яндекс.Метрики с consent gate
+ * Инициализирует счётчик в минимальном режиме для атрибуции и офлайн-конверсий
+ */
+const initMinimalYandexMetrika = (): void => {
+  loadYandexMetrikaScript();
+
+  const metrikaWindow = getYandexMetrikaWindow();
+  metrikaWindow.ym?.(YANDEX_METRIKA_COUNTER_ID, 'init', getYandexMetrikaInitOptions(false));
+};
+
+/**
+ * Включает расширенные функции Метрики (webvisor, карта кликов) после согласия пользователя
+ */
+const enableFullYandexMetrika = (): void => {
+  const metrikaWindow = getYandexMetrikaWindow();
+
+  if (metrikaWindow.amChokersYandexMetrikaFullModeEnabled) {
+    return;
+  }
+
+  loadYandexMetrikaScript();
+  metrikaWindow.amChokersYandexMetrikaFullModeEnabled = true;
+  metrikaWindow.ym?.(YANDEX_METRIKA_COUNTER_ID, 'init', getYandexMetrikaInitOptions(true));
+};
+
+/**
+ * Подключает Метрику: минимальный режим всегда, полный — при наличии согласия
+ */
+const bootstrapYandexMetrika = (): void => {
+  initMinimalYandexMetrika();
+
+  if (hasAnalyticsConsent()) {
+    enableFullYandexMetrika();
+  }
+};
+
+/**
+ * Компонент подключения Яндекс.Метрики: минимальный режим всегда, расширенный — по согласию
  */
 export const YandexMetrika = () => {
-  const [isConsentGranted, setIsConsentGranted] = useState(false);
-
   useEffect(() => {
-    /**
-     * Синхронизирует флаг согласия с cookie
-     */
-    const syncConsentState = (): void => {
-      setIsConsentGranted(hasAnalyticsConsent());
-    };
-
-    injectYandexMetrikaScript();
-    syncConsentState();
+    bootstrapYandexMetrika();
 
     /**
-     * Повторная инициализация после принятия баннера
+     * Включает полный режим Метрики после принятия баннера cookie
      */
     const handleConsentAccepted = (): void => {
-      injectYandexMetrikaScript();
-      syncConsentState();
+      enableFullYandexMetrika();
     };
 
     window.addEventListener(cookieConsentConfig.consentAcceptedEventName, handleConsentAccepted);
@@ -114,10 +145,6 @@ export const YandexMetrika = () => {
       window.removeEventListener(cookieConsentConfig.consentAcceptedEventName, handleConsentAccepted);
     };
   }, []);
-
-  if (!isConsentGranted) {
-    return null;
-  }
 
   return (
     <noscript>

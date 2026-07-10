@@ -42,32 +42,39 @@ const PrivacyPolicy = () => {
           <li>{t('20')}</li>
         </ul>
         <p>{t('21')}</p>
-        <p className="fs-5 fw-bold text-uppercase">{t('22')}</p>
-        <p>{t('23')}</p>
+        <p>{t('22')}</p>
         <ul>
+          <li>{t('23')}</li>
           <li>{t('24')}</li>
           <li>{t('25')}</li>
-          <li>{t('26')}</li>
         </ul>
-        <p>{t('27')}</p>
-        <p className="fs-5 fw-bold text-uppercase">{t('28')}</p>
-        <p>{t('29')}</p>
-        <p>{t('30')}</p>
-        <p>{t('31')}</p>
-        <p className="fs-5 fw-bold text-uppercase">{t('32')}</p>
-        <p>{t('33')}</p>
+        <p>{t('26')}</p>
+        <p className="fs-5 fw-bold text-uppercase">{t('27')}</p>
+        <p>{t('28')}</p>
         <ul>
-          <li>{t('34')}</li>
-          <li>{t('35')}</li>
-          <li>{t('36')}</li>
+          <li>{t('29')}</li>
+          <li>{t('30')}</li>
+          <li>{t('31')}</li>
         </ul>
+        <p>{t('32')}</p>
+        <p className="fs-5 fw-bold text-uppercase">{t('33')}</p>
+        <p>{t('34')}</p>
+        <p>{t('35')}</p>
+        <p>{t('36')}</p>
         <p className="fs-5 fw-bold text-uppercase">{t('37')}</p>
         <p>{t('38')}</p>
-        <p className="fs-5 fw-bold text-uppercase">{t('39')}</p>
-        <p>{t('40')}</p>
-        <p className="fs-5 fw-bold text-uppercase">{t('41')}</p>
-        <p>{t('42')}</p>
+        <ul>
+          <li>{t('39')}</li>
+          <li>{t('40')}</li>
+          <li>{t('41')}</li>
+        </ul>
+        <p className="fs-5 fw-bold text-uppercase">{t('42')}</p>
         <p>{t('43')}</p>
+        <p className="fs-5 fw-bold text-uppercase">{t('44')}</p>
+        <p>{t('45')}</p>
+        <p className="fs-5 fw-bold text-uppercase">{t('46')}</p>
+        <p>{t('47')}</p>
+        <p>{t('48')}</p>
       </div>
     </div>
   );
