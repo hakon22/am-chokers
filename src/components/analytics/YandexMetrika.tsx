@@ -35,7 +35,7 @@ const getYandexMetrikaWindow = (): Window & YandexMetrikaWindowExtension => (
 const getYandexMetrikaInitOptions = (hasConsent: boolean) => ({
   clickmap: hasConsent,
   trackLinks: hasConsent,
-  accurateTrackBounce: hasConsent,
+  accurateTrackBounce: true,
   webvisor: hasConsent,
   referrer: document.referrer,
   url: location.href,
