@@ -3,6 +3,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { AiProviderTypeEnum } from '@server/types/ai/enums/ai-provider-type.enum';
 import { RouterAiValidationProvider } from '@server/services/integration/ai/providers/router-ai-validation.provider';
 import { CodingMantraGenerationProvider } from '@server/services/integration/ai/providers/coding-mantra-generation.provider';
+import { GenlookGenerationProvider } from '@server/services/integration/ai/providers/genlook-generation.provider';
 import type { TryOnValidationProviderInterface } from '@server/services/integration/ai/interfaces/try-on-validation-provider.interface';
 import type { TryOnGenerationProviderInterface } from '@server/services/integration/ai/interfaces/try-on-generation-provider.interface';
 
@@ -20,6 +21,10 @@ export class TryOnProviderRegistryService {
     this.generationProviders.set(
       AiProviderTypeEnum.CODING_MANTRA,
       Container.get(CodingMantraGenerationProvider),
+    );
+    this.generationProviders.set(
+      AiProviderTypeEnum.GENLOOK,
+      Container.get(GenlookGenerationProvider),
     );
   }
 

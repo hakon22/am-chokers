@@ -48,7 +48,7 @@ export class CodingMantraVtoService extends BaseService {
 
   private readonly defaultAspectRatioSquare = '1:1';
 
-  /** Временно не передаём длину/размер товара в generation (scene prompt и Hint) */
+  /** Передавать ли длину/размер товара в generation (scene prompt и Hint) */
   private readonly includeItemLengthInPrompt = false;
 
   /**

@@ -15,6 +15,7 @@ export interface TryOnGenerationContextInterface {
 export interface TryOnGenerationParamsInterface {
   agent: AiAgentEntity;
   vtoType: AiTryOnVtoTypeEnum;
+  itemId: number;
   userImageBuffer: Buffer;
   productRefUrls: string[];
   context: TryOnGenerationContextInterface;

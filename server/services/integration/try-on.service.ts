@@ -207,6 +207,7 @@ export class TryOnService extends BaseService {
       const generationResult = await generationProvider.generate({
         agent: generationAgent,
         vtoType: tryOnConfig.vtoType,
+        itemId: item.id,
         userImageBuffer,
         productRefUrls,
         context: {
@@ -445,42 +446,11 @@ export class TryOnService extends BaseService {
     lang: UserLangEnum,
     generationProvider: AiProviderTypeEnum,
   ): string => {
-    if (generationProvider === AiProviderTypeEnum.CODING_MANTRA) {
-      if (lang === UserLangEnum.EN) {
-        if (errorCode === 'PROVIDER_TIMEOUT') {
-          return 'Generation timed out. Please try again.';
-        }
-        if (errorCode === 'PROVIDER_RATE_LIMIT') {
-          return 'Service is busy. Try again in a minute.';
-        }
-        if (errorCode === 'PROVIDER_AUTH_FAILED') {
-          return 'Try-on is temporarily unavailable.';
-        }
-        if (errorCode === 'PROVIDER_INSUFFICIENT_CREDITS') {
-          return 'Try-on is temporarily unavailable due to provider limits. Please try again later.';
-        }
-        if (errorCode === 'INVALID_PROVIDER_RESPONSE') {
-          return 'Could not get a result. Try another photo.';
-        }
-        return 'Try-on generation failed. Please try another photo.';
-      }
-
-      if (errorCode === 'PROVIDER_TIMEOUT') {
-        return 'Генерация заняла слишком много времени. Попробуйте ещё раз.';
-      }
-      if (errorCode === 'PROVIDER_RATE_LIMIT') {
-        return 'Сервис перегружен. Попробуйте через минуту.';
-      }
-      if (errorCode === 'PROVIDER_AUTH_FAILED') {
-        return 'Сервис примерки временно недоступен.';
-      }
-      if (errorCode === 'PROVIDER_INSUFFICIENT_CREDITS') {
-        return 'Сервис примерки временно недоступен из‑за лимита провайдера. Попробуйте позже.';
-      }
-      if (errorCode === 'INVALID_PROVIDER_RESPONSE') {
-        return 'Не удалось получить результат. Попробуйте другое фото.';
-      }
-      return 'Не удалось выполнить примерку. Попробуйте другое фото.';
+    if (
+      generationProvider === AiProviderTypeEnum.CODING_MANTRA
+      || generationProvider === AiProviderTypeEnum.GENLOOK
+    ) {
+      return this.mapGenerativeProviderErrorMessage(errorCode, lang);
     }
 
     if (lang === UserLangEnum.EN) {
@@ -498,6 +468,50 @@ export class TryOnService extends BaseService {
     }
     if (errorCode === 'PHOTO_DETECTION_FAIL' || errorCode === 'PHOTO_CHECK_INVALID') {
       return 'Фото не прошло проверку позы: лицо анфас, шея хорошо видна, без сильного наклона головы.';
+    }
+    return 'Не удалось выполнить примерку. Попробуйте другое фото.';
+  };
+
+  /**
+   * Сообщения об ошибках generative-провайдеров (CodingMantra, Genlook)
+   * @param errorCode - внутренний код ошибки
+   * @param lang - язык UI
+   * @returns локализованный текст
+   */
+  private mapGenerativeProviderErrorMessage = (errorCode: string | undefined, lang: UserLangEnum): string => {
+    if (lang === UserLangEnum.EN) {
+      if (errorCode === 'PROVIDER_TIMEOUT') {
+        return 'Generation timed out. Please try again.';
+      }
+      if (errorCode === 'PROVIDER_RATE_LIMIT') {
+        return 'Service is busy. Try again in a minute.';
+      }
+      if (errorCode === 'PROVIDER_AUTH_FAILED') {
+        return 'Try-on is temporarily unavailable.';
+      }
+      if (errorCode === 'PROVIDER_INSUFFICIENT_CREDITS') {
+        return 'Try-on is temporarily unavailable due to provider limits. Please try again later.';
+      }
+      if (errorCode === 'INVALID_PROVIDER_RESPONSE') {
+        return 'Could not get a result. Try another photo.';
+      }
+      return 'Try-on generation failed. Please try another photo.';
+    }
+
+    if (errorCode === 'PROVIDER_TIMEOUT') {
+      return 'Генерация заняла слишком много времени. Попробуйте ещё раз.';
+    }
+    if (errorCode === 'PROVIDER_RATE_LIMIT') {
+      return 'Сервис перегружен. Попробуйте через минуту.';
+    }
+    if (errorCode === 'PROVIDER_AUTH_FAILED') {
+      return 'Сервис примерки временно недоступен.';
+    }
+    if (errorCode === 'PROVIDER_INSUFFICIENT_CREDITS') {
+      return 'Сервис примерки временно недоступен из‑за лимита провайдера. Попробуйте позже.';
+    }
+    if (errorCode === 'INVALID_PROVIDER_RESPONSE') {
+      return 'Не удалось получить результат. Попробуйте другое фото.';
     }
     return 'Не удалось выполнить примерку. Попробуйте другое фото.';
   };
