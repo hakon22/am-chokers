@@ -49,6 +49,13 @@ export class ImageEntity extends BaseEntity {
   })
   public order: number;
 
+  /** Отдельное фото для AI-примерки (не каталожная галерея) */
+  @Column('boolean', {
+    name: 'try_on',
+    default: false,
+  })
+  public tryOn: boolean;
+
   /** Порядок установки на главной странице */
   @Column('int', {
     nullable: true,

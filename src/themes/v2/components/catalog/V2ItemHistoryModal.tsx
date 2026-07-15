@@ -33,7 +33,7 @@ export const V2ItemHistoryModal = ({ itemId, open, onClose }: Props) => {
     const presentation = buildHistoryChangePresentation(row, fieldLabel, tHist('arrow'), tHist('valueRemoved'));
     return {
       key: String(row.id),
-      children: (
+      content: (
         <div>
           <div className={styles.meta}>
             {moment(row.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM)}

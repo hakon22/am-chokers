@@ -45,6 +45,11 @@ export class UploadPathService {
         ? join(this.uploadFilesPath, UploadPathEnum.PROMOTIONAL, fileName)
         : join(this.uploadFilesPath, UploadPathEnum.PROMOTIONAL);
       break;
+    case UploadPathEnum.TRY_ON:
+      path = fileName
+        ? join(this.uploadFilesPath, UploadPathEnum.TRY_ON, fileName)
+        : join(this.uploadFilesPath, UploadPathEnum.TRY_ON);
+      break;
     }
     return path;
   };
@@ -68,6 +73,9 @@ export class UploadPathService {
       break;
     case UploadPathEnum.PROMOTIONAL:
       path = join(routes.page.base.homePage, UploadPathEnum.PROMOTIONAL);
+      break;
+    case UploadPathEnum.TRY_ON:
+      path = join(routes.page.base.homePage, UploadPathEnum.TRY_ON);
       break;
     }
     return path;

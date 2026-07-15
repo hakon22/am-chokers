@@ -31,6 +31,10 @@ import { YandexDirectStatisticsEntity } from '@server/db/entities/yandex.direct.
 import { BannerEntity } from '@server/db/entities/banner.entity';
 import { SiteSettingsEntity } from '@server/db/entities/site.settings.entity';
 import { ItemHistoryEntity } from '@server/db/entities/item.history.entity';
+import { AiAgentEntity } from '@server/db/entities/ai/ai-agent.entity';
+import { AiPromptTemplateEntity } from '@server/db/entities/ai/ai-prompt-template.entity';
+import { AiItemGroupTryOnEntity } from '@server/db/entities/ai/ai-item-group-try-on.entity';
+import { AiTryOnLogEntity } from '@server/db/entities/ai/ai-try-on-log.entity';
 
 export const entities = [
   UserEntity,
@@ -66,4 +70,8 @@ export const entities = [
   BannerEntity,
   SiteSettingsEntity,
   ItemHistoryEntity,
+  AiAgentEntity,
+  AiPromptTemplateEntity,
+  AiItemGroupTryOnEntity,
+  AiTryOnLogEntity,
 ];

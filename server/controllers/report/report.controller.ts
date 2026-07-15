@@ -6,6 +6,7 @@ import { CartService } from '@server/services/cart/cart.service';
 import { MessageService } from '@server/services/message/message.service';
 import { MetricaReportService } from '@server/services/reports/metrica.report.service';
 import { SalesReportService } from '@server/services/reports/sales.report.service';
+import { TryOnReportService } from '@server/services/reports/try-on.report.service';
 import {
   queryPaginationWithParams,
   queryMessageReportParams,
@@ -22,6 +23,8 @@ export class ReportController extends BaseService {
   private readonly metricaReportService = Container.get(MetricaReportService);
 
   private readonly salesReportService = Container.get(SalesReportService);
+
+  private readonly tryOnReportService = Container.get(TryOnReportService);
 
   public cartReport = async (req: Request, res: Response) => {
     try {
@@ -80,6 +83,30 @@ export class ReportController extends BaseService {
       const result = await this.salesReportService.salesReport(user.lang, query);
 
       res.json({ code: 1, result });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * GET /api/reports/try-on — успешные AI-примерки
+   * @param req - Express request
+   * @param res - Express response
+   * @returns void
+   */
+  public tryOnReport = async (req: Request, res: Response) => {
+    try {
+      const query = await queryPaginationWithParams.validate(req.query);
+
+      const [items, count] = await this.tryOnReportService.tryOnReport(query);
+
+      const paginationParams = {
+        count,
+        limit: query.limit,
+        offset: query.offset,
+      };
+
+      res.json({ code: 1, items, paginationParams });
     } catch (e) {
       this.errorHandler(e, res);
     }

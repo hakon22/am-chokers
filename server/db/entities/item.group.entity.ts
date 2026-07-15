@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import { ItemGroupTranslateEntity } from '@server/db/entities/item.group.translate.entity';
+import { AiItemGroupTryOnEntity } from '@server/db/entities/ai/ai-item-group-try-on.entity';
 
 /** Группы товаров */
 @Entity({
@@ -44,4 +46,8 @@ export class ItemGroupEntity extends BaseEntity {
   /** Локализации группы товара */
   @OneToMany(() => ItemGroupTranslateEntity, translate => translate.group)
   public translations: ItemGroupTranslateEntity[];
+
+  /** Конфиг AI-примерки для группы */
+  @OneToOne(() => AiItemGroupTryOnEntity, tryOn => tryOn.itemGroup)
+  public tryOn?: AiItemGroupTryOnEntity;
 }

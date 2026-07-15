@@ -84,7 +84,7 @@ export const getCatalogPathServerSideProps = async (context: GetServerSidePropsC
     }
 
     if (itemName) {
-      const productData = await loadProductPageData(itemName, initialLanguage);
+      const productData = await loadProductPageData(itemName, initialLanguage, req.headers.cookie);
 
       if (productData) {
         return {

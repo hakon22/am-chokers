@@ -25,10 +25,13 @@ import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItem, deleteItemImage, updateItem, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
+import { TryOnImageGuide } from '@/components/TryOnImageGuide';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { CropImage } from '@/components/CropImage';
 import { TimePicker } from '@/components/TimePicker';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import { setTryOnForImage } from '@/utilities/setTryOnForImage';
+import { isTryOnEnabledForGroup } from '@/utilities/isTryOnEnabledForGroupCode';
 import { getHeight, getWidth } from '@/utilities/screenExtension';
 import { shouldDisableMobileThumbnailSwipe } from '@/utilities/galleryMobileThumbnails';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -111,6 +114,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(oldItem?.images || []);
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
+  const showTryOnControls = isTryOnEnabledForGroup(itemGroup);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
   const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
   const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
@@ -234,6 +238,15 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(+active.id);
+  };
+
+  /**
+   * Переключает флаг try_on у изображения и переносит его в конец списка
+   * @param imageId - id изображения
+   * @param tryOn - новое значение флага
+   */
+  const handleTryOnChange = (imageId: number, tryOn: boolean) => {
+    setImages((currentImages) => setTryOnForImage(currentImages, imageId, tryOn));
   };
 
   const onFinish = async (values: ItemInterface | ItemFormInterface) => {
@@ -486,9 +499,12 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
                           activeId={activeId}
                           setImages={setImages}
                           setFileList={setFileList}
+                          onTryOnChange={handleTryOnChange}
+                          showTryOnControls={showTryOnControls}
                         />
                       ))}
                     </div>
+                    <TryOnImageGuide group={itemGroup} />
                   </SortableContext>
                 </DndContext>
               ) : (

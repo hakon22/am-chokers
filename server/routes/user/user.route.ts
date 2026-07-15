@@ -15,7 +15,7 @@ export class UserRoute extends BaseRouter {
     router.post(this.routes.user.signup, this.userService.signup);
     router.post(this.routes.user.recoveryPassword, this.userService.recoveryPassword);
     router.post(this.routes.user.logout, this.middlewareService.jwtToken, this.userService.logout);
-    router.get(this.routes.user.updateTokens, passport.authenticate('jwt-refresh', { session: false }), this.userService.updateTokens);
+    router.post(this.routes.user.updateTokens, passport.authenticate('jwt-refresh', { session: false }), this.userService.updateTokens);
     router.post(this.routes.user.confirmPhone, this.middlewareService.optionalJwtAuth, this.userService.confirmPhone);
     router.post(this.routes.user.changeUserProfile, this.middlewareService.jwtToken, this.userService.changeUserProfile);
     router.get(this.routes.user.unlinkTelegram, this.middlewareService.jwtToken, this.userService.unlinkTelegram);

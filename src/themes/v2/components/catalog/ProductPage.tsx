@@ -24,6 +24,8 @@ import { routes } from '@/routes';
 import { useCarouselInteractionAutoplayPause } from '@/hooks/useCarouselInteractionAutoplayPause';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
+import { useTryOn } from '@/hooks/useTryOn';
+import { TryOnModal } from '@/components/try-on/TryOnModal';
 import { AuthModalContext, ItemContext, MobileContext, SubmitContext } from '@/components/Context';
 import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { setPaginationParams } from '@/slices/appSlice';
@@ -32,6 +34,7 @@ import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
 import { getHref } from '@/utilities/getHref';
 import { scrollToElement } from '@/utilities/scrollToElement';
+import { isTryOnEnabledForGroup, getTryOnVtoTypeForGroup, resolveHasTryOnImage } from '@/utilities/isTryOnEnabledForGroupCode';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import styles from '@/themes/v2/components/catalog/ProductPage.module.scss';
 import productsSectionStyles from '@/themes/v2/components/home/ProductsSection.module.scss';
@@ -50,6 +53,7 @@ const STICKY_BAR_FOOTER_ZONE_DESKTOP = 88;
 
 export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: ItemInterface; paginationParams?: PaginationInterface; }) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tTryOn } = useTranslation('translation', { keyPrefix: 'modules.tryOn' });
   const { t: tSeo } = useTranslation('translation', { keyPrefix: 'seo' });
   const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
@@ -90,6 +94,12 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
   }, [setContextItem]);
 
   const { id, collection, images, colors, price, discountPrice, compositions, rating } = item;
+  const isTryOnEnabled = isTryOnEnabledForGroup(item.group) && resolveHasTryOnImage(item);
+  const tryOn = useTryOn({
+    itemId: id,
+    isEnabled: isTryOnEnabled,
+    vtoType: getTryOnVtoTypeForGroup(item.group),
+  });
 
   const position = item.translations?.find((translation) => translation.lang === lang) as ItemTranslateEntity | undefined;
   const name = position?.name ?? item.translateName;
@@ -317,6 +327,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
             noticeShellClassName={styles.noticeShell}
             noticeClassName={styles.notice}
             discountPercent={discountPercent}
+            showTryOnImageLabels={isAdmin}
           />
         </div>{/* /galleryCol */}
 
@@ -415,6 +426,16 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
                   {inFavorites ? <HeartFilled /> : <HeartOutlined />}
                 </button>
               </div>
+              {tryOn.isEnabled ? (
+                <button
+                  type="button"
+                  className={styles.btnTryOn}
+                  onClick={tryOn.open}
+                >
+                  <span className={styles.btnTryOnBadge}>{tTryOn('newBadge')}</span>
+                  {tTryOn('button')}
+                </button>
+              ) : null}
             </>
           )}
 
@@ -514,7 +535,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
               </div>
             )}
 
-            {/* Другое */}
+            {/* Размер */}
             {length && (
               <div className={styles.accItem}>
                 <button
@@ -524,15 +545,12 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
                   aria-expanded={openSection === 'others'}
                   aria-controls="product-section-others"
                 >
-                  {t('othersSection')}
+                  {t('sizeSection')}
                   <span className={`${styles.accChevron}${openSection === 'others' ? ` ${styles.open}` : ''}`}>▾</span>
                 </button>
                 <div className={styles.accBody} id="product-section-others" hidden={openSection !== 'others'}>
                   <div className={styles.compositionBlock}>
-                    <div>
-                      <div className={styles.compositionLabel}>{t('length')}</div>
-                      <span>{length}</span>
-                    </div>
+                    <span>{length}</span>
                   </div>
                 </div>
               </div>
@@ -718,6 +736,19 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
           </button>
         </div>
       )}
+      {tryOn.isEnabled ? (
+        <TryOnModal
+          open={tryOn.modalOpen}
+          loading={tryOn.loading}
+          resultImageSrc={tryOn.resultImageSrc}
+          error={tryOn.error}
+          rated={tryOn.rated}
+          vtoType={tryOn.vtoType}
+          onClose={tryOn.close}
+          onSubmit={tryOn.submit}
+          onRate={tryOn.rate}
+        />
+      ) : null}
     </>
   );
 };

@@ -1,4 +1,4 @@
-export const serverHost = process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST ?? 'http://192.168.0.103:'}${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
+export const serverHost = process.env.NODE_ENV === 'production' && process.env.DB !== 'LOCAL' ? process.env.NEXT_PUBLIC_PRODUCTION_HOST : `${process.env.NEXT_PUBLIC_SERVER_HOST}` || `http://192.168.0.103:${process.env.NEXT_PUBLIC_PORT ?? 3001}`;
 const apiPath = process.env.NEXT_PUBLIC_API_PATH ?? '/api';
 
 interface ServerClientInterface {
@@ -53,6 +53,7 @@ export const routes = {
       adminSettings: [adminPath, 'settings'].join('/'),
       metricaReport: [adminPath, 'reports', 'metrica'].join('/'),
       salesReport: [adminPath, 'reports', 'sales'].join('/'),
+      tryOnReport: [adminPath, 'reports', 'try-on'].join('/'),
       banners: [adminPath, 'banners'].join('/'),
     },
     telegram: {
@@ -100,6 +101,11 @@ export const routes = {
     cdek: {
       root: [apiPath, 'cdek'].join('/'),
       webhooks: [apiPath, 'cdek', 'webhooks'].join('/'),
+    },
+    tryOn: {
+      create: [apiPath, 'integration', 'try-on'].join('/'),
+      rating: [apiPath, 'integration', 'try-on', 'rating'].join('/'),
+      upload: [apiPath, 'integration', 'try-on', 'upload'].join('/'),
     },
   },
 
@@ -282,5 +288,6 @@ export const routes = {
     users: [apiPath, 'reports', 'user', 'list'].join('/'),
     metrica: [apiPath, 'reports', 'metrica'].join('/'),
     sales: [apiPath, 'reports', 'sales'].join('/'),
+    tryOn: [apiPath, 'reports', 'try-on'].join('/'),
   },
 } as const;

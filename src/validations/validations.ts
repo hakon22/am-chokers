@@ -10,6 +10,8 @@ import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enu
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import { TelegramMiniAppBootstrapLogPhaseEnum } from '@shared/enums/telegram-mini-app-bootstrap-log-phase.enum';
+import { AiTryOnUserRatingEnum } from '@server/types/ai/enums/ai-try-on-user-rating.enum';
+import { AiTryOnVtoTypeEnum } from '@server/types/ai/enums/ai-try-on-vto-type.enum';
 
 const { t } = i18n;
 
@@ -54,6 +56,11 @@ const numberSchema = yup.number().min(1).required();
 const stringSchema = yup.string().required();
 
 const requiredIdSchema = yup.object().shape({ id: numberSchema });
+
+const itemImageSchema = yup.object().shape({
+  id: numberSchema,
+  tryOn: booleanSchema.optional(),
+});
 
 const phoneSchema = yup.string().trim().required().transform((value) => value.replace(/[^\d]/g, ''))
   .length(11)
@@ -231,7 +238,7 @@ const newItemSchema = yup.object().shape({
   discountPrice: yup.number().optional(),
   compositions: yup.array(idSchema).min(1).required(),
   colors: yup.array(idSchema).min(1).required(),
-  images: yup.array(requiredIdSchema).optional(),
+  images: yup.array(itemImageSchema).optional(),
   publicationDate: yup.date().optional().nullable(),
   translations: translationSchema('item'),
   deferredPublication: yup.object().shape({
@@ -251,7 +258,7 @@ const partialUpdateItemSchema = yup.object().shape({
   compositions: yup.array(idSchema).optional(),
   colors: yup.array(idSchema).optional(),
   order: yup.number().optional().nullable(),
-  images: yup.array(requiredIdSchema).optional(),
+  images: yup.array(itemImageSchema).optional(),
   message: yup.number().min(1).nullable().optional(),
 });
 
@@ -279,6 +286,19 @@ const newItemCollectionSchema = yup.object().shape({
 const newItemGroupSchema = yup.object().shape({
   code: stringSchema,
   translations: translationSchema('group'),
+  tryOn: yup.object().shape({
+    isEnabled: booleanSchema.required(),
+    vtoType: yup
+      .mixed<AiTryOnVtoTypeEnum>()
+      .nullable()
+      .defined()
+      .oneOf([...Object.values(AiTryOnVtoTypeEnum), null])
+      .when('isEnabled', {
+        is: true,
+        then: (schema) => schema.required().oneOf(Object.values(AiTryOnVtoTypeEnum)),
+        otherwise: (schema) => schema.nullable(),
+      }),
+  }).required(),
 });
 
 const linkSchema = yup
@@ -460,6 +480,17 @@ const setCoverImageSchema = yup.object().shape({
   siteVersion: yup.number().optional().nullable(),
   coverType: yup.string().oneOf(Object.values(CoverTypeEnum)).required(),
 }).concat(requiredIdSchema);
+
+export const tryOnRequestSchema = yup.object().shape({
+  itemId: numberSchema,
+  userImageSrc: yup.string().trim().required(),
+  lang: yup.string().oneOf(Object.values(UserLangEnum)).optional(),
+});
+
+export const tryOnRatingSchema = yup.object().shape({
+  tryOnLogId: numberSchema,
+  rating: yup.string().oneOf(Object.values(AiTryOnUserRatingEnum)).required(),
+});
 
 export const confirmCodeValidation = validate(confirmCodeSchema);
 export const phoneValidation = validate(confirmPhoneSchema);

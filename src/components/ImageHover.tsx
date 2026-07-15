@@ -1,4 +1,4 @@
-import { useState, useEffect, CSSProperties, HTMLAttributes, useEffectEvent } from 'react';
+import { useState, useEffect, CSSProperties, HTMLAttributes, useEffectEvent, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -50,12 +50,17 @@ export const ImageHover = ({
 
   const grade = rating?.rating?.rating ?? 0;
 
+  const displayImages = useMemo(
+    () => [...images].sort((a, b) => a.order - b.order).filter((image) => !image.tryOn),
+    [images],
+  );
+
   const handleLoad = () => {
     setLoading(false);
   };
 
   const changeImage = useEffectEvent(() => {
-    setIndex((prevIndex) => (prevIndex + 1) % images.length);
+    setIndex((prevIndex) => (prevIndex + 1) % displayImages.length);
   });
 
   const handleMouseEnter = () => {
@@ -91,8 +96,8 @@ export const ImageHover = ({
               {tCart('isAbsent', { date: moment(outStock).format(DateFormatEnum.DD_MM) })}
             </div>
           )}
-          {images.length
-            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
+          {displayImages.length
+            ? displayImages.map((image, i) => (
               <div key={image.id} style={i === index ? { width, height } : {}}>
                 {loading && i === index && (
                   <Skeleton.Image
@@ -131,7 +136,7 @@ export const ImageHover = ({
         </Link>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-            {marker ? [...images].sort((a, b) => a.order - b.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+            {marker ? displayImages.map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
             {name ? <div className={cn('title lh-sm mb-2', { 'mb-3': !rating })} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width }}>{name}</div> : null}
             {rating ? (
               <div className="d-flex align-items-center gap-3 mb-3 text-muted">
@@ -163,8 +168,8 @@ export const ImageHover = ({
               {tCart(deleted ? 'deleted' : 'isAbsent', { date: moment(outStock).format(DateFormatEnum.DD_MM) })}
             </div>
           )}
-          {images.length
-            ? [...images].sort((a, b) => a.order - b.order).map((image, i) => (
+          {displayImages.length
+            ? displayImages.map((image, i) => (
               <div key={image.id} style={i === index ? { width, height } : {}}>
                 {loading && i === index && (
                   <Skeleton.Image
@@ -203,7 +208,7 @@ export const ImageHover = ({
         </div>
         {marker || name || description ? (
           <div className="image-hover-sub mt-3" style={{ width, ...style }}>
-            {marker ? [...images].sort((a, b) => a.order - b.order).map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
+            {marker ? displayImages.map((image, i) => <span key={image.id} className={i === index ? 'sphere active' : 'sphere'} />) : null}
             {name ? <div className="title lh-sm mb-3" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width }}>{name}</div> : null}
             {description ? <div className="description">{description}</div> : null}
           </div>

@@ -2,9 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSearchParams } from 'next/navigation';
-import { Button, Form, Input, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
+import { Button, Form, Input, Select, type TableProps, Table, Popconfirm, Checkbox, Tag } from 'antd';
 import axios from 'axios';
-import { maxBy } from 'lodash';
+import { isNil, maxBy } from 'lodash';
 import { HolderOutlined } from '@ant-design/icons';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
@@ -25,19 +25,22 @@ import { AdminListPrimaryActionButton } from '@/components/admin/AdminListPrimar
 import { BackButton } from '@/components/BackButton';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { AiTryOnVtoTypeEnum } from '@server/types/ai/enums/ai-try-on-vto-type.enum';
 import type { ItemGroupInterface } from '@/types/item/Item';
 
 interface ItemGroupTableInterface {
   key: string;
   translations: Record<UserLangEnum, { name: string; description: string; }>;
   code: string;
+  tryOnEnabled: boolean;
+  tryOnVtoType: AiTryOnVtoTypeEnum | null;
   order?: number;
   deleted?: Date;
 }
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
   editing: boolean;
-  dataIndex: string;
+  dataIndex: string | string[];
   title: string;
   record: ItemGroupTableInterface;
   index: number;
@@ -52,19 +55,92 @@ interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
   'data-row-key': string;
 }
 
-interface RowContextProps {
-  setActivatorNodeRef?: (element: HTMLElement | null) => void;
-  listeners?: SyntheticListenerMap;
-}
+/**
+ * Преобразует группу API в строку таблицы админки
+ * @param itemGroup - группа из API / Redux
+ * @returns строка Editable Table
+ */
+const mapItemGroupToTableRow = (itemGroup: ItemGroupInterface): ItemGroupTableInterface => ({
+  translations: {
+    [UserLangEnum.RU]: {
+      name: itemGroup.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name || '',
+      description: itemGroup.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description || '',
+    },
+    [UserLangEnum.EN]: {
+      name: itemGroup.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name || '',
+      description: itemGroup.translations.find((translation) => translation.lang === UserLangEnum.EN)?.description || '',
+    },
+  },
+  code: itemGroup.code,
+  tryOnEnabled: Boolean(itemGroup.tryOn?.isEnabled),
+  tryOnVtoType: itemGroup.tryOn?.vtoType ?? null,
+  order: itemGroup.order,
+  deleted: itemGroup.deleted,
+  key: itemGroup.id.toString(),
+});
 
 const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   editing,
   dataIndex,
   title,
   children,
-}) => (
-  <td>
-    {editing ? (
+}) => {
+  const { t } = useTranslation('translation', { keyPrefix: 'pages.itemGroup' });
+  const fieldName = Array.isArray(dataIndex) ? dataIndex.join('.') : dataIndex;
+
+  if (!editing) {
+    return <td className={fieldName === 'tryOnEnabled' ? 'text-center' : undefined}>{children}</td>;
+  }
+
+  if (fieldName === 'tryOnEnabled') {
+    return (
+      <td className="text-center">
+        <Form.Item name="tryOnEnabled" style={{ margin: 0 }} valuePropName="checked">
+          <Checkbox />
+        </Form.Item>
+      </td>
+    );
+  }
+
+  if (fieldName === 'tryOnVtoType') {
+    return (
+      <td>
+        <Form.Item
+          name="tryOnVtoType"
+          style={{ margin: 0 }}
+          dependencies={['tryOnEnabled']}
+          rules={[
+            ({ getFieldValue }) => ({
+              /**
+               * Требует тип VTO при включённой AI-примерке
+               * @param _rule - правило antd
+               * @param value - выбранный тип
+               * @returns Promise
+               */
+              validator: async (_rule, value) => {
+                if (getFieldValue('tryOnEnabled') && isNil(value)) {
+                  return Promise.reject(new Error(t('columns.tryOnVtoType')));
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+        >
+          <Select
+            allowClear
+            placeholder={title}
+            options={Object.values(AiTryOnVtoTypeEnum).map((vtoType) => ({
+              value: vtoType,
+              label: t(`tryOnVtoTypeOptions.${vtoType}`),
+            }))}
+          />
+        </Form.Item>
+      </td>
+    );
+  }
+
+  return (
+    <td>
       <Form.Item
         name={dataIndex}
         style={{ margin: 0 }}
@@ -72,11 +148,9 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
       >
         <Input placeholder={title} />
       </Form.Item>
-    ) : (
-      children
-    )}
-  </td>
-);
+    </td>
+  );
+};
 
 const RowContext = createContext<RowContextProps>({});
 
@@ -146,6 +220,11 @@ const CreateItemGroup = () => {
     );
   };
 
+  /**
+   * Обрабатывает окончание DnD и запускает сохранение порядка
+   * @param event - событие dnd-kit
+   * @returns void
+   */
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     if (active.id !== over?.id) {
       setData((prevState) => {
@@ -157,21 +236,27 @@ const CreateItemGroup = () => {
     setIsSorting(true);
   };
 
+  /**
+   * Обновляет строку таблицы после create/update/restore
+   * @param itemGroup - группа с сервера
+   * @param row - локальная строка формы (опционально)
+   * @returns void
+   */
   const updateData = (itemGroup: ItemGroupInterface, row?: ItemGroupTableInterface) => {
     const index = data.findIndex((group) => group.key.toString() === itemGroup.id.toString());
     if (index !== -1) {
       const newData = [...data];
-      const item = newData[index];
+      const mapped = mapItemGroupToTableRow(itemGroup);
       newData.splice(index, 1, {
-        ...item,
-        ...(row || itemGroup),
-        translations: Object.values(UserLangEnum)
-          .reduce((acc, lang) => ({ ...acc, [lang]: row?.translations?.[lang]
-            || {
-              name: itemGroup.translations.find((translation) => translation.lang === lang)?.name,
-              description: itemGroup.translations.find((translation) => translation.lang === lang)?.description,
-            },
-          }), {} as ItemGroupTableInterface['translations']),
+        ...mapped,
+        ...(row
+          ? {
+            translations: row.translations,
+            code: row.code,
+            tryOnEnabled: row.tryOnEnabled,
+            tryOnVtoType: row.tryOnVtoType,
+          }
+          : {}),
       });
       setData(newData);
       if (row) {
@@ -180,15 +265,38 @@ const CreateItemGroup = () => {
     }
   };
 
+  /**
+   * Переключает фильтр удалённых групп
+   * @returns void
+   */
   const withDeletedHandler = () => setWithDeleted(!withDeleted);
 
+  /**
+   * Проверяет, редактируется ли строка
+   * @param record - строка таблицы
+   * @returns true, если строка в режиме редактирования
+   */
   const isEditing = (record: ItemGroupTableInterface) => record.key === editingKey;
 
+  /**
+   * Включает режим редактирования строки
+   * @param record - строка для редактирования
+   * @returns void
+   */
   const edit = (record: Partial<ItemGroupTableInterface> & { key: React.Key }) => {
-    form.setFieldsValue(record);
-    setEditingKey(record.key);
+    form.setFieldsValue({
+      tryOnEnabled: false,
+      tryOnVtoType: null,
+      ...record,
+    });
+    setEditingKey(record.key as string);
   };
 
+  /**
+   * Восстанавливает удалённую группу
+   * @param key - id группы
+   * @returns void
+   */
   const restore = async (key: React.Key) => {
     setIsSubmit(true);
     const { payload: { code: payloadCode, itemGroup } } = await dispatch(restoreItemGroup(key)) as { payload: ItemGroupResponseInterface; };
@@ -198,6 +306,11 @@ const CreateItemGroup = () => {
     setIsSubmit(false);
   };
 
+  /**
+   * Отменяет редактирование
+   * @param record - редактируемая строка
+   * @returns void
+   */
   const cancel = (record: ItemGroupTableInterface) => {
     if (!itemGroups.find(({ code }) => code === record.code)) {
       setData(data.filter(({ key }) => key !== record.key));
@@ -205,17 +318,28 @@ const CreateItemGroup = () => {
     setEditingKey('');
   };
 
+  /**
+   * Добавляет пустую строку для новой группы
+   * @returns void
+   */
   const handleAdd = () => {
     const maxId = maxBy(itemGroups, 'id')?.id;
     const newData: ItemGroupTableInterface = {
       translations: Object.values(UserLangEnum).reduce((acc, lang) => ({ ...acc, [lang]: { name: '', description: '' } }), {} as ItemGroupTableInterface['translations']),
       code: '',
+      tryOnEnabled: false,
+      tryOnVtoType: null,
       key: ((maxId || 0) + 1).toString(),
     };
     setData([newData, ...data]);
     edit(newData);
   };
 
+  /**
+   * Удаляет группу
+   * @param record - строка таблицы
+   * @returns void
+   */
   const handleDelete = async (record: ItemGroupTableInterface) => {
     setIsSubmit(true);
     const { payload: { code: payloadCode, itemGroup } } = await dispatch(deleteItemGroup(record.key)) as { payload: ItemGroupResponseInterface; };
@@ -230,6 +354,11 @@ const CreateItemGroup = () => {
     setIsSubmit(false);
   };
 
+  /**
+   * Сохраняет новую или изменённую группу
+   * @param key - ключ строки
+   * @returns void
+   */
   const save = async (key: React.Key) => {
     setIsSubmit(true);
     const row = await form.validateFields().catch(() => setIsSubmit(false)) as ItemGroupTableInterface;
@@ -238,20 +367,41 @@ const CreateItemGroup = () => {
       return;
     }
 
-    const { translations, code } = row;
+    const { translations, code, tryOnEnabled, tryOnVtoType } = row;
+
+    if (tryOnEnabled && isNil(tryOnVtoType)) {
+      form.setFields([{ name: 'tryOnVtoType', errors: [tToast('itemGroupTryOnVtoTypeRequired')] }]);
+      toast(tToast('itemGroupTryOnVtoTypeRequired'), 'error');
+      setIsSubmit(false);
+      return;
+    }
+
+    const tryOnPayload = {
+      isEnabled: Boolean(tryOnEnabled),
+      vtoType: tryOnVtoType ?? null,
+    };
 
     const exist = itemGroups.find((itemGroup) => itemGroup.id.toString() === key.toString());
 
     let responseCode: number;
 
     if (exist) {
-      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({ id: exist.id, code, translations: Object.entries(translations).map(([lang, { name, description }]) => ({ name, description, lang })) } as ItemGroupInterface)) as { payload: ItemGroupResponseInterface; };
+      const { payload: { code: payloadCode, itemGroup } } = await dispatch(updateItemGroup({
+        id: exist.id,
+        code,
+        translations: Object.entries(translations).map(([lang, { name, description }]) => ({ name, description, lang })),
+        tryOn: tryOnPayload,
+      } as ItemGroupInterface)) as { payload: ItemGroupResponseInterface; };
       responseCode = payloadCode;
       if (responseCode === 1) {
         updateData(itemGroup, row);
       }
     } else {
-      const { payload: { code: payloadCode } } = await dispatch(addItemGroup({ code, translations: Object.entries(translations).map(([lang, { name, description }]) => ({ name, description, lang })) } as ItemGroupInterface)) as { payload: { code: number; } };
+      const { payload: { code: payloadCode } } = await dispatch(addItemGroup({
+        code,
+        translations: Object.entries(translations).map(([lang, { name, description }]) => ({ name, description, lang })),
+        tryOn: tryOnPayload,
+      } as ItemGroupInterface)) as { payload: { code: number; } };
       responseCode = payloadCode;
       if (responseCode === 1) {
         setEditingKey('');
@@ -261,9 +411,17 @@ const CreateItemGroup = () => {
       form.setFields([{ name: 'code', errors: [tToast('itemGroupExist', { code })] }]);
       toast(tToast('itemGroupExist', { code }), 'error');
     }
+    if (responseCode === 3) {
+      form.setFields([{ name: 'tryOnVtoType', errors: [tToast('itemGroupTryOnVtoTypeRequired')] }]);
+      toast(tToast('itemGroupTryOnVtoTypeRequired'), 'error');
+    }
     setIsSubmit(false);
   };
 
+  /**
+   * Сохраняет порядок групп после DnD
+   * @returns void
+   */
   const sort = async () => {
     setIsSubmit(true);
     const { hasUpdate, notSaved } = data.reduce((acc, itemGroup) => {
@@ -277,25 +435,7 @@ const CreateItemGroup = () => {
 
     const { payload } = await dispatch(sortItemGroup(hasUpdate)) as { payload: { code: number; itemGroups: ItemGroupInterface[]; } };
 
-    setData([...(notSaved.length ? notSaved : []), ...payload.itemGroups].sort((a, b) => (a.order || 0) - (b.order || 0)).map((itemGroup) => {
-      if (!itemGroup.code) {
-        return itemGroup as ItemGroupTableInterface;
-      }
-      return {
-        ...itemGroup,
-        translations: {
-          [UserLangEnum.RU]: {
-            name: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
-            description: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.RU)?.description,
-          },
-          [UserLangEnum.EN]: {
-            name: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.EN)?.name,
-            description: (itemGroup as ItemGroupInterface).translations.find((translation) => translation.lang === UserLangEnum.EN)?.description,
-          },
-        },
-        key: (itemGroup as ItemGroupInterface).id.toString(),
-      } as ItemGroupTableInterface;
-    }));
+    setData([...(notSaved.length ? notSaved : []), ...payload.itemGroups.map(mapItemGroupToTableRow)].sort((a, b) => (a.order || 0) - (b.order || 0)));
     setIsSubmit(false);
   };
 
@@ -308,9 +448,9 @@ const CreateItemGroup = () => {
     {
       title: t('columns.name'),
       dataIndex: ['translations', UserLangEnum.RU, 'name'],
-      width: '15%',
+      width: '12%',
       editable: true,
-      render: (_: any, record: ItemGroupTableInterface) => (
+      render: (_: unknown, record: ItemGroupTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.RU].name}</span>
           {record.deleted ? <Tag color="volcano" variant="outlined">{t('deleted')}</Tag> : null}
@@ -320,9 +460,9 @@ const CreateItemGroup = () => {
     {
       title: t('columns.nameEn'),
       dataIndex: ['translations', UserLangEnum.EN, 'name'],
-      width: '15%',
+      width: '12%',
       editable: true,
-      render: (_: any, record: ItemGroupTableInterface) => (
+      render: (_: unknown, record: ItemGroupTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.EN].name}</span>
         </div>
@@ -331,9 +471,9 @@ const CreateItemGroup = () => {
     {
       title: t('columns.description'),
       dataIndex: ['translations', UserLangEnum.RU, 'description'],
-      width: '25%',
+      width: '18%',
       editable: true,
-      render: (_: any, record: ItemGroupTableInterface) => (
+      render: (_: unknown, record: ItemGroupTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.RU].description}</span>
         </div>
@@ -342,9 +482,9 @@ const CreateItemGroup = () => {
     {
       title: t('columns.descriptionEn'),
       dataIndex: ['translations', UserLangEnum.EN, 'description'],
-      width: '25%',
+      width: '18%',
       editable: true,
-      render: (_: any, record: ItemGroupTableInterface) => (
+      render: (_: unknown, record: ItemGroupTableInterface) => (
         <div className="d-flex align-items-center gap-3">
           <span>{record.translations[UserLangEnum.EN].description}</span>
         </div>
@@ -353,13 +493,34 @@ const CreateItemGroup = () => {
     {
       title: t('columns.code'),
       dataIndex: 'code',
-      width: '15%',
+      width: '12%',
       editable: true,
+    },
+    {
+      title: t('columns.tryOnEnabled'),
+      dataIndex: 'tryOnEnabled',
+      width: '8%',
+      editable: true,
+      align: 'center' as const,
+      render: (_: unknown, record: ItemGroupTableInterface) => (
+        <Checkbox checked={record.tryOnEnabled} disabled />
+      ),
+    },
+    {
+      title: t('columns.tryOnVtoType'),
+      dataIndex: 'tryOnVtoType',
+      width: '12%',
+      editable: true,
+      render: (_: unknown, record: ItemGroupTableInterface) => (
+        record.tryOnVtoType
+          ? t(`tryOnVtoTypeOptions.${record.tryOnVtoType}`)
+          : null
+      ),
     },
     {
       title: t('columns.operation'),
       dataIndex: 'operation',
-      render: (_: any, record: ItemGroupTableInterface) => {
+      render: (_: unknown, record: ItemGroupTableInterface) => {
         const editable = isEditing(record);
         return editable ? (
           <span>
@@ -419,21 +580,7 @@ const CreateItemGroup = () => {
       })
         .then(({ data: response }) => {
           if (response.code === 1) {
-            const newItemGroups: ItemGroupTableInterface[] = response.itemGroups.map((itemGroup) => ({
-              ...itemGroup,
-              translations: {
-                [UserLangEnum.RU]: {
-                  name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
-                  description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description,
-                },
-                [UserLangEnum.EN]: {
-                  name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name,
-                  description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.description,
-                },
-              },
-              key: itemGroup.id.toString(),
-            } as ItemGroupTableInterface));
-            setData(newItemGroups);
+            setData(response.itemGroups.map(mapItemGroupToTableRow));
           }
           setIsSubmit(false);
         })
@@ -444,20 +591,7 @@ const CreateItemGroup = () => {
   }, [withDeleted]);
 
   useEffect(() => {
-    setData(itemGroups.map((itemGroup) => ({
-      ...itemGroup,
-      translations: {
-        [UserLangEnum.RU]: {
-          name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
-          description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description,
-        },
-        [UserLangEnum.EN]: {
-          name: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.name,
-          description: itemGroup?.translations.find((translation) => translation.lang === UserLangEnum.EN)?.description,
-        },
-      },
-      key: itemGroup.id.toString(),
-    } as ItemGroupTableInterface)));
+    setData(itemGroups.map(mapItemGroupToTableRow));
   }, [itemGroups.length]);
 
   useEffect(() => {

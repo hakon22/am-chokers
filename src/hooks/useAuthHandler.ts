@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
-import { fetchTokenStorage, removeUrl, updateTokens } from '@/slices/userSlice';
+import { restoreSession, removeUrl, updateTokens } from '@/slices/userSlice';
 import { fetchOrders } from '@/slices/orderSlice';
 import { AuthContext } from '@/components/Context';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -11,8 +11,7 @@ import { useUserLang } from '@/hooks/useUserLang';
 import { fetchCart, addMany } from '@/slices/cartSlice';
 import { setAxiosAuth } from '@/slices/appSlice';
 import { routes } from '@/routes';
-
-const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
+import { enableAxiosSessionCredentials } from '@/utilities/axiosSessionConfig';
 
 export const useAuthHandler = () => {
   const { i18n } = useTranslation();
@@ -21,27 +20,29 @@ export const useAuthHandler = () => {
 
   const { logIn, loggedIn } = useContext(AuthContext);
 
-  const { token, refreshToken, url } = useAppSelector((state) => state.user);
+  const { token, url } = useAppSelector((state) => state.user);
   const lang = useUserLang();
   const { cart } = useAppSelector((state) => state.cart);
 
   const pathWithoutQuery = (router.asPath.split('?')[0] ?? '').split('#')[0];
   const isTelegramMiniAppRoute = pathWithoutQuery.startsWith(routes.page.telegram.root);
 
-  const fetchToken = useCallback(() => {
-    if (refreshToken) {
-      dispatch(updateTokens(refreshToken));
+  const refreshAccessToken = useCallback(() => {
+    if (token) {
+      dispatch(updateTokens());
     }
-  }, [dispatch, refreshToken]);
+  }, [dispatch, token]);
+
+  useEffect(() => {
+    enableAxiosSessionCredentials();
+  }, []);
 
   useEffect(() => {
     if (isTelegramMiniAppRoute) {
       return;
     }
-    const tokenStorage = window.localStorage.getItem(storageKey);
-    if (tokenStorage) {
-      dispatch(fetchTokenStorage(tokenStorage));
-    }
+
+    dispatch(restoreSession());
   }, [dispatch, isTelegramMiniAppRoute]);
 
   useEffect(() => {
@@ -79,9 +80,9 @@ export const useAuthHandler = () => {
   }, [lang, token]);
 
   useEffect(() => {
-    if (refreshToken) {
-      const timeAlive = setTimeout(fetchToken, 595000);
+    if (token) {
+      const timeAlive = setTimeout(refreshAccessToken, 595000);
       return () => clearTimeout(timeAlive);
     }
-  }, [fetchToken, refreshToken]);
+  }, [refreshAccessToken, token]);
 };

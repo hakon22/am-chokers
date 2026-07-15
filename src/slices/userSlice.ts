@@ -5,6 +5,7 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { routes } from '@/routes';
 import { getLanguageStorageKey, parseLanguageCode } from '@shared/language-config';
 import { setLanguageCookie } from '@/utilities/setLanguageCookie';
+import { axiosSessionConfig } from '@/utilities/axiosSessionConfig';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import type { UserInterface, UserProfileType, UserSignupInterface, UserLoginInterface } from '@/types/user/User';
@@ -12,8 +13,6 @@ import type { ItemEntity } from '@server/db/entities/item.entity';
 import type { InitialState } from '@/types/InitialState';
 
 type KeysUserInitialState = keyof UserInterface;
-
-const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
 
 export interface UserResponseInterface {
   code: number;
@@ -29,7 +28,7 @@ export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
   async (data: UserLoginInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<UserResponseInterface>(routes.user.login, data);
+      const response = await axios.post<UserResponseInterface>(routes.user.login, data, axiosSessionConfig);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -41,7 +40,7 @@ export const fetchTelegramWebAppAuth = createAsyncThunk(
   'user/fetchTelegramWebAppAuth',
   async (initData: string, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post<UserResponseInterface>(routes.user.telegramWebAppAuth, { initData });
+      const { data } = await axios.post<UserResponseInterface>(routes.user.telegramWebAppAuth, { initData }, axiosSessionConfig);
       if (data.code === 1) {
         return data;
       }
@@ -57,7 +56,7 @@ export const fetchSignup = createAsyncThunk(
   'user/fetchSignup',
   async (data: UserSignupInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<UserResponseInterface>(routes.user.signup, data);
+      const response = await axios.post<UserResponseInterface>(routes.user.signup, data, axiosSessionConfig);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);
@@ -65,16 +64,28 @@ export const fetchSignup = createAsyncThunk(
   },
 );
 
-export const fetchTokenStorage = createAsyncThunk(
-  'user/fetchTokenStorage',
-  async (refreshTokenStorage: string, { rejectWithValue }) => {
+export const restoreSession = createAsyncThunk(
+  'user/restoreSession',
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<UserResponseInterface>(routes.user.updateTokens, {
-        headers: { Authorization: `Bearer ${refreshTokenStorage}` },
-      });
+      const response = await axios.post<UserResponseInterface>(routes.user.updateTokens, undefined, axiosSessionConfig);
       return response.data;
-    } catch (e: any) {
-      return rejectWithValue(e.response.data);
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: unknown; }; };
+      return rejectWithValue(axiosError.response?.data);
+    }
+  },
+);
+
+export const updateTokens = createAsyncThunk(
+  'user/updateTokens',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<UserResponseInterface>(routes.user.updateTokens, undefined, axiosSessionConfig);
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: unknown; }; };
+      return rejectWithValue(axiosError.response?.data);
     }
   },
 );
@@ -108,7 +119,11 @@ export const fetchConfirmCode = createAsyncThunk(
         key: string;
         phone: string;
         deliveryChannel?: MessageTypeEnum;
-      }>(routes.user.confirmPhone, requestBody, headers ? { headers } : undefined);
+        user?: UserInterface;
+      }>(routes.user.confirmPhone, requestBody, {
+        ...axiosSessionConfig,
+        ...(headers ? { headers } : {}),
+      });
 
       return response.data;
     } catch (e: any) {
@@ -160,34 +175,6 @@ export const removeFavorites = createAsyncThunk(
   },
 );
 
-export const updateTokens = createAsyncThunk(
-  'user/updateTokens',
-  async (refresh: string | undefined, { rejectWithValue }) => {
-    try {
-      const refreshTokenStorage = window.localStorage.getItem(storageKey);
-      if (refreshTokenStorage) {
-        const { data } = await axios.get(routes.user.updateTokens, {
-          headers: { Authorization: `Bearer ${refreshTokenStorage}` },
-        });
-        if (data.user.refreshToken) {
-          window.localStorage.setItem(storageKey, data.user.refreshToken);
-          return data;
-        }
-      } else {
-        const { data } = await axios.get<UserResponseInterface>(routes.user.updateTokens, {
-          headers: { Authorization: `Bearer ${refresh}` },
-        });
-        if (data.user.refreshToken) {
-          return data;
-        }
-      }
-      return null;
-    } catch (e: any) {
-      return rejectWithValue(e.response.data);
-    }
-  },
-);
-
 const initialState: { [K in keyof (Partial<UserInterface> & InitialState)]: UserInterface[K] } = {
   loadingStatus: 'idle',
   error: null,
@@ -210,10 +197,6 @@ const userSlice = createSlice({
     },
     setUrl: (state, { payload }: PayloadAction<string>) => {
       state.url = payload;
-    },
-    setRefreshToken: (state, { payload }: PayloadAction<string>) => {
-      window.localStorage.setItem(storageKey, payload);
-      state.refreshToken = payload;
     },
     removeUrl: (state) => {
       delete state.url;
@@ -247,7 +230,6 @@ const userSlice = createSlice({
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
-          window.localStorage.setItem(storageKey, payload.user.refreshToken);
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -266,7 +248,6 @@ const userSlice = createSlice({
           entries.forEach(([key, value]) => {
             state[key] = value;
           });
-          window.localStorage.setItem(storageKey, payload.user.refreshToken);
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -283,7 +264,6 @@ const userSlice = createSlice({
         if (payload.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
-          window.localStorage.setItem(storageKey, payload.user.refreshToken);
         }
         state.loadingStatus = 'finish';
         state.error = null;
@@ -292,25 +272,21 @@ const userSlice = createSlice({
         state.loadingStatus = 'failed';
         state.error = payload.error;
       })
-      .addCase(fetchTokenStorage.pending, (state) => {
+      .addCase(restoreSession.pending, (state) => {
         state.loadingStatus = 'loading';
         state.error = null;
       })
-      .addCase(fetchTokenStorage.fulfilled, (state, { payload }) => {
+      .addCase(restoreSession.fulfilled, (state, { payload }) => {
         if (payload.code === 1) {
-          if (window.localStorage.getItem(storageKey)) {
-            window.localStorage.setItem(storageKey, payload.user.refreshToken);
-          }
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
         }
         state.loadingStatus = 'finish';
         state.error = null;
       })
-      .addCase(fetchTokenStorage.rejected, (state, { payload }: PayloadAction<any>) => {
-        state.loadingStatus = 'failed';
-        state.error = payload.error;
-        window.localStorage.removeItem(storageKey);
+      .addCase(restoreSession.rejected, (state) => {
+        state.loadingStatus = 'finish';
+        state.error = null;
       })
       .addCase(fetchConfirmCode.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -329,10 +305,8 @@ const userSlice = createSlice({
             state.confirmPhoneOtpDeliveryChannel = payload.deliveryChannel;
           }
         }
-        if (payload.code === 2 && 'user' in payload && payload.user) {
-          const { user } = payload as { user: UserInterface; };
-          window.localStorage.setItem(storageKey, user.refreshToken);
-          const entries = Object.entries(user);
+        if (payload.code === 2 && payload.user) {
+          const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => {
             state[key] = value;
           });
@@ -349,7 +323,7 @@ const userSlice = createSlice({
         state.error = null;
       })
       .addCase(updateTokens.fulfilled, (state, { payload }) => {
-        if (payload.code === 1) {
+        if (payload?.code === 1) {
           const entries = Object.entries(payload.user);
           entries.forEach(([key, value]) => { state[key] = value; });
         }
@@ -358,8 +332,7 @@ const userSlice = createSlice({
       })
       .addCase(updateTokens.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
-        state.error = payload.error;
-        window.localStorage.removeItem(storageKey);
+        state.error = payload?.error;
       })
       .addCase(addFavorites.pending, (state) => {
         state.loadingStatus = 'loading';
@@ -408,7 +381,7 @@ const userSlice = createSlice({
 });
 
 export const {
-  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate, setRefreshToken, setUserLang,
+  removeToken, setUrl, removeUrl, removeTelegramId, userProfileUpdate, setUserLang,
 } = userSlice.actions;
 
 export default userSlice.reducer;

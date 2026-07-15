@@ -156,6 +156,7 @@ export class ItemService extends TranslationHelper {
           'images.path',
           'images.order',
           'images.deleted',
+          'images.tryOn',
         ])
         .leftJoin('item.rating', 'rating')
         .addSelect([
@@ -173,6 +174,13 @@ export class ItemService extends TranslationHelper {
           'groupTranslations.name',
           'groupTranslations.description',
           'groupTranslations.lang',
+        ])
+        .leftJoin('group.tryOn', 'groupTryOn')
+        .addSelect([
+          'groupTryOn.id',
+          'groupTryOn.isEnabled',
+          'groupTryOn.vtoType',
+          'groupTryOn.validationPromptType',
         ])
         .addOrderBy('item.deleted IS NOT NULL', 'ASC')
         .addOrderBy('images.order', 'ASC');
@@ -591,7 +599,7 @@ export class ItemService extends TranslationHelper {
 
     const beforeItem = await this.findOne(params, lang, { withNotPublished: true });
 
-    if (beforeItem.images.length < 2) {
+    if (beforeItem.images.filter((image) => !image.tryOn).length < 2) {
       throw new Error(isRu
         ? 'Для публикации в группу Telegram товар должен иметь более одной фотографии'
         : 'To be published in a Telegram group, a item must have more than one photo');
@@ -1235,7 +1243,14 @@ export class ItemService extends TranslationHelper {
       `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
     ];
 
-    this.bullMQQueuesService.sendTelegramMessage({ message, item, telegramId: process.env.TELEGRAM_GROUP_ID, images: item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`) });
+    this.bullMQQueuesService.sendTelegramMessage({
+      message,
+      item,
+      telegramId: process.env.TELEGRAM_GROUP_ID,
+      images: item.images
+        .filter((image) => !image.tryOn)
+        .map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`),
+    });
   };
 
   private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');

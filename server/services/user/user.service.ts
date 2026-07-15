@@ -19,6 +19,7 @@ import { ItemService } from '@server/services/item/item.service';
 import { GradeService } from '@server/services/rating/grade.service';
 import { MessageService } from '@server/services/message/message.service';
 import { CartService } from '@server/services/cart/cart.service';
+import { AuthCookieService } from '@server/services/user/auth-cookie.service';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { verifyTelegramWebAppInitDataAndGetTelegramUserId } from '@server/utilities/telegram-web-app-init-data';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
@@ -46,6 +47,8 @@ export class UserService extends BaseService {
   private readonly messageService = Container.get(MessageService);
 
   private readonly cartService = Container.get(CartService);
+
+  private readonly authCookieService = Container.get(AuthCookieService);
 
   public findOne = async (query: UserQueryInterface, options?: UserOptionsInterface) => {
     const manager = this.databaseService.getManager();
@@ -193,9 +196,11 @@ export class UserService extends BaseService {
 
       await UserRefreshTokenEntity.insert({ refreshToken, user });
 
+      this.authCookieService.setRefreshTokenCookie(res, refreshToken);
+
       res.json({
         code: 1,
-        user: { ...rest, token, refreshToken },
+        user: { ...rest, token },
       });
     } catch (e) {
       this.errorHandler(e, res);
@@ -224,7 +229,9 @@ export class UserService extends BaseService {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...rest } = user;
 
-        res.json({ code: 1, user: { ...rest, token, refreshToken } });
+        this.authCookieService.setRefreshTokenCookie(res, refreshToken);
+
+        res.json({ code: 1, user: { ...rest, token } });
       }
     } catch (e) {
       this.errorHandler(e, res);
@@ -274,10 +281,11 @@ export class UserService extends BaseService {
                   'UserService',
                   `guest order phone verification: session issued for userId=${sessionUser.id}`,
                 );
+                this.authCookieService.setRefreshTokenCookie(res, newRefreshToken);
                 res.json({
                   code: 2,
                   key,
-                  user: { ...rest, token: accessToken, refreshToken: newRefreshToken },
+                  user: { ...rest, token: accessToken },
                 });
                 return;
               }
@@ -317,7 +325,7 @@ export class UserService extends BaseService {
   public updateTokens = async (req: Request, res: Response) => {
     try {
       const { token, refreshToken, ...user } = this.getCurrentUser(req);
-      const oldRefreshToken = req.get('Authorization')?.split(' ')[1] || req.headers.authorization;
+      const oldRefreshToken = this.authCookieService.getRefreshTokenFromRequest(req);
 
       if (!oldRefreshToken) {
         throw new Error(user.lang === UserLangEnum.RU
@@ -330,24 +338,7 @@ export class UserService extends BaseService {
       const hasRefresh = userRefreshTokens.includes(oldRefreshToken);
 
       if (hasRefresh) {
-        await this.databaseService
-          .getManager()
-          .transaction(async (manager) => {
-            const userRefreshTokenRepo = manager.getRepository(UserRefreshTokenEntity);
-
-            await userRefreshTokenRepo.insert({ refreshToken, user });
-            /*
-            const userToken = await userRefreshTokenRepo.findOne({ where: { refreshToken: oldRefreshToken, user: { id: user.id } } });
-
-            if (!userToken) {
-              throw new Error(user.lang === UserLangEnum.RU
-                ? 'Токена не существует!'
-                : 'Token does not exist!');
-            }
-
-            await userRefreshTokenRepo.delete(userToken.id);
-            */
-          });
+        await UserRefreshTokenEntity.insert({ refreshToken, user });
       } else {
         this.loggerService.error(`Токен не найден: ${oldRefreshToken}, UserTokens: ${userRefreshTokens.join(', ')}`);
         throw new Error(user.lang === UserLangEnum.RU
@@ -357,9 +348,12 @@ export class UserService extends BaseService {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { refreshTokens, ...rest } = user;
+
+      this.authCookieService.setRefreshTokenCookie(res, refreshToken);
+
       res.json({
         code: 1,
-        user: { ...rest, token, refreshToken },
+        user: { ...rest, token },
       });
     } catch (e) {
       this.errorHandler(e, res, 401);
@@ -369,7 +363,13 @@ export class UserService extends BaseService {
   public logout = async (req: Request, res: Response) => {
     try {
       const user = this.getCurrentUser(req);
-      const { refreshToken } = req.body as { refreshToken: string; };
+      const refreshToken = this.authCookieService.getRefreshTokenFromRequest(req);
+
+      if (!refreshToken) {
+        throw new Error(user.lang === UserLangEnum.RU
+          ? 'Токена не существует!'
+          : 'Token does not exist!');
+      }
 
       const userToken = await UserRefreshTokenEntity.findOne({ where: { refreshToken, user: { id: user.id } } });
 
@@ -380,6 +380,8 @@ export class UserService extends BaseService {
       }
 
       await UserRefreshTokenEntity.delete(userToken.id);
+
+      this.authCookieService.clearRefreshTokenCookie(res);
 
       res.json({ code: 1 });
     } catch (e) {
@@ -752,9 +754,11 @@ export class UserService extends BaseService {
         `telegramWebAppAuth: success, userId=${user.id}, telegramUserId=${telegramUserId}`,
       );
 
+      this.authCookieService.setRefreshTokenCookie(res, refreshToken);
+
       res.json({
         code: 1,
-        user: { ...user, token, refreshToken },
+        user: { ...user, token },
       });
     } catch (e) {
       this.errorHandler(e, res);

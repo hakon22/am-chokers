@@ -9,4 +9,6 @@ export enum UploadPathEnum {
   COVER = 'covers',
   /** Баннеры */
   PROMOTIONAL = 'promotionals',
+  /** Результаты AI-примерки */
+  TRY_ON = 'try-on',
 }

@@ -3,7 +3,7 @@ import type { QueryRunner } from 'typeorm';
 export abstract class BaseMigration {
   protected toPosgresEnum = (values: string[]): string => `ENUM(${values.map(value => `'${value}'`).join(', ')})`;
 
-  protected async changeEnum({ runner, schema, table, tables, column, enumName, values, defaultValue }: { runner: QueryRunner; schema: string; table?: string; tables?: string[]; column: string; enumName: string; values: string[]; defaultValue?: string; }): Promise<void> {
+  protected async changeEnum({ runner, schema, table, tables, column, columns, enumName, values, defaultValue }: { runner: QueryRunner; schema: string; table?: string; tables?: string[]; column?: string; columns?: { table: string; column: string; }[]; enumName: string; values: string[]; defaultValue?: string; }): Promise<void> {
     if (defaultValue) {
       await runner.query(`ALTER TABLE "${schema}"."${table}" ALTER COLUMN "${column}" DROP DEFAULT`);
     }
@@ -11,9 +11,13 @@ export abstract class BaseMigration {
     await runner.query(`ALTER TYPE "${schema}"."${enumName}" RENAME TO "${enumName}_before"`);
     await runner.query(`CREATE TYPE "${schema}"."${enumName}" AS ${this.toPosgresEnum(values)}`);
 
-    if (table) {
+    if (columns?.length) {
+      for (const { table: tableName, column: columnName } of columns) {
+        await this.changeColumnType({ runner, schema, table: tableName, column: columnName, enumName });
+      }
+    } else if (table && column) {
       await this.changeColumnType({ runner, schema, table, column, enumName });
-    } else if (tables?.length) {
+    } else if (tables?.length && column) {
       for (const value of tables) {
         await this.changeColumnType({ runner, schema, table: value, column, enumName });
       }
@@ -21,7 +25,7 @@ export abstract class BaseMigration {
 
     await runner.query(`DROP TYPE "${schema}"."${enumName}_before"`);
 
-    if (defaultValue) {
+    if (defaultValue && table && column) {
       await runner.query(`ALTER TABLE "${schema}"."${table}" ALTER COLUMN "${column}" SET DEFAULT '${defaultValue}'`);
     }
   }

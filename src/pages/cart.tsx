@@ -34,7 +34,7 @@ import { NotFoundContent } from '@/components/NotFoundContent';
 import { getOrderPrice, getOrderDiscount } from '@/utilities/order/getOrderPrice';
 import { DateTimeSplitField } from '@/components/forms/DateTimeSplitField';
 import { MaskedInput } from '@/components/forms/MaskedInput';
-import { fetchConfirmCode, setRefreshToken } from '@/slices/userSlice';
+import { fetchConfirmCode, restoreSession } from '@/slices/userSlice';
 import { ConfirmPhone } from '@/components/ConfirmPhone';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { VersionContext } from '@/components/Context';
@@ -349,14 +349,12 @@ const Cart = () => {
         toast(tToast('timeNotOverForSms'), 'error');
       }
     } else {
-      const { payload: { code, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string; }; };
+      const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang  }  })) as { payload: OrderResponseInterface & { url: string; }; };
       if (code === 1) {
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));
-        if (refreshToken) {
-          dispatch(setRefreshToken(refreshToken));
-        }
+        await dispatch(restoreSession());
         form.resetFields();
         setPromotional(undefined);
         resetPVZ();

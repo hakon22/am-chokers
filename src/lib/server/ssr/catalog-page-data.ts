@@ -8,10 +8,13 @@ import { LoggerService } from '@server/services/app/logger.service';
 import { mapLanguageCodeToUserLang } from '@/lib/server/map-language-code-to-user-lang';
 import { isCatalogNumericPageQuery } from '@/utilities/shouldCatalogFiltersNoindex';
 import { parseCatalogIdQueryValue, type CatalogIdQueryValue } from '@shared/parse-catalog-id-query-value';
+import { mapItemForProductPage } from '@server/utilities/map-item-for-product-page';
+import { getRequestIsAdminFromCookie } from '@/lib/server/get-request-is-admin-from-cookie';
 import type { LanguageCode } from '@shared/language-config';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemQueryInterface } from '@server/types/item/item.query.interface';
+import type { ItemForProductPageInterface } from '@server/utilities/map-item-for-product-page';
 
 interface CatalogListQueryInterface {
   groupIds?: CatalogIdQueryValue;
@@ -41,7 +44,7 @@ export interface CatalogListPageDataInterface {
 }
 
 export interface ProductPageDataInterface {
-  item: ItemInterface;
+  item: ItemForProductPageInterface;
   paginationParams: PaginationInterface;
 }
 
@@ -137,9 +140,14 @@ export const loadCatalogListPageData = async (
  * Загружает данные карточки товара прямыми вызовами сервисов
  * @param translateName - slug товара из URL
  * @param languageCode - язык интерфейса из cookie
+ * @param cookieHeader - заголовок Cookie запроса (refresh-токен для определения админа)
  * @returns props карточки товара или null, если товар не найден
  */
-export const loadProductPageData = async (translateName: string, languageCode: LanguageCode): Promise<ProductPageDataInterface | null> => {
+export const loadProductPageData = async (
+  translateName: string,
+  languageCode: LanguageCode,
+  cookieHeader?: string,
+): Promise<ProductPageDataInterface | null> => {
   const loggerService = Container.get(LoggerService);
   const startedAt = Date.now();
 
@@ -147,7 +155,11 @@ export const loadProductPageData = async (translateName: string, languageCode: L
   const userLang = mapLanguageCodeToUserLang(languageCode);
 
   try {
-    const item = await itemService.getByName({ translateName }, userLang);
+    const isAdmin = await getRequestIsAdminFromCookie(cookieHeader);
+    const item = mapItemForProductPage(
+      await itemService.getByName({ translateName }, userLang),
+      { includeTryOnImages: isAdmin },
+    );
     const [grades, gradesCount] = await itemService.getGrades({ id: item.id }, { limit: 10, offset: 0 });
 
     item.grades = grades;

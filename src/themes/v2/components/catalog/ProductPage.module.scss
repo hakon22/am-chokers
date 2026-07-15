@@ -350,6 +350,50 @@ $error:          #e05c5c;
   }
 }
 
+.btnTryOn {
+  position: relative;
+  width: 100%;
+  height: 48px;
+  margin-top: 12px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #fdd8a6, #f7daed);
+  color: $text-dark;
+  border: none;
+  border-radius: 10px;
+  @include v2mixins.v2-readable-font-size(11px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: v2.$v2-font-sans;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(247, 218, 237, 0.55);
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    opacity: 0.92;
+    box-shadow: 0 4px 16px rgba(247, 218, 237, 0.75);
+    transform: translateY(-1px);
+  }
+}
+
+.btnTryOnBadge {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  z-index: 1;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #e07a5f 0%, #d45d79 100%);
+  color: #fff;
+  @include v2mixins.v2-readable-font-size(9px);
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(212, 93, 121, 0.35);
+  pointer-events: none;
+}
+
 .btnFav {
   width: 48px;
   height: 48px;
@@ -758,6 +802,7 @@ $error:          #e05c5c;
     .sep       { order: 3; }
     .qtyLabel  { order: 4; display: none; }
     .cartRow   { order: 5; }
+    .btnTryOn  { order: 5; }
     .actionRow { order: 6; }
     .accordion { order: 7; }
   }

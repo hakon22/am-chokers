@@ -12,11 +12,11 @@ const FINE_POINTER_HOVER_MEDIA_QUERY = '(hover: hover) and (pointer: fine)';
 
 /**
  * Проверяет, что pointer-событие началось на интерактивном элементе карточки (ссылка, кнопка)
- * @param target - DOM-элемент, на котором произошло событие
- * @returns true, если нельзя вызывать setPointerCapture — иначе ломается клик по Link
+ * @param target - DOM-элемент события (в т.ч. SVG/path внутри иконки в button или a)
+ * @returns true, если нельзя вызывать setPointerCapture — иначе ломается клик по Link и кнопкам с SVG-иконками
  */
 const isCarouselInteractiveTarget = (target: EventTarget | null): boolean => {
-  if (!(target instanceof HTMLElement)) {
+  if (!(target instanceof Element)) {
     return false;
   }
 

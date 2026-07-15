@@ -1,4 +1,4 @@
-import { memo, type CSSProperties } from 'react';
+import { memo, type CSSProperties, type ReactNode } from 'react';
 
 import { V2Image } from '@/themes/v2/components/V2Image';
 
@@ -12,6 +12,8 @@ export type ProductGallerySlideImageProps = {
   slideWidth: number | null;
   isFullscreen: boolean;
   isMobile: boolean;
+  /** Опциональный оверлей (например бейдж AI) внутри image-gallery-image-wrap */
+  children?: ReactNode;
 };
 
 /**
@@ -25,6 +27,7 @@ export const ProductGallerySlideImage = memo(({
   slideWidth,
   isFullscreen,
   isMobile,
+  children,
 }: ProductGallerySlideImageProps) => {
   const imageWidth = slideWidth ?? Math.round(slideHeight / GALLERY_ASPECT_RATIO);
   const useFillLayout = !isMobile;
@@ -75,6 +78,7 @@ export const ProductGallerySlideImage = memo(({
         priority={slideIndex === 0}
         style={imageStyle}
       />
+      {children}
     </span>
   );
 });

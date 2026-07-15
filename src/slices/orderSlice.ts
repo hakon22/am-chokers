@@ -2,6 +2,7 @@ import axios from 'axios';
 import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit';
 
 import { routes } from '@/routes';
+import { axiosSessionConfig } from '@/utilities/axiosSessionConfig';
 import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 import type { InitialState } from '@/types/InitialState';
 import type { RootState } from '@/slices';
@@ -33,7 +34,7 @@ export const createOrder = createAsyncThunk(
   'order/createOrder',
   async ({ cart, promotional, delivery, comment, user }: CreateOrderInterface, { rejectWithValue }) => {
     try {
-      const response = await axios.post<OrderResponseInterface>(routes.order.createOne, { cart, promotional, delivery, comment, user });
+      const response = await axios.post<OrderResponseInterface>(routes.order.createOne, { cart, promotional, delivery, comment, user }, axiosSessionConfig);
       return response.data;
     } catch (e: any) {
       return rejectWithValue(e.response.data);

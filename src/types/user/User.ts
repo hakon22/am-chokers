@@ -7,8 +7,6 @@ import type { TableSortQueryInterface } from '@/types/table/table-sort.interface
 export interface UserInterface extends OmitBase<UserEntity> {
   /** Токен пользователя */
   token: string;
-  /** Refresh токен пользователя */
-  refreshToken: string;
   /** Уникальный ключ пользователя (для кода подтверждения телефона) */
   key: string;
   /** Адрес для переадресации после входа */

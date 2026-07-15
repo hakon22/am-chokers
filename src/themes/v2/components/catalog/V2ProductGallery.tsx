@@ -68,6 +68,8 @@ export type V2ProductGalleryProps = {
   discountPercent?: number | null;
   /** Колбэк при изменении геометрии галереи */
   onGalleryBoxChange?: (galleryBox: V2ProductGalleryBox | null) => void;
+  /** Показывать бейдж AI на слайдах с try_on (админка) */
+  showTryOnImageLabels?: boolean;
 };
 
 /**
@@ -180,9 +182,11 @@ export const V2ProductGallery = ({
   className,
   discountPercent,
   onGalleryBoxChange,
+  showTryOnImageLabels = false,
 }: V2ProductGalleryProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
   const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
+  const { t: tTryOn } = useTranslation('translation', { keyPrefix: 'modules.tryOn' });
   const { isMobile } = useContext(MobileContext);
 
   const galleryRef = useRef<ImageGalleryRef>(null);
@@ -603,6 +607,10 @@ export const V2ProductGallery = ({
 
   const imageGalleryItems = useMemo(() => {
     return sortedImages.map((image, slideIndex) => {
+      const tryOnBadge = showTryOnImageLabels && image.tryOn ? (
+        <div className={styles.tryOnGalleryBadge}>{tTryOn('galleryBadge')}</div>
+      ) : null;
+
       if (image.src.endsWith('.mp4')) {
         return {
           original: image.src,
@@ -635,7 +643,10 @@ export const V2ProductGallery = ({
         thumbnail: image.src,
         originalAlt: imageAlt,
         renderThumbInner: () => (
-          <ProductGalleryThumbnailImage src={image.src} alt={imageAlt} />
+          <span className={styles.tryOnThumbWrap}>
+            <ProductGalleryThumbnailImage src={image.src} alt={imageAlt} />
+            {tryOnBadge}
+          </span>
         ),
         renderItem: () => (
           <ProductGallerySlideImage
@@ -646,11 +657,13 @@ export const V2ProductGallery = ({
             slideWidth={slideWidth ?? null}
             isFullscreen={isFullscreenRef.current}
             isMobile={isMobile}
-          />
+          >
+            {tryOnBadge}
+          </ProductGallerySlideImage>
         ),
       };
     });
-  }, [sortedImages, imageAlt, slideHeight, slideWidth, isMobile]);
+  }, [sortedImages, imageAlt, slideHeight, slideWidth, isMobile, showTryOnImageLabels, tTryOn]);
 
   useMobileGalleryThumbnailScrollGuard({
     galleryRootRef: galleryWrapRef,

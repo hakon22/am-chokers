@@ -5,7 +5,10 @@ import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { CoverTypeEnum } from '@server/utilities/enums/cover.type.enum';
 import type { SiteSettingsInterface } from '@/types/site/SiteSettings';
 
-export type ItemInterface = OmitBase<ItemEntity>;
+export type ItemInterface = OmitBase<ItemEntity> & {
+  /** Есть ли у товара отдельное фото для AI-примерки (SSR страницы товара) */
+  hasTryOnImage?: boolean;
+};
 export type ItemGroupInterface = ItemInterface['group'];
 export type ItemCollectionInterface = Required<ItemInterface>['collection'];
 

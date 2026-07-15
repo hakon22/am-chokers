@@ -48,8 +48,6 @@ import type { SiteVersion } from '@/types/SiteVersion';
 import type { ItemGroupInterface, ItemInterface } from '@/types/item/Item';
 import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
-const storageKey = process.env.NEXT_PUBLIC_STORAGE_KEY ?? '';
-
 const VersionedShell = ({ children, itemGroups }: { children: JSX.Element; itemGroups: ItemGroupEntity[]; }) => {
   const { Layout } = useVersionedComponents();
   return <Layout itemGroups={itemGroups}>{children}</Layout>;
@@ -94,7 +92,7 @@ const Init = (props: InitPropsInterface) => {
   const isLoaded = useRouterHandler();
   const { dispatch } = store;
 
-  const { id, refreshToken } = store.getState().user;
+  const { id } = store.getState().user;
 
   const [isSubmit, setIsSubmit] = useState(false);
   const [isActive, setIsActive] = useState(false);
@@ -115,17 +113,13 @@ const Init = (props: InitPropsInterface) => {
 
   const logIn = () => setLoggedIn(true);
   const logOut = useCallback(async () => {
-    const refreshTokenStorage = window.localStorage.getItem(storageKey);
-    if (refreshTokenStorage) {
-      localStorage.removeItem(storageKey);
-    }
-    await axios.post(routes.user.logout, { id, refreshToken });
+    await axios.post(routes.user.logout, { id }, { withCredentials: true });
     setLoggedIn(false);
     dispatch(removeUserToken());
     dispatch(removeMany());
     dispatch(removeManyCart());
     axios.defaults.headers.common.Authorization = null;
-  }, [dispatch, id, refreshToken]);
+  }, [dispatch, id]);
 
   const authService = useMemo(() => ({ loggedIn, logIn, logOut }), [loggedIn, logIn, logOut]);
   const submitService = useMemo(() => ({ isSubmit, setIsSubmit }), [isSubmit]);

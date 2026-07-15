@@ -3,6 +3,7 @@ import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 interface ProductImageInterface {
   src: string;
   order?: number | null;
+  tryOn?: boolean;
 }
 
 const rasterImagePattern = /\.(jpe?g|png|webp|gif)(\?.*)?$/i;
@@ -21,7 +22,7 @@ export const isRasterProductImageSrc = (src: string): boolean => rasterImagePatt
  */
 export const getFirstRasterProductImageSrc = (images: ProductImageInterface[]): string | undefined => {
   const sortedImages = sortItemImagesByOrder(images);
-  const rasterImage = sortedImages.find(({ src }) => isRasterProductImageSrc(src));
+  const rasterImage = sortedImages.find(({ src, tryOn }) => !tryOn && isRasterProductImageSrc(src));
 
   return rasterImage?.src;
 };

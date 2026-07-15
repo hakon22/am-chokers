@@ -19,7 +19,7 @@ import { useUserLang } from '@/hooks/useUserLang';
 import { MobileContext, SubmitContext } from '@/components/Context';
 import { ImageHover } from '@/components/ImageHover';
 import { removeMany, removeCartItem } from '@/slices/cartSlice';
-import { addFavorites, removeFavorites, fetchConfirmCode, setRefreshToken } from '@/slices/userSlice';
+import { addFavorites, removeFavorites, fetchConfirmCode, restoreSession } from '@/slices/userSlice';
 import { createOrder, type OrderResponseInterface } from '@/slices/orderSlice';
 import { toast } from '@/utilities/toast';
 import { getHref } from '@/utilities/getHref';
@@ -440,12 +440,12 @@ export const V2CartPage = () => {
         toast(tToast('timeNotOverForSms'), 'error');
       }
     } else {
-      const { payload: { code, url, refreshToken } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang } })) as { payload: OrderResponseInterface & { url: string; refreshToken?: string } };
+      const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang } })) as { payload: OrderResponseInterface & { url: string } };
       if (code === 1) {
         const ids = cartList.map(({ id }) => id);
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));
-        if (refreshToken) dispatch(setRefreshToken(refreshToken));
+        await dispatch(restoreSession());
         form.resetFields();
         setPromotional(undefined);
         resetPVZ();

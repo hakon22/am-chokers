@@ -89,7 +89,7 @@ export class MiddlewareService {
       if (err) {
         return next(err);
       }
-      req.user = user ?? { id: null, lang: req.query?.lang || UserLangEnum.RU };
+      req.user = user ?? { id: null, lang: req.body?.lang || req.query?.lang || UserLangEnum.RU };
       next();
     })(req, res, next);
   };

@@ -314,7 +314,33 @@ export class ImageService extends BaseService {
     if (!images?.length) {
       return;
     }
-    const updatedImages = images.map((image, i) => {
+
+    const { catalogImages, tryOnCandidates } = images.reduce<{
+      catalogImages: ImageEntity[];
+      tryOnCandidates: ImageEntity[];
+    }>((acc, image) => {
+      const { tryOn, src } = image;
+
+      if (tryOn && !src?.endsWith('.mp4')) {
+        acc.tryOnCandidates.push(image);
+        return acc;
+      }
+
+      if (!tryOn) {
+        acc.catalogImages.push(image);
+      }
+
+      return acc;
+    }, { catalogImages: [], tryOnCandidates: [] });
+
+    const tryOnImage = tryOnCandidates.length ? tryOnCandidates[tryOnCandidates.length - 1] : null;
+
+    const orderedImages = [
+      ...catalogImages,
+      ...(tryOnImage ? [tryOnImage] : []),
+    ];
+
+    const updatedImages = orderedImages.map((image, index) => {
       if (image.path === this.uploadPathService.getUrlPath(UploadPathEnum.TEMP)) {
         this.uploadPathService.moveFile(folder, id, image.name);
         image.path = this.uploadPathService.getUrlPath(folder, id);
@@ -327,9 +353,16 @@ export class ImageService extends BaseService {
           break;
         }
       }
-      image.order = i;
+
+      if (image.src?.endsWith('.mp4')) {
+        image.tryOn = false;
+      }
+
+      image.tryOn = tryOnImage?.id === image.id;
+      image.order = index;
       return image;
     });
+
     await manager.getRepository(ImageEntity).save(updatedImages);
   };
 

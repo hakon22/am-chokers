@@ -4,6 +4,7 @@ import { Container, Singleton } from 'typescript-ioc';
 import { getYclidFromCookieHeader } from '@shared/get-yclid-from-cookie-header';
 import { BaseService } from '@server/services/app/base.service';
 import { OrderService } from '@server/services/order/order.service';
+import { AuthCookieService } from '@server/services/user/auth-cookie.service';
 import { paramsIdSchema, queryOrderParams } from '@server/utilities/convertation.params';
 import { newOrderPositionValidation, orderChangeStatusValidation } from '@/validations/validations';
 import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
@@ -11,6 +12,8 @@ import type { CreateOrderInterface, OrderInterface } from '@/types/order/Order';
 @Singleton
 export class OrderController extends BaseService {
   private readonly orderService = Container.get(OrderService);
+
+  private readonly authCookieService = Container.get(AuthCookieService);
 
   public findOne = async (req: Request, res: Response) => {
     try {
@@ -113,7 +116,11 @@ export class OrderController extends BaseService {
         yclid,
       );
 
-      res.json({ code: 1, order, url, refreshToken });
+      if (refreshToken) {
+        this.authCookieService.setRefreshTokenCookie(res, refreshToken);
+      }
+
+      res.json({ code: 1, order, url });
     } catch (e) {
       this.errorHandler(e, res);
     }

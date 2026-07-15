@@ -75,9 +75,9 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
   const grade = rating?.rating?.rating ?? 0;
   const imageAlt = buildItemImageAlt(item);
 
-  const onFavoritesClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onFavoritesClick = async (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!token) {
       openAuthModal?.('login');
       return;

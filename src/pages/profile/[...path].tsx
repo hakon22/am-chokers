@@ -119,6 +119,7 @@ const Page = ({ path }: ProfilePathPropsInterface) => {
               { key: routes.reports.message, label: <Button className="button-link text-start fs-6" href={routes.page.admin.messageReport} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.message')}</Button>, showArrow: false, collapsible: 'disabled' },
               { key: routes.reports.metrica, label: <Button className="button-link text-start fs-6" href={routes.page.admin.metricaReport} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.metrica')}</Button>, showArrow: false, collapsible: 'disabled' },
               { key: routes.reports.sales, label: <Button className="button-link text-start fs-6" href={routes.page.admin.salesReport} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.sales')}</Button>, showArrow: false, collapsible: 'disabled' },
+              { key: routes.reports.tryOn, label: <Button className="button-link text-start fs-6" href={routes.page.admin.tryOnReport} classNames={{ content: 'fw-300' }}>{tMenu('menu.admin.reports.tryOn')}</Button>, showArrow: false, collapsible: 'disabled' },
             ]}
           /> },
           { key: routes.page.admin.allOrders, label: <Button className="button-link text-start fs-6" href={routes.page.admin.allOrders}>{tMenu('menu.admin.orders')}</Button>, showArrow: false, collapsible: 'disabled' },
@@ -154,6 +155,7 @@ const Page = ({ path }: ProfilePathPropsInterface) => {
           { key: routes.reports.message, label: <Link href={routes.page.admin.messageReport}>{tMenu('menu.admin.reports.message')}</Link> },
           { key: routes.reports.metrica, label: <Link href={routes.page.admin.metricaReport}>{tMenu('menu.admin.reports.metrica')}</Link> },
           { key: routes.reports.sales, label: <Link href={routes.page.admin.salesReport}>{tMenu('menu.admin.reports.sales')}</Link> },
+          { key: routes.reports.tryOn, label: <Link href={routes.page.admin.tryOnReport}>{tMenu('menu.admin.reports.tryOn')}</Link> },
         ] },
         { key: routes.page.admin.allOrders, label: <Link href={routes.page.admin.allOrders}>{tMenu('menu.admin.orders')}</Link> },
         { key: routes.page.admin.moderationOfReview, label: <Link href={routes.page.admin.moderationOfReview}>{tMenu('menu.admin.moderationOfReview')}</Link> },

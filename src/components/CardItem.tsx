@@ -17,11 +17,13 @@ import { Favorites } from '@/components/Favorites';
 import { CartControl } from '@/components/CartControl';
 import { GradeList } from '@/components/GradeList';
 import { ItemAdminToolbarV1 } from '@/components/item-admin/ItemAdminToolbarV1';
+import { TryOnModal } from '@/components/try-on/TryOnModal';
 import { setPaginationParams } from '@/slices/appSlice';
 import { routes } from '@/routes';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useHydrationSafeInCart } from '@/hooks/useHydrationSafeInCart';
 import { useUserLang } from '@/hooks/useUserLang';
+import { useTryOn } from '@/hooks/useTryOn';
 import CreateItem from '@/pages/admin/item';
 import { booleanSchema } from '@server/utilities/convertation.params';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -39,6 +41,7 @@ import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
 import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
+import { isTryOnEnabledForGroup, getTryOnVtoTypeForGroup, resolveHasTryOnImage } from '@/utilities/isTryOnEnabledForGroupCode';
 import type { ItemInterface } from '@/types/item/Item';
 import type { PaginationEntityInterface, PaginationInterface } from '@/types/PaginationInterface';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
@@ -47,6 +50,7 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   const { id, collection, images, colors, price, discountPrice, compositions, rating, ...rest } = fetchedItem;
 
   const { t } = useTranslation('translation', { keyPrefix: 'modules.cardItem' });
+  const { t: tTryOn } = useTranslation('translation', { keyPrefix: 'modules.tryOn' });
   const { t: tNavbar } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tSeo } = useTranslation('translation', { keyPrefix: 'seo' });
   const { t: tDelivery } = useTranslation('translation', { keyPrefix: 'pages.delivery' });
@@ -96,6 +100,13 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
     typeof window === 'undefined' ? 1200 : window.innerWidth
   ));
 
+  const isTryOnEnabled = isTryOnEnabledForGroup(item.group) && resolveHasTryOnImage(item);
+  const tryOn = useTryOn({
+    itemId: id,
+    isEnabled: isTryOnEnabled,
+    vtoType: getTryOnVtoTypeForGroup(item.group),
+  });
+
   useEffect(() => {
     const handleResize = () => {
       setViewportWidth(window.innerWidth);
@@ -130,6 +141,14 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
     () =>
       [...images].sort((a, b) => a.order - b.order).map((image, slideIndex) => {
         const slideWidth = originalHeight / 1.3;
+        const tryOnBadge = isAdmin && image.tryOn ? (
+          <span
+            className="position-absolute top-0 start-0 px-2 py-1 rounded text-white"
+            style={{ backgroundColor: 'rgba(59, 83, 130, 0.92)', fontSize: 11, zIndex: 2 }}
+          >
+            {tTryOn('galleryBadge')}
+          </span>
+        ) : null;
 
         if (image.src.endsWith('.mp4')) {
           return {
@@ -164,20 +183,23 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
           thumbnail: image.src,
           originalAlt: imageAlt,
           renderItem: () => (
-            <Image
-              src={image.src}
-              alt={imageAlt}
-              className="image-gallery-image"
-              width={Math.round(slideWidth)}
-              height={originalHeight}
-              priority={slideIndex === 0}
-              sizes="(max-width: 768px) 100vw, 420px"
-              style={!isFullscreen ? { maxHeight: originalHeight, width: '100%', objectFit: 'cover' } : { maxHeight: '100vh', width: '100%', objectFit: 'contain' }}
-            />
+            <span className="position-relative d-inline-block w-100">
+              <Image
+                src={image.src}
+                alt={imageAlt}
+                className="image-gallery-image"
+                width={Math.round(slideWidth)}
+                height={originalHeight}
+                priority={slideIndex === 0}
+                sizes="(max-width: 768px) 100vw, 420px"
+                style={!isFullscreen ? { maxHeight: originalHeight, width: '100%', objectFit: 'cover' } : { maxHeight: '100vh', width: '100%', objectFit: 'contain' }}
+              />
+              {tryOnBadge}
+            </span>
           ),
         };
       }),
-    [images, imageAlt, isMobile, originalHeight, isFullscreen],
+    [images, imageAlt, isMobile, originalHeight, isFullscreen, isAdmin, tTryOn],
   );
 
   const setItemEffect = useEffectEvent(setItem);
@@ -482,6 +504,33 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   <Favorites id={id} />
                 </div>
               )}
+            {tryOn.isEnabled ? (
+              <div className={cn('mb-3', { 'order-0': isMobile })} style={{ position: 'relative', display: 'inline-block' }}>
+                <Tag
+                  color="#d45d79"
+                  style={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -4,
+                    zIndex: 1,
+                    margin: 0,
+                    border: 'none',
+                    borderRadius: 6,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: 1.2,
+                    lineHeight: 1.2,
+                    textTransform: 'uppercase',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {tTryOn('newBadge')}
+                </Tag>
+                <Button type="default" onClick={tryOn.open}>
+                  {tTryOn('button')}
+                </Button>
+              </div>
+            ) : null}
             <p className={cn('lh-lg', { 'order-2': isMobile })} style={{ letterSpacing: '0.5px' }}>{description}</p>
             <div className={cn('d-flex flex-column gap-3', { 'order-3': isMobile })}>
               <div className="d-flex flex-column gap-2">
@@ -499,10 +548,12 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
                   ))}
                 </div>
               </div>
-              <div className="d-flex flex-column gap-2">
-                <span className="fs-5">{t('length')}</span>
-                <span>{length}</span>
-              </div>
+              {length ? (
+                <div className="d-flex flex-column gap-2">
+                  <span className="fs-5">{t('sizeSection')}</span>
+                  <span>{length}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -624,6 +675,19 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
             ))}
           </Carousel>
         </div>
+      ) : null}
+      {tryOn.isEnabled ? (
+        <TryOnModal
+          open={tryOn.modalOpen}
+          loading={tryOn.loading}
+          resultImageSrc={tryOn.resultImageSrc}
+          error={tryOn.error}
+          rated={tryOn.rated}
+          vtoType={tryOn.vtoType}
+          onClose={tryOn.close}
+          onSubmit={tryOn.submit}
+          onRate={tryOn.rate}
+        />
       ) : null}
     </div>
   );

@@ -22,12 +22,15 @@ import { newItemValidation } from '@/validations/validations';
 import { toast } from '@/utilities/toast';
 import { addItem, deleteItemImage, updateItem, type ItemWithUrlResponseInterface } from '@/slices/appSlice';
 import { SortableItem } from '@/components/SortableItem';
+import { TryOnImageGuide } from '@/components/TryOnImageGuide';
 import { NotFoundContent } from '@/components/NotFoundContent';
 import { CropImage } from '@/components/CropImage';
 import { TimePicker } from '@/components/TimePicker';
 import { V2ProductGallery } from '@/themes/v2/components/catalog/V2ProductGallery';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
+import { setTryOnForImage } from '@/utilities/setTryOnForImage';
+import { isTryOnEnabledForGroup } from '@/utilities/isTryOnEnabledForGroupCode';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
@@ -105,7 +108,13 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
 
   const [item, setItem] = useState<Partial<ItemInterface> | undefined>(oldItem);
   const [images, setImages] = useState<ItemInterface['images']>(() => sortItemImagesByOrder(oldItem?.images));
+
+  const oldItemImagesKey = oldItem?.images
+    ?.map(({ id: imageId, tryOn, order }) => `${imageId}:${Number(Boolean(tryOn))}:${order}`)
+    .join('|') ?? '';
+
   const [itemGroup, setItemGroup] = useState<ItemGroupInterface | undefined | null>(item?.group);
+  const showTryOnControls = isTryOnEnabledForGroup(itemGroup);
   const [itemCollection, setItemCollection] = useState<ItemCollectionInterface | undefined | null>(item?.collection);
   const [itemCompositions, setItemCompositions] = useState<CompositionInterface[] | undefined>(item?.compositions);
   const [compositions, setCompositions] = useState<CompositionInterface[]>([]);
@@ -168,16 +177,13 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
     const { active, over } = event;
     if (over?.id && active.id !== over.id) {
       setImages((items) => {
-        const oldIndex = items.findIndex((image) => image.id === active.id);
-        const newIndex = items.findIndex((image) => image.id === over.id);
+        const oldIndex = items.findIndex(({ id }) => id === active.id);
+        const newIndex = items.findIndex(({ id }) => id === over.id);
         if (oldIndex < 0 || newIndex < 0) {
           return items;
         }
         const moved = arrayMove(items, oldIndex, newIndex);
-        moved.forEach((image, index) => {
-          image.order = index;
-        });
-        return moved;
+        return moved.map((image, index) => ({ ...image, order: index } as ImageEntity));
       });
     }
   };
@@ -185,6 +191,15 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(+active.id);
+  };
+
+  /**
+   * Переключает флаг try_on у изображения и переносит его в конец списка
+   * @param imageId - id изображения
+   * @param tryOn - новое значение флага
+   */
+  const handleTryOnChange = (imageId: number, tryOn: boolean) => {
+    setImages((currentImages) => setTryOnForImage(currentImages, imageId, tryOn));
   };
 
   const onFinish = async (values: ItemInterface | ItemFormInterface) => {
@@ -354,10 +369,11 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
   }, [fetchedItemCollections]);
 
   useEffect(() => {
-    if (!isNil(oldItem) && !isNil(oldItem.id)) {
-      setImages(sortItemImagesByOrder(oldItem.images));
+    if (isNil(oldItem?.id)) {
+      return;
     }
-  }, [oldItem?.id]);
+    setImages(sortItemImagesByOrder(oldItem.images));
+  }, [oldItem?.id, oldItemImagesKey]);
 
   useEffect(() => {
     if (!oldItem) {
@@ -443,9 +459,12 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
                           activeId={activeId}
                           setImages={setImages}
                           setFileList={setFileList}
+                          onTryOnChange={handleTryOnChange}
+                          showTryOnControls={showTryOnControls}
                         />
                       ))}
                     </div>
+                    <TryOnImageGuide group={itemGroup} />
                   </SortableContext>
                 </DndContext>
               ) : (
@@ -453,6 +472,7 @@ export const V2AdminCreateItem = ({ itemCollections: fetchedItemCollections, old
                   images={images}
                   layoutKey={images.length}
                   className={styles.gallery}
+                  showTryOnImageLabels={showTryOnControls}
                 />
               )
             )}

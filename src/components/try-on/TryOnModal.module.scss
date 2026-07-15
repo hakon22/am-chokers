@@ -1,0 +1,212 @@
+@use '@/themes/v2/components/profile/profile-shared' as profile;
+
+.exampleWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.exampleImage {
+  border-radius: 7px;
+  object-fit: contain;
+  max-width: 100%;
+  height: auto;
+}
+
+.exampleCaption {
+  font-size: 12px;
+  color: profile.$textM;
+  text-align: center;
+  margin: 0;
+}
+
+.uploadWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+
+  :global(.ant-upload-wrapper),
+  :global(.ant-upload) {
+    width: auto !important;
+    max-width: 100%;
+  }
+
+  :global(.ant-upload-list) {
+    width: 100%;
+    margin-top: 4px;
+  }
+}
+
+.uploadTrigger:global(.ant-btn) {
+  @include profile.btn-primary;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 20px !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  border-radius: 10px !important;
+  line-height: 1.2 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: 0 2px 0 rgba(43, 58, 94, 0.12);
+  color: profile.$white !important;
+  border-color: profile.$navy2 !important;
+  background: profile.$navy2 !important;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    color: profile.$white !important;
+    border-color: profile.$navy !important;
+    background: profile.$navy !important;
+  }
+}
+
+.submitButton {
+  @include profile.btn-primary;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-height: 200px;
+  padding: 32px 0;
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.loadingTextShimmer {
+  display: inline-block;
+  background-image: linear-gradient(
+    90deg,
+    rgba(105, 120, 142, 0.55) 0%,
+    rgba(105, 120, 142, 0.55) 30%,
+    rgba(43, 60, 95, 1) 50%,
+    rgba(105, 120, 142, 0.55) 70%,
+    rgba(105, 120, 142, 0.55) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: loadingTextShimmer 2.4s linear infinite;
+}
+
+@keyframes loadingTextShimmer {
+  from {
+    background-position: 200% center;
+  }
+
+  to {
+    background-position: -200% center;
+  }
+}
+
+.resultWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.resultImageWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 7px;
+
+  :global(.ant-image) {
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    aspect-ratio: 10 / 13;
+    overflow: hidden;
+    border-radius: 7px;
+  }
+
+  :global(.ant-image-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 7px;
+  }
+
+  :global(.ant-image-mask) {
+    border-radius: 7px;
+  }
+}
+
+.resultImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+.resultPreviewPopup {
+  :global(.ant-image-preview-img),
+  :global(img) {
+    border-radius: 7px;
+  }
+
+  :global(.ant-image-preview-img-wrapper) {
+    border-radius: 7px;
+    overflow: hidden;
+  }
+}
+
+.ratingActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.ratingButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: profile.$navy2;
+  line-height: 0;
+
+  :global(.anticon) {
+    display: block;
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  &:hover {
+    color: profile.$navy;
+  }
+}
+
+.ratingButtonNegative {
+  transform: translateY(2px);
+}
+
+.errorText {
+  color: profile.$error;
+  margin: 0;
+}

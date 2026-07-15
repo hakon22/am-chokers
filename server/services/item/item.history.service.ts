@@ -286,10 +286,8 @@ export class ItemHistoryService extends BaseService {
       .sort((a, b) => (a.order ?? a.id) - (b.order ?? b.id) || a.id - b.id)
       .map((image) => {
         const label = image.name?.trim();
-        if (label) {
-          return label;
-        }
-        return image.path?.trim() || `image#${image.id}`;
+        const base = label || image.path?.trim() || `image#${image.id}`;
+        return image.tryOn ? `${base} [try-on]` : base;
       })
       .join(ITEM_HISTORY_LIST_LINE_BREAK);
   };
