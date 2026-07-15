@@ -19,9 +19,42 @@ type HelmetProps = {
   keywords?: string;
   jsonLd?: object | object[];
   preloadImage?: string;
+  /** Все растровые фото галереи для параллельного preload на PDP */
+  preloadImages?: string[];
   relPrev?: string;
   relNext?: string;
   canonicalPath?: string;
+};
+
+/**
+ * Собирает абсолютные URL для preload: LCP первым, затем остальные без дублей
+ * @param preloadImage - главное изображение (LCP)
+ * @param preloadImages - полный список растров галереи
+ * @param productionHost - origin сайта
+ * @returns уникальные абсолютные href
+ */
+const buildPreloadImageUrls = (
+  preloadImage: string | undefined,
+  preloadImages: string[] | undefined,
+  productionHost: string,
+): string[] => {
+  const orderedSources = [
+    ...(preloadImage ? [preloadImage] : []),
+    ...(preloadImages ?? []),
+  ];
+  const seenUrls = new Set<string>();
+  const absoluteUrls: string[] = [];
+
+  orderedSources.forEach((source) => {
+    const absoluteUrl = source.startsWith('http') ? source : `${productionHost}${source}`;
+    if (seenUrls.has(absoluteUrl)) {
+      return;
+    }
+    seenUrls.add(absoluteUrl);
+    absoluteUrls.push(absoluteUrl);
+  });
+
+  return absoluteUrls;
 };
 
 /**
@@ -40,6 +73,7 @@ export const Helmet = ({
   keywords,
   jsonLd,
   preloadImage,
+  preloadImages,
   relPrev,
   relNext,
   canonicalPath,
@@ -58,10 +92,7 @@ export const Helmet = ({
   const ogLocaleAlternate = lang === 'en' ? 'ru_RU' : 'en_US';
   const ogImage = image ? (image.startsWith('http') ? image : `${productionHost}${image}`) : undefined;
   const resolvedImageType = imageType ?? (ogImage ? resolveImageMimeType(ogImage) : undefined);
-  const preloadImageUrl = preloadImage
-    ? (preloadImage.startsWith('http') ? preloadImage : `${productionHost}${preloadImage}`)
-    : undefined;
-
+  const preloadImageUrls = buildPreloadImageUrls(preloadImage, preloadImages, productionHost);
   const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
   return (
@@ -74,9 +105,9 @@ export const Helmet = ({
       <link rel="canonical" href={canonical} />
       {relPrev && <link rel="prev" href={relPrev} />}
       {relNext && <link rel="next" href={relNext} />}
-      {preloadImageUrl && (
-        <link rel="preload" as="image" href={preloadImageUrl} />
-      )}
+      {preloadImageUrls.map((preloadImageUrl) => (
+        <link key={preloadImageUrl} rel="preload" as="image" href={preloadImageUrl} />
+      ))}
 
       <meta property="og:type" content={type} />
       <meta property="og:title" content={title} />

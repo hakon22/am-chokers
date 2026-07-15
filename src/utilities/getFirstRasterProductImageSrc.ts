@@ -16,13 +16,31 @@ const rasterImagePattern = /\.(jpe?g|png|webp|gif)(\?.*)?$/i;
 export const isRasterProductImageSrc = (src: string): boolean => rasterImagePattern.test(src);
 
 /**
+ * Возвращает src всех растровых фото галереи (без try-on и видео), в порядке order
+ * @param images - изображения товара
+ * @returns уникальные пути к файлам
+ */
+export const getProductGalleryRasterImageSrcs = (images: ProductImageInterface[]): string[] => {
+  const sortedImages = sortItemImagesByOrder(images);
+  const seenSources = new Set<string>();
+  const rasterImageSources: string[] = [];
+
+  sortedImages.forEach(({ src, tryOn }) => {
+    if (tryOn || !isRasterProductImageSrc(src) || seenSources.has(src)) {
+      return;
+    }
+    seenSources.add(src);
+    rasterImageSources.push(src);
+  });
+
+  return rasterImageSources;
+};
+
+/**
  * Возвращает src первого растрового изображения товара для SEO (OG, preload, JSON-LD)
  * @param images - изображения товара
  * @returns путь к файлу или undefined
  */
-export const getFirstRasterProductImageSrc = (images: ProductImageInterface[]): string | undefined => {
-  const sortedImages = sortItemImagesByOrder(images);
-  const rasterImage = sortedImages.find(({ src, tryOn }) => !tryOn && isRasterProductImageSrc(src));
-
-  return rasterImage?.src;
-};
+export const getFirstRasterProductImageSrc = (images: ProductImageInterface[]): string | undefined => (
+  getProductGalleryRasterImageSrcs(images)[0]
+);

@@ -15,6 +15,7 @@ import { V2Image } from '@/themes/v2/components/V2Image';
 import { V2CartControl } from '@/themes/v2/components/V2CartControl';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
+import { preloadProductGalleryImages } from '@/utilities/preloadProductGalleryImages';
 import { sortItemImagesByOrder } from '@/utilities/sortItemImagesByOrder';
 import styles from '@/themes/v2/components/home/ProductsSection.module.scss';
 import type { ItemInterface } from '@/types/item/Item';
@@ -75,6 +76,13 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
   const grade = rating?.rating?.rating ?? 0;
   const imageAlt = buildItemImageAlt(item);
 
+  /**
+   * Прогревает всю растровую галерею до перехода на PDP
+   */
+  const warmProductGalleryImages = () => {
+    preloadProductGalleryImages(item.images);
+  };
+
   const onFavoritesClick = async (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -89,7 +97,13 @@ export const ProductCard = ({ item, badge, rating, outStock }: ProductCardProps)
 
   return (
     <div className={styles.cardWrapper}>
-      <Link href={getHref(item)} className={styles.card}>
+      <Link
+        href={getHref(item)}
+        className={styles.card}
+        onPointerEnter={warmProductGalleryImages}
+        onFocus={warmProductGalleryImages}
+        onClickCapture={warmProductGalleryImages}
+      >
         <div className={cn(styles.cardImg, { [styles.cardImgOutStock]: outStock })}>
           {image ? (
             <>

@@ -13,6 +13,7 @@ interface JsonLdPropsInterface {
   keywords?: string;
   noindex?: boolean;
   preloadImage?: string;
+  preloadImages?: string[];
   relPrev?: string;
   relNext?: string;
   canonicalPath?: string;
@@ -34,6 +35,7 @@ export const JsonLd = ({
   keywords,
   noindex,
   preloadImage,
+  preloadImages,
   relPrev,
   relNext,
   canonicalPath,
@@ -51,6 +53,7 @@ export const JsonLd = ({
     noindex={noindex}
     jsonLd={jsonLd}
     preloadImage={preloadImage}
+    preloadImages={preloadImages}
     relPrev={relPrev}
     relNext={relNext}
     canonicalPath={canonicalPath}

@@ -31,7 +31,13 @@ import { addFavorites, removeFavorites } from '@/slices/userSlice';
 import { setPaginationParams } from '@/slices/appSlice';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
-import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
+import {
+  buildProductGallerySlideOptimizerUrl,
+  SSR_PRODUCT_GALLERY_DESKTOP_VIEWPORT_WIDTH,
+  SSR_PRODUCT_GALLERY_DEVICE_PIXEL_RATIO,
+  SSR_PRODUCT_GALLERY_MOBILE_VIEWPORT_WIDTH,
+} from '@/utilities/buildNextImageOptimizerUrl';
+import { getFirstRasterProductImageSrc, getProductGalleryRasterImageSrcs } from '@/utilities/getFirstRasterProductImageSrc';
 import { getHref } from '@/utilities/getHref';
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { isTryOnEnabledForGroup, getTryOnVtoTypeForGroup, resolveHasTryOnImage } from '@/utilities/isTryOnEnabledForGroupCode';
@@ -124,12 +130,22 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
     });
     const productSeoDescription = buildProductSeoDescription(item, languageCode, productFallbackDescription);
     const firstProductImage = getFirstRasterProductImageSrc(images);
+    const gallerySlidePreloadViewport = {
+      viewportWidth: isMobile
+        ? SSR_PRODUCT_GALLERY_MOBILE_VIEWPORT_WIDTH
+        : SSR_PRODUCT_GALLERY_DESKTOP_VIEWPORT_WIDTH,
+      devicePixelRatio: SSR_PRODUCT_GALLERY_DEVICE_PIXEL_RATIO,
+    };
+    const gallerySlidePreloadUrls = getProductGalleryRasterImageSrcs(images).map(
+      (imageSrc) => buildProductGallerySlideOptimizerUrl(imageSrc, gallerySlidePreloadViewport),
+    );
 
     return {
       seoProductName,
       productFallbackDescription,
       productSeoDescription,
       firstProductImage,
+      gallerySlidePreloadUrls,
       productJsonLd: buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count, item.grades),
       productBreadcrumbJsonLd: buildBreadcrumbJsonLd([
         { name: tNavbar('menu.home'), url: routes.page.base.homePage },
@@ -138,7 +154,7 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
         { name: seoProductName, url: getHref(item) },
       ]),
     };
-  }, [seoUserLang, languageCode, item, name, price, discountPrice, images, paginationParams?.count, tSeo, tNavbar]);
+  }, [seoUserLang, languageCode, item, name, price, discountPrice, images, paginationParams?.count, isMobile, tSeo, tNavbar]);
 
   const discountPercent = price && discountPrice
     ? Math.round((discountPrice / price) * 100)
@@ -296,7 +312,8 @@ export const ProductPage = ({ item: fetchedItem, paginationParams }: { item: Ite
         image={productSeoBundle.firstProductImage}
         imageAlt={imageAlt}
         type="product"
-        preloadImage={productSeoBundle.firstProductImage}
+        preloadImage={productSeoBundle.gallerySlidePreloadUrls[0]}
+        preloadImages={productSeoBundle.gallerySlidePreloadUrls}
         jsonLd={[productSeoBundle.productJsonLd, productSeoBundle.productBreadcrumbJsonLd]}
       />
 

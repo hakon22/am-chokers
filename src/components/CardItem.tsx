@@ -38,7 +38,13 @@ import { shouldDisableMobileThumbnailSwipe } from '@/utilities/galleryMobileThum
 import { scrollToElement } from '@/utilities/scrollToElement';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { buildItemImageAlt } from '@/utilities/buildItemImageAlt';
-import { getFirstRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
+import {
+  buildProductGallerySlideOptimizerUrl,
+  SSR_PRODUCT_GALLERY_DESKTOP_VIEWPORT_WIDTH,
+  SSR_PRODUCT_GALLERY_DEVICE_PIXEL_RATIO,
+  SSR_PRODUCT_GALLERY_MOBILE_VIEWPORT_WIDTH,
+} from '@/utilities/buildNextImageOptimizerUrl';
+import { getFirstRasterProductImageSrc, getProductGalleryRasterImageSrcs } from '@/utilities/getFirstRasterProductImageSrc';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { isTryOnEnabledForGroup, getTryOnVtoTypeForGroup, resolveHasTryOnImage } from '@/utilities/isTryOnEnabledForGroupCode';
@@ -324,6 +330,15 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
   });
   const productSeoDescription = buildProductSeoDescription(item, languageCode, productFallbackDescription);
   const firstProductImage = getFirstRasterProductImageSrc(images);
+  const gallerySlidePreloadViewport = {
+    viewportWidth: isMobile
+      ? SSR_PRODUCT_GALLERY_MOBILE_VIEWPORT_WIDTH
+      : SSR_PRODUCT_GALLERY_DESKTOP_VIEWPORT_WIDTH,
+    devicePixelRatio: SSR_PRODUCT_GALLERY_DEVICE_PIXEL_RATIO,
+  };
+  const gallerySlidePreloadUrls = getProductGalleryRasterImageSrcs(images).map(
+    (imageSrc) => buildProductGallerySlideOptimizerUrl(imageSrc, gallerySlidePreloadViewport),
+  );
   const productJsonLd = buildProductJsonLd(item, languageCode, productFallbackDescription, paginationParams?.count, item.grades);
   const productBreadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: tNavbar('menu.home'), url: routes.page.base.homePage },
@@ -340,7 +355,8 @@ export const CardItem = ({ item: fetchedItem, paginationParams }: { item: ItemIn
         image={firstProductImage}
         imageAlt={imageAlt}
         type="product"
-        preloadImage={firstProductImage}
+        preloadImage={gallerySlidePreloadUrls[0]}
+        preloadImages={gallerySlidePreloadUrls}
         jsonLd={[productJsonLd, productBreadcrumbJsonLd]}
       />
       <div className="d-flex flex-column flex-xl-row justify-content-xl-between justify-content-xxl-start gap-xxl-5 mb-5">
