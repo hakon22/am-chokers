@@ -611,18 +611,22 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
     setStatisticsEffect(propsStatistics ?? {});
   }, [itemGroup?.id, uuid]);
 
-  const filterProps = {
+  const catalogFilterProps = {
     onFilters,
     form,
     initialValues,
     setInitialValues,
     showDrawer,
     setShowDrawer,
-    setIsSubmit,
     itemGroup,
     uuid,
     statistics,
     resetFilters,
+  };
+
+  const filterProps = {
+    ...catalogFilterProps,
+    setIsSubmit,
   };
 
   const groupTranslation = itemGroup?.translations.find((translation) => translation.lang === seoUserLang);
@@ -681,7 +685,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
         }}
       >
         {isV2
-          ? <CatalogFilter {...filterProps} />
+          ? <CatalogFilter {...catalogFilterProps} />
           : <CatalogItemsFilter {...filterProps} />
         }
         <div className={isV2 ? undefined : 'd-flex col-12 col-xl-9'}>

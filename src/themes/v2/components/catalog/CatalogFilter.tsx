@@ -2,7 +2,7 @@ import { useContext, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next';
 import { isEmpty, isNil } from 'lodash';
 import axios from 'axios';
-import { Badge, Collapse, Drawer, FloatButton, Select } from 'antd';
+import { Badge, Collapse, Drawer, FloatButton, Select, Spin } from 'antd';
 import { FunnelFill, SortDown, SortDownAlt, SortNumericDownAlt } from 'react-bootstrap-icons';
 import type { CollapseProps } from 'antd';
 import type { FormInstance } from 'antd/lib';
@@ -21,7 +21,6 @@ import type { ColorInterface } from '@/types/color/ColorInterface';
 import type { CatalogFiltersInterface } from '@/pages/catalog';
 
 interface CatalogFilterPropsInterface {
-  setIsSubmit: React.Dispatch<React.SetStateAction<boolean>>;
   onFilters: (values: CatalogFiltersInterface) => Promise<void>;
   form: FormInstance<CatalogFiltersInterface>;
   initialValues: CatalogFiltersInterface;
@@ -51,9 +50,14 @@ const CheckboxOption = ({ checked, label, count, onClick }: CheckboxOptionProps)
   </div>
 );
 
+const SectionLoading = () => (
+  <div className={styles.sectionLoading}>
+    <Spin size="small" />
+  </div>
+);
+
 export const CatalogFilter = ({
   onFilters,
-  setIsSubmit,
   form,
   initialValues,
   setInitialValues,
@@ -77,6 +81,9 @@ export const CatalogFilter = ({
   const [filteredCompositions, setFilteredCompositions] = useState<CompositionInterface[]>([]);
   const [colors, setColors] = useState<ColorInterface[]>([]);
   const [compositionSearch, setCompositionSearch] = useState('');
+  const [isCollectionsLoading, setIsCollectionsLoading] = useState(true);
+  const [isCompositionsLoading, setIsCompositionsLoading] = useState(true);
+  const [isColorsLoading, setIsColorsLoading] = useState(true);
 
   const sortedGroups = [...itemGroups].sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -123,30 +130,82 @@ export const CatalogFilter = ({
     return keys;
   }, []);
 
-  const fetchData = async () => {
+  /**
+   * Загружает коллекции для секции фильтра
+   */
+  const fetchCollections = async () => {
+    setIsCollectionsLoading(true);
+
     try {
-      setIsSubmit(true);
-      const [{ data: collectionsResponse }, { data: compositionsResponse }, { data: colorsResponse }] = await Promise.all([
-        axios.get<{ code: number; itemCollections: ItemCollectionInterface[]; }>(routes.itemCollection.findMany({ isServer: false })),
-        axios.get<{ code: number; compositions: CompositionInterface[]; }>(routes.composition.findMany),
-        axios.get<{ code: number; colors: ColorInterface[]; }>(routes.color.findMany),
-      ]);
-      if (collectionsResponse.code === 1) setItemCollections(collectionsResponse.itemCollections);
+      const { data: collectionsResponse } = await axios.get<{ code: number; itemCollections: ItemCollectionInterface[]; }>(
+        routes.itemCollection.findMany({ isServer: false }),
+      );
+
+      if (collectionsResponse.code === 1) {
+        setItemCollections(collectionsResponse.itemCollections);
+      }
+    } catch (error) {
+      axiosErrorHandler(error, tToast);
+    } finally {
+      setIsCollectionsLoading(false);
+    }
+  };
+
+  /**
+   * Загружает составы для секции фильтра
+   */
+  const fetchCompositions = async () => {
+    setIsCompositionsLoading(true);
+
+    try {
+      const { data: compositionsResponse } = await axios.get<{ code: number; compositions: CompositionInterface[]; }>(
+        routes.composition.findMany,
+      );
+
       if (compositionsResponse.code === 1) {
         setAllCompositions(compositionsResponse.compositions);
         setFilteredCompositions(compositionsResponse.compositions);
       }
-      if (colorsResponse.code === 1) setColors(colorsResponse.colors);
-      setIsSubmit(false);
     } catch (error) {
-      axiosErrorHandler(error, tToast, setIsSubmit);
+      axiosErrorHandler(error, tToast);
+    } finally {
+      setIsCompositionsLoading(false);
     }
   };
 
-  const fetchDataEffect = useEffectEvent(fetchData);
+  /**
+   * Загружает цвета для секции фильтра
+   */
+  const fetchColors = async () => {
+    setIsColorsLoading(true);
+
+    try {
+      const { data: colorsResponse } = await axios.get<{ code: number; colors: ColorInterface[]; }>(
+        routes.color.findMany,
+      );
+
+      if (colorsResponse.code === 1) {
+        setColors(colorsResponse.colors);
+      }
+    } catch (error) {
+      axiosErrorHandler(error, tToast);
+    } finally {
+      setIsColorsLoading(false);
+    }
+  };
+
+  const fetchFilterMetadata = async () => {
+    await Promise.all([
+      fetchCollections(),
+      fetchCompositions(),
+      fetchColors(),
+    ]);
+  };
+
+  const fetchFilterMetadataEffect = useEffectEvent(fetchFilterMetadata);
 
   useEffect(() => {
-    fetchDataEffect();
+    fetchFilterMetadataEffect();
   }, []);
 
   useEffect(() => {
@@ -304,7 +363,9 @@ export const CatalogFilter = ({
     {
       key: '3',
       label: buildCollapseLabel(t('collections'), initialValues.collectionIds?.length),
-      children: (
+      children: isCollectionsLoading ? (
+        <SectionLoading />
+      ) : (
         <div className={styles.sectionContent}>
           {itemCollections
             .filter((c): c is NonNullable<typeof c> => c != null)
@@ -348,7 +409,9 @@ export const CatalogFilter = ({
     {
       key: '2',
       label: buildCollapseLabel(t('materials'), initialValues.compositionIds?.length),
-      children: (
+      children: isCompositionsLoading ? (
+        <SectionLoading />
+      ) : (
         <div className={styles.sectionContent}>
           <input
             type="text"
@@ -371,7 +434,9 @@ export const CatalogFilter = ({
     {
       key: '6',
       label: buildCollapseLabel(t('colors'), initialValues.colorIds?.length),
-      children: (
+      children: isColorsLoading ? (
+        <SectionLoading />
+      ) : (
         <div className={styles.sectionContent}>
           {colors.map((color) => (
             <div

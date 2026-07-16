@@ -98,14 +98,28 @@ export const useRouterHandler = () => {
     }
 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let spinnerTimeoutGeneration = 0;
 
     const handleStart = (_url: string, { shallow }: { shallow?: boolean; } = {}) => {
       if (shallow) {
         return;
       }
 
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      spinnerTimeoutGeneration += 1;
+      const currentGeneration = spinnerTimeoutGeneration;
+
       timeoutId = setTimeout(() => {
+        if (currentGeneration !== spinnerTimeoutGeneration) {
+          return;
+        }
+
         setIsLoaded(false);
+        timeoutId = null;
       }, ROUTE_SPINNER_DELAY_MS);
     };
 
@@ -113,6 +127,8 @@ export const useRouterHandler = () => {
       if (shallow) {
         return;
       }
+
+      spinnerTimeoutGeneration += 1;
 
       if (timeoutId) {
         clearTimeout(timeoutId);
