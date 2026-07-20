@@ -368,7 +368,7 @@ export const CatalogFilter = ({
       ) : (
         <div className={styles.sectionContent}>
           {itemCollections
-            .filter((c): c is NonNullable<typeof c> => c != null)
+            .filter((collection): collection is NonNullable<typeof collection> => !isNil(collection))
             .map((collection) => (
               <CheckboxOption
                 key={collection.id}

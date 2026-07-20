@@ -275,10 +275,7 @@ export class TryOnService extends BaseService {
       });
 
       try {
-        const { imageSrc, imageName } = await this.tryOnResultImageService.saveResultImage(
-          draftLog.id,
-          generationResult.imageBuffer,
-        );
+        const { imageSrc, imageName } = await this.tryOnResultImageService.saveResultImage(generationResult.imageBuffer);
 
         draftLog.resultImagePath = this.uploadPathService.getUrlPath(UploadPathEnum.TRY_ON);
         draftLog.resultImageName = imageName;

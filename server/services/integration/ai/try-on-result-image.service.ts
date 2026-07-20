@@ -1,8 +1,8 @@
 import { promises as fs } from 'fs';
-import { join } from 'path';
 
 import sharp from 'sharp';
 import { Container, Singleton } from 'typescript-ioc';
+import { v4 as uuid } from 'uuid';
 
 import { BaseService } from '@server/services/app/base.service';
 import { UploadPathService } from '@server/services/storage/upload.path.service';
@@ -19,18 +19,16 @@ export class TryOnResultImageService extends BaseService {
   private readonly resultJpegQuality = 85;
 
   /**
-   * Сжимает результат примерки и сохраняет в public/try-on/{logId}.jpeg
-   * @param tryOnLogId - id записи try_on_log
+   * Сжимает результат примерки и сохраняет в public/try-on/{uuid}.jpeg
    * @param imageBuffer - исходный buffer результата
-   * @returns относительный путь /try-on/{id}.jpeg и имя файла
+   * @returns относительный путь /try-on/{uuid}.jpeg и имя файла
    */
   public saveResultImage = async (
-    tryOnLogId: number,
     imageBuffer: Buffer,
   ): Promise<{ imageSrc: string; imageName: string; }> => {
     this.uploadPathService.checkFolder(UploadPathEnum.TRY_ON, 0);
 
-    const imageName = `${tryOnLogId}.jpeg`;
+    const imageName = `${uuid()}.jpeg`;
     const absolutePath = this.uploadPathService.getUploadPath(UploadPathEnum.TRY_ON, 0, imageName);
 
     const compressedBuffer = await sharp(imageBuffer)
@@ -51,11 +49,4 @@ export class TryOnResultImageService extends BaseService {
 
     return { imageSrc, imageName };
   };
-
-  /**
-   * Собирает публичный URL src результата
-   * @param tryOnLogId - id лога
-   * @returns /try-on/{id}.jpeg
-   */
-  public buildResultImageSrc = (tryOnLogId: number): string => join('/', UploadPathEnum.TRY_ON, `${tryOnLogId}.jpeg`).replace(/\\/g, '/');
 }
