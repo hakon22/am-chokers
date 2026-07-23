@@ -1,4 +1,5 @@
 import { Singleton } from 'typescript-ioc';
+import _ from 'lodash';
 
 import { BaseService } from '@server/services/app/base.service';
 import { AiTryOnLogEntity } from '@server/db/entities/ai/ai-try-on-log.entity';
@@ -16,7 +17,21 @@ export class TryOnReportService extends BaseService {
     const limit = query.limit ?? 10;
     const offset = query.offset ?? 0;
 
-    return this.databaseService.getManager()
+    const [logIds, count] = await this.databaseService.getManager()
+      .createQueryBuilder(AiTryOnLogEntity, 'log')
+      .select('log.id')
+      .where('log.status = :status', { status: AiTryOnLogStatusEnum.SUCCESS })
+      .andWhere('log.resultImageName IS NOT NULL')
+      .orderBy('log.id', 'DESC')
+      .take(limit)
+      .skip(offset)
+      .getManyAndCount();
+
+    if (_.isEmpty(logIds)) {
+      return [[], count];
+    }
+
+    const items = await this.databaseService.getManager()
       .createQueryBuilder(AiTryOnLogEntity, 'log')
       .select([
         'log.id',
@@ -48,11 +63,11 @@ export class TryOnReportService extends BaseService {
         'itemImages.path',
         'itemImages.order',
       ])
-      .where('log.status = :status', { status: AiTryOnLogStatusEnum.SUCCESS })
-      .andWhere('log.resultImageName IS NOT NULL')
-      .orderBy('log.created', 'DESC')
-      .take(limit)
-      .skip(offset)
-      .getManyAndCount();
+      .where('log.id IN (:...ids)', { ids: logIds.map(({ id }) => id) })
+      .orderBy('log.id', 'DESC')
+      .addOrderBy('itemImages.order', 'ASC')
+      .getMany();
+
+    return [items, count];
   };
 }
