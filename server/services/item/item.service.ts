@@ -25,6 +25,7 @@ import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
 import { hasJoin } from '@server/utilities/has.join';
 import { adjustPriceByPercentAndMultiple, MIN_ITEM_PRICE_AFTER_ADJUST } from '@server/utilities/item-price-adjust';
+import { buildTelegramPublishPayload } from '@server/utilities/build-telegram-publish-payload';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
@@ -1230,26 +1231,13 @@ export class ItemService extends TranslationHelper {
       return;
     }
 
-    const url = this.getUrl(item);
-
-    const values: string[] = (description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string).split('\n');
-
-    const message = [
-      ...values,
-      '',
-      ...(item?.collection ? [`Коллекция: <b>${item.collection.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name}</b>`] : []),
-      `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
-      '',
-      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
-    ];
+    const { message, images } = buildTelegramPublishPayload(item, description);
 
     this.bullMQQueuesService.sendTelegramMessage({
       message,
       item,
       telegramId: process.env.TELEGRAM_GROUP_ID,
-      images: item.images
-        .filter((image) => !image.tryOn)
-        .map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`),
+      images,
     });
   };
 

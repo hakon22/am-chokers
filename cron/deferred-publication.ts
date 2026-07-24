@@ -1,5 +1,3 @@
-import path from 'path';
-
 import moment from 'moment';
 import { Container } from 'typescript-ioc';
 import { Between, IsNull, Or } from 'typeorm';
@@ -12,8 +10,8 @@ import { RedisService } from '@server/db/redis.service';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { ItemEntity } from '@server/db/entities/item.entity';
-import { catalogPath, routes } from '@/routes';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
+import { buildTelegramPublishPayload } from '@server/utilities/build-telegram-publish-payload';
 
 const TAG = 'DeferredPublication';
 
@@ -119,24 +117,16 @@ class DeferredPublicationCron {
     if (!process.env.TELEGRAM_GROUP_ID) {
       return;
     }
-  
-    const url = this.getUrl(item);
-  
-    const values: string[] = (description || item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.description as string).split('\n');
-  
-    const message = [
-      ...values,
-      '',
-      ...(item?.collection ? [`Коллекция: <b>${item.collection.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name}</b>`] : []),
-      `Цена: <b>${item.price - item.discountPrice} ₽</b>`,
-      '',
-      `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${url}`,
-    ];
 
-    this.bullMQQueuesService.sendTelegramMessage({ message, item, telegramId: process.env.TELEGRAM_GROUP_ID, images: item.images.map(({ src }) => `${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${src}`) });
+    const { message, images } = buildTelegramPublishPayload(item, description);
+
+    this.bullMQQueuesService.sendTelegramMessage({
+      message,
+      item,
+      telegramId: process.env.TELEGRAM_GROUP_ID,
+      images,
+    });
   };
-  
-  private getUrl = (item: Pick<ItemEntity, 'group' | 'translateName'>) => path.join(routes.page.base.homePage, catalogPath.slice(1), item.group.code, item.translateName).replaceAll('\\', '/');
 }
 
 const cron = new DeferredPublicationCron();
