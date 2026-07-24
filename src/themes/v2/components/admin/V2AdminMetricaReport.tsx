@@ -5,8 +5,7 @@ import { BackButton } from '@/components/BackButton';
 import { useUserLang } from '@/hooks/useUserLang';
 import { useMetricaReport } from '@/hooks/useMetricaReport';
 import { V2AdminMetricaReportView } from '@/themes/v2/components/admin/V2AdminMetricaReportView';
-
-import styles from './V2AdminMetricaReport.module.scss';
+import styles from '@/themes/v2/components/admin/V2AdminMetricaReport.module.scss';
 
 export const V2AdminMetricaReport = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.metrica' });

@@ -17,11 +17,10 @@ import { getHref } from '@/utilities/getHref';
 import { SubmitContext } from '@/components/Context';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
+import styles from '@/themes/v2/components/admin/V2AdminDeferredPublications.module.scss';
 import type { ItemInterface } from '@/types/item/Item';
 import type { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
-
-import styles from './V2AdminDeferredPublications.module.scss';
 
 interface DataType {
   key: React.Key;

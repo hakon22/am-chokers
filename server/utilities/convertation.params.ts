@@ -10,6 +10,9 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { BannerMediaTypeEnum } from '@server/types/banner/enums/banner.media.type.enum';
 import { TableSortOrderEnum } from '@server/types/table/table-sort-order.enum';
 import { UserListSortFieldEnum } from '@server/types/user/enums/user-list-sort-field.enum';
+import { TryOnReportSortFieldEnum } from '@server/types/reports/try-on/enums/try-on-report-sort-field.enum';
+import { ChartPeriodEnum } from '@server/types/reports/enums/chart-period.enum';
+import { AiTryOnVtoTypeEnum } from '@server/types/ai/enums/ai-try-on-vto-type.enum';
 import { parseCatalogIdQueryValue, type CatalogIdQueryValue } from '@shared/parse-catalog-id-query-value';
 
 const catalogIdQueryArraySchema = yup
@@ -110,6 +113,22 @@ export const queryUsersListParams = queryPaginationWithParams.concat(
   createTableSortParamsSchema(Object.values(UserListSortFieldEnum)),
 );
 
+export const queryTryOnReportParams = queryPaginationSchema.concat(
+  createTableSortParamsSchema(Object.values(TryOnReportSortFieldEnum)),
+);
+
+export const queryTryOnAnalyticsReportParams = queryDatePeriodParams.concat(yup.object().shape({
+  ignorePeriod: booleanSchema,
+  chartPeriod: yup.string().oneOf(Object.values(ChartPeriodEnum)).optional(),
+  vtoTypes: yup.array(yup.string().oneOf(Object.values(AiTryOnVtoTypeEnum)).defined()).optional(),
+  attributionWindowDays: yup
+    .number()
+    .integer()
+    .transform((value) => +value)
+    .oneOf([...[1, 3, 7, 14, 30]])
+    .optional(),
+}));
+
 export const queryOrderParams = queryPaginationSchema.concat(
   userOptionalParamsSchema.concat(yup.object().shape({
     withDeleted: booleanSchema,
@@ -151,6 +170,7 @@ export const queryItemsParams = queryPaginationWithParams.concat(
     bestseller: booleanSchema,
     inStock: booleanSchema,
     outOfStock: booleanSchema,
+    withoutTryOn: booleanSchema,
     sort: yup.string().oneOf(Object.values(ItemSortEnum)).optional(),
     excludeIds: catalogIdQueryArraySchema,
   }),
@@ -162,6 +182,7 @@ const itemBulkSelectionShape = {
   withDeleted: booleanSchema,
   search: yup.string().optional(),
   outOfStock: booleanSchema,
+  withoutTryOn: booleanSchema,
 };
 
 /** Режим `all: true` (фильтры списка) или непустой `ids` — взаимоисключающие */

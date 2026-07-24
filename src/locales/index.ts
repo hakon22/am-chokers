@@ -9,9 +9,8 @@ import {
   type LanguageCode,
 } from '@shared/language-config';
 import { ensureLanguageCookieFromStorage, resolveBootstrapLanguageCode } from '@/utilities/bootstrapLanguage';
-
-import ru from './ru';
-import en from './en';
+import ru from '@/locales/ru';
+import en from '@/locales/en';
 
 const i18nInitOptions = {
   returnNull: false,

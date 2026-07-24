@@ -27,7 +27,6 @@ import { MessageTypeEnum } from '@server/types/message/enums/message.type.enum';
 import { codeGen } from '@server/utilities/code-generator';
 import { passwordGen } from '@server/utilities/password-generator';
 import { paramsIdSchema, queryLanguageParams, queryPaginationWithParams, queryUsersListParams } from '@server/utilities/convertation.params';
-import { getSqlSortDirection } from '@server/utilities/table-sort.utility';
 import { UserListSortFieldEnum } from '@server/types/user/enums/user-list-sort-field.enum';
 import type { UserListQueryInterface } from '@server/types/user/user-list-query.interface';
 import type { UserQueryInterface } from '@server/types/user/user.query.interface';
@@ -827,7 +826,7 @@ export class UserService extends BaseService {
     sortOrder?: UserListQueryInterface['sortOrder'],
   ): void => {
     if (sortField === UserListSortFieldEnum.CREATED && !_.isNil(sortOrder)) {
-      const direction = getSqlSortDirection(sortOrder);
+      const direction = this.sqlHelpersService.getSqlSortDirection(sortOrder);
       builder
         .orderBy('user.created', direction)
         .addOrderBy('user.id', 'DESC');
@@ -835,7 +834,7 @@ export class UserService extends BaseService {
     }
 
     if (sortField === UserListSortFieldEnum.LAST_ACTIVITY && !_.isNil(sortOrder)) {
-      const direction = getSqlSortDirection(sortOrder);
+      const direction = this.sqlHelpersService.getSqlSortDirection(sortOrder);
       const lastActivitySubQuery = builder
         .subQuery()
         .select('MAX(refreshTokenForSort.created)')

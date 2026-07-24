@@ -1,0 +1,34 @@
+@use '@/themes/v2/components/profile/_profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy: v2.$v2-navy-primary;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 48px;
+}
+
+.pageTitle {
+  font-family: v2.$v2-font-serif;
+  font-size: 40px;
+  font-weight: 300;
+  color: $navy;
+  text-align: center;
+  margin: 0 0 32px;
+  line-height: 1.1;
+}
+
+.controls {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 30px;
+  }
+}

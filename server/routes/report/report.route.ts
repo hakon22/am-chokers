@@ -14,5 +14,6 @@ export class ReportRoute extends BaseRouter {
     router.get(this.routes.reports.metrica, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.metricaReport);
     router.get(this.routes.reports.sales, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.salesReport);
     router.get(this.routes.reports.tryOn, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.tryOnReport);
+    router.get(this.routes.reports.tryOnAnalytics, this.middlewareService.jwtToken, this.middlewareService.checkAdminAccess, this.reportController.tryOnAnalyticsReport);
   };
 }

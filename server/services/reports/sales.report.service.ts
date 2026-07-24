@@ -238,6 +238,8 @@ export class SalesReportService extends BaseService {
     const topProductsMap: Record<number, {
       itemId: number;
       itemName: string;
+      itemGroupCode: string;
+      itemTranslateName: string;
       itemImageSrc: string | null;
       soldCount: number;
       revenue: number;
@@ -254,6 +256,7 @@ export class SalesReportService extends BaseService {
     const itemGroupMap: Record<number, {
       groupId: number;
       groupName: string;
+      groupCode: string;
       soldCount: number;
       revenue: number;
     }> = {};
@@ -329,6 +332,8 @@ export class SalesReportService extends BaseService {
           topProductsMap[item.id] = {
             itemId: item.id,
             itemName,
+            itemGroupCode: item.group?.code ?? '',
+            itemTranslateName: item.translateName ?? '',
             itemImageSrc: this.getItemCoverImageSrc(item),
             soldCount: 0,
             revenue: 0,
@@ -344,6 +349,7 @@ export class SalesReportService extends BaseService {
             itemGroupMap[group.id] = {
               groupId: group.id,
               groupName: this.getItemGroupName(group, lang),
+              groupCode: group.code ?? '',
               soldCount: 0,
               revenue: 0,
             };

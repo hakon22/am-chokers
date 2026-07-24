@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 
 import { DatabaseService } from '@server/db/database.service';
 import { RedisService } from '@server/db/redis.service';
+import { SqlHelpersService } from '@server/db/sql-helpers.service';
 import { LoggerService } from '@server/services/app/logger.service';
 import { TokenService } from '@server/services/user/token.service';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
@@ -12,6 +13,8 @@ import { buildValidationErrorResponse, isValidationErrorKey } from '@server/util
 
 export abstract class BaseService {
   protected databaseService = Container.get(DatabaseService);
+
+  protected sqlHelpersService = Container.get(SqlHelpersService);
 
   protected redisService = Container.get(RedisService);
 

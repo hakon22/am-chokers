@@ -3,6 +3,8 @@ import type { TFunction } from 'i18next';
 import type { ColumnsType } from 'antd/es/table';
 
 import { SalesReportTopProductCell } from '@/components/admin/sales-report/SalesReportTopProductCell';
+import { SalesReportGroupNameCell } from '@/components/admin/sales-report/SalesReportGroupNameCell';
+import { buildCatalogGroupHrefIfValid, buildCatalogItemHrefIfValid } from '@/utilities/getHref';
 import type { SalesRevenueByItemGroupInterface } from '@server/types/reports/sales/sales-revenue-by-item-group.interface';
 import type { SalesTopProductInterface } from '@server/types/reports/sales/sales-top-product.interface';
 import type { SalesTopPromoInterface } from '@server/types/reports/sales/sales-top-promo.interface';
@@ -59,6 +61,7 @@ export const buildTopProductsColumns = (t: TFunction<'translation', 'pages.repor
       <SalesReportTopProductCell
         itemName={product.itemName}
         itemImageSrc={product.itemImageSrc}
+        href={buildCatalogItemHrefIfValid(product.itemGroupCode, product.itemTranslateName)}
       />
     ),
   },
@@ -124,6 +127,12 @@ export const buildRevenueByItemGroupColumns = (t: TFunction<'translation', 'page
     dataIndex: 'groupName',
     key: 'groupName',
     sorter: (groupA, groupB) => compareTableStrings(groupA.groupName, groupB.groupName),
+    render: (_groupName, group) => (
+      <SalesReportGroupNameCell
+        groupName={group.groupName}
+        href={buildCatalogGroupHrefIfValid(group.groupCode)}
+      />
+    ),
   },
   {
     title: t('table.soldCount'),

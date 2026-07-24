@@ -16,10 +16,9 @@ import { V2OrderHistory } from '@/themes/v2/components/profile/V2OrderHistory';
 import { V2OrderStatusFilter } from '@/themes/v2/components/profile/V2OrderStatusFilter';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import styles from '@/themes/v2/components/admin/V2AdminOrders.module.scss';
 import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 import type { FetchOrdersInterface, OrderInterface } from '@/types/order/Order';
-
-import styles from './V2AdminOrders.module.scss';
 
 export const V2AdminOrders = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.orders' });

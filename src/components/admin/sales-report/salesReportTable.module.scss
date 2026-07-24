@@ -42,3 +42,28 @@
 .productName {
   min-width: 0;
 }
+
+.productCellLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: inherit;
+    text-decoration: none;
+
+    .productName {
+      text-decoration: underline;
+    }
+  }
+}
+
+.groupNameLink {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: inherit;
+    text-decoration: underline;
+  }
+}

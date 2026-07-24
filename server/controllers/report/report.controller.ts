@@ -7,11 +7,16 @@ import { MessageService } from '@server/services/message/message.service';
 import { MetricaReportService } from '@server/services/reports/metrica.report.service';
 import { SalesReportService } from '@server/services/reports/sales.report.service';
 import { TryOnReportService } from '@server/services/reports/try-on.report.service';
+import { TryOnAnalyticsReportService } from '@server/services/reports/try-on-analytics.report.service';
+import type { TryOnReportQueryInterface } from '@server/types/reports/try-on/try-on-report-query.interface';
+import type { TryOnAnalyticsReportQueryInterface } from '@server/types/reports/try-on/try-on-analytics-report-query.interface';
 import {
   queryPaginationWithParams,
   queryMessageReportParams,
   queryDatePeriodParams,
   querySalesReportParams,
+  queryTryOnReportParams,
+  queryTryOnAnalyticsReportParams,
 } from '@server/utilities/convertation.params';
 
 @Singleton
@@ -25,6 +30,8 @@ export class ReportController extends BaseService {
   private readonly salesReportService = Container.get(SalesReportService);
 
   private readonly tryOnReportService = Container.get(TryOnReportService);
+
+  private readonly tryOnAnalyticsReportService = Container.get(TryOnAnalyticsReportService);
 
   public cartReport = async (req: Request, res: Response) => {
     try {
@@ -96,7 +103,7 @@ export class ReportController extends BaseService {
    */
   public tryOnReport = async (req: Request, res: Response) => {
     try {
-      const query = await queryPaginationWithParams.validate(req.query);
+      const query = await queryTryOnReportParams.validate(req.query) as TryOnReportQueryInterface;
 
       const [items, count] = await this.tryOnReportService.tryOnReport(query);
 
@@ -107,6 +114,25 @@ export class ReportController extends BaseService {
       };
 
       res.json({ code: 1, items, paginationParams });
+    } catch (e) {
+      this.errorHandler(e, res);
+    }
+  };
+
+  /**
+   * GET /api/reports/try-on/analytics — дашборд и конверсия AI-примерки
+   * @param req - Express request
+   * @param res - Express response
+   * @returns void
+   */
+  public tryOnAnalyticsReport = async (req: Request, res: Response) => {
+    try {
+      const user = this.getCurrentUser(req);
+      const query = await queryTryOnAnalyticsReportParams.validate(req.query) as TryOnAnalyticsReportQueryInterface;
+
+      const result = await this.tryOnAnalyticsReportService.tryOnAnalyticsReport(user.lang, query);
+
+      res.json({ code: 1, result });
     } catch (e) {
       this.errorHandler(e, res);
     }

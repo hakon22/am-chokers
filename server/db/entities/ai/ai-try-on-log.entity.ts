@@ -21,6 +21,11 @@ import { AiProviderTypeEnum } from '@server/types/ai/enums/ai-provider-type.enum
 import { AiTryOnUserRatingEnum } from '@server/types/ai/enums/ai-try-on-user-rating.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 
+const nullableNumericColumnTransformer = {
+  from: (value: string | null) => (_.isNil(value) ? null : +value),
+  to: (value: number | null) => value,
+};
+
 /** Журнал запросов AI-примерки */
 @Entity({
   name: 'try_on_log',
@@ -112,6 +117,7 @@ export class AiTryOnLogEntity extends BaseEntity {
     scale: 2,
     name: 'validation_cost',
     nullable: true,
+    transformer: nullableNumericColumnTransformer,
   })
   public validationCost: number | null;
 
@@ -121,6 +127,7 @@ export class AiTryOnLogEntity extends BaseEntity {
     scale: 2,
     name: 'generation_cost',
     nullable: true,
+    transformer: nullableNumericColumnTransformer,
   })
   public generationCost: number | null;
 
@@ -130,6 +137,7 @@ export class AiTryOnLogEntity extends BaseEntity {
     scale: 2,
     name: 'total_cost',
     nullable: true,
+    transformer: nullableNumericColumnTransformer,
   })
   public totalCost: number | null;
 

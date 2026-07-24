@@ -8,7 +8,7 @@ start-sender:
 	pm2 start "npm run start:sender:prod" -n am-chokers-sender
 
 api:
-	npm run start:server:dev
+	make clear-user-refresh-tokens && npm run start:server:dev
 
 sender:
 	npm run start:sender:dev

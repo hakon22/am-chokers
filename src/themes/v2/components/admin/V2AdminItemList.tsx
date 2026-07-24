@@ -26,12 +26,11 @@ import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
 import { SubmitContext } from '@/components/Context';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
-import type { FetchItemInterface, ItemInterface } from '@/types/item/Item';
-import type { PaginationEntityInterface } from '@/types/PaginationInterface';
+import styles from '@/themes/v2/components/admin/V2AdminItemList.module.scss';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { toast } from '@/utilities/toast';
-
-import styles from './V2AdminItemList.module.scss';
+import type { FetchItemInterface, ItemInterface } from '@/types/item/Item';
+import type { PaginationEntityInterface } from '@/types/PaginationInterface';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 
@@ -44,14 +43,16 @@ const listParams = (
   withDeleted: boolean | undefined,
   search: string | undefined,
   outOfStock: boolean | undefined,
-): Pick<FetchItemInterface, 'withDeleted' | 'search' | 'outOfStock'> => ({
+  withoutTryOn: boolean | undefined,
+): Pick<FetchItemInterface, 'withDeleted' | 'search' | 'outOfStock' | 'withoutTryOn'> => ({
   ...(withDeleted !== undefined ? { withDeleted } : {}),
   ...(search ? { search } : {}),
   ...(outOfStock ? { outOfStock: true } : {}),
+  ...(withoutTryOn ? { withoutTryOn: true } : {}),
 });
 
 type BulkSelection =
-  | { all: true; withDeleted?: boolean; search?: string; outOfStock?: boolean }
+  | { all: true; withDeleted?: boolean; search?: string; outOfStock?: boolean; withoutTryOn?: boolean }
   | { ids: number[] };
 
 const buildBulkSelection = (
@@ -60,6 +61,7 @@ const buildBulkSelection = (
   withDeleted: boolean | undefined,
   search: string | undefined,
   outOfStock: boolean | undefined,
+  withoutTryOn: boolean | undefined,
 ): BulkSelection => {
   if (selectAll) {
     return {
@@ -67,6 +69,7 @@ const buildBulkSelection = (
       ...(withDeleted === true ? { withDeleted: true } : {}),
       ...(search ? { search } : {}),
       ...(outOfStock ? { outOfStock: true } : {}),
+      ...(withoutTryOn ? { withoutTryOn: true } : {}),
     };
   }
   return { ids: [...selectedIds] };
@@ -85,6 +88,7 @@ export const V2AdminItemList = () => {
   const withDeletedParams = urlParams.get('withDeleted');
   const searchParams = urlParams.get('search');
   const outOfStockParams = urlParams.get('outOfStock');
+  const withoutTryOnParams = urlParams.get('withoutTryOn');
 
   const { axiosAuth, pagination } = useAppSelector((state) => state.app);
   const { isAdmin } = useAppSelector((state) => state.user);
@@ -95,6 +99,7 @@ export const V2AdminItemList = () => {
   const [data, setData] = useState<ItemInterface[]>([]);
   const [withDeleted, setWithDeleted] = useState<boolean | undefined>(booleanSchema.validateSync(withDeletedParams));
   const [outOfStock, setOutOfStock] = useState<boolean | undefined>(booleanSchema.validateSync(outOfStockParams));
+  const [withoutTryOn, setWithoutTryOn] = useState<boolean | undefined>(booleanSchema.validateSync(withoutTryOnParams));
   const [search, setSearch] = useState<{ value: string; onFetch: boolean; } | undefined>({ value: searchParams as string, onFetch: true });
   const [selectAll, setSelectAll] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
@@ -104,10 +109,11 @@ export const V2AdminItemList = () => {
   const [bulkPercentage, setBulkPercentage] = useState<number>(10);
   const [bulkMultiple, setBulkMultiple] = useState<number>(100);
 
-  const filters = useMemo(() => listParams(withDeleted, search?.value, outOfStock), [withDeleted, search?.value, outOfStock]);
+  const filters = useMemo(() => listParams(withDeleted, search?.value, outOfStock, withoutTryOn), [withDeleted, search?.value, outOfStock, withoutTryOn]);
 
   const withDeletedHandler = () => setWithDeleted(!withDeleted);
   const outOfStockHandler = () => setOutOfStock(!outOfStock);
+  const withoutTryOnHandler = () => setWithoutTryOn(!withoutTryOn);
 
   const fetchItems = async (params: FetchItemInterface, replacement = false, onFetch = true) => {
     try {
@@ -190,7 +196,7 @@ export const V2AdminItemList = () => {
     }
     try {
       setIsSubmit(true);
-      const sel = buildBulkSelection(selectAll, selectedIds, withDeleted, search?.value, outOfStock);
+      const sel = buildBulkSelection(selectAll, selectedIds, withDeleted, search?.value, outOfStock, withoutTryOn);
       const { data } = await axios.post<{ code: number; affectedCount: number; }>(routes.item.bulkOutStock, {
         ...sel,
         outStock: bulkOutStockDate.format('YYYY-MM-DD'),
@@ -211,7 +217,7 @@ export const V2AdminItemList = () => {
   const postBulkClearOutStock = async () => {
     try {
       setIsSubmit(true);
-      const sel = buildBulkSelection(selectAll, selectedIds, withDeleted, search?.value, outOfStock);
+      const sel = buildBulkSelection(selectAll, selectedIds, withDeleted, search?.value, outOfStock, withoutTryOn);
       const { data } = await axios.post<{ code: number; affectedCount: number }>(routes.item.bulkOutStockClear, sel);
       if (data.code === 1) {
         toast(tToast('itemBulkSuccess', { count: data.affectedCount }), 'success');
@@ -228,7 +234,7 @@ export const V2AdminItemList = () => {
   const postBulkPriceAdjust = async () => {
     try {
       setIsSubmit(true);
-      const sel = buildBulkSelection(selectAll, selectedIds, withDeleted, search?.value, outOfStock);
+      const sel = buildBulkSelection(selectAll, selectedIds, withDeleted, search?.value, outOfStock, withoutTryOn);
       const { data } = await axios.post<{ code: number; affectedCount: number; skippedBelowMin: number; }>(routes.item.bulkPriceAdjust, {
         ...sel,
         percentage: bulkPercentage,
@@ -267,7 +273,7 @@ export const V2AdminItemList = () => {
       return;
     }
     fetchItemsEffect({ limit: 10, offset: 0, ...filters }, true, search?.onFetch);
-  }, [axiosAuth, withDeleted, search?.value, outOfStock]);
+  }, [axiosAuth, withDeleted, search?.value, outOfStock, withoutTryOn]);
 
   useEffect(() => {
     router.push(
@@ -276,12 +282,13 @@ export const V2AdminItemList = () => {
           ...(withDeleted !== undefined ? { withDeleted } : {}),
           ...(search?.value !== undefined && search?.value !== null ? { search: search.value } : {}),
           ...(outOfStock ? { outOfStock: true } : {}),
+          ...(withoutTryOn ? { withoutTryOn: true } : {}),
         },
       },
       undefined,
       { shallow: true },
     );
-  }, [withDeleted, search?.value, outOfStock]);
+  }, [withDeleted, search?.value, outOfStock, withoutTryOn]);
 
   if (!isAdmin) {
     return null;
@@ -299,6 +306,7 @@ export const V2AdminItemList = () => {
         <div className={styles.controlsFilters}>
           <Checkbox checked={withDeleted} onChange={withDeletedHandler}>{t('withDeleted')}</Checkbox>
           <Checkbox checked={outOfStock} onChange={outOfStockHandler}>{t('outOfStockFilter')}</Checkbox>
+          <Checkbox checked={withoutTryOn} onChange={withoutTryOnHandler}>{t('withoutTryOnFilter')}</Checkbox>
           <Checkbox
             checked={selectAll}
             onChange={({ target }) => {

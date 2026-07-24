@@ -15,6 +15,7 @@ type SalesReportViewProps = {
 
 export const AdminSalesReportView = ({ reportState, lang }: SalesReportViewProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.sales' });
+  const { t: tRoot } = useTranslation('translation');
 
   const {
     data,
@@ -79,6 +80,7 @@ export const AdminSalesReportView = ({ reportState, lang }: SalesReportViewProps
             topPromos={data.topPromos}
             revenueByItemGroup={data.revenueByItemGroup}
             t={t}
+            tRoot={tRoot}
           />
         </>
       )}

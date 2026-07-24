@@ -5,8 +5,7 @@ import { BackButton } from '@/components/BackButton';
 import { useUserLang } from '@/hooks/useUserLang';
 import { useSalesReport } from '@/hooks/useSalesReport';
 import { V2AdminSalesReportView } from '@/themes/v2/components/admin/V2AdminSalesReportView';
-
-import styles from './V2AdminSalesReport.module.scss';
+import styles from '@/themes/v2/components/admin/V2AdminSalesReport.module.scss';
 
 export const V2AdminSalesReport = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'pages.reports.sales' });

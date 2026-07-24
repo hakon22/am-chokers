@@ -1,0 +1,302 @@
+@use '@/themes/v2/components/profile/_profile-shared' as *;
+@use '@/themes/v2/styles/variables' as v2;
+
+$navy:   v2.$v2-navy-primary;
+$border: v2.$v2-border;
+$bgAlt:  v2.$v2-bg-alt;
+$bgMain: v2.$v2-bg-main;
+$textM:  v2.$v2-text-muted;
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filtersCard {
+  @include card;
+  border: 1px solid $border;
+}
+
+.filtersSpace {
+  width: 100%;
+}
+
+.filtersRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.filterLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.filterLabel {
+  font-size: 12px;
+  line-height: 1.2;
+  color: $textM;
+}
+
+.periodField {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr);
+  column-gap: 12px;
+  row-gap: 4px;
+  align-items: center;
+  flex: 1;
+  min-width: 280px;
+}
+
+.periodLabelRow {
+  grid-column: 2;
+  margin-bottom: 0;
+}
+
+.periodCheckbox {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  white-space: nowrap;
+
+  :global(.ant-checkbox + span) {
+    padding-inline-end: 0;
+  }
+}
+
+.dateRange {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  min-width: 0;
+}
+
+.vtoTypeSelect {
+  min-width: 220px;
+  flex: 1;
+}
+
+.attributionWindowSelect {
+  min-width: 180px;
+}
+
+.kpiRow {
+  margin-bottom: 0;
+}
+
+.kpiCard {
+  @include card;
+  height: 100%;
+  border: 1px solid $border;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: v2.$v2-sh-md;
+  }
+
+  :global(.ant-statistic-title) {
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: $textM;
+  }
+
+  :global(.ant-statistic-content) {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  :global(.ant-statistic-content-value),
+  :global(.ant-statistic-content-value-int),
+  :global(.ant-statistic-content-value-decimal),
+  :global(.ant-statistic-content-suffix) {
+    color: $navy;
+    font-family: v2.$v2-font-serif;
+    font-size: 36px;
+    line-height: 1;
+  }
+
+  :global(.ant-statistic-content-suffix) {
+    margin-inline-start: 0;
+  }
+}
+
+.changeLabel {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: $textM;
+}
+
+.changeValuePositive {
+  color: v2.$v2-success;
+  font-weight: 600;
+}
+
+.changeValueNegative {
+  color: v2.$v2-error;
+  font-weight: 600;
+}
+
+.changeValueNeutral {
+  color: $textM;
+}
+
+.comparisonPeriodHint {
+  margin: 0;
+  font-size: 13px;
+  color: $textM;
+}
+
+.conversionCard {
+  @include card;
+  border: 1px solid $border;
+
+  :global(.ant-card-head-title) {
+    font-family: v2.$v2-font-serif;
+    font-size: 22px;
+    color: $navy;
+  }
+}
+
+.chartCard {
+  @include card;
+  border: 1px solid $border;
+
+  :global(.ant-card-head-title) {
+    font-family: v2.$v2-font-serif;
+    font-size: 22px;
+    color: $navy;
+  }
+}
+
+.chartControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.chartTotals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
+  color: $textM;
+}
+
+.secondaryChartsRow {
+  margin-bottom: 0;
+}
+
+.tableCard {
+  @include card;
+  overflow: hidden;
+  border: 1px solid $border;
+
+  :global(.ant-card-head-title) {
+    font-family: v2.$v2-font-serif;
+    font-size: 22px;
+    color: $navy;
+  }
+
+  :global(.ant-tabs-nav) {
+    margin-bottom: 0;
+  }
+
+  :global(.ant-tabs-tab) {
+    font-family: v2.$v2-font-sans;
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: $textM;
+  }
+
+  :global(.ant-tabs-tab-active .ant-tabs-tab-btn) {
+    color: $navy;
+  }
+}
+
+.table {
+  :global(.ant-table) {
+    background: transparent;
+  }
+
+  :global(.ant-table-thead > tr > th) {
+    background: $bgAlt !important;
+    border-bottom: 1px solid $border !important;
+    padding: 12px 24px !important;
+    font-family: v2.$v2-font-sans;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: $textM;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  :global(.ant-table-tbody > tr:not(.ant-table-measure-row) > td) {
+    border-bottom: 1px solid $border !important;
+    padding: 14px 24px !important;
+  }
+
+  :global(.ant-table-tbody > tr.ant-table-measure-row) {
+    height: 0 !important;
+    line-height: 0 !important;
+
+    > td {
+      padding: 0 !important;
+      border: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+    }
+  }
+
+  :global(.ant-table-tbody > tr.ant-table-row:hover > td) {
+    background: $bgMain !important;
+  }
+}
+
+.legendHidden {
+  text-decoration: line-through;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .periodField {
+    grid-template-columns: 1fr;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .periodLabelRow {
+    grid-column: 1;
+  }
+
+  .periodCheckbox {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .dateRange,
+  .vtoTypeSelect,
+  .attributionWindowSelect {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dateRange {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}

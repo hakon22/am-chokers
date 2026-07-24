@@ -46,4 +46,6 @@ export interface FetchItemInterface extends PaginationQueryInterface {
   search?: string;
   /** Только товары с заполненной датой «нет в наличии» */
   outOfStock?: boolean;
+  /** Товары без фото примерки в группах, где AI-примерка включена */
+  withoutTryOn?: boolean;
 }

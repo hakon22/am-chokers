@@ -1,4 +1,4 @@
-import { isRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
+import { isRasterProductImageSrc } from '@server/utilities/is-raster-product-image-src';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 
 export type ItemForProductPageInterface = ItemEntity & { hasTryOnImage: boolean; };

@@ -12,7 +12,6 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { CommentEntity } from '@server/db/entities/comment.entity';
 import { GradeEntity } from '@server/db/entities/grade.entity';
 import { routes } from '@/routes';
-import { hasJoin } from '@server/utilities/has.join';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
 import type { SynchronizationCacheInterface } from '@server/types/db/synchronization-cache.interface';
 import type { CacheInfoInterface } from '@server/types/db/cache-info.interface';
@@ -141,10 +140,10 @@ export class GradeService extends BaseService {
       builder.andWhere('grade.user_id = :userId', { userId: options.userId });
     }
     if (options?.itemNames?.length) {
-      if (!hasJoin(builder, 'item')) {
+      if (!this.sqlHelpersService.hasJoin(builder, 'item')) {
         builder.leftJoin('grade.item', 'item');
       }
-      if (!hasJoin(builder, 'translations')) {
+      if (!this.sqlHelpersService.hasJoin(builder, 'translations')) {
         builder.leftJoin('item.translations', 'translations');
       }
       builder.andWhere('translations.name IN(:...names)', { names: options.itemNames });

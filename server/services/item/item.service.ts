@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { Container, Singleton } from 'typescript-ioc';
-import { Brackets, In } from 'typeorm';
+import { Brackets, In, type SelectQueryBuilder } from 'typeorm';
 import ExcelJS, { type Anchor } from 'exceljs';
 import moment from 'moment';
 import _ from 'lodash';
@@ -23,12 +23,12 @@ import { ItemGroupService } from '@server/services/item/item.group.service';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { catalogPath, routes } from '@/routes';
 import { translate } from '@/utilities/translate';
-import { hasJoin } from '@server/utilities/has.join';
 import { adjustPriceByPercentAndMultiple, MIN_ITEM_PRICE_AFTER_ADJUST } from '@server/utilities/item-price-adjust';
 import { buildTelegramPublishPayload } from '@server/utilities/build-telegram-publish-payload';
 import { UploadPathEnum } from '@server/utilities/enums/upload.path.enum';
 import { ItemSortEnum } from '@server/types/item/enums/item.sort.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
+import { isRasterProductImageSrc } from '@server/utilities/is-raster-product-image-src';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { RedisKeyEnum } from '@server/types/db/enums/redis-key.enum';
 import type { SynchronizationCacheInterface } from '@server/types/db/synchronization-cache.interface';
@@ -59,6 +59,35 @@ export class ItemService extends TranslationHelper {
   private readonly deferredPublicationService = Container.get(DeferredPublicationService);
 
   private readonly itemHistoryService = Container.get(ItemHistoryService);
+
+  private readonly tryOnRasterImageNamePattern = '\\.(jpe?g|png|webp|gif)$';
+
+  /**
+   * Ограничивает выборку товарами без фото примерки в группах, где AI-примерка включена
+   * @param builder - TypeORM query builder товаров
+   */
+  private applyWithoutTryOnFilter = (builder: SelectQueryBuilder<ItemEntity>): void => {
+    if (!this.sqlHelpersService.hasJoin(builder, 'group')) {
+      builder.leftJoin('item.group', 'group');
+    }
+    if (!this.sqlHelpersService.hasJoin(builder, 'groupTryOn')) {
+      builder.leftJoin('group.tryOn', 'groupTryOn');
+    }
+    builder
+      .andWhere('"groupTryOn"."is_enabled" = TRUE')
+      .andWhere('"groupTryOn"."vto_type" IS NOT NULL')
+      .andWhere(`
+        NOT EXISTS (
+          SELECT 1
+          FROM "chokers"."image" AS "tryOnImage"
+          WHERE "tryOnImage"."item_id" = "item"."id"
+            AND "tryOnImage"."deleted" IS NULL
+            AND "tryOnImage"."try_on" = TRUE
+            AND "tryOnImage"."name" ~* :tryOnRasterImageNamePattern
+        )
+      `)
+      .setParameter('tryOnRasterImageNamePattern', this.tryOnRasterImageNamePattern);
+  };
 
   private createQueryBuilder = (query?: ItemQueryInterface, options?: ItemOptionsInterface) => {
     const manager = options?.manager || this.databaseService.getManager();
@@ -231,13 +260,13 @@ export class ItemService extends TranslationHelper {
       builder.andWhere('item.collection IN(:...collectionIds)', { collectionIds: query.collectionIds });
     }
     if (query?.compositionIds?.length) {
-      if (!hasJoin(builder, 'compositions')) {
+      if (!this.sqlHelpersService.hasJoin(builder, 'compositions')) {
         builder.leftJoin('item.compositions', 'compositions');
       }
       builder.andWhere('compositions.id IN(:...compositionIds)', { compositionIds: query.compositionIds });
     }
     if (query?.colorIds?.length) {
-      if (!hasJoin(builder, 'colors')) {
+      if (!this.sqlHelpersService.hasJoin(builder, 'colors')) {
         builder.leftJoin('item.colors', 'colors');
       }
       builder.andWhere('colors.id IN(:...colorIds)', { colorIds: query.colorIds });
@@ -260,8 +289,11 @@ export class ItemService extends TranslationHelper {
     if (query?.outOfStock) {
       builder.andWhere('item.outStock IS NOT NULL');
     }
+    if (query?.withoutTryOn) {
+      this.applyWithoutTryOnFilter(builder);
+    }
     if (query?.groupCode) {
-      if (!hasJoin(builder, 'group')) {
+      if (!this.sqlHelpersService.hasJoin(builder, 'group')) {
         builder.leftJoin('item.group', 'group');
       }
       builder.andWhere('group.code = :groupCode', { groupCode: query.groupCode });
@@ -285,10 +317,10 @@ export class ItemService extends TranslationHelper {
           .addSelect('grades.id');
       }
       if (options?.fullItem) {
-        if (!hasJoin(builder, 'compositions')) {
+        if (!this.sqlHelpersService.hasJoin(builder, 'compositions')) {
           builder.leftJoin('item.compositions', 'compositions');
         }
-        if (!hasJoin(builder, 'colors')) {
+        if (!this.sqlHelpersService.hasJoin(builder, 'colors')) {
           builder.leftJoin('item.colors', 'colors');
         }
         builder
@@ -841,6 +873,7 @@ export class ItemService extends TranslationHelper {
         { header: isRu ? 'Новинка' : 'New', key: 'new', width: 15 },
         { header: isRu ? 'Бестселлер' : 'Bestseller', key: 'bestseller', width: 15 },
         { header: isRu ? 'В наличии' : 'In stock', key: 'isAbsent', width: 15 },
+        { header: isRu ? 'Фото примерки' : 'Try-on photo', key: 'hasTryOnImage', width: 15 },
         { header: isRu ? 'Дата создания' : 'Created date', key: 'created', width: 20 },
       ];
 
@@ -869,6 +902,7 @@ export class ItemService extends TranslationHelper {
         new: item.new ? yes : no,
         bestseller: item.bestseller ? yes : no,
         isAbsent: !item.outStock ? yes : no,
+        hasTryOnImage: item.images?.some(({ tryOn, src }) => tryOn && isRasterProductImageSrc(src)) ? yes : no,
         created: moment(item.created).format(DateFormatEnum.DD_MM_YYYY_HH_MM),
       });
 
@@ -1027,6 +1061,7 @@ export class ItemService extends TranslationHelper {
     withDeleted?: boolean;
     search?: string;
     outOfStock?: boolean;
+    withoutTryOn?: boolean;
   }): Promise<number[]> => {
     if (body.all === true) {
       const query: ItemQueryInterface = {};
@@ -1038,6 +1073,9 @@ export class ItemService extends TranslationHelper {
       }
       if (body.outOfStock === true) {
         query.outOfStock = true;
+      }
+      if (body.withoutTryOn === true) {
+        query.withoutTryOn = true;
       }
       const builder = this.createQueryBuilder(query, { onlyIds: true });
       builder.andWhere('item.deleted IS NULL');
@@ -1080,7 +1118,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public bulkSetOutStock = async (
-    body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; outStock: unknown; },
+    body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; withoutTryOn?: boolean; outStock: unknown; },
     user: PassportRequestInterface,
   ) => {
     const { lang } = user;
@@ -1128,7 +1166,7 @@ export class ItemService extends TranslationHelper {
   };
 
   public bulkClearOutStock = async (
-    body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; },
+    body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; withoutTryOn?: boolean; },
     user: PassportRequestInterface,
   ) => {
     const ids = await this.resolveBulkTargetIds(body);
@@ -1171,6 +1209,7 @@ export class ItemService extends TranslationHelper {
       withDeleted?: boolean;
       search?: string;
       outOfStock?: boolean;
+      withoutTryOn?: boolean;
       percentage: number;
       multiple: number;
     },

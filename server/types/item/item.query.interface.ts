@@ -42,4 +42,6 @@ export interface ItemQueryInterface extends Partial<PaginationQueryInterface> {
   inStock?: boolean;
   /** Не в наличии (задана дата outStock) */
   outOfStock?: boolean;
+  /** Без фото примерки в группах, где AI-примерка включена */
+  withoutTryOn?: boolean;
 }

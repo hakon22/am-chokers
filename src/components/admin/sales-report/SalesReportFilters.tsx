@@ -88,7 +88,7 @@ export const SalesReportFilters = ({
         disabled={ignorePeriod}
         onChange={(value) => setFrom(value ? value.format(DateFormatEnum.YYYY_MM_DD) : moment().startOf('month').format(DateFormatEnum.YYYY_MM_DD))}
         allowClear
-        value={from && !ignorePeriod ? moment(fromParams || from) : undefined}
+        value={from ? moment(fromParams || from) : undefined}
         showNow={false}
         format={DateFormatEnum.DD_MM_YYYY}
         locale={lang === UserLangEnum.RU ? locale : undefined}
@@ -99,7 +99,7 @@ export const SalesReportFilters = ({
         disabled={ignorePeriod}
         onChange={(value) => setTo(value ? value.format(DateFormatEnum.YYYY_MM_DD) : moment().endOf('month').format(DateFormatEnum.YYYY_MM_DD))}
         allowClear
-        value={to && !ignorePeriod ? moment(toParams || to) : undefined}
+        value={to ? moment(toParams || to) : undefined}
         showNow={false}
         format={DateFormatEnum.DD_MM_YYYY}
         locale={lang === UserLangEnum.RU ? locale : undefined}

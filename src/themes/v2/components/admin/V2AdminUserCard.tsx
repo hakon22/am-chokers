@@ -15,10 +15,9 @@ import { BackButton } from '@/components/BackButton';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { ImageHover } from '@/components/ImageHover';
 import { getHref } from '@/utilities/getHref';
+import styles from '@/themes/v2/components/admin/V2AdminUserCard.module.scss';
 import type { UserCardInterface } from '@/types/user/User';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
-
-import styles from './V2AdminUserCard.module.scss';
 
 const coefficient = 1.3;
 const imgWidth = 80;

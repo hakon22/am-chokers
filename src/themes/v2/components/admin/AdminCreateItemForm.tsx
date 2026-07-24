@@ -38,6 +38,7 @@ import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { ImageEntity } from '@server/db/entities/image.entity';
 import { locale } from '@/locales/pickers.locale.ru';
+import styles from '@/themes/v2/components/admin/V2AdminCreateItem.module.scss';
 import type { CompositionEntity } from '@server/db/entities/composition.entity';
 import type { ResponseFileInterface } from '@/types/storage/ResponseFileInterface';
 import type { ItemCollectionInterface, ItemGroupInterface, ItemInterface } from '@/types/item/Item';
@@ -45,8 +46,6 @@ import type { CompositionInterface } from '@/types/composition/CompositionInterf
 import type { ColorInterface } from '@/types/color/ColorInterface';
 import type { ColorEntity } from '@server/db/entities/color.entity';
 import type { ItemTranslateEntity } from '@server/db/entities/item.translate.entity';
-
-import styles from './V2AdminCreateItem.module.scss';
 
 const MomentDatePicker = DatePicker.generatePicker<Moment>(momentGenerateConfig);
 

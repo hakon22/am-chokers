@@ -289,5 +289,6 @@ export const routes = {
     metrica: [apiPath, 'reports', 'metrica'].join('/'),
     sales: [apiPath, 'reports', 'sales'].join('/'),
     tryOn: [apiPath, 'reports', 'try-on'].join('/'),
+    tryOnAnalytics: [apiPath, 'reports', 'try-on', 'analytics'].join('/'),
   },
 } as const;

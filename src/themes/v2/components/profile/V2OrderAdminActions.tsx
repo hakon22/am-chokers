@@ -16,10 +16,9 @@ import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { SubmitContext } from '@/components/Context';
 import { toast } from '@/utilities/toast';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
+import styles from '@/themes/v2/components/profile/V2OrderAdminActions.module.scss';
 import type { OrderInterface } from '@/types/order/Order';
 import type { CartItemInterface } from '@/types/cart/Cart';
-
-import styles from './V2OrderAdminActions.module.scss';
 
 export type V2OrderAdminActionsVariant = 'default' | 'listRow';
 

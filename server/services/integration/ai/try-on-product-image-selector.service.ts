@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { Singleton } from 'typescript-ioc';
 
-import { isRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
+import { isRasterProductImageSrc } from '@server/utilities/is-raster-product-image-src';
 import type { ImageEntity } from '@server/db/entities/image.entity';
 import type { ItemEntity } from '@server/db/entities/item.entity';
 

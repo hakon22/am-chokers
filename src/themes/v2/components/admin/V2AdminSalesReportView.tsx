@@ -90,7 +90,7 @@ export const V2AdminSalesReportView = ({ reportState, lang }: V2AdminSalesReport
     neutral: styles.changeValueNeutral,
   } as const;
 
-  const dateRangeValue: [Moment, Moment] | null = from && to && !ignorePeriod
+  const dateRangeValue: [Moment, Moment] | null = from && to
     ? [moment(fromParams || from), moment(toParams || to)]
     : null;
 
@@ -125,7 +125,7 @@ export const V2AdminSalesReportView = ({ reportState, lang }: V2AdminSalesReport
   return (
     <div className={styles.report}>
       <Card className={styles.filtersCard}>
-        <Space direction="vertical" size="middle" className={styles.filtersSpace}>
+        <Space orientation="vertical" size="middle" className={styles.filtersSpace}>
           <div className={styles.filtersRow}>
             <Checkbox
               checked={ignorePeriod}
