@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isNil } from 'lodash';
 
 import { AiTryOnVtoTypeEnum } from '@server/types/ai/enums/ai-try-on-vto-type.enum';
 import { isRasterProductImageSrc } from '@/utilities/getFirstRasterProductImageSrc';
@@ -25,7 +25,7 @@ type TryOnItemImagesLike = {
  * @returns true, если есть try-on изображение
  */
 export const resolveHasTryOnImage = (item: TryOnItemImagesLike): boolean => {
-  if (!_.isNil(item.hasTryOnImage)) {
+  if (!isNil(item.hasTryOnImage)) {
     return item.hasTryOnImage;
   }
 
@@ -38,13 +38,13 @@ export const resolveHasTryOnImage = (item: TryOnItemImagesLike): boolean => {
  * @returns true, если примерка включена и задан тип VTO
  */
 export const isTryOnEnabledForGroup = (group?: TryOnGroupLike): boolean => {
-  if (_.isNil(group?.tryOn)) {
+  if (isNil(group?.tryOn)) {
     return false;
   }
 
   const { isEnabled, vtoType } = group.tryOn;
 
-  return Boolean(isEnabled) && !_.isNil(vtoType);
+  return Boolean(isEnabled) && !isNil(vtoType);
 };
 
 /**
@@ -53,13 +53,13 @@ export const isTryOnEnabledForGroup = (group?: TryOnGroupLike): boolean => {
  * @returns тип VTO или null
  */
 export const getTryOnVtoTypeForGroup = (group?: TryOnGroupLike): AiTryOnVtoTypeEnum | null => {
-  if (_.isNil(group?.tryOn)) {
+  if (isNil(group?.tryOn)) {
     return null;
   }
 
   const { isEnabled, vtoType } = group.tryOn;
 
-  if (!isEnabled || _.isNil(vtoType)) {
+  if (!isEnabled || isNil(vtoType)) {
     return null;
   }
 
@@ -72,7 +72,7 @@ export const getTryOnVtoTypeForGroup = (group?: TryOnGroupLike): AiTryOnVtoTypeE
  * @returns ключ i18n или null
  */
 export const getTryOnInstructionKeyFromVtoType = (vtoType?: AiTryOnVtoTypeEnum | null): TryOnInstructionKey | null => {
-  if (_.isNil(vtoType)) {
+  if (isNil(vtoType)) {
     return null;
   }
 

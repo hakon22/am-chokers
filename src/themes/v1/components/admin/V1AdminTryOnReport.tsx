@@ -94,6 +94,7 @@ export const V1AdminTryOnReport = () => {
         activeKey={activeTab}
         onChange={handleTabChange}
         items={tabItems}
+        destroyOnHidden
       />
     </div>
   );

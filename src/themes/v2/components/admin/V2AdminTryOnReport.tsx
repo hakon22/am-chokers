@@ -93,6 +93,7 @@ export const V2AdminTryOnReport = () => {
         activeKey={activeTab}
         onChange={handleTabChange}
         items={tabItems}
+        destroyOnHidden
       />
     </div>
   );
