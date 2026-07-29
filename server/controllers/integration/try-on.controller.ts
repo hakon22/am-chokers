@@ -10,6 +10,7 @@ import { ImageService } from '@server/services/storage/image.service';
 import { AiTryOnUserRatingEnum } from '@server/types/ai/enums/ai-try-on-user-rating.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import { tryOnRequestSchema, tryOnRatingSchema } from '@/validations/validations';
+import { getClientIpFromRequest } from '@server/utilities/get-client-ip';
 
 @Singleton
 export class TryOnController extends BaseService {
@@ -30,7 +31,7 @@ export class TryOnController extends BaseService {
   public uploadUserImage = async (req: Request, res: Response): Promise<void> => {
     try {
       const user = this.getCurrentUser(req);
-      const ipHash = this.tryOnUserImageService.hashIpAddress(this.resolveClientIp(req));
+      const ipHash = this.tryOnUserImageService.hashIpAddress(getClientIpFromRequest(req));
       const rateLimit = await this.tryOnRateLimitService.checkUploadLimits(ipHash);
 
       if (!rateLimit.allowed) {
@@ -67,7 +68,7 @@ export class TryOnController extends BaseService {
         userImageSrc: body.userImageSrc,
         lang: user.lang,
         userId: typeof user.id === 'number' ? user.id : null,
-        clientIp: this.resolveClientIp(req),
+        clientIp: getClientIpFromRequest(req),
       });
 
       if (result.code === 3) {
@@ -109,16 +110,4 @@ export class TryOnController extends BaseService {
     }
   };
 
-  /**
-   * IP клиента из request
-   * @param req - request
-   * @returns IP строка
-   */
-  private resolveClientIp = (req: Request): string => {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string' && !_.isEmpty(forwarded)) {
-      return forwarded.split(',')[0].trim();
-    }
-    return req.ip || req.socket.remoteAddress || '0.0.0.0';
-  };
 }

@@ -3,6 +3,7 @@ import passport from 'passport';
 import type { Request, Response, NextFunction } from 'express';
 
 import { CheckIpService } from '@server/services/app/check-ip.service';
+import { getClientIpFromRequest } from '@server/utilities/get-client-ip';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
 import type { PassportRequestInterface } from '@server/types/user/user.request.interface';
 
@@ -14,13 +15,7 @@ export class MiddlewareService {
     this.checkIpService = new CheckIpService();
   }
 
-  private getClientIp = (req: Request) => {
-    const xForwardedFor = req.headers['x-forwarded-for'];
-    if (xForwardedFor && !Array.isArray(xForwardedFor)) {
-      return xForwardedFor.split(',')[0].trim();
-    }
-    return req.socket.remoteAddress;
-  };
+  private getClientIp = (req: Request) => getClientIpFromRequest(req);
 
   public accessTelegram = (req: Request, res: Response, next: NextFunction) => {
     const subnets = [
