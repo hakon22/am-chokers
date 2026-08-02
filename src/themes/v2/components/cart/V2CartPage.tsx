@@ -443,12 +443,13 @@ export const V2CartPage = () => {
       const { payload: { code, url } } = await dispatch(createOrder({ cart: cartList, promotional, delivery: deliveryPayload, comment: values.comment, user: { name: name || values.name, phone: phone || values.phone, lang: lang || values.lang } })) as { payload: OrderResponseInterface & { url: string } };
       if (code === 1) {
         const ids = cartList.map(({ id }) => id);
+        setPromotional(undefined);
+        form.setFieldValue('promotional', undefined);
+        resetPVZ();
+        form.resetFields();
         dispatch(removeMany(ids));
         setCartList(cartList.filter(({ id }) => !ids.includes(id)));
         await dispatch(restoreSession());
-        form.resetFields();
-        setPromotional(undefined);
-        resetPVZ();
         router.push(url);
         toast(tToast('orderCreateSuccess'), 'success');
       }

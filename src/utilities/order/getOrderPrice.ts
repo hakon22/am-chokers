@@ -130,6 +130,149 @@ export const getPositionsPrice = (positions: OrderInterface['positions'], delive
 
 export const getPositionPrice = (position: OrderPositionInterface) => +(((position.price * 100) - (position.discountPrice * 100)) * position.count / 100).toFixed(2);
 
+/**
+ * Проверяет, подходит ли позиция под промокод с ограничением по товарам.
+ * @param position - позиция заказа
+ * @param promotional - промокод
+ * @returns true, если позиция участвует в скидке по промокоду
+ */
+const isPositionEligibleForPromotional = (position: OrderPositionInterface, promotional: PromotionalInterface) => {
+  if (!promotional.items?.length) {
+    return true;
+  }
+  if (_.isNil(position.item?.id)) {
+    return false;
+  }
+  return promotional.items.some(({ id }) => id === position.item.id);
+};
+
+/**
+ * Возвращает позиции, на которые распространяется промокод с привязкой к товарам.
+ * @param positions - позиции заказа
+ * @param promotional - промокод
+ * @returns подходящие позиции
+ */
+const getEligiblePositions = (positions: OrderInterface['positions'], promotional: PromotionalInterface) => positions.filter(
+  (position) => isPositionEligibleForPromotional(position, promotional),
+);
+
+/**
+ * Проверяет, используется ли фиксированная скидка с привязкой к товарам.
+ * @param promotional - промокод
+ * @returns true для фиксированной товарной скидки
+ */
+const isItemRestrictedFixedDiscount = (promotional?: PromotionalInterface) => Boolean(
+  promotional?.discount
+  && promotional.items?.length
+  && !promotional.discountPercent
+  && !promotional.buyTwoGetOne,
+);
+
+/**
+ * Распределяет фиксированную скидку по позициям пропорционально их стоимости.
+ * @param positions - подходящие позиции
+ * @param totalDiscountAmount - общая сумма скидки в рублях
+ * @returns скидка по id позиции
+ */
+const distributeFixedDiscountAcrossPositions = (positions: OrderPositionInterface[], totalDiscountAmount: number) => {
+  const discountByPosition: Record<string | number, number> = {};
+  if (!positions.length || !totalDiscountAmount) {
+    return discountByPosition;
+  }
+
+  const eligibleTotalInCents = positions.reduce(
+    (acc, position) => acc + Math.round(getPositionPrice(position) * 100),
+    0,
+  );
+  const totalDiscountInCents = Math.round(totalDiscountAmount * 100);
+  let allocatedDiscountInCents = 0;
+
+  positions.forEach((position, positionIndex) => {
+    const positionPriceInCents = Math.round(getPositionPrice(position) * 100);
+    const positionDiscountInCents = positionIndex === positions.length - 1
+      ? totalDiscountInCents - allocatedDiscountInCents
+      : Math.floor((totalDiscountInCents * positionPriceInCents) / eligibleTotalInCents);
+
+    if (positionIndex !== positions.length - 1) {
+      allocatedDiscountInCents += positionDiscountInCents;
+    }
+
+    discountByPosition[position.id] = +(positionDiscountInCents / 100).toFixed(2);
+  });
+
+  return discountByPosition;
+};
+
+/**
+ * Считает сумму фиксированной скидки для промокода, привязанного к товарам.
+ * @param order - заказ
+ * @returns скидка в рублях, не больше суммы подходящих товаров
+ */
+const getItemRestrictedFixedDiscountAmount = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
+  const { promotional, positions } = order;
+  if (!promotional || !isItemRestrictedFixedDiscount(promotional)) {
+    return 0;
+  }
+
+  const eligiblePositions = getEligiblePositions(positions, promotional);
+  const eligibleTotal = eligiblePositions.reduce(
+    (accumulator, position) => accumulator + getPositionPrice(position),
+    0,
+  );
+
+  return Math.min(promotional.discount ?? 0, eligibleTotal);
+};
+
+/**
+ * Возвращает распределение фиксированной товарной скидки по позициям.
+ * @param order - заказ
+ * @returns скидка по id позиции
+ */
+const getItemRestrictedFixedDiscountByPosition = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
+  const { promotional } = order;
+  if (!promotional || !isItemRestrictedFixedDiscount(promotional)) {
+    return {} as Record<string | number, number>;
+  }
+
+  const eligiblePositions = getEligiblePositions(order.positions, promotional);
+  const orderDiscountAmount = getItemRestrictedFixedDiscountAmount(order);
+
+  return distributeFixedDiscountAcrossPositions(eligiblePositions, orderDiscountAmount);
+};
+
+/**
+ * Возвращает итоговую цену позиции после применения промокода.
+ * @param position - позиция заказа
+ * @param order - заказ
+ * @returns цена позиции в рублях
+ */
+export const getPositionPriceAfterPromotional = (position: OrderPositionInterface, order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
+  const { promotional } = order;
+  const positionPrice = getPositionPrice(position);
+
+  if (!promotional) {
+    return positionPrice;
+  }
+
+  if (isItemRestrictedFixedDiscount(promotional)) {
+    if (!isPositionEligibleForPromotional(position, promotional)) {
+      return positionPrice;
+    }
+
+    const discountByPosition = getItemRestrictedFixedDiscountByPosition(order);
+    const positionDiscount = discountByPosition[position.id] ?? 0;
+
+    return +(positionPrice - positionDiscount).toFixed(2);
+  }
+
+  let positionDiscountPercent = getDiscountPercent(order.positions, order.deliveryPrice, promotional);
+  if (promotional.items?.length && !isPositionEligibleForPromotional(position, promotional)) {
+    positionDiscountPercent = 0;
+  }
+
+  return getPositionPriceWithDiscount(position, positionDiscountPercent);
+};
+
 export const getDiscountPercent = (positions: OrderInterface['positions'], deliveryPrice: number, promotional?: PromotionalInterface) => {
   if (promotional?.buyTwoGetOne) {
     return 0;
@@ -158,6 +301,10 @@ export const getOrderDiscount = (order: Omit<OrderInterface, 'error' | 'loadingS
     return +(eligibleFullTotal - eligiblePaidTotal).toFixed(2);
   }
 
+  if (isItemRestrictedFixedDiscount(promotional)) {
+    return +getItemRestrictedFixedDiscountAmount(order).toFixed(2);
+  }
+
   const percent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
 
   const totalDiscount = order.positions
@@ -183,14 +330,14 @@ export const getOrderPrice = (order: Omit<OrderInterface, 'error' | 'loadingStat
       }
       return accumulator + getPositionPrice(position);
     }, 0);
-    return +(goodsTotal + order.deliveryPrice).toFixed(2);
+    return Math.max(0, +(goodsTotal + order.deliveryPrice).toFixed(2));
   }
 
   const discount = getOrderDiscount(order);
 
   const totalPrice = getPositionsPrice(order.positions, order.deliveryPrice);
 
-  return +(totalPrice - discount).toFixed(2);
+  return Math.max(0, +(totalPrice - discount).toFixed(2));
 };
 
 export const getPositionAmount = (order: Omit<OrderInterface, 'error' | 'loadingStatus'>) => {
@@ -210,16 +357,8 @@ export const getPositionAmount = (order: Omit<OrderInterface, 'error' | 'loading
     }, {} as Record<string | number, number>);
   }
 
-  const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
-
   const positionsAmount = order.positions.reduce((acc, position) => {
-    let positionDiscountPercent = discountPercent;
-    if (order.promotional && order.promotional.items.length) {
-      if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
-        positionDiscountPercent = 0;
-      }
-    }
-    acc[position.id] = getPositionPriceWithDiscount(position, positionDiscountPercent);
+    acc[position.id] = getPositionPriceAfterPromotional(position, order);
     return acc;
   }, {} as Record<number, number>);
 
@@ -250,16 +389,8 @@ export const getOrderUnitAmounts = (order: Omit<OrderInterface, 'error' | 'loadi
     });
   }
 
-  const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
-
   return order.positions.flatMap((position, positionIndex) => {
-    let positionDiscountPercent = discountPercent;
-    if (order.promotional && order.promotional.items.length) {
-      if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
-        positionDiscountPercent = 0;
-      }
-    }
-    const lineAmount = getPositionPriceWithDiscount(position, positionDiscountPercent);
+    const lineAmount = getPositionPriceAfterPromotional(position, order);
     const lineUnitAmounts = splitLineAmountToUnitAmounts(lineAmount, position.count);
     return lineUnitAmounts.map((amount) => ({ positionIndex, amount }));
   });

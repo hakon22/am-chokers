@@ -12,7 +12,7 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
-import { getDiscountPercent, getOrderPrice, getOrderUnitAmounts, getPositionAmount, getPositionPrice, getPositionPriceWithDiscount } from '@/utilities/order/getOrderPrice';
+import { getOrderPrice, getOrderUnitAmounts, getPositionAmount, getPositionPrice, getPositionPriceAfterPromotional } from '@/utilities/order/getOrderPrice';
 import { routes } from '@/routes';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemHistoryService, ITEM_HISTORY_FIELD_YOOKASSA_INVOICE_ID } from '@server/services/item/item.history.service';
@@ -146,7 +146,6 @@ export class AcquiringService extends BaseService {
     this.assertReceiptPositionsWithinLimit(order.positions, order.deliveryPrice, lang);
 
     const amount = getOrderPrice(order);
-    const discountPercent = getDiscountPercent(order.positions, order.deliveryPrice, order.promotional);
     const buyTwoGetOneAmountByPosition = order.promotional?.buyTwoGetOne ? getPositionAmount(order) : undefined;
 
     const orderPositions = [...order.positions];
@@ -176,13 +175,7 @@ export class AcquiringService extends BaseService {
       } else if (order.promotional?.buyTwoGetOne) {
         lineTotal = getPositionPrice(position);
       } else {
-        let positionDiscountPercent = discountPercent;
-        if (order.promotional && order.promotional.items.length) {
-          if (!order.promotional.items.map(({ id }) => id).includes(position.item.id)) {
-            positionDiscountPercent = 0;
-          }
-        }
-        lineTotal = getPositionPriceWithDiscount(position, positionDiscountPercent);
+        lineTotal = getPositionPriceAfterPromotional(position, order);
       }
       return {
         description: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
