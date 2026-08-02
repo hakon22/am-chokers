@@ -1,6 +1,6 @@
 import { In, IsNull } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer, type IItemWithoutData } from '@a2seven/yoo-checkout';
+import { YooCheckout, Payment, type ICreateError, type ICreatePayment, type ICheckoutCustomer } from '@a2seven/yoo-checkout';
 import { Container } from 'typescript-ioc';
 import moment from 'moment';
 import _ from 'lodash';
@@ -12,7 +12,8 @@ import { YookassaErrorTranslate } from '@server/types/acquiring/enums/yookassa.e
 import { AcquiringTransactionEntity } from '@server/db/entities/acquiring.transaction.entity';
 import { AcquiringCredentialsEntity } from '@server/db/entities/acquiring.credentials.entity';
 import { BullMQQueuesService } from '@microservices/sender/queues/bull-mq-queues.service';
-import { getOrderPrice, getOrderUnitAmounts, getPositionAmount, getPositionPrice, getPositionPriceAfterPromotional } from '@/utilities/order/getOrderPrice';
+import { getOrderPrice, getOrderUnitAmounts } from '@/utilities/order/getOrderPrice';
+import { buildAcquiringReceiptItems } from '@/utilities/order/buildAcquiringReceiptItems';
 import { routes } from '@/routes';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemHistoryService, ITEM_HISTORY_FIELD_YOOKASSA_INVOICE_ID } from '@server/services/item/item.history.service';
@@ -145,69 +146,7 @@ export class AcquiringService extends BaseService {
 
     this.assertReceiptPositionsWithinLimit(order.positions, order.deliveryPrice, lang);
 
-    const amount = getOrderPrice(order);
-    const buyTwoGetOneAmountByPosition = order.promotional?.buyTwoGetOne ? getPositionAmount(order) : undefined;
-
-    const orderPositions = [...order.positions];
-
-    if (order.deliveryPrice) {
-      const deliveryPosition = {
-        count: 1,
-        price: order.deliveryPrice,
-        discountPrice: 0,
-        discount: 0,
-        grade: { id: 0, grade: 0 },
-        item: {
-          translations: [
-            { lang: UserLangEnum.RU, name: 'Доставка' },
-            { lang: UserLangEnum.EN, name: 'Delivery' },
-          ],
-        },
-      } as OrderPositionEntity;
-
-      orderPositions.push(deliveryPosition);
-    }
-
-    const items = orderPositions.filter((position) => position.price).map((position) => {
-      let lineTotal: number;
-      if (buyTwoGetOneAmountByPosition && !_.isNil(position.id) && buyTwoGetOneAmountByPosition[position.id]) {
-        lineTotal = buyTwoGetOneAmountByPosition[position.id];
-      } else if (order.promotional?.buyTwoGetOne) {
-        lineTotal = getPositionPrice(position);
-      } else {
-        lineTotal = getPositionPriceAfterPromotional(position, order);
-      }
-      return {
-        description: position.item.translations.find((translation) => translation.lang === UserLangEnum.RU)?.name,
-        amount: {
-          value: lineTotal.toString(),
-          currency: 'RUB',
-        },
-        quantity: position.count.toString(),
-        vat_code: 1,
-        payment_subject: 'commodity',
-        payment_mode: 'full_payment',
-      };
-    }) as IItemWithoutData[];
-
-    const positionsAmount = items.reduce((acc, item) => acc + (+item.amount.value * 100), 0);
-    const centAmount = amount * 100;
-
-    if (centAmount !== positionsAmount) {
-      this.loggerService.info(this.TAG, `Сумма заказа расходится с суммой позиций в чеке: сумма заказа ${centAmount / 100}, сумма позиций ${positionsAmount / 100}`);
-
-      const max = Math.max(centAmount, positionsAmount);
-      const min = Math.min(centAmount, positionsAmount);
-      const difference = max - min;
-
-      if (centAmount > positionsAmount) {
-        items[0].amount.value = (((+items[0].amount.value * 100) + difference) / 100).toFixed(2);
-        this.loggerService.info(this.TAG, `Добавляю разницу в ${difference / 100} в первую позицию`);
-      } else {
-        items[0].amount.value = (((+items[0].amount.value * 100) - difference) / 100).toFixed(2);
-        this.loggerService.info(this.TAG, `Отнимаю разницу в ${difference / 100} из первой позиции`);
-      }
-    }
+    const { items, amount } = buildAcquiringReceiptItems(order);
 
     const data: Data = {
       userName: credential.login,

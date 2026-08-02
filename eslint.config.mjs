@@ -98,6 +98,7 @@ const eslint = [
       'import/order': ['error', {
         'groups': ['builtin', 'external', 'internal'],
         'pathGroups': [
+          { pattern: '@tests/**', group: 'internal', position: 'before' },
           { pattern: '@/**', group: 'internal' },
           { pattern: '@shared/**', group: 'internal' },
           { pattern: '@server/**', group: 'internal' },

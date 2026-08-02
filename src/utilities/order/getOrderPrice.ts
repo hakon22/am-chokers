@@ -55,13 +55,13 @@ const isPositionInBuyTwoGetOneDiscountPool = (position: OrderPositionInterface, 
   return restrictedItemIds.has(Number(position.item.id));
 };
 
-export const computeBuyTwoGetOneBreakdown = (positions: OrderInterface['positions'], promotional: PromotionalInterface): BuyTwoGetOneBreakdown => {
+export const computeBuyTwoGetOneBreakdown = (positions: OrderPositionInterface[], promotional: PromotionalInterface): BuyTwoGetOneBreakdown => {
   const restrictedItemIds = getBuyTwoGetOneRestrictedItemIds(promotional);
-  const totalCartUnitCount = positions.reduce((accumulator, position) => {
+  const totalCartUnitCount = positions.reduce((acc, position) => {
     if (position.id === 0 || _.isNil(position.item?.id)) {
-      return accumulator;
+      return acc;
     }
-    return accumulator + position.count;
+    return acc + position.count;
   }, 0);
   const giftSlotsFromWholeCart = Math.floor(totalCartUnitCount / 3);
 
@@ -79,7 +79,7 @@ export const computeBuyTwoGetOneBreakdown = (positions: OrderInterface['position
     }
   });
 
-  const eligibleFullTotal = +discountableUnits.reduce((accumulator, unit) => accumulator + unit.unitPrice, 0).toFixed(2);
+  const eligibleFullTotal = +discountableUnits.reduce((acc, unit) => acc + unit.unitPrice, 0).toFixed(2);
   const giftUnitCount = Math.min(giftSlotsFromWholeCart, discountableUnits.length);
   const sortedUnits = [...discountableUnits].sort((unitA, unitB) => {
     if (unitA.unitPrice !== unitB.unitPrice) {
@@ -104,7 +104,7 @@ export const computeBuyTwoGetOneBreakdown = (positions: OrderInterface['position
     unitPaidByLineKey[unit.lineKey].push(+unitPaid.toFixed(2));
   });
 
-  const eligiblePaidTotal = +Object.values(paidByLineKey).reduce((accumulator, value) => accumulator + value, 0).toFixed(2);
+  const eligiblePaidTotal = +Object.values(paidByLineKey).reduce((acc, value) => acc + value, 0).toFixed(2);
 
   return { paidByLineKey, unitPaidByLineKey, eligibleFullTotal, eligiblePaidTotal };
 };
@@ -126,7 +126,7 @@ const splitLineAmountToUnitAmounts = (lineAmount: number, quantity: number): num
   });
 };
 
-export const getPositionsPrice = (positions: OrderInterface['positions'], deliveryPrice = 0, withoutDiscount = false) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (withoutDiscount ? 0 : position.discountPrice * 100)) * position.count, deliveryPrice * 100) / 100).toFixed(2);
+export const getPositionsPrice = (positions: OrderPositionInterface[], deliveryPrice = 0, withoutDiscount = false) => +(positions.reduce((acc, position) => acc + ((position.price * 100) - (withoutDiscount ? 0 : position.discountPrice * 100)) * position.count, deliveryPrice * 100) / 100).toFixed(2);
 
 export const getPositionPrice = (position: OrderPositionInterface) => +(((position.price * 100) - (position.discountPrice * 100)) * position.count / 100).toFixed(2);
 
@@ -152,7 +152,7 @@ const isPositionEligibleForPromotional = (position: OrderPositionInterface, prom
  * @param promotional - промокод
  * @returns подходящие позиции
  */
-const getEligiblePositions = (positions: OrderInterface['positions'], promotional: PromotionalInterface) => positions.filter(
+const getEligiblePositions = (positions: OrderPositionInterface[], promotional: PromotionalInterface) => positions.filter(
   (position) => isPositionEligibleForPromotional(position, promotional),
 );
 
@@ -216,7 +216,7 @@ const getItemRestrictedFixedDiscountAmount = (order: Omit<OrderInterface, 'error
 
   const eligiblePositions = getEligiblePositions(positions, promotional);
   const eligibleTotal = eligiblePositions.reduce(
-    (accumulator, position) => accumulator + getPositionPrice(position),
+    (acc, position) => acc + getPositionPrice(position),
     0,
   );
 
@@ -273,12 +273,16 @@ export const getPositionPriceAfterPromotional = (position: OrderPositionInterfac
   return getPositionPriceWithDiscount(position, positionDiscountPercent);
 };
 
-export const getDiscountPercent = (positions: OrderInterface['positions'], deliveryPrice: number, promotional?: PromotionalInterface) => {
+export const getDiscountPercent = (positions: OrderPositionInterface[], deliveryPrice: number, promotional?: PromotionalInterface) => {
   if (promotional?.buyTwoGetOne) {
     return 0;
   }
 
   const price = getPositionsPrice(positions, deliveryPrice);
+
+  if (!price) {
+    return 0;
+  }
 
   const discountPercent = promotional
     ? promotional.discountPercent || (100 - ((price - promotional.discount) * 100 / price))
@@ -323,12 +327,12 @@ export const getOrderPrice = (order: Omit<OrderInterface, 'error' | 'loadingStat
   if (promotional?.buyTwoGetOne) {
     const restrictedItemIds = getBuyTwoGetOneRestrictedItemIds(promotional);
     const { paidByLineKey } = computeBuyTwoGetOneBreakdown(order.positions, promotional);
-    const goodsTotal = order.positions.reduce((accumulator, position, positionIndex) => {
+    const goodsTotal = order.positions.reduce((acc, position, positionIndex) => {
       if (isPositionInBuyTwoGetOneDiscountPool(position, restrictedItemIds)) {
         const lineKey = getPositionLineKey(position, positionIndex);
-        return accumulator + (paidByLineKey[lineKey] ?? 0);
+        return acc + (paidByLineKey[lineKey] ?? 0);
       }
-      return accumulator + getPositionPrice(position);
+      return acc + getPositionPrice(position);
     }, 0);
     return Math.max(0, +(goodsTotal + order.deliveryPrice).toFixed(2));
   }
@@ -345,15 +349,15 @@ export const getPositionAmount = (order: Omit<OrderInterface, 'error' | 'loading
   if (promotional?.buyTwoGetOne) {
     const restrictedItemIds = getBuyTwoGetOneRestrictedItemIds(promotional);
     const { paidByLineKey } = computeBuyTwoGetOneBreakdown(order.positions, promotional);
-    return order.positions.reduce((accumulator, position, positionIndex) => {
+    return order.positions.reduce((acc, position, positionIndex) => {
       const rowKey = position.id !== undefined && position.id !== null ? position.id : getPositionLineKey(position, positionIndex);
       if (isPositionInBuyTwoGetOneDiscountPool(position, restrictedItemIds)) {
         const lineKey = getPositionLineKey(position, positionIndex);
-        accumulator[rowKey] = +(paidByLineKey[lineKey] ?? 0).toFixed(2);
+        acc[rowKey] = +(paidByLineKey[lineKey] ?? 0).toFixed(2);
       } else {
-        accumulator[rowKey] = getPositionPrice(position);
+        acc[rowKey] = getPositionPrice(position);
       }
-      return accumulator;
+      return acc;
     }, {} as Record<string | number, number>);
   }
 
