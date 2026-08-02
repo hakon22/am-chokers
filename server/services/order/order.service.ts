@@ -390,6 +390,12 @@ export class OrderService extends BaseService {
         : `Order №${order.id} and status ${order.status} cannot be changed to status ${status}`);
     }
 
+    if (order.status === OrderStatusEnum.CANCELED) {
+      await this.redisService.delete(`checkOrderPayment_${order.id}`);
+
+      return { order, cart: await this.cartService.findMany(user) };
+    }
+
     const cart = await manager.transaction(async (entityManager) => {
       const orderRepo = manager.getRepository(OrderEntity);
 
@@ -399,6 +405,8 @@ export class OrderService extends BaseService {
 
       return newCart;
     });
+
+    await this.redisService.delete(`checkOrderPayment_${order.id}`);
 
     if (user.telegramId) {
       const message = lang === UserLangEnum.RU
@@ -467,11 +475,11 @@ export class OrderService extends BaseService {
       if (message.includes('checkOrderPayment')) {
         const orderId = message.replace(`${this.redisService.commonOptions.prefix}checkOrderPayment_`, '') as string;
 
-        console.log(`Обработка истёкшей оплаты для заказа ${orderId}`);
-  
+        this.loggerService.info(this.TAG, `Обработка истёкшей оплаты для заказа ${orderId}`);
+
         await this.cancel({ id: +orderId });
       }
     });
-    console.log('Подписка на события Redis выполнена успешно');
+    this.loggerService.info(this.TAG, 'Подписка на события Redis выполнена успешно');
   };
 }
