@@ -18,6 +18,7 @@ import { routes } from '@/routes';
 import { ItemEntity } from '@server/db/entities/item.entity';
 import { ItemHistoryService, ITEM_HISTORY_FIELD_YOOKASSA_INVOICE_ID } from '@server/services/item/item.history.service';
 import { ItemService } from '@server/services/item/item.service';
+import { SingleUsePromotionalOrderService } from '@server/services/order/single-use-promotional-order.service';
 import { OrderEntity } from '@server/db/entities/order.entity';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
 import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTranslate';
@@ -50,6 +51,8 @@ export class AcquiringService extends BaseService {
   private readonly itemService = Container.get(ItemService);
 
   private readonly yandexMetrikaOfflineConversionService = Container.get(YandexMetrikaOfflineConversionService);
+
+  private readonly singleUsePromotionalOrderService = Container.get(SingleUsePromotionalOrderService);
 
   private readonly TAG = 'AcquiringService';
 
@@ -239,6 +242,53 @@ export class AcquiringService extends BaseService {
   };
 
   /**
+   * Эмулирует успешную оплату заказа без ЮKassa (non-production): создаёт транзакцию и помечает заказ оплаченным.
+   * Не ставит в очередь НПД-чек, SMS, Telegram и офлайн-конверсии Метрики.
+   * @param order - неоплаченный заказ с user, promotional, positions, delivery
+   * @returns URL страницы успешной оплаты для редиректа клиента
+   */
+  public emulateSuccessfulPayment = async (order: OrderInterface | OrderEntity): Promise<string> => {
+    const successUrl = '/payment/success';
+    const amount = getOrderPrice(order);
+    const transactionId = `emulated-${order.id}-${uuidv4()}`;
+
+    this.loggerService.info(
+      this.TAG,
+      `Эмуляция успешной оплаты заказа №${order.id} (NODE_ENV=${process.env.NODE_ENV}): без ЮKassa, НПД, SMS и Метрики`,
+    );
+
+    const savedTransaction = await AcquiringTransactionEntity.save({
+      order: { id: order.id },
+      amount,
+      transactionId,
+      url: successUrl,
+      type: AcquiringTypeEnum.YOOKASSA,
+    } as AcquiringTransactionEntity);
+
+    const transaction = await AcquiringTransactionEntity.findOne({
+      where: { id: savedTransaction.id },
+      relations: [
+        'order',
+        'order.user',
+        'order.promotional',
+        'order.promotional.items',
+        'order.delivery',
+        'order.positions',
+        'order.positions.item',
+        'order.positions.item.translations',
+      ],
+    });
+
+    if (_.isNil(transaction)) {
+      throw new Error(`Не удалось загрузить эмулированную транзакцию для заказа №${order.id}`);
+    }
+
+    await this.markOrderPaidFromTransaction(transaction);
+
+    return successUrl;
+  };
+
+  /**
    * Сбрасывает `item.yookassa_invoice_id`, если платёж завершён по счёту, привязанному к товару (без записи в acquiring_transaction).
    * @param payment - объект платежа из уведомления ЮKassa
    */
@@ -267,14 +317,36 @@ export class AcquiringService extends BaseService {
     await this.itemService.refreshCachedItemById(itemRow.id);
   };
 
+  /**
+   * Помечает транзакцию оплаченной и переводит заказ в NEW; инвалидирует одноразовый промокод на других неоплаченных заказах.
+   * @param transaction - транзакция эквайринга со связанным заказом
+   */
+  private markOrderPaidFromTransaction = async (transaction: AcquiringTransactionEntity): Promise<void> => {
+    const { order } = transaction;
+
+    await this.redisService.delete(`checkOrderPayment_${order.id}`);
+
+    await AcquiringTransactionEntity.update(transaction.id, { status: TransactionStatusEnum.PAID });
+    await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
+
+    if (order.promotional?.singleUse) {
+      await this.singleUsePromotionalOrderService.invalidateOnUnpaidOrders(
+        order.user.id,
+        order.promotional,
+        order.id,
+      );
+    }
+  };
+
+  /**
+   * Обрабатывает успешную оплату из вебхука ЮKassa: статус заказа, уведомления, НПД-чек и Метрику.
+   * @param transaction - транзакция в статусе CREATE со связанным заказом
+   */
   private successfulPayment = async (transaction: AcquiringTransactionEntity) => {
     try {
       const { order } = transaction;
 
-      await this.redisService.delete(`checkOrderPayment_${order.id}`);
-
-      await AcquiringTransactionEntity.update(transaction.id, { status: TransactionStatusEnum.PAID });
-      await OrderEntity.update(order.id, { status: OrderStatusEnum.NEW });
+      await this.markOrderPaidFromTransaction(transaction);
 
       if (order.user.telegramId) {
         const message = order.user.lang === UserLangEnum.RU

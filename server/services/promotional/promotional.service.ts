@@ -2,9 +2,11 @@ import { Singleton } from 'typescript-ioc';
 import moment from 'moment';
 
 import { PromotionalEntity } from '@server/db/entities/promotional.entity';
+import { OrderEntity } from '@server/db/entities/order.entity';
 import { BaseService } from '@server/services/app/base.service';
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import { TransactionStatusEnum } from '@server/types/acquiring/enums/transaction.status.enum';
 import type { PromotionalQueryInterface } from '@server/types/promotional/promotional.query.interface';
 import type { PromotionalOptionsInterface } from '@server/types/promotional/promotional.options.interface';
 import type { ParamsIdInterface } from '@server/types/params.id.interface';
@@ -24,6 +26,7 @@ export class PromotionalService extends BaseService {
         'promotional.discountPercent',
         'promotional.freeDelivery',
         'promotional.buyTwoGetOne',
+        'promotional.singleUse',
         'promotional.start',
         'promotional.end',
         'promotional.active',
@@ -134,6 +137,67 @@ export class PromotionalService extends BaseService {
     promotional.active = true;
 
     return promotional;
+  };
+
+  /**
+   * Проверяет, есть ли у пользователя оплаченный заказ с данным промокодом
+   * @param promotionalId - идентификатор промокода
+   * @param userId - идентификатор пользователя
+   * @param excludeOrderId - заказ, исключаемый из проверки
+   * @returns true, если промокод уже использован в оплаченном заказе
+   */
+  public hasUserPaidOrderWithPromotional = async (promotionalId: number, userId: number, excludeOrderId?: number): Promise<boolean> => {
+    const manager = this.databaseService.getManager();
+
+    const builder = manager.createQueryBuilder(OrderEntity, 'order')
+      .setParameters({
+        promotionalId,
+        userId,
+        paidStatus: TransactionStatusEnum.PAID,
+      })
+      .innerJoin('order.transactions', 'transaction', 'transaction.status = :paidStatus')
+      .where('order.promotional_id = :promotionalId')
+      .andWhere('order.user_id = :userId');
+
+    if (excludeOrderId !== undefined) {
+      builder.andWhere('order.id != :excludeOrderId', { excludeOrderId });
+    }
+
+    const count = await builder.getCount();
+
+    return count > 0;
+  };
+
+  /**
+   * Проверяет доступность одноразового промокода для пользователя
+   * @param promotional - промокод
+   * @param userId - идентификатор пользователя
+   * @param lang - язык для сообщения об ошибке
+   * @param excludeOrderId - заказ, исключаемый из проверки
+   */
+  public assertSingleUsePromotionalAvailable = async (
+    promotional: PromotionalEntity,
+    userId: number | undefined,
+    lang: UserLangEnum,
+    excludeOrderId?: number,
+  ): Promise<void> => {
+    if (!promotional.singleUse) {
+      return;
+    }
+
+    if (!userId) {
+      throw new Error(lang === UserLangEnum.RU
+        ? `Промокод "${promotional.name}" доступен только авторизованным пользователям`
+        : `Promo code "${promotional.name}" is available only to authorized users`);
+    }
+
+    const isConsumed = await this.hasUserPaidOrderWithPromotional(promotional.id, userId, excludeOrderId);
+
+    if (isConsumed) {
+      throw new Error(lang === UserLangEnum.RU
+        ? `Промокод "${promotional.name}" уже использован`
+        : `Promo code "${promotional.name}" has already been used`);
+    }
   };
 
   public findMany = async (query?: PromotionalQueryInterface) => {

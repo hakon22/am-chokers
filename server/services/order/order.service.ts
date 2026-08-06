@@ -21,6 +21,7 @@ import { getOrderStatusTranslate } from '@/utilities/order/getOrderStatusTransla
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { UserLangEnum } from '@server/types/user/enums/user.lang.enum';
+import type { PromotionalEntity } from '@server/db/entities/promotional.entity';
 import type { CartItemInterface } from '@/types/cart/Cart';
 import type { OrderQueryInterface } from '@server/types/order/order.query.interface';
 import type { OrderOptionsInterface } from '@server/types/order/order.options.interface';
@@ -118,6 +119,7 @@ export class OrderService extends BaseService {
           'promotional.discountPercent',
           'promotional.freeDelivery',
           'promotional.buyTwoGetOne',
+          'promotional.singleUse',
         ])
         .leftJoin('promotional.items', 'items')
         .addSelect('items.id')
@@ -190,11 +192,12 @@ export class OrderService extends BaseService {
 
   public createOne = async (body: CartItemInterface[], user: PassportRequestInterface, delivery: CreateDeliveryInterface, comment?: string, promotional?: PromotionalInterface, yclid?: string) => {
     const cartIds = body.map(({ id }) => id);
+    let validatedPromo: PromotionalEntity | undefined;
 
     if (promotional) {
-      const promo = await this.promotionalService.findOne({ id: promotional.id }, user.lang);
+      validatedPromo = await this.promotionalService.findOne({ id: promotional.id }, user.lang);
 
-      if (promo.name === process.env.NEXT_PUBLIC_PROMO && user?.phone) {
+      if (validatedPromo.name === process.env.NEXT_PUBLIC_PROMO && user?.phone) {
         const fetchedUser = await this.userService.findOne({ phone: user.phone }, { withOrders: true });
         if (fetchedUser?.orders.some((order) => order.isPayment)) {
           throw new Error(user.lang === UserLangEnum.RU
@@ -203,7 +206,7 @@ export class OrderService extends BaseService {
         }
       }
 
-      if (!moment().isBetween(moment(promo.start), moment(promo.end), 'day', '[]') || !promo.active) {
+      if (!moment().isBetween(moment(validatedPromo.start), moment(validatedPromo.end), 'day', '[]') || !validatedPromo.active) {
         throw new Error(user.lang === UserLangEnum.RU
           ? `Промокод "${promotional.name}" не активен или истёк`
           : `Promo code "${promotional.name}" is not active or has expired`);
@@ -221,6 +224,16 @@ export class OrderService extends BaseService {
       const deliveryRepo = manager.getRepository(DeliveryEntity);
 
       const createdUser = await this.userService.createOne(user?.name, user?.phone, user?.lang, manager);
+
+      if (validatedPromo) {
+        const orderUserId = user.id || createdUser.user?.id;
+
+        await this.promotionalService.assertSingleUsePromotionalAvailable(
+          validatedPromo,
+          orderUserId,
+          user.lang,
+        );
+      }
 
       const cart = await this.cartService.findMany(null, undefined, { ids: cartIds }, { manager });
 
@@ -278,6 +291,7 @@ export class OrderService extends BaseService {
         status: OrderStatusEnum.NOT_PAID,
         user: { id: user.id || createdUser.user?.id },
         deliveryPrice: delivery.price,
+        quotedDeliveryPrice: delivery.quotedPrice ?? null,
         positions,
         promotional,
         comment,
@@ -444,16 +458,35 @@ export class OrderService extends BaseService {
     return { order, cart };
   };
 
-  public pay = async (params: ParamsIdInterface, lang: UserLangEnum) => {
+  /**
+   * Создаёт ссылку на оплату заказа; в non-production эмулирует успешный вебхук без ЮKassa / НПД / SMS.
+   * @param params - идентификатор заказа
+   * @param lang - язык сообщений об ошибках
+   * @returns URL редиректа и оплаченный заказ при эмуляции (для обновления UI)
+   */
+  public pay = async (params: ParamsIdInterface, lang: UserLangEnum): Promise<{ url: string; order?: OrderEntity; }> => {
     const order = await this.findOne(params, lang);
 
     if (order.isPayment) {
       throw new Error(lang === UserLangEnum.RU ? 'Заказ уже оплачен' : 'The order has already been paid');
     }
 
+    if (process.env.NODE_ENV !== 'production') {
+      const url = await this.acquiringService.emulateSuccessfulPayment(order);
+      const paidOrder = await this.findOne(params, lang);
+
+      return { url, order: paidOrder };
+    }
+
     const url = await this.acquiringService.createOrder(order, AcquiringTypeEnum.YOOKASSA, lang);
-  
-    return url;
+
+    if (!url) {
+      throw new Error(lang === UserLangEnum.RU
+        ? 'Не удалось получить ссылку на оплату'
+        : 'Failed to get payment URL');
+    }
+
+    return { url };
   };
 
   public deleteOne = async (params: ParamsIdInterface, lang: UserLangEnum) => {

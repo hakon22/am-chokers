@@ -8,14 +8,13 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import moment from 'moment';
-import axios from 'axios';
 import cn from 'classnames';
 import { isEmpty } from 'lodash';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
-import { type OrderResponseInterface, selectors, cancelOrder } from '@/slices/orderSlice';
+import { type OrderResponseInterface, selectors, cancelOrder, payOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
@@ -108,8 +107,15 @@ export const V2OrderHistory = ({ data, setData }: Props) => {
   const onPay = async (id: number) => {
     try {
       setIsSubmit(true);
-      const response = await axios.get<{ code: number; url: string }>(routes.order.pay(id));
-      if (response.data.code === 1) router.push(response.data.url);
+      const { payload } = await dispatch(payOrder(id)) as {
+        payload: { code: number; url: string; order?: OrderInterface; };
+      };
+      if (payload.code === 1) {
+        if (payload.order) {
+          handleUpdate({ code: payload.code, order: payload.order });
+        }
+        router.push(payload.url);
+      }
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);

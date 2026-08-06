@@ -184,7 +184,7 @@ const Cart = () => {
           setDelivery((state) => ({ ...state, price: 0 }));
         }
         toast(tToast('addPromotionalSuccess', { name: data.promotional.name }), 'success');
-      } else if ([2, 3, 4, 5].includes(data.code)) {
+      } else if ([2, 3, 4, 5, 6].includes(data.code)) {
         let validationCode = '';
 
         switch (data.code) {
@@ -199,6 +199,9 @@ const Cart = () => {
           break;
         case 5:
           validationCode = 'promotionalUsersNotMet';
+          break;
+        case 6:
+          validationCode = 'promotionalAlreadyUsed';
           break;
         }
         form.setFields([{ name: 'promotional', errors: [tValidation(validationCode)] }]);
@@ -332,9 +335,14 @@ const Cart = () => {
       setIsSubmit(false);
       return;
     }
-    const deliveryPayload: CreateOrderInterface['delivery'] = deliveryType === DeliveryTypeEnum.PICKUP
-      ? { ...delivery, telegramNickname: values.telegramNickname ?? '', deliveryDateTime: values.delivery?.deliveryDateTime?.toISOString?.() }
-      : delivery;
+    const deliveryPayload: CreateOrderInterface['delivery'] = {
+      ...(deliveryType === DeliveryTypeEnum.PICKUP
+        ? { ...delivery, telegramNickname: values.telegramNickname ?? '', deliveryDateTime: values.delivery?.deliveryDateTime?.toISOString?.() }
+        : delivery),
+      ...(deliveryType !== DeliveryTypeEnum.PICKUP && savedDeliveryPrice > 0
+        ? { quotedPrice: savedDeliveryPrice }
+        : {}),
+    };
     if (!name && !user.phone) {
       const { payload: { code } } = await dispatch(fetchConfirmCode({
         phone: values.phone,

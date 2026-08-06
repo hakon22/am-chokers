@@ -68,6 +68,13 @@ export class PromotionalEntity extends BaseEntity {
   })
   public buyTwoGetOne: boolean;
 
+  /** Одноразовый промокод (один оплаченный заказ на пользователя из whitelist) */
+  @Column('boolean', {
+    default: false,
+    name: 'single_use',
+  })
+  public singleUse: boolean;
+
   /** Старт действия промокода */
   @Column('date')
   public start: Date;

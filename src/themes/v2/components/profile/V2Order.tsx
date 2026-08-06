@@ -6,12 +6,11 @@ import { ArrowLeftOutlined, CopyOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import moment from 'moment';
 import cn from 'classnames';
-import axios from 'axios';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
-import { createGrade, selectors } from '@/slices/orderSlice';
+import { createGrade, selectors, payOrder } from '@/slices/orderSlice';
 import { routes } from '@/routes';
 import { getOrderStatusColor } from '@/utilities/order/getOrderStatusColor';
 import { getOrderDiscount, getOrderPrice, getPositionsPrice } from '@/utilities/order/getOrderPrice';
@@ -98,8 +97,15 @@ export const V2Order = ({ orderId, order: orderParams, onAdminOrderUpdated }: {
   const onPay = async (id: number) => {
     try {
       setIsSubmit(true);
-      const response = await axios.get<{ code: number; url: string }>(routes.order.pay(id));
-      if (response.data.code === 1) router.push(response.data.url);
+      const { payload } = await dispatch(payOrder(id)) as {
+        payload: { code: number; url: string; order?: OrderInterface; };
+      };
+      if (payload.code === 1) {
+        if (payload.order && onAdminOrderUpdated) {
+          onAdminOrderUpdated(payload.order);
+        }
+        router.push(payload.url);
+      }
       setIsSubmit(false);
     } catch (e) {
       axiosErrorHandler(e, tToast, setIsSubmit);

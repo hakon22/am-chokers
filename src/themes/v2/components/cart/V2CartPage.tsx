@@ -312,8 +312,14 @@ export const V2CartPage = () => {
           setDelivery((state) => ({ ...state, price: 0 }));
         }
         toast(tToast('addPromotionalSuccess', { name: data.promotional.name }), 'success');
-      } else if ([2, 3, 4, 5].includes(data.code)) {
-        const map: Record<number, string> = { 2: 'promotionalNotExist', 3: 'promotionalExpired', 4: 'promotionalConditionsNotMet', 5: 'promotionalUsersNotMet' };
+      } else if ([2, 3, 4, 5, 6].includes(data.code)) {
+        const map: Record<number, string> = {
+          2: 'promotionalNotExist',
+          3: 'promotionalExpired',
+          4: 'promotionalConditionsNotMet',
+          5: 'promotionalUsersNotMet',
+          6: 'promotionalAlreadyUsed',
+        };
         form.setFields([{ name: 'promotional', errors: [tValidation(map[data.code])] }]);
       }
       setIsSubmit(false);
@@ -422,9 +428,18 @@ export const V2CartPage = () => {
       setIsSubmit(false);
       return;
     }
-    const deliveryPayload: CreateOrderInterface['delivery'] = deliveryType === DeliveryTypeEnum.PICKUP
-      ? { ...delivery, telegramNickname: values.telegramNickname ?? '', deliveryDateTime: values.delivery?.deliveryDateTime?.toISOString?.() }
-      : delivery;
+    const deliveryPayload: CreateOrderInterface['delivery'] = {
+      ...(deliveryType === DeliveryTypeEnum.PICKUP
+        ? {
+          ...delivery,
+          telegramNickname: values.telegramNickname ?? '',
+          deliveryDateTime: values.delivery?.deliveryDateTime?.toISOString?.(),
+        }
+        : delivery),
+      ...(deliveryType !== DeliveryTypeEnum.PICKUP && savedDeliveryPrice > 0
+        ? { quotedPrice: savedDeliveryPrice }
+        : {}),
+    };
 
     if (!name && !user.phone) {
       const { payload: { code } } = await dispatch(fetchConfirmCode({

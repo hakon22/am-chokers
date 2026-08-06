@@ -463,6 +463,18 @@ const newPromotionalSchema = yup.object().shape({
       const isExpired = moment(end).isBefore(moment(), 'day');
       return value ? !isExpired : true;
     }),
+  singleUse: yup
+    .boolean()
+    .optional()
+    .test('requires-users', t('validation.singleUseRequiresUsers'), function (value) {
+      const { users } = this.parent;
+
+      if (!value) {
+        return true;
+      }
+
+      return Array.isArray(users) && users.length > 0;
+    }),
 }).concat(periodSchema).concat(discountAndDiscountPercentSchema);
 
 export const deferredPublicationSchema = yup.object().shape({

@@ -3,13 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { Popconfirm } from 'antd';
 import { StopOutlined, ForwardOutlined, BackwardOutlined } from '@ant-design/icons';
-import axios from 'axios';
 import cn from 'classnames';
 
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { type OrderResponseInterface, updateOrder, cancelOrder } from '@/slices/orderSlice';
+import { type OrderResponseInterface, updateOrder, cancelOrder, payOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
-import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
 import { getNextOrderStatuses } from '@/utilities/order/getNextOrderStatus';
 import { OrderStatusEnum } from '@server/types/order/enums/order.status.enum';
@@ -103,16 +101,21 @@ export const V2OrderAdminActions = ({ order, onOrderUpdated, className, variant 
   };
 
   /**
-   * Перенаправляет на страницу оплаты ЮKassa.
+   * Перенаправляет на страницу оплаты ЮKassa (в non-production — эмуляция с обновлением заказа).
    * @param id - идентификатор заказа
    * @returns завершение запроса за ссылкой на оплату или обработка ошибки
    */
   const onPay = async (id: number) => {
     try {
       setIsSubmit(true);
-      const response = await axios.get<{ code: number; url: string }>(routes.order.pay(id));
-      if (response.data.code === 1) {
-        router.push(response.data.url);
+      const { payload } = await dispatch(payOrder(id)) as {
+        payload: { code: number; url: string; order?: OrderInterface; };
+      };
+      if (payload.code === 1) {
+        if (payload.order) {
+          onOrderUpdated?.(payload.order);
+        }
+        router.push(payload.url);
       }
       setIsSubmit(false);
     } catch (e) {

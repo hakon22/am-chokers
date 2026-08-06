@@ -7,12 +7,11 @@ import Image from 'next/image';
 import { StopOutlined, ForwardOutlined, BackwardOutlined, CopyOutlined, ContainerOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import cn from 'classnames';
-import axios from 'axios';
 
 import { DateFormatEnum } from '@/utilities/enums/date.format.enum';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useUserLang } from '@/hooks/useUserLang';
-import { type OrderResponseInterface, selectors, updateOrder, cancelOrder } from '@/slices/orderSlice';
+import { type OrderResponseInterface, selectors, updateOrder, cancelOrder, payOrder } from '@/slices/orderSlice';
 import { replaceCart } from '@/slices/cartSlice';
 import { routes } from '@/routes';
 import { getOrderPrice } from '@/utilities/order/getOrderPrice';
@@ -146,9 +145,14 @@ export const OrderHistory = ({ data, setData }: OrderHistoryInterface) => {
   const onPay = async (id: number) => {
     try {
       setIsSubmit(true);
-      const response = await axios.get<{ code: number; url: string; }>(routes.order.pay(id));
-      if (response.data.code === 1) {
-        router.push(response.data.url);
+      const { payload } = await dispatch(payOrder(id)) as {
+        payload: { code: number; url: string; order?: OrderInterface; };
+      };
+      if (payload.code === 1) {
+        if (payload.order) {
+          handleUpdate({ code: payload.code, order: payload.order });
+        }
+        router.push(payload.url);
       }
       setIsSubmit(false);
     } catch (e) {

@@ -62,6 +62,15 @@ export class PromotionalController extends BaseService {
         return;
       }
 
+      if (promotional.singleUse && user?.id) {
+        const isConsumed = await this.promotionalService.hasUserPaidOrderWithPromotional(promotional.id, user.id);
+
+        if (isConsumed) {
+          res.json({ code: 6 });
+          return;
+        }
+      }
+
       res.json({ code: 1, promotional });
     } catch (e) {
       this.errorHandler(e, res);

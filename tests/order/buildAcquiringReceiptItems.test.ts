@@ -10,7 +10,7 @@ import {
   makePosition,
   makePromotional,
   makeOrderWithFreeDeliveryByThreshold,
-} from './getOrderPrice.fixtures';
+} from '@tests/order/getOrderPrice.fixtures';
 
 const sumReceiptItems = (items: ReturnType<typeof buildAcquiringReceiptItems>['items']) => +items
   .reduce((acc, item) => acc + +item.amount.value, 0)

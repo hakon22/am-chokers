@@ -44,6 +44,7 @@ interface PromotionalTableInterface {
   discount: number | null;
   freeDelivery: boolean;
   buyTwoGetOne: boolean;
+  singleUse: boolean;
   start: Date | Moment | string | null;
   end: Date | Moment | string | null;
   active: boolean;
@@ -152,7 +153,16 @@ const getFields = (dataIndex: string, title: string, record: PromotionalTableInt
   if (['start', 'end'].includes(dataIndex)) {
     return !editing ? <span>{moment(dataIndex === 'start' ? record.start : record.end).format(DateFormatEnum.DD_MM_YYYY)}</span> : <MomentDatePicker className="w-100" placeholder={title} showNow={false} format={DateFormatEnum.DD_MM_YYYY} locale={lang === UserLangEnum.RU ? locale : undefined} />;
   }
-  if (['active', 'freeDelivery'].includes(dataIndex)) {
+  if (['active', 'freeDelivery', 'singleUse'].includes(dataIndex)) {
+    if (dataIndex === 'singleUse') {
+      const rowUsers = editing ? form.getFieldValue('users') : record.users;
+      const hasUsers = Array.isArray(rowUsers) && rowUsers.length > 0;
+
+      return editing
+        ? <Checkbox disabled={!hasUsers} />
+        : <Checkbox checked={!!record.singleUse} disabled />;
+    }
+
     return <Checkbox checked={dataIndex === 'active' ? record.active : record.freeDelivery} />;
   }
   if (dataIndex === 'buyTwoGetOne') {
@@ -221,6 +231,9 @@ const getFields = (dataIndex: string, title: string, record: PromotionalTableInt
             });
             setUsers(newUsers);
             form.setFieldValue('users', newValue);
+            if (!newValue.length) {
+              form.setFieldValue('singleUse', false);
+            }
           }
         }}
       />
@@ -246,7 +259,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
   setUsers,
   fetchUsers,
 }) => (
-  <td className={['active', 'freeDelivery', 'buyTwoGetOne'].includes(dataIndex) ? 'text-center' : undefined}>
+  <td className={['active', 'freeDelivery', 'buyTwoGetOne', 'singleUse'].includes(dataIndex) ? 'text-center' : undefined}>
     {editing ? (
       <Form.Item
         name={dataIndex}
@@ -263,6 +276,18 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
               return Promise.reject(new Error(tValidation(dataIndex === 'start' ? 'isInFuture' : 'isAfterStart')));
             },
           })]
+          : dataIndex === 'singleUse'
+            ? [({ getFieldValue }) => ({
+              validator(_, value) {
+                const rowUsers = getFieldValue('users');
+
+                if (value && (!rowUsers || !rowUsers.length)) {
+                  return Promise.reject(new Error(tValidation('singleUseRequiresUsers')));
+                }
+
+                return Promise.resolve();
+              },
+            })]
           : ['discount', 'discountPercent', 'freeDelivery', 'buyTwoGetOne'].includes(dataIndex)
             ? [({ getFieldValue }) => ({
               validator(_, value) {
@@ -316,7 +341,7 @@ const EditableCell: React.FC<React.PropsWithChildren<EditableCellProps>> = ({
               },
             })]
             : [newPromotionalValidation]}
-        valuePropName={['active', 'freeDelivery', 'buyTwoGetOne'].includes(dataIndex) ? 'checked' : undefined}
+        valuePropName={['active', 'freeDelivery', 'buyTwoGetOne', 'singleUse'].includes(dataIndex) ? 'checked' : undefined}
       >
         {getFields(dataIndex, title, record, lang, form, items, users, t, setItems, fetchItems, setUsers, fetchUsers)}
       </Form.Item>
@@ -374,19 +399,23 @@ const CreatePromotional = () => {
   const isEditing = (record: PromotionalTableInterface) => record.key === editingKey;
 
   const edit = (record: Partial<PromotionalTableInterface> & { key: React.Key }) => {
-    setItems(record.items as ItemEntity[]);
-    record.items = (record.items as ItemEntity[]).map(item => ({
-      key: item.id.toString(),
-      label: item.translations.find((translation) => translation.lang === lang)?.name as string,
-      value: item.id,
-    }));
-    setUsers(record.users as UserEntity[]);
-    record.users = (record.users as UserEntity[]).map(user => ({
-      key: user.id.toString(),
-      label: `${user.name} (${user.phone})`,
-      value: user.id,
-    }));
-    form.setFieldsValue(record);
+    const itemEntities = (record.items ?? []) as ItemEntity[];
+    const userEntities = (record.users ?? []) as UserEntity[];
+    setItems(itemEntities);
+    setUsers(userEntities);
+    form.setFieldsValue({
+      ...record,
+      items: itemEntities.map((item) => ({
+        key: item.id.toString(),
+        label: item.translations.find((translation) => translation.lang === lang)?.name as string,
+        value: item.id,
+      })),
+      users: userEntities.map((user) => ({
+        key: user.id.toString(),
+        label: `${user.name} (${user.phone})`,
+        value: user.id,
+      })),
+    });
     setEditingKey(record.key);
   };
 
@@ -409,6 +438,7 @@ const CreatePromotional = () => {
       active: true,
       freeDelivery: false,
       buyTwoGetOne: false,
+      singleUse: false,
       items: [],
       users: [],
       key: ((maxId || 0) + 1).toString(),
@@ -476,16 +506,20 @@ const CreatePromotional = () => {
         row.end = row.end.format(DateFormatEnum.YYYY_MM_DD);
       }
 
-      const { name, description, discount, discountPercent, freeDelivery, buyTwoGetOne, start, end, active, items: rowItems, users: rowUsers } = row;
+      const { name, description, discount, discountPercent, freeDelivery, buyTwoGetOne, singleUse, start, end, active, items: rowItems, users: rowUsers } = row;
 
       const exist = promotionals.find((promotional) => promotional.id.toString() === record.key.toString());
       if (exist) {
-        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, buyTwoGetOne, items: rowItems, users: rowUsers } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.put<PromotionalResponseInterface>(routes.promotional.updateOne(exist.id), { id: exist.id, name, description, discount, discountPercent, start, end, active, freeDelivery, buyTwoGetOne, singleUse, items: rowItems, users: rowUsers } as PromotionalFormInterface);
         if (code === 1) {
-          updateData(promotional, row);
+          updateData(promotional, {
+            ...row,
+            items: promotional.items,
+            users: promotional.users,
+          });
         }
       } else {
-        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, buyTwoGetOne, items: rowItems, users: rowUsers } as PromotionalFormInterface);
+        const { data: { code, promotional } } = await axios.post<PromotionalResponseInterface>(routes.promotional.createOne, { name, description, discount, discountPercent, start, end, active, freeDelivery, buyTwoGetOne, singleUse, items: rowItems, users: rowUsers } as PromotionalFormInterface);
         if (code === 1) {
           setPromotionals((state) => [promotional, ...state]);
           setEditingKey('');
@@ -597,6 +631,11 @@ const CreatePromotional = () => {
     {
       title: t('columns.buyTwoGetOne'),
       dataIndex: 'buyTwoGetOne',
+      editable: true,
+    },
+    {
+      title: t('columns.singleUse'),
+      dataIndex: 'singleUse',
       editable: true,
     },
     {
@@ -744,6 +783,7 @@ const CreatePromotional = () => {
             const newPromotionals: PromotionalTableInterface[] = response.promotionals.map((promotional) => ({
               ...promotional,
               buyTwoGetOne: promotional.buyTwoGetOne ?? false,
+              singleUse: promotional.singleUse ?? false,
               key: promotional.id.toString(),
             }));
             setData(newPromotionals);

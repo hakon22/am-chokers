@@ -62,6 +62,13 @@ export class OrderEntity extends BaseEntity {
   })
   public deliveryPrice: number;
 
+  /** Котировка доставки из виджета до обнуления (промокод / порог 10000 ₽) */
+  @Column('float', {
+    name: 'quoted_delivery_price',
+    nullable: true,
+  })
+  public quotedDeliveryPrice?: number | null;
+
   /** Промокод */
   @Index()
   @ManyToOne(() => PromotionalEntity, {

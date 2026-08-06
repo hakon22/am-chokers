@@ -8,6 +8,7 @@ import {
   getPositionsPrice,
 } from '@/utilities/order/getOrderPrice';
 import { buildAcquiringReceiptItems } from '@/utilities/order/buildAcquiringReceiptItems';
+import { PRICE_FOR_FREE_DELIVERY_RUB } from '@shared/delivery-config';
 
 import {
   assertUnitAmountsMatchLineAmount,
@@ -19,8 +20,7 @@ import {
   makePosition,
   makePromotional,
   makeOrderWithFreeDeliveryByThreshold,
-  PRICE_FOR_FREE_DELIVERY_RUB,
-} from './getOrderPrice.fixtures';
+} from '@tests/order/getOrderPrice.fixtures';
 
 describe('getOrderPrice', () => {
   describe('fixed discount', () => {

@@ -35,6 +35,8 @@ export interface CreateDeliveryInterface {
   deliveryDateTime?: string;
   /** Имя пользователя в Telegram (для самовывоза) */
   telegramNickname?: string;
+  /** Котировка доставки из виджета до обнуления (промокод / порог 10000 ₽) */
+  quotedPrice?: number;
 }
 
 export interface CreateOrderInterface {

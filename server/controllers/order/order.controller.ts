@@ -89,9 +89,9 @@ export class OrderController extends BaseService {
       const user = this.getCurrentUser(req);
       const params = await paramsIdSchema.validate(req.params);
 
-      const url = await this.orderService.pay(params, user.lang);
+      const { url, order } = await this.orderService.pay(params, user.lang);
 
-      res.json({ code: 1, url });
+      res.json({ code: 1, url, ...(order ? { order } : {}) });
     } catch (e) {
       this.errorHandler(e, res);
     }

@@ -66,6 +66,23 @@ export const cancelOrder = createAsyncThunk(
   },
 );
 
+/**
+ * Запрашивает ссылку на оплату; в non-production сервер может сразу вернуть оплаченный заказ.
+ * @param id - идентификатор заказа
+ * @returns ответ с url и опционально обновлённым заказом
+ */
+export const payOrder = createAsyncThunk(
+  'order/payOrder',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<{ code: number; url: string; order?: OrderInterface; }>(routes.order.pay(id));
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.response?.data ?? e);
+    }
+  },
+);
+
 export const createGrade = createAsyncThunk(
   'order/createGrade',
   async (data: GradeFormInterface, { rejectWithValue }) => {
@@ -154,6 +171,11 @@ const orderSlice = createSlice({
       .addCase(cancelOrder.rejected, (state, { payload }: PayloadAction<any>) => {
         state.loadingStatus = 'failed';
         state.error = payload.error;
+      })
+      .addCase(payOrder.fulfilled, (state, { payload }) => {
+        if (payload.code === 1 && payload.order) {
+          orderAdapter.updateOne(state, { id: payload.order.id, changes: payload.order });
+        }
       })
       .addCase(createGrade.pending, (state) => {
         state.loadingStatus = 'loading';

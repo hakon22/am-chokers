@@ -12,9 +12,6 @@ import type { OrderInterface } from '@/types/order/Order';
 import type { OrderPositionInterface } from '@/types/order/OrderPosition';
 import type { PromotionalInterface } from '@/types/promotional/PromotionalInterface';
 
-/** Порог бесплатной доставки в корзине (src/pages/cart.tsx) */
-export const PRICE_FOR_FREE_DELIVERY_RUB = 10000;
-
 type MakePositionParams = {
   id: number;
   itemId: number;
@@ -30,9 +27,10 @@ type PromotionalItemStub = {
 
 type MakePromotionalParams = Partial<Pick<
   PromotionalInterface,
-  'discount' | 'discountPercent' | 'freeDelivery' | 'buyTwoGetOne' | 'name'
+  'discount' | 'discountPercent' | 'freeDelivery' | 'buyTwoGetOne' | 'singleUse' | 'name'
 >> & {
   items?: PromotionalItemStub[];
+  users?: { id: number; }[];
 };
 
 type MakeOrderParams = {
@@ -81,7 +79,9 @@ export const makePromotional = (params: MakePromotionalParams = {}): Promotional
   discountPercent: params.discountPercent ?? null,
   freeDelivery: params.freeDelivery ?? false,
   buyTwoGetOne: params.buyTwoGetOne ?? false,
+  singleUse: params.singleUse ?? false,
   items: (params.items ?? []) as PromotionalInterface['items'],
+  users: (params.users ?? []) as PromotionalInterface['users'],
 } as PromotionalInterface);
 
 /**
