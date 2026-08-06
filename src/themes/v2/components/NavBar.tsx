@@ -31,6 +31,7 @@ import type { ItemGroupEntity } from '@server/db/entities/item.group.entity';
 
 interface NavBarProps {
   itemGroups: ItemGroupEntity[];
+  isChromeVisible?: boolean;
 }
 
 type NavigationKeys = {
@@ -53,7 +54,7 @@ const LabelWithIcon = ({ label, href, isOpen }: { label: string; href?: string; 
     </div>
   );
 
-export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
+export const NavBar = ({ itemGroups: itemGroupsFromLayout, isChromeVisible = true }: NavBarProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const router = useRouter();
   const urlParams = useSearchParams();
@@ -324,56 +325,63 @@ export const NavBar = ({ itemGroups: itemGroupsFromLayout }: NavBarProps) => {
   }, []);
 
   const mobileNav = (
-    <div className={styles.mobileHeader} ref={mobileContainer}>
-      <div className={styles.mobileHeaderRow}>
-        <Link href={routes.page.base.homePage} className={styles.mobileLogo}>
-          <V2Image src={logoImage} priority unoptimized loading="eager" className={styles.mobileLogoImg} alt={t('logo')} />
-        </Link>
-        <div className={styles.mobileRight}>
-          {isSearch?.value
-            ? (
-              <Button className={styles.iconBtn} aria-label={t('closeSearch')} onClick={() => setIsSearch({ value: false, needFetch: false })}>
-                <CloseOutlined aria-hidden />
-              </Button>
-            )
-            : (
-              <Button className={styles.iconBtn} aria-label={t('search')} onClick={searchClick}>
-                <SearchOutlined aria-hidden />
-              </Button>
-            )}
-          <div className={cn('menu-btn', { active: isActive })} onClick={onChangeHandler} role="button" tabIndex={0} aria-label={t('title')} onKeyDown={() => undefined}>
-            <span />
-            <span />
-            <span />
+    <div
+      className={cn(styles.mobileHeader, {
+        [styles.chromeHidden]: !isChromeVisible,
+        [styles.menuOpen]: isActive,
+      })}
+      ref={mobileContainer}
+    >
+      <div className={styles.mobileHeaderChrome}>
+        <div className={styles.mobileHeaderRow}>
+          <Link href={routes.page.base.homePage} className={styles.mobileLogo}>
+            <V2Image src={logoImage} priority unoptimized loading="eager" className={styles.mobileLogoImg} alt={t('logo')} />
+          </Link>
+          <div className={styles.mobileRight}>
+            {isSearch?.value
+              ? (
+                <Button className={styles.iconBtn} aria-label={t('closeSearch')} onClick={() => setIsSearch({ value: false, needFetch: false })}>
+                  <CloseOutlined aria-hidden />
+                </Button>
+              )
+              : (
+                <Button className={styles.iconBtn} aria-label={t('search')} onClick={searchClick}>
+                  <SearchOutlined aria-hidden />
+                </Button>
+              )}
+            <div className={cn('menu-btn', { active: isActive })} onClick={onChangeHandler} role="button" tabIndex={0} aria-label={t('title')} onKeyDown={() => undefined}>
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
         </div>
+        {isSearch?.value && (
+          <div className={styles.mobileSearchRow}>
+            <AutoComplete
+              ref={searchRef}
+              className={cn('custom-placeholder', 'w-100', styles.navSearchAutocomplete)}
+              style={{ height: 'auto', width: '100%' }}
+              value={search}
+              onChange={setSearch}
+              onInputKeyDown={onKeyboardSearch}
+            >
+              <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
+            </AutoComplete>
+          </div>
+        )}
       </div>
-      {isSearch?.value && (
-        <div className={styles.mobileSearchRow}>
-          <AutoComplete
-            ref={searchRef}
-            className={cn('custom-placeholder', 'w-100', styles.navSearchAutocomplete)}
-            style={{ height: 'auto', width: '100%' }}
-            value={search}
-            onChange={setSearch}
-            onInputKeyDown={onKeyboardSearch}
-          >
-            <Input.Search size="large" placeholder={t('search')} onSearch={onSearch} enterButton />
-          </AutoComplete>
-        </div>
-      )}
       {mobileDrawerContainer && (
         <Drawer
           title={
             <Link href={routes.page.base.homePage} onClick={onChangeHandler}>
-              <V2Image src={logoImage} unoptimized loading="lazy" className={styles.drawerLogo} alt={t('logo')} />
+              <V2Image src={logoImage} priority unoptimized loading="eager" className={styles.drawerLogo} alt={t('logo')} />
             </Link>
           }
           getContainer={() => mobileDrawerContainer}
           closeIcon={null}
           defaultSize="100%"
           open={isActive}
-          destroyOnHidden
           zIndex={1500}
           styles={{ body: { padding: 0 } }}
         >

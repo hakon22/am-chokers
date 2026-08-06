@@ -10,6 +10,16 @@
     top: 56px; // mobileHeader(56)
     z-index: 5;
     background: v2.$v2-bg-main;
+    // Явный identity transform: Safari на iOS не анимирует переход из `none` → translate
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.28s ease;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+    &.chromeHidden {
+      transform: translate3d(0, calc(-100% - 56px), 0);
+      pointer-events: none;
+    }
 
     :global(.ant-breadcrumb-link) {
       letter-spacing: -0.3px;

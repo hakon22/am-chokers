@@ -12,7 +12,11 @@ import { ItemContext, MobileContext, VersionContext, CatalogPageContext } from '
 import { buildCatalogBreadcrumbItems } from '@/utilities/buildCatalogBreadcrumbItems';
 import styles from '@/themes/v2/components/Breadcrumb.module.scss';
 
-export const Breadcrumb = () => {
+type BreadcrumbProps = {
+  isChromeVisible?: boolean;
+};
+
+export const Breadcrumb = ({ isChromeVisible = true }: BreadcrumbProps) => {
   const { t } = useTranslation('translation', { keyPrefix: 'modules.navbar' });
   const { t: tSeo } = useTranslation('translation', { keyPrefix: 'seo' });
   const router = useRouter();
@@ -40,7 +44,13 @@ export const Breadcrumb = () => {
   }
 
   return (
-    <nav className={cn(styles.breadcrumbWrap, { [styles.mobile]: isMobile })} aria-label={tSeo('breadcrumbLabel')}>
+    <nav
+      className={cn(styles.breadcrumbWrap, {
+        [styles.mobile]: isMobile,
+        [styles.chromeHidden]: isMobile && !isChromeVisible,
+      })}
+      aria-label={tSeo('breadcrumbLabel')}
+    >
       <BreadcrumbAntd
         items={breadcrumbs}
         className="container mb-xl-3"

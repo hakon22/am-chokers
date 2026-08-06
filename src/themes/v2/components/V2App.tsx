@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { useAuthHandler } from '@/hooks/useAuthHandler';
-import { MobileContext, SubmitContext, AuthModalContext } from '@/components/Context';
+import { MobileContext, SubmitContext, AuthModalContext, NavbarContext, SearchContext } from '@/components/Context';
 import { useRootStyle } from '@/hooks/useRootStyle';
 import { useMobileContext } from '@/hooks/useMobileContext';
+import { useHideOnScroll } from '@/hooks/useHideOnScroll';
 import { routes, catalogPath } from '@/routes';
 import { useAccessHandler } from '@/hooks/useAccessHandler';
 import { NavBar } from '@/themes/v2/components/NavBar';
@@ -49,12 +50,19 @@ export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGro
 
   const { isSubmit } = useContext(SubmitContext);
   const { isMobile } = useContext(MobileContext);
+  const { isActive } = useContext(NavbarContext);
+  const { isSearch } = useContext(SearchContext);
 
   useErrorHandler(userError, orderError, appError, cartError);
   useAuthHandler();
   useAccessHandler();
   useRootStyle();
   useMobileContext();
+
+  const isChromeVisible = useHideOnScroll({
+    enabled: Boolean(isMobile),
+    isLocked: isActive || Boolean(isSearch?.value),
+  });
 
   useEffect(() => {
     /**
@@ -104,8 +112,8 @@ export const V2App = ({ children, itemGroups }: { children: JSX.Element; itemGro
       <div className="v2-app" style={{ position: 'relative', minHeight: '100vh' }}>
         {isSubmit && <Spin tip={t('loading')} spinning fullscreen size="large" />}
         <header style={{ paddingTop: isMobile ? 56 : 100 }}>
-          <NavBar itemGroups={itemGroups} />
-          <Breadcrumb />
+          <NavBar itemGroups={itemGroups} isChromeVisible={isChromeVisible} />
+          <Breadcrumb isChromeVisible={isChromeVisible} />
         </header>
         <div style={{ paddingBottom: footerHeight + FOOTER_CONTENT_GAP }}>
           <FloatButton.BackTop />

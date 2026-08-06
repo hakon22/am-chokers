@@ -1667,6 +1667,19 @@ body.v2-theme {
   }
 }
 
+// iOS Safari зумит страницу при focus, если font-size input < 16px (перебивает 14/15px выше)
+body.v2-theme.v2-mobile {
+  .ant-input-outlined:not(.ant-input-affix-wrapper),
+  .ant-input-affix-wrapper,
+  .ant-input-affix-wrapper-lg,
+  .ant-input-affix-wrapper:not(.ant-input-affix-wrapper-lg):not(.ant-input-affix-wrapper-sm),
+  .ant-input-affix-wrapper .ant-input,
+  .ant-select-selection-search-input,
+  textarea.ant-input {
+    font-size: 16px !important;
+  }
+}
+
 // RangePicker (два месяца): на мобильном — панели столбцом, иначе выпадающий блок шире экрана (настройки самовывоза и т.п.)
 @media (max-width: 768px) {
   .ant-picker-dropdown .ant-picker-panels {

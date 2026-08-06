@@ -235,21 +235,52 @@
 }
 
 // ── Mobile header ──
+// Оболочка без transform: иначе Ant Drawer (fixed) позиционируется относительно шапки, а не viewport
 .mobileHeader {
   display: none;
-  background: v2.$v2-white;
-  border-bottom: 1px solid v2.$v2-border;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1600;
+  flex-direction: column;
+  align-items: stretch;
+
+  &.chromeHidden {
+    pointer-events: none;
+
+    .mobileHeaderChrome {
+      transform: translate3d(0, -100%, 0);
+      pointer-events: none;
+    }
+  }
+
+  // Сбрасываем transform у chrome, чтобы .menu-btn (z-index 1501) был выше Drawer (1500)
+  &.menuOpen {
+    .mobileHeaderChrome {
+      transform: none;
+      transition: none;
+      backface-visibility: visible;
+      -webkit-backface-visibility: visible;
+    }
+  }
+}
+
+.mobileHeaderChrome {
+  background: v2.$v2-white;
+  border-bottom: 1px solid v2.$v2-border;
   padding: 0 16px;
   min-height: 56px;
   height: auto;
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   box-shadow: v2.$v2-sh-sm;
+  // Явный identity transform: Safari на iOS не анимирует переход из `none` → translate
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.28s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 // Верхняя строка: лого + иконки (раньше поиск был третьим flex-элементом в ряд с height: 56px — ломало сетку).
