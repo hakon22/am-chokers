@@ -7,7 +7,7 @@ import {
 import { useRouter } from 'next/router';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
-import { ToastContainer } from 'react-toastify';
+import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import moment from 'moment';
 
@@ -196,7 +196,35 @@ const Init = (props: InitPropsInterface) => {
                       ) : null}
                     <Spinner isLoaded={isLoaded && (isTelegramMiniAppRoute || isBootstrapReady)} />
                     <HtmlLangSync />
-                    <ToastContainer style={{ zIndex: 999999 }} />
+                    <Toaster
+                      position="top-center"
+                      containerStyle={{ zIndex: 999999 }}
+                      toastOptions={{
+                        // Цвета из v2: src/themes/v2/styles/variables.scss
+                        style: {
+                          background: '#EAEEF6',
+                          color: '#363B44',
+                          border: '1px solid #CED3DD',
+                          boxShadow: '0 8px 32px rgba(43, 60, 95, 0.18)',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
+                          maxWidth: '420px',
+                        },
+                        success: {
+                          iconTheme: {
+                            primary: '#4caf7d',
+                            secondary: '#FFFFFF',
+                          },
+                        },
+                        error: {
+                          iconTheme: {
+                            primary: '#e05c5c',
+                            secondary: '#FFFFFF',
+                          },
+                        },
+                      }}
+                    />
                     {!isTelegramMiniAppRoute ? <CookieConsentBanner /> : null}
                     {isTelegramMiniAppRoute ? (
                       <TelegramOrderAppRoutesContext.Provider value={telegramOrderAppRoutesMiniApp}>
