@@ -728,14 +728,37 @@ body.v2-product-mobile .ant-float-btn-group .ant-float-btn {
     padding: 0.5rem 1rem;
   }
 
+  .widget__address-card {
+    width: 100% !important;
+    border-top-left-radius: unset !important;
+    border-top-right-radius: unset !important;
+  }
+
   .ymaps-2-1-79-controls__control {
-    inset: 202px 16px auto auto !important;
+    inset: 285px 16px auto auto !important;
   }
 
   .ymaps_maps-button.ymaps__icon_only {
     top: 100px !important;
-    right: -5px !important;
   }
+
+  .widget__address-body {
+    padding: 0 16px 8px !important;
+  }
+}
+
+/**
+ * Модалка виджета доставки: не перехватывать жесты карты скроллом wrap
+ * (ant-modal-wrap по умолчанию overflow:auto + touch scrolling).
+ */
+.delivery-widget-modal.ant-modal-wrap {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+.delivery-widget-modal .ant-modal-body {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 @media (max-width: 768px) {

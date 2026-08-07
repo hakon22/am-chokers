@@ -121,7 +121,7 @@ export const DeliveryWidgetScripts = ({ children }: DeliveryWidgetScriptsProps) 
     <DeliveryWidgetScriptsContext.Provider value={contextValue}>
       <Script
         id="yandex-widget"
-        src="https://ndd-widget.landpro.site/widget.js"
+        src="https://widget-pvz.dostavka.yandex.net/widget.js?v=2"
         strategy="afterInteractive"
         onLoad={() => {
           markScriptLoaded('yandex');

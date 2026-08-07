@@ -26,8 +26,21 @@ import { getHref } from '@/utilities/getHref';
 import { newOrderPositionValidation, signupValidation } from '@/validations/validations';
 import { axiosErrorHandler } from '@/utilities/axiosErrorHandler';
 import { PICKUP_DISABLED_HOURS } from '@/constants/pickupDelivery';
-import { DEFAULT_SHIPPING_RATE_RUB, formatDefaultShippingRateRub } from '@shared/delivery-config';
+import {
+  YANDEX_DELIVERY_SHIPMENT_TERM_DAYS,
+  YANDEX_DELIVERY_WIDGET_POINT_FILTER,
+  DELIVERY_WIDGET_HEIGHT_FALLBACK_DESKTOP_PX,
+  DELIVERY_WIDGET_HEIGHT_FALLBACK_MOBILE_PX,
+  formatYandexWidgetDeliveryPrice,
+  getDeliveryWidgetHeightPx,
+  getYandexWidgetPhysicalDimsParams,
+  resolveYandexSourcePlatformStationId,
+} from '@shared/delivery-config';
 import { isCalendarDayBlockedByPickupRanges } from '@/utilities/pickup/isCalendarDayBlockedByPickupRanges';
+import { getYandexWidgetQuotedDeliveryPrice } from '@/utilities/delivery/getYandexWidgetQuotedDeliveryPrice';
+import { scheduleYandexDeliveryClusterZoomPatch } from '@/utilities/delivery/patchYandexDeliveryClusterZoom';
+import { scheduleYandexWidgetPointDetailInfoHide } from '@/utilities/delivery/hideYandexWidgetPointDetailInfo';
+import { resetYandexDeliveryWidgetState } from '@/utilities/delivery/resetYandexDeliveryWidgetState';
 import { routes } from '@/routes';
 import { DeliveryTypeEnum } from '@server/types/delivery/enums/delivery.type.enum';
 import { NotFoundContent } from '@/components/NotFoundContent';
@@ -95,6 +108,7 @@ const Cart = () => {
   const { isMobile } = useContext(MobileContext);
 
   const cdekWidgetRef = useRef<{ app: { mount: () => void; } }>(null);
+  const lastYandexWidgetDeliveryPriceRef = useRef<number | null>(null);
 
   const defaultDelivery: CreateOrderInterface['delivery'] = {
     price: 0,
@@ -121,16 +135,21 @@ const Cart = () => {
   }, [filteredCart]);
 
   const [promotional, setPromotional] = useState<PromotionalInterface>();
-  const [deliveryServices, setDeliveryServices] = useState<Pick<DeliveryCredentialsEntity, 'translations' | 'type'>[]>([]);
+  const [deliveryServices, setDeliveryServices] = useState<Pick<DeliveryCredentialsEntity, 'translations' | 'type' | 'password'>[]>([]);
   const [deliveryType, setDeliveryType] = useState<DeliveryTypeEnum>();
   const [savedDeliveryPrice, setSavedDeliveryPrice] = useState(0);
   const [isOpenDeliveryWidget, setIsOpenDeliveryWidget] = useState(false);
+  const [isDeliveryModalLaidOut, setIsDeliveryModalLaidOut] = useState(false);
+  const [deliveryWidgetHeightPx, setDeliveryWidgetHeightPx] = useState(
+    () => (isMobile ? DELIVERY_WIDGET_HEIGHT_FALLBACK_MOBILE_PX : DELIVERY_WIDGET_HEIGHT_FALLBACK_DESKTOP_PX),
+  );
   const [delivery, setDelivery] = useState(defaultDelivery);
   const [user, setUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
   const [tempUser, setTempUser] = useState<Pick<UserSignupInterface, 'name' | 'phone' | 'lang'>>({ name: '', phone: '', lang: lang as UserLangEnum });
 
   const [isProcessConfirmed, setIsProcessConfirmed] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   const deliveryWidgetScripts = useDeliveryWidgetScripts();
   const isDeliveryWidgetLoading = isOpenDeliveryWidget
@@ -144,6 +163,12 @@ const Cart = () => {
 
   const deliveryButton = useMemo(() => !!deliveryType, [deliveryType]);
   const deliveryList = useMemo(() => deliveryServices.map((list) => ({ label: list.translations.find((translation) => translation.lang === lang)?.name, value: list.type })), [lang, deliveryServices]);
+  const yandexSourceStationId = useMemo(
+    () => resolveYandexSourcePlatformStationId(
+      deliveryServices.find(({ type }) => type === DeliveryTypeEnum.YANDEX_DELIVERY)?.password,
+    ),
+    [deliveryServices],
+  );
 
   const positions = cartList.map(({ id, item, count }) => ({ id, price: item.price, discountPrice: item.discountPrice, count, item })) as unknown as OrderPositionInterface[];
 
@@ -163,6 +188,20 @@ const Cart = () => {
 
   const width = 130;
   const height = width * coefficient;
+  const deliveryWidgetHeightStyle = `${deliveryWidgetHeightPx}px`;
+
+  /**
+   * После открытия модалки фиксируем высоту в px (DOM и createWidget должны совпадать)
+   * @param open - модалка открыта после transition
+   */
+  const handleDeliveryModalAfterOpenChange = (open: boolean) => {
+    if (open) {
+      setDeliveryWidgetHeightPx(getDeliveryWidgetHeightPx(Boolean(isMobile)));
+      setIsDeliveryModalLaidOut(true);
+      return;
+    }
+    setIsDeliveryModalLaidOut(false);
+  };
 
   const [form] = Form.useForm();
 
@@ -212,28 +251,32 @@ const Cart = () => {
     }
   };
 
-  const openYanderDeliveryWidget = (items: CartItemInterface[]) => {
+  const openYanderDeliveryWidget = (items: CartItemInterface[], widgetHeightPx: number) => {
+    lastYandexWidgetDeliveryPriceRef.current = null;
+    resetYandexDeliveryWidgetState();
     window.YaDelivery.createWidget({
       containerId: 'delivery-widget',
       params: {
         city: 'Москва',
         size: {
-          height: '500px',
-          width: '90vw',
+          height: `${widgetHeightPx}px`,
+          width: '100%',
         },
-        // source_platform_station: 'ca56c850-d268-4c9e-9e52-5dc09b006a7d',
-        physical_dims_weight_gross: items.length * 200,
-        delivery_price: formatDefaultShippingRateRub(),
-        delivery_term: lang === UserLangEnum.RU ? 'от 2 до 7 дней' : 'from 2 to 7 days',
+        source_platform_station: yandexSourceStationId,
+        ...getYandexWidgetPhysicalDimsParams(items),
+        delivery_price: (price: number) => {
+          if (price > 0) {
+            lastYandexWidgetDeliveryPriceRef.current = price;
+          }
+          return formatYandexWidgetDeliveryPrice(price);
+        },
+        delivery_term: YANDEX_DELIVERY_SHIPMENT_TERM_DAYS,
         show_select_button: true,
-        filter: {
-          type: ['pickup_point'],
-          is_yandex_branded: true,
-          payment_methods: ['already_paid'],
-          payment_methods_filter: 'and',
-        },
+        filter: YANDEX_DELIVERY_WIDGET_POINT_FILTER,
       },
     });
+    scheduleYandexDeliveryClusterZoomPatch();
+    scheduleYandexWidgetPointDetailInfoHide();
   };
 
   const openRussianPostDeliveryWidget = (items: CartItemInterface[]) => {
@@ -379,6 +422,10 @@ const Cart = () => {
   const deliveryDateTimeValue = Form.useWatch(['delivery', 'deliveryDateTime'], form);
   const isPersonalDataConsent = Form.useWatch('personalDataConsent', form);
   const selectPromotionField = !!promotionalValue;
+  const isPromotionalInputDisabled = !hasMounted
+    || !filteredCart.length
+    || !delivery.address
+    || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue);
 
   const pickupAddressLine = useMemo(
     () => (isEmpty(pickupSettings.locationLabel?.trim())
@@ -410,6 +457,10 @@ const Cart = () => {
   };
 
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
     axios.get<{ code: number; deliveryList: DeliveryCredentialsEntity[]; }>(routes.delivery.findMany)
       .then(({ data }) => {
         setDeliveryServices(data.deliveryList);
@@ -418,27 +469,36 @@ const Cart = () => {
   }, []);
 
   useEffect(() => {
-    const handlePointSelected = (data: any) => {
-      const detail = data.detail as YandexDeliveryDataInterface;
-      setSavedDeliveryPrice(DEFAULT_SHIPPING_RATE_RUB);
-      setDelivery({
-        price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : DEFAULT_SHIPPING_RATE_RUB,
-        address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
-        type: deliveryType,
-      });
-      setIsOpenDeliveryWidget(false);
+    const handlePointSelected = (data: Event) => {
+      onYandexPointSelected(data as CustomEvent<YandexDeliveryDataInterface>);
     };
-
-    document.removeEventListener('YaNddWidgetPointSelected', handlePointSelected);
     document.addEventListener('YaNddWidgetPointSelected', handlePointSelected);
-  
-    return () => {
-      document.removeEventListener('YaNddWidgetPointSelected', handlePointSelected);
-    };
-  }, [deliveryType]);
+    return () => document.removeEventListener('YaNddWidgetPointSelected', handlePointSelected);
+  }, []);
+
+  const onYandexPointSelected = useEffectEvent((data: CustomEvent<YandexDeliveryDataInterface>) => {
+    const { detail } = data;
+    const quotedDeliveryPrice = getYandexWidgetQuotedDeliveryPrice(
+      detail.id,
+      lastYandexWidgetDeliveryPriceRef.current,
+    );
+    const isSelectedDeliveryFree = (promotional && promotional.freeDelivery)
+      || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery);
+    setSavedDeliveryPrice(quotedDeliveryPrice);
+    setDelivery({
+      price: isSelectedDeliveryFree ? 0 : quotedDeliveryPrice,
+      address: `${detail.address.locality}, ${detail.address.street}, ${detail.address.house}`,
+      type: deliveryType,
+    });
+    setIsOpenDeliveryWidget(false);
+  });
 
   useEffect(() => {
-    if (!isOpenDeliveryWidget || !deliveryType) {
+    if (!isOpenDeliveryWidget || !isDeliveryModalLaidOut || !deliveryType) {
+      return;
+    }
+
+    if (isDeliveryWidgetLoading) {
       return;
     }
 
@@ -448,7 +508,7 @@ const Cart = () => {
 
     switch (deliveryType) {
     case DeliveryTypeEnum.YANDEX_DELIVERY:
-      openYanderDeliveryWidget(cartList);
+      openYanderDeliveryWidget(cartList, deliveryWidgetHeightPx);
       break;
     case DeliveryTypeEnum.RUSSIAN_POST:
       openRussianPostDeliveryWidget(cartList);
@@ -457,7 +517,7 @@ const Cart = () => {
       openCDEKDeliveryWidget(cartList);
       break;
     }
-  }, [isOpenDeliveryWidget, deliveryType, deliveryWidgetScripts]);
+  }, [isOpenDeliveryWidget, isDeliveryModalLaidOut, deliveryType, deliveryWidgetScripts, deliveryWidgetHeightPx, isDeliveryWidgetLoading]);
 
   useEffect(() => {
     if (isConfirmed && tempUser.phone) {
@@ -478,8 +538,10 @@ const Cart = () => {
         form.setFieldValue('promotional', undefined);
       }
     }
-    setDeliveryEffect((state) => ({ ...state, price: (promotional && promotional.freeDelivery) || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery) ? 0 : savedDeliveryPrice }));
-  }, [count, promotional]);
+    const isSelectedDeliveryFree = (promotional && promotional.freeDelivery)
+      || (getOrderPrice(getPreparedOrder(positions, 0, promotional)) >= priceForFreeDelivery);
+    setDeliveryEffect((state) => ({ ...state, price: isSelectedDeliveryFree ? 0 : savedDeliveryPrice }));
+  }, [count, promotional, savedDeliveryPrice]);
 
   return (
     <div className="d-flex flex-column" style={{ marginTop: isMobile ? '100px' : '150px' }}>
@@ -503,20 +565,21 @@ const Cart = () => {
         zIndex={10000}
         open={isOpenDeliveryWidget}
         footer={null}
+        wrapClassName="delivery-widget-modal"
+        afterOpenChange={handleDeliveryModalAfterOpenChange}
         onCancel={() => {
-          resetPVZ();
           setIsOpenDeliveryWidget(false);
         }}
       >
         {isDeliveryWidgetLoading ? (
-          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 500 }}>
+          <div className="d-flex justify-content-center align-items-center" style={{ minHeight: deliveryWidgetHeightStyle }}>
             <Spin size="large" />
           </div>
         ) : (
           <>
-            <div id="delivery-widget" style={deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}} />
-            <div id="ecom-widget" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
-            <div id="cdek-map" style={{ height: 500, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
+            <div id="delivery-widget" style={{ height: deliveryWidgetHeightStyle, width: '100%', ...(deliveryType !== DeliveryTypeEnum.YANDEX_DELIVERY ? { display: 'none' } : {}) }} />
+            <div id="ecom-widget" style={{ height: deliveryWidgetHeightStyle, ...(deliveryType !== DeliveryTypeEnum.RUSSIAN_POST ? { display: 'none' } : {}) }} />
+            <div id="cdek-map" style={{ height: deliveryWidgetHeightStyle, ...(deliveryType !== DeliveryTypeEnum.CDEK ? { display: 'none' } : {}) }} />
           </>
         )}
       </Modal>
@@ -640,7 +703,7 @@ const Cart = () => {
                     : getOrderDiscount(getPreparedOrder(positions, delivery.price, promotional)) })}</span>
               </div>
               : <Form.Item name="promotional" className="large-input mb-0">
-                <Input disabled={!filteredCart.length || !delivery.address || (deliveryType === DeliveryTypeEnum.PICKUP && !deliveryDateTimeValue)} placeholder={t('promotional')} className="not-padding" size="large" />
+                <Input disabled={isPromotionalInputDisabled} placeholder={t('promotional')} className="not-padding" size="large" />
               </Form.Item>}
           </div>
           <div className="d-flex justify-content-between fs-5 mb-4 text-uppercase fw-bold">
