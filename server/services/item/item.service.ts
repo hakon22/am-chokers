@@ -660,8 +660,12 @@ export class ItemService extends TranslationHelper {
       beforeItem.deferredPublication = await this.deferredPublicationService.createOne(deferredPublicationBody, lang);
       await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, beforeItem);
     } else {
-      beforeItem.deferredPublication = null;
-      await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, beforeItem);
+      if (!_.isNil(beforeItem.deferredPublication)) {
+        await DeferredPublicationEntity.softRemove(beforeItem.deferredPublication);
+        beforeItem.deferredPublication = null;
+        await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, beforeItem);
+      }
+
       this.publishProcess(beforeItem, body?.description);
     }
 

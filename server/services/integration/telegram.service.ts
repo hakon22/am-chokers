@@ -1,12 +1,15 @@
 import _ from 'lodash';
 import { Container, Singleton } from 'typescript-ioc';
+import type { EntityManager } from 'typeorm';
 import type { Context, Telegraf, Types } from 'telegraf';
 import type { Message } from 'typegram/message';
 import type { InputMediaPhoto, InputMediaVideo } from 'telegraf/types';
 
 import { UserEntity } from '@server/db/entities/user.entity';
 import { ItemEntity } from '@server/db/entities/item.entity';
+import { MessageEntity } from '@server/db/entities/message.entity';
 import { DeferredPublicationEntity } from '@server/db/entities/deferred.publication.entity';
+import { DatabaseService } from '@server/db/database.service';
 import { LoggerService } from '@server/services/app/logger.service';
 import { MessageService } from '@server/services/message/message.service';
 import { RedisService } from '@server/db/redis.service';
@@ -34,6 +37,8 @@ export class TelegramService {
   private readonly messageService = Container.get(MessageService);
 
   private readonly redisService = Container.get(RedisService);
+
+  private readonly databaseService = Container.get(DatabaseService);
 
   private readonly telegramBotService = Container.get(TelegramBotService);
 
@@ -318,6 +323,15 @@ export class TelegramService {
     }
   };
 
+  /**
+   * Отправляет медиагруппу в Telegram и при публикации товара фиксирует сообщение / отложенную публикацию
+   * @param message - текст подписи (строка или массив строк)
+   * @param images - абсолютные URL фото/видео для медиагруппы
+   * @param telegramId - id чата Telegram (группа или пользователь)
+   * @param item - товар при публикации в группу; `null`, если это обычная рассылка с фото
+   * @param options - дополнительные опции Telegraf
+   * @returns результат sendMediaGroup, текст и история сообщения при успехе
+   */
   public sendMessageWithPhotos = async (message: string | string[], images: string[], telegramId: string, item: ItemEntity | null = null, options?: Types.ExtraReplyMessage) => {
     const text = this.serializeText(message);
 
@@ -336,25 +350,52 @@ export class TelegramService {
         this.loggerService.info(this.TAG, `Сообщение в Telegram на telegramId ${telegramId} успешно отправлено`);
         messageHistory.send = true;
         messageHistory.messageId = result.map(({ message_id }) => message_id.toString()).join(', ').trim();
-        await messageHistory.save();
-        if (item) {
-          await ItemEntity.update(item.id, { message: messageHistory });
+
+        await this.databaseService.getManager().transaction(async (manager) => {
+          await manager.getRepository(MessageEntity).save(messageHistory);
+
+          if (_.isNil(item)) {
+            return;
+          }
+
+          await manager.getRepository(ItemEntity).update(item.id, { message: messageHistory });
           item.message = messageHistory;
 
-          if (item.deferredPublication) {
-            await DeferredPublicationEntity.softRemove(item.deferredPublication);
-            item.deferredPublication.deleted = new Date();
+          const deferredPublication = await this.resolveDeferredPublicationForItem(item, manager);
+
+          if (_.isNil(deferredPublication)) {
+            return;
           }
+
+          await manager.getRepository(DeferredPublicationEntity).softRemove(deferredPublication);
+          deferredPublication.deleted = new Date();
+          item.deferredPublication = deferredPublication;
+        });
+
+        if (!_.isNil(item)) {
           await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
         }
+
         return { ...result, text, history: messageHistory };
       }
     } catch (error) {
       this.loggerService.error(this.TAG, `Ошибка отправки сообщения на telegramId ${telegramId} :(`, error);
+
+      if (!_.isNil(item)) {
+        await this.rollbackDeferredPublicationLock(item);
+        await this.notifyDeveloperAboutPublicationError(item, telegramId, error);
+      }
+
       throw error;
     }
   };
 
+  /**
+   * Отправляет администраторам сообщения на их языке
+   * @param messageRu - текст для русскоязычного админа
+   * @param messageEn - текст для англоязычного админа
+   * @param options - дополнительные опции Telegraf
+   */
   public sendAdminMessages = async (messageRu: string | string[], messageEn: string | string[], options?: Types.ExtraReplyMessage) => {
     for (const tgId of [process.env.TELEGRAM_CHAT_ID, process.env.TELEGRAM_CHAT_ID2].filter(Boolean)) {
       const adminUser = await UserEntity.findOne({ select: ['id', 'lang', 'telegramId'], where: { telegramId: tgId } });
@@ -369,5 +410,128 @@ export class TelegramService {
     }
   };
 
+  /**
+   * Собирает строки в один текст с переводами строк
+   * @param message - строка или массив строк
+   * @returns единый текст сообщения
+   */
   private serializeText = (message: string | string[]) => (Array.isArray(message) ? message.reduce((acc, field) => acc + `${field}\n`, '') : message);
+
+  /**
+   * Находит отложенную публикацию товара для фиксации успеха или отката лока
+   * @param item - товар из задачи публикации
+   * @param manager - EntityManager активной транзакции или без него — дефолтный репозиторий
+   * @returns сущность deferred publication или `null`
+   */
+  private resolveDeferredPublicationForItem = async (
+    item: ItemEntity,
+    manager?: EntityManager,
+  ): Promise<DeferredPublicationEntity | null> => {
+    const { deferredPublication: itemDeferredPublication } = item;
+
+    if (!_.isNil(itemDeferredPublication?.id)) {
+      return itemDeferredPublication;
+    }
+
+    const repository = manager
+      ? manager.getRepository(DeferredPublicationEntity)
+      : DeferredPublicationEntity.getRepository();
+
+    const deferredPublication = await repository.findOne({
+      where: {
+        item: { id: item.id },
+        isPublished: true,
+      },
+    });
+
+    if (_.isNil(deferredPublication)) {
+      return null;
+    }
+
+    return deferredPublication;
+  };
+
+  /**
+   * Сбрасывает лок `is_published` после неуспешной отправки в Telegram
+   * @param item - товар, для которого срывалась публикация
+   */
+  private rollbackDeferredPublicationLock = async (item: ItemEntity): Promise<void> => {
+    const deferredPublication = await this.resolveDeferredPublicationForItem(item);
+
+    if (_.isNil(deferredPublication)) {
+      return;
+    }
+
+    await DeferredPublicationEntity.update(deferredPublication.id, { isPublished: false });
+    this.loggerService.info(this.TAG, `Откат is_published для deferred_publication #${deferredPublication.id} (item #${item.id})`);
+
+    deferredPublication.isPublished = false;
+    item.deferredPublication = deferredPublication;
+    await this.redisService.updateItemById(RedisKeyEnum.ITEM_BY_ID, item);
+  };
+
+  /**
+   * Уведомляет разработчика об ошибке публикации товара в Telegram
+   * @param item - товар, который не удалось опубликовать
+   * @param telegramId - id чата, куда шла отправка
+   * @param error - исходная ошибка отправки
+   */
+  private notifyDeveloperAboutPublicationError = async (item: ItemEntity, telegramId: string, error: unknown): Promise<void> => {
+    const developerTelegramId = process.env.TELEGRAM_CHAT_ID;
+
+    if (process.env.NODE_ENV !== 'production' || typeof developerTelegramId !== 'string' || _.isEmpty(developerTelegramId)) {
+      return;
+    }
+
+    const itemName = item.translations?.find(({ lang }) => lang === UserLangEnum.RU)?.name
+      ?? item.translateName
+      ?? String(item.id);
+
+    const telegramErrorText = this.formatTelegramErrorForAlert(error);
+
+    const alertMessage = [
+      `Ошибка публикации товара в Telegram (<b>${process.env.NEXT_PUBLIC_APP_NAME}</b>):`,
+      `Товар: <b>${itemName}</b> (id ${item.id})`,
+      `Чат: <code>${telegramId}</code>`,
+      `Ошибка Telegram: <code>${telegramErrorText}</code>`,
+    ];
+
+    try {
+      await this.telegramBotService.sendMessage(this.serializeText(alertMessage), developerTelegramId);
+    } catch (notifyError) {
+      this.loggerService.error(this.TAG, 'Не удалось отправить алерт разработчику об ошибке публикации', notifyError);
+    }
+  };
+
+  /**
+   * Достаёт из ошибки Telegraf/Telegram читаемое описание для алерта (без stack)
+   * @param error - исходная ошибка отправки
+   * @returns строка вида `400: Bad Request: ... "WEBPAGE_MEDIA_EMPTY"`
+   */
+  private formatTelegramErrorForAlert = (error: unknown): string => {
+    if (!(error instanceof Error)) {
+      return String(error);
+    }
+
+    const telegramError = error as Error & {
+      code?: number;
+      description?: string;
+      response?: {
+        error_code?: number;
+        description?: string;
+      };
+    };
+
+    const description = telegramError.response?.description
+      ?? telegramError.description
+      ?? telegramError.message;
+
+    const errorCode = telegramError.response?.error_code ?? telegramError.code;
+
+    if (!_.isNil(errorCode) && !description.startsWith(`${errorCode}:`)) {
+      return `${errorCode}: ${description}`;
+    }
+
+    return description;
+  };
 }
