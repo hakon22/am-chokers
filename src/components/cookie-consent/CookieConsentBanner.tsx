@@ -21,7 +21,7 @@ export const CookieConsentBanner = () => {
   return (
     <CookieConsent
       location="bottom"
-      containerClasses="justify-content-center text-center"
+      containerClasses="cookie-consent-banner justify-content-center text-center"
       style={{ zIndex: 1001, backgroundColor: '#2b3c5f' }}
       buttonStyle={{ backgroundColor: '#eaeef6', borderRadius: '7px', padding: '10px 20px' }}
       declineButtonStyle={{ backgroundColor: 'transparent', borderRadius: '7px', padding: '10px 20px', color: '#eaeef6' }}

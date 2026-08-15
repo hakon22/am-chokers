@@ -642,6 +642,11 @@ body.v2-mobile .ant-float-btn {
   right: calc(10vw - 20px) !important;
 }
 
+// v2 mobile: куки-баннер над BottomNav (inline bottom:0 у react-cookie-consent)
+body.v2-mobile .cookie-consent-banner {
+  bottom: calc(56px + env(safe-area-inset-bottom, 0)) !important;
+}
+
 // v2 product page mobile: поднять над sticky-баром с избранным, выровнять по центру кнопки ♥
 body.v2-product-mobile .ant-float-btn {
   bottom: 124px !important;
