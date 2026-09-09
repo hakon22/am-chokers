@@ -62,6 +62,9 @@ export class ItemService extends TranslationHelper {
 
   private readonly tryOnRasterImageNamePattern = '\\.(jpe?g|png|webp|gif)$';
 
+  /** Размер чанка для пакетных запросов при массовых изменениях товаров (внутри одной транзакции) */
+  private readonly itemBulkChunkSize = 20;
+
   /**
    * Ограничивает выборку товарами без фото примерки в группах, где AI-примерка включена
    * @param builder - TypeORM query builder товаров
@@ -1121,6 +1124,55 @@ export class ItemService extends TranslationHelper {
     await this.refreshRedisForItemIds([itemId]);
   };
 
+  /**
+   * Снимает `outStock` у переданных товаров: UPDATE и история в одной транзакции, затем Redis
+   * @param itemIds - идентификаторы товаров
+   * @param user - автор изменения или `null` / `undefined` для системного действия (cron)
+   * @returns `Promise`, завершающийся после записи в БД и обновления кэша
+   */
+  private clearOutStockForItemIds = async (itemIds: number[], user: PassportRequestInterface | null | undefined): Promise<void> => {
+    if (_.isEmpty(itemIds)) {
+      return;
+    }
+    const manager = this.databaseService.getManager();
+
+    await manager.transaction(async (transactionManager) => {
+      const itemRepo = transactionManager.getRepository(ItemEntity);
+
+      for (const chunk of _.chunk(itemIds, this.itemBulkChunkSize)) {
+        const previousRows = await itemRepo.find({
+          where: { id: In(chunk) },
+          select: ['id', 'outStock'],
+        });
+
+        await transactionManager
+          .createQueryBuilder()
+          .update(ItemEntity)
+          .set({ outStock: null })
+          .where('id IN (:...ids)', { ids: chunk })
+          .execute();
+
+        for (const row of previousRows) {
+          if (!_.isNil(row.outStock)) {
+            await this.itemHistoryService.persistSingleDelta(transactionManager, row.id, user, {
+              field: ITEM_HISTORY_FIELD_OUT_STOCK,
+              oldValue: moment(row.outStock).toISOString(),
+              newValue: null,
+            });
+          }
+        }
+      }
+    });
+
+    await this.refreshRedisForItemIds(itemIds);
+  };
+
+  /**
+   * Массово ставит дату «нет в наличии» выбранным товарам
+   * @param body - фильтр выборки и дата `outStock`
+   * @param user - администратор, выполняющий действие
+   * @returns код ответа и число затронутых товаров
+   */
   public bulkSetOutStock = async (
     body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; withoutTryOn?: boolean; outStock: unknown; },
     user: PassportRequestInterface,
@@ -1138,37 +1190,48 @@ export class ItemService extends TranslationHelper {
         : 'The out-of-stock date must be no earlier than tomorrow.');
     }
     const outStock = chosen.toDate();
-    const CHUNK = 500;
     const manager = this.databaseService.getManager();
     const newOutSerialized = moment(outStock).toISOString();
-    for (let i = 0; i < ids.length; i += CHUNK) {
-      const chunk = ids.slice(i, i + CHUNK);
-      const repo = manager.getRepository(ItemEntity);
-      const prevRows = await repo.find({
-        where: { id: In(chunk) },
-        select: ['id', 'outStock'],
-      });
-      await manager
-        .createQueryBuilder()
-        .update(ItemEntity)
-        .set({ outStock })
-        .where('id IN (:...ids)', { ids: chunk })
-        .execute();
-      for (const row of prevRows) {
-        const oldSerialized = row.outStock ? moment(row.outStock).toISOString() : null;
-        if (oldSerialized !== newOutSerialized) {
-          await this.itemHistoryService.persistSingleDelta(manager, row.id, user, {
-            field: ITEM_HISTORY_FIELD_OUT_STOCK,
-            oldValue: oldSerialized,
-            newValue: newOutSerialized,
-          });
+
+    await manager.transaction(async (transactionManager) => {
+      const itemRepo = transactionManager.getRepository(ItemEntity);
+
+      for (const chunk of _.chunk(ids, this.itemBulkChunkSize)) {
+        const previousRows = await itemRepo.find({
+          where: { id: In(chunk) },
+          select: ['id', 'outStock'],
+        });
+
+        await transactionManager
+          .createQueryBuilder()
+          .update(ItemEntity)
+          .set({ outStock })
+          .where('id IN (:...ids)', { ids: chunk })
+          .execute();
+
+        for (const row of previousRows) {
+          const oldSerialized = !_.isNil(row.outStock) ? moment(row.outStock).toISOString() : null;
+          if (oldSerialized !== newOutSerialized) {
+            await this.itemHistoryService.persistSingleDelta(transactionManager, row.id, user, {
+              field: ITEM_HISTORY_FIELD_OUT_STOCK,
+              oldValue: oldSerialized,
+              newValue: newOutSerialized,
+            });
+          }
         }
       }
-    }
+    });
+
     await this.refreshRedisForItemIds(ids);
-    return { code: 1 as const, affectedCount: ids.length };
+    return { code: 1, affectedCount: ids.length };
   };
 
+  /**
+   * Массово снимает дату «нет в наличии» у выбранных товаров
+   * @param body - фильтр выборки товаров
+   * @param user - администратор, выполняющий действие
+   * @returns код ответа и число затронутых товаров
+   */
   public bulkClearOutStock = async (
     body: { all?: boolean; ids?: number[]; withDeleted?: boolean; search?: string; outOfStock?: boolean; withoutTryOn?: boolean; },
     user: PassportRequestInterface,
@@ -1177,33 +1240,30 @@ export class ItemService extends TranslationHelper {
     if (_.isEmpty(ids)) {
       return { code: 1 as const, affectedCount: 0 };
     }
-    const CHUNK = 500;
+    await this.clearOutStockForItemIds(ids, user);
+    return { code: 1, affectedCount: ids.length };
+  };
+
+  /**
+   * Снимает «нет в наличии» у товаров, которые с текущего календарного дня Москвы уже можно купить
+   * @returns число обработанных товаров и их идентификаторы
+   */
+  public clearExpiredOutStock = async (): Promise<{ affectedCount: number; itemIds: number[]; }> => {
     const manager = this.databaseService.getManager();
-    for (let i = 0; i < ids.length; i += CHUNK) {
-      const chunk = ids.slice(i, i + CHUNK);
-      const repo = manager.getRepository(ItemEntity);
-      const prevRows = await repo.find({
-        where: { id: In(chunk) },
-        select: ['id', 'outStock'],
-      });
-      await manager
-        .createQueryBuilder()
-        .update(ItemEntity)
-        .set({ outStock: null })
-        .where('id IN (:...ids)', { ids: chunk })
-        .execute();
-      for (const row of prevRows) {
-        if (!_.isNil(row.outStock)) {
-          await this.itemHistoryService.persistSingleDelta(manager, row.id, user, {
-            field: ITEM_HISTORY_FIELD_OUT_STOCK,
-            oldValue: moment(row.outStock).toISOString(),
-            newValue: null,
-          });
-        }
-      }
+    const expiredRows = await manager
+      .createQueryBuilder(ItemEntity, 'item')
+      .select('item.id')
+      .where('item.outStock IS NOT NULL')
+      .andWhere(`DATE("item"."out_stock") <= (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::DATE`)
+      .getMany();
+
+    const itemIds = expiredRows.map(({ id }) => id);
+    if (_.isEmpty(itemIds)) {
+      return { affectedCount: 0, itemIds: [] };
     }
-    await this.refreshRedisForItemIds(ids);
-    return { code: 1 as const, affectedCount: ids.length };
+
+    await this.clearOutStockForItemIds(itemIds, null);
+    return { affectedCount: itemIds.length, itemIds };
   };
 
   public bulkPriceAdjust = async (
@@ -1225,42 +1285,50 @@ export class ItemService extends TranslationHelper {
     }
     const { percentage, multiple } = body;
     const manager = this.databaseService.getManager();
-    const repo = manager.getRepository(ItemEntity);
-    const CHUNK = 500;
     const changedIds: number[] = [];
     let skippedBelowMin = 0;
-    for (let i = 0; i < ids.length; i += CHUNK) {
-      const chunk = ids.slice(i, i + CHUNK);
-      const rows = await repo.find({
-        where: { id: In(chunk) },
-        select: ['id', 'price'],
-      });
-      const toSave: Pick<ItemEntity, 'id' | 'price'>[] = [];
-      for (const row of rows) {
-        const newPrice = adjustPriceByPercentAndMultiple(row.price, percentage, multiple);
-        if (newPrice < MIN_ITEM_PRICE_AFTER_ADJUST) {
-          skippedBelowMin += 1;
-          continue;
-        }
-        if (newPrice !== row.price) {
-          toSave.push({ id: row.id, price: newPrice });
-          changedIds.push(row.id);
-        }
-      }
-      if (!_.isEmpty(toSave)) {
-        await repo.save(toSave);
-        for (const saved of toSave) {
-          const oldRow = rows.find((row) => row.id === saved.id);
-          if (oldRow) {
-            await this.itemHistoryService.persistSingleDelta(manager, saved.id, user, {
-              field: ITEM_HISTORY_FIELD_PRICE,
-              oldValue: String(oldRow.price),
-              newValue: String(saved.price),
-            });
+
+    await manager.transaction(async (transactionManager) => {
+      const itemRepo = transactionManager.getRepository(ItemEntity);
+
+      for (const chunk of _.chunk(ids, this.itemBulkChunkSize)) {
+        const rows = await itemRepo.find({
+          where: { id: In(chunk) },
+          select: ['id', 'price'],
+        });
+        const toSave: Pick<ItemEntity, 'id' | 'price'>[] = [];
+        const priceChanges: { id: number; oldPrice: number; newPrice: number; }[] = [];
+
+        for (const row of rows) {
+          const newPrice = adjustPriceByPercentAndMultiple(row.price, percentage, multiple);
+          if (newPrice < MIN_ITEM_PRICE_AFTER_ADJUST) {
+            skippedBelowMin += 1;
+            continue;
+          }
+          if (newPrice !== row.price) {
+            toSave.push({ id: row.id, price: newPrice });
+            priceChanges.push({ id: row.id, oldPrice: row.price, newPrice });
           }
         }
+
+        if (_.isEmpty(toSave)) {
+          continue;
+        }
+
+        await itemRepo.save(toSave);
+
+        for (const { id, oldPrice, newPrice } of priceChanges) {
+          await this.itemHistoryService.persistSingleDelta(transactionManager, id, user, {
+            field: ITEM_HISTORY_FIELD_PRICE,
+            oldValue: String(oldPrice),
+            newValue: String(newPrice),
+          });
+        }
+
+        changedIds.push(...priceChanges.map(({ id }) => id));
       }
-    }
+    });
+
     if (!_.isEmpty(changedIds)) {
       await this.refreshRedisForItemIds(changedIds);
     }

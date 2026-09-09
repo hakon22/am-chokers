@@ -27,6 +27,7 @@
     "cron:clear-user-refresh-tokens:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/clear-user-refresh-tokens.js >> /srv/logs/clear-user-refresh-tokens.log 2>&1",
     "cron:fetch-yandex-metrics:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/yandex-direct.service.js >> /srv/logs/yandex-direct.service.log 2>&1",
     "cron:increase-item-prices:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/increase-item-prices.js >> /srv/logs/increase-item-prices.log 2>&1",
+    "cron:clear-expired-out-stock:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/clear-expired-out-stock.js >> /srv/logs/clear-expired-out-stock.log 2>&1",
     "cron:telegram-order-rating-reminder:run": "cross-env DB='HOST' CRON='TRUE' NODE_ENV=production node cron/telegram-order-rating-reminder.js >> /srv/logs/telegram-order-rating-reminder.log 2>&1"
   },
   "dependencies": {

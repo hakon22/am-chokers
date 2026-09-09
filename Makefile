@@ -37,6 +37,9 @@ clear-user-refresh-tokens:
 telegram-order-rating-reminder:
 	cross-env DB='LOCAL' CRON='TRUE' tsx cron/telegram-order-rating-reminder.ts
 
+clear-expired-out-stock:
+	cross-env DB='LOCAL' CRON='TRUE' tsx cron/clear-expired-out-stock.ts
+
 build-docker-dev:
 	docker compose -f docker-compose.dev.yml build
 
