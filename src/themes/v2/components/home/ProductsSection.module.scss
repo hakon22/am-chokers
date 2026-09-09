@@ -142,13 +142,15 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .card:hover .imgPrimary {
-    opacity: 0;
-  }
+  .card:hover .cardImgHasHover.cardImgHoverReady {
+    .imgPrimary {
+      opacity: 0;
+    }
 
-  .card:hover .imgSecondary {
-    opacity: 1;
-    pointer-events: auto;
+    .imgSecondary {
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 }
 
