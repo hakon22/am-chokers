@@ -350,14 +350,17 @@ $admin-item-preview-w: 200px;
     display: block !important;
   }
 
-  :global(a.image-hover) {
+  :global(a.image-hover),
+  :global(.image-hover) {
     display: block !important;
+    position: relative;
     min-height: 0;
     background: $bgAlt;
   }
 
-  :global(.image-hover) > div {
-    position: relative;
+  :global(.image-hover) > div:not(.image-label) {
+    position: absolute;
+    inset: 0;
     width: 100% !important;
     height: 100% !important;
     min-height: 0;
