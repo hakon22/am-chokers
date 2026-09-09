@@ -526,6 +526,7 @@ export default {
         promotionalName: '{{ name }}',
         promotionalDiscount: '-{{ discount }} ₽',
         notFoundContent: 'Корзина пуста',
+        loading: 'Загрузка...',
         pickupAddress: 'Станция МЦК Коптево',
         pickupContactNote: 'Мы свяжемся с вами через телеграм или по номеру телефона',
         deliveryDateTime: 'Дата и время доставки',

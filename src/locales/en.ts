@@ -526,6 +526,7 @@ export default {
         promotionalName: '{{ name }}',
         promotionalDiscount: '-{{ discount }} ₽',
         notFoundContent: 'No items in cart',
+        loading: 'Loading...',
         pickupAddress: 'MCC Koptevo station',
         pickupContactNote: 'We will contact you via Telegram or by phone',
         deliveryDateTime: 'Delivery date and time',

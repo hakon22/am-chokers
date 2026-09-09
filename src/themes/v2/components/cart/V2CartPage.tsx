@@ -233,9 +233,10 @@ export const V2CartPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const { name, phone, key } = useAppSelector((state) => state.user);
   const lang = useUserLang();
-  const { cart } = useAppSelector((state) => state.cart);
+
+  const { name, phone, key, token, loadingStatus: userLoadingStatus } = useAppSelector((state) => state.user);
+  const { cart, loadingStatus: cartLoadingStatus } = useAppSelector((state) => state.cart);
   const { siteSettings } = useAppSelector((state) => state.app);
   const { pickup: pickupSettings } = siteSettings;
 
@@ -248,19 +249,28 @@ export const V2CartPage = () => {
   const defaultDelivery: CreateOrderInterface['delivery'] = { price: 0, address: '' };
 
   const filteredCart = useMemo(() => cart.filter(({ item }) => !(item.deleted || item.outStock)), [cart]);
+  const isWaitingForSession = userLoadingStatus === 'idle' || (!token && userLoadingStatus === 'loading');
+  const isWaitingForCartFetch = Boolean(token) && (cartLoadingStatus === 'idle' || cartLoadingStatus === 'loading') && isEmpty(cart);
+  const isCartRequestPending = isWaitingForSession || isWaitingForCartFetch;
 
   const [cartList, setCartList] = useState<CartItemInterface[]>(filteredCart);
   const setCartListEffect = useEffectEvent(setCartList);
+  const hasAppliedDefaultCartSelection = useRef(false);
 
   /**
-   * После обновления корзины в Redux (в т.ч. fetchCart после входа) строки — новые объекты; Checkbox.Group
-   * сравнивает value с Checkbox по ссылке. Пересобираем выбор по id товара, чтобы UI совпадал с выбранными позициями.
+   * После первой загрузки корзины выбираем все доступные позиции (как при заходе с уже заполненным Redux).
+   * Дальше пересобираем выбор по id товара: Checkbox.Group сравнивает value по ссылке.
    */
   useEffect(() => {
     setCartListEffect((previousCartList) => {
       if (isEmpty(previousCartList)) {
+        if (!hasAppliedDefaultCartSelection.current && !isEmpty(filteredCart)) {
+          hasAppliedDefaultCartSelection.current = true;
+          return filteredCart;
+        }
         return previousCartList;
       }
+      hasAppliedDefaultCartSelection.current = true;
       const selectedItemIds = new Set(previousCartList.map((cartItem) => cartItem.item.id));
       return filteredCart.filter((cartItem) => selectedItemIds.has(cartItem.item.id));
     });
@@ -696,23 +706,30 @@ export const V2CartPage = () => {
 
         {/* ── Items column ─────────────────────────────── */}
         <div className={styles.itemsCol}>
-          <Checkbox.Group value={cartList} onChange={setCartList as any}>
-            {cart.length === 0 && (
-              <div className={styles.empty}>
-                <NotFoundContent text={t('notFoundContent')} />
-              </div>
-            )}
-            {cart.map((item) => (
-              <CartItemRow
-                key={item.id}
-                item={item}
-                lang={lang}
-                width={width}
-                height={height}
-                setCartList={setCartList}
-              />
-            ))}
-          </Checkbox.Group>
+          {isCartRequestPending ? (
+            <div className={styles.itemsLoading} role="status" aria-live="polite">
+              <Spin size="large" />
+              <span className={styles.itemsLoadingText}>{t('loading')}</span>
+            </div>
+          ) : (
+            <Checkbox.Group value={cartList} onChange={setCartList as any}>
+              {isEmpty(cart) && (
+                <div className={styles.empty}>
+                  <NotFoundContent text={t('notFoundContent')} />
+                </div>
+              )}
+              {cart.map((item) => (
+                <CartItemRow
+                  key={item.id}
+                  item={item}
+                  lang={lang}
+                  width={width}
+                  height={height}
+                  setCartList={setCartList}
+                />
+              ))}
+            </Checkbox.Group>
+          )}
         </div>
 
         {/* ── Summary panel ────────────────────────────── */}

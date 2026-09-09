@@ -346,6 +346,21 @@ $success: v2.$v2-success;
   svg, span:first-child { font-size: 40px; }
 }
 
+.itemsLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 0;
+}
+
+.itemsLoadingText {
+  font-family: v2.$v2-font-sans;
+  font-size: 15px;
+  color: $textS;
+}
+
 .emptyText {
   font-size: 15px;
   color: $textS;
