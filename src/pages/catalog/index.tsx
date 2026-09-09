@@ -408,7 +408,7 @@ const Catalog = ({ items: propsItems, paginationParams: propsPaginationParams, i
 
   const getStatistics = async (params?: CatalogFiltersInterface) => {
     try {
-      const { data } = await axios.get<{ code: number; statistics: Record<number, number>; }>(routes.item.getStatistics({ isServer: false }), {
+      const { data } = await axios.get<{ code: number; statistics: Record<number, number>; }>(routes.item.getStatistics({ isServer: true }), {
         params,
       });
       if (data.code === 1) {

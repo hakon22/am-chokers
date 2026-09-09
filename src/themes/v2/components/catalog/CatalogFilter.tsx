@@ -138,7 +138,7 @@ export const CatalogFilter = ({
 
     try {
       const { data: collectionsResponse } = await axios.get<{ code: number; itemCollections: ItemCollectionInterface[]; }>(
-        routes.itemCollection.findMany({ isServer: false }),
+        routes.itemCollection.findMany({ isServer: true }),
       );
 
       if (collectionsResponse.code === 1) {
