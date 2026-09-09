@@ -128,6 +128,17 @@ $success: v2.$v2-success;
   background: $bgAlt;
   line-height: 0;
   flex-shrink: 0;
+
+  // Сильнее, чем body.v2-theme .image-hover:hover — без сдвига и тени, смена фото остаётся
+  :global(body.v2-theme) & :global(.image-hover) {
+    box-shadow: none;
+    transform: none;
+
+    &:hover {
+      box-shadow: none;
+      transform: none;
+    }
+  }
 }
 
 // checkbox overlaid on image — shown only on mobile

@@ -143,6 +143,7 @@ const CartItemRow = ({
           <ImageHover
             height={height}
             width={width}
+            imageAlt={name}
             style={{ borderRadius: 10, display: 'block' }}
             images={item.item?.images ?? []}
           />
@@ -313,11 +314,11 @@ export const V2CartPage = () => {
   const priceForFreeDelivery = 10000;
   const price = getOrderPrice(getPreparedOrder(positions, 0));
 
+  const width = isMobile ? 80 : 100;
+  const height = Math.round(width * 1.3);
   const isFull = cartList.length === filteredCart.length;
   const indeterminate = cartList.length > 0 && cartList.length < filteredCart.length;
 
-  const width = isMobile ? 80 : 100;
-  const height = Math.round(width * 1.3);
   const deliveryWidgetHeightStyle = `${deliveryWidgetHeightPx}px`;
 
   /**
