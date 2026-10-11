@@ -200,7 +200,7 @@ export const getYandexWidgetPhysicalDimsParams = (items: { count: number; }[]): 
 /**
  * GUID склада отгрузки по умолчанию для расчёта цены/сроков в виджете ПВЗ
  */
-export const DEFAULT_YANDEX_SOURCE_PLATFORM_STATION_ID = '866b253c-a0d8-4c85-b0b5-c692c9a5d9b6';
+export const DEFAULT_YANDEX_SOURCE_PLATFORM_STATION_ID = '019c7b97b5fe77f68235ff9b8a6eabc2';
 
 /**
  * Форматирует базовую стоимость доставки для виджета Яндекс Доставки
