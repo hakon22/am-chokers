@@ -87,7 +87,7 @@ export const routes = {
   // integration
   integration: {
     telegram: {
-      webhook: [apiPath, 'telegram'].join('/'),
+      webhook: [apiPath, 'telegram', 'webhook'].join('/'),
       webAppScript: [apiPath, 'integration', 'telegram-web-app.js'].join('/'),
       bootstrapLog: [apiPath, 'integration', 'telegram-web-app-bootstrap-log'].join('/'),
     },

@@ -121,8 +121,14 @@ export class TelegramBotService {
       }
 
       if (mode === 'production') {
-        await this.bot.telegram.setWebhook(`${process.env.NEXT_PUBLIC_PRODUCTION_HOST}${routes.integration.telegram.webhook}`);
-        this.loggerService.info(this.TAG, 'Telegram bot initialized (production webhook)');
+        const webhookUrl = (process.env.TELEGRAM_WEBHOOK_URL ?? '').trim();
+
+        if (_.isEmpty(webhookUrl)) {
+          this.loggerService.warn(this.TAG, 'TELEGRAM_WEBHOOK_URL is not set, Telegram webhook is not registered');
+        } else {
+          await this.bot.telegram.setWebhook(webhookUrl);
+          this.loggerService.info(this.TAG, `Telegram bot initialized (production webhook): ${webhookUrl}`);
+        }
       } else if (mode === 'development') {
         await this.startLongPollingInDevelopment();
       } else {
