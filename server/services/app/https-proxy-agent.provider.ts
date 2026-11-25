@@ -17,7 +17,7 @@ export class HttpsProxyAgentProvider {
       return;
     }
 
-    this.httpsProxyAgent = new HttpsProxyAgent(`http://${proxyUser}:${proxyPass}@${proxyHost}`);
+    this.httpsProxyAgent = new HttpsProxyAgent(`https://${proxyUser}:${proxyPass}@${proxyHost}`);
   }
 
   /**
